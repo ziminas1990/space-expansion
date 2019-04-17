@@ -10,6 +10,7 @@ conan_basic_setup(TARGETS)
 file(GLOB_RECURSE ALL_SOURCES_FILES "*.h" "*.cpp")
 
 add_executable(${PROJECT_NAME} ${ALL_SOURCES_FILES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
