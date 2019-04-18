@@ -10,14 +10,14 @@ class Conveyor
 public:
   Conveyor(uint16_t nTotalNumberOfThreads);
 
-  void addLogicToChain(IAbstractLogicUptr&& pLogic);
+  void addLogicToChain(IAbstractLogicPtr&& pLogic);
 
   void proceed(size_t nTicksCount);
-  void joinAsSlave();
+  [[noreturn]] void joinAsSlave();
 
 private:
   boost::fibers::barrier m_Barrier;
-  std::vector<IAbstractLogicUptr> m_LogicChain;
+  std::vector<IAbstractLogicPtr> m_LogicChain;
 
   struct State
   {

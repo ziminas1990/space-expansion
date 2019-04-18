@@ -7,7 +7,7 @@ Conveyor::Conveyor(uint16_t nTotalNumberOfThreads)
   : m_Barrier(nTotalNumberOfThreads)
 {}
 
-void Conveyor::addLogicToChain(IAbstractLogicUptr&& pLogic)
+void Conveyor::addLogicToChain(IAbstractLogicPtr&& pLogic)
 {
   m_LogicChain.emplace_back(std::move(pLogic));
 }
@@ -19,7 +19,7 @@ void Conveyor::proceed(size_t nTicksCount)
   for(uint16_t nLogicId = 0; nLogicId < m_LogicChain.size(); ++nLogicId)
   {
     m_State.nLogicId = nLogicId;
-    IAbstractLogicUptr& pLogic = m_LogicChain[nLogicId];
+    IAbstractLogicPtr& pLogic = m_LogicChain[nLogicId];
     uint16_t nTotalStages = pLogic->getStagesCount();
     for (uint16_t nStageId = 0; nStageId < nTotalStages; ++nStageId)
     {
@@ -37,7 +37,7 @@ void Conveyor::joinAsSlave()
 {
   while (true) {
     m_Barrier.wait();
-    IAbstractLogicUptr& pLogic = m_LogicChain[m_State.nLogicId];
+    IAbstractLogicPtr& pLogic = m_LogicChain[m_State.nLogicId];
     pLogic->proceedStage(m_State.nStageId, m_State.nTicksCount);
     m_Barrier.wait();
   }

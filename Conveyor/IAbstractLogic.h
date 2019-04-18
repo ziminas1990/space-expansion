@@ -24,6 +24,6 @@ public:
   virtual void proceedStage(uint16_t nStageId, size_t nTicksCount) = 0;
 };
 
-using IAbstractLogicUptr = std::unique_ptr<IAbstractLogic>;
+using IAbstractLogicPtr = std::shared_ptr<IAbstractLogic>;
 
 } // namespace conveyor

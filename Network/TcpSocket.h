@@ -11,28 +11,27 @@
 namespace network
 {
 
-class UdpSocket : public IChannel
+class TcpSocket : public IChannel
 {
-  using udp = boost::asio::ip::udp;
+  using tcp = boost::asio::ip::tcp;
 public:
-  UdpSocket(boost::asio::io_service& io_context, uint16_t nLocalPort,
-            udp::endpoint const& remoteAddress);
-  UdpSocket(UdpSocket const& other) = delete;
-  UdpSocket(UdpSocket&& other)      = delete;
+  TcpSocket(boost::asio::io_service& io_context);
+  TcpSocket(TcpSocket const& other) = delete;
+  TcpSocket(TcpSocket&& other)      = delete;
 
   void attachToTerminal(ITerminalPtr pTerminal);
 
   // Message pMessage will be copied to internal buffer (probably, without allocation)
   bool sendMessage(MessagePtr pMessage, size_t nLength) override;
 
+  tcp::socket& getSocket() { return m_socket; }
+
 private:
   void receivingData();
 
   void onDataReceived(boost::system::error_code const& error, std::size_t nTotalBytes);
 private:
-  udp::socket    m_socket;
-  udp::endpoint  m_remoteAddress;
-  udp::endpoint  m_senderAddress;
+  tcp::socket    m_socket;
 
   ITerminalPtr   m_pTerminal;
 
@@ -41,6 +40,6 @@ private:
   ChunksPool     m_ChunksPool;
 };
 
-using UdpSocketUptr = std::unique_ptr<UdpSocket>;
+using TcpSocketPtr = std::shared_ptr<TcpSocket>;
 
 } // namespace network

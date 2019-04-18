@@ -1,19 +1,19 @@
 #include <thread>
 #include "Conveyor/Conveyor.h"
 
-#include "Network/UdpServer.h"
+//#include "Network/UdpServer.h"
 
 int main(int, char*[])
 {
   uint16_t nTotalThreadsCount = 4;
   conveyor::Conveyor conveyor(nTotalThreadsCount);
 
-  network::UdpServerUptr pUdpServer = std::make_unique<network::UdpServer>();
+//  network::UdpServerPtr pUdpServer = std::make_shared<network::UdpServer>();
 
-  for(uint16_t nPort = 5000; nPort < 5100; nPort++)
-    pUdpServer->addHandlerOnPort(nPort);
+//  for(uint16_t nPort = 5000; nPort < 5100; nPort++)
+//    pUdpServer->addHandlerOnPort(nPort);
 
-  conveyor.addLogicToChain(std::move(pUdpServer));
+//  conveyor.addLogicToChain(std::move(pUdpServer));
 
   for(size_t i = 1; i < nTotalThreadsCount; ++i)
     new std::thread([&conveyor]() { conveyor.joinAsSlave();} );

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package spex;
+
+message SecurityMessage
+{
+  message LoginRequest
+  {
+    string login      = 1;
+    string password   = 2;
+    uint32 sourcePort = 3;
+  }
+
+  message AccessGranted
+  {
+    uint32 port        = 1;
+    uint64 sessionKey  = 2;
+  }
+
+  message AccessDenied {}
+
+  message LogoutRequest
+  {
+    uint64 sessionKey = 1;
+  }
+
+  message LogoutIndication {}
+
+  oneof choice {
+    // Commands:
+    LoginRequest  loginReq  = 1;
+    LogoutRequest logoutReq = 2;
+
+    // Responces:
+    AccessGranted    accessGrantedResp = 3;
+    AccessDenied     accessDeniedResp  = 4;
+    LogoutIndication logoutInd         = 5;
+  }
+}
+
+message CommandCenterMessage
+{
+  uint32 tick = 1;
+
+  oneof choice {
+    // Inherited interfaces
+    SecurityMessage security = 2;
+  }
+}
+
