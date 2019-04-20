@@ -8,6 +8,8 @@ ConnectionManager::ConnectionManager(boost::asio::io_service& ioContext)
 
 void ConnectionManager::addConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal)
 {
+  pChannel->attachToTerminal(pTerminal);
+  pTerminal->attachToChannel(pChannel);
   m_Connections.emplace_back(std::move(pChannel), std::move(pTerminal));
 }
 
@@ -23,7 +25,10 @@ bool ConnectionManager::prephareStage(uint16_t)
 void ConnectionManager::proceedStage(uint16_t, size_t)
 {
   size_t nConnectionId = m_nNextConnectionId.fetch_add(1);
-  m_Connections[nConnectionId].m_pTerminal->handleBufferedMessages();
+  while (nConnectionId < m_Connections.size()) {
+    m_Connections[nConnectionId].m_pTerminal->handleBufferedMessages();
+    nConnectionId = m_nNextConnectionId.fetch_add(1);
+  }
 }
 
 } // namespace network

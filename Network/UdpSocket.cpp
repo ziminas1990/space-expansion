@@ -1,5 +1,7 @@
 #include "UdpSocket.h"
 
+#include <boost/array.hpp>
+
 namespace network {
 
 UdpSocket::UdpSocket(boost::asio::io_service &io_context, uint16_t nLocalPort,

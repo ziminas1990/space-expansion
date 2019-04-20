@@ -28,7 +28,7 @@ public:
   // logic shouldn't be proceeded again
   // If functions returns 1 or 0, it means "procced again as soon as possible"
   // Note: in-game time could differ from real time
-  virtual uint16_t getCooldownTimeUs() { return 1; }
+  virtual size_t getCooldownTimeUs() const { return 1; }
 };
 
 using IAbstractLogicPtr = std::shared_ptr<IAbstractLogic>;

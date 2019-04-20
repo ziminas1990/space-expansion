@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/array.hpp>
 #include <boost/asio.hpp>
 
 #include <atomic>
@@ -21,11 +20,9 @@ public:
   uint16_t getStagesCount() override { return 1; }
   bool     prephareStage(uint16_t nStageId) override;
   void     proceedStage(uint16_t nStageId, size_t nIntervalUs) override;
-  uint16_t getCooldownTimeUs() override { return 3000; }
+  size_t   getCooldownTimeUs() const override { return 3000; }
 
 private:
-  boost::asio::io_service& m_IOContext;
-
   struct Connection
   {
     Connection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal)
@@ -35,9 +32,13 @@ private:
     IChannelPtr         m_pSocket;
     BufferedTerminalPtr m_pTerminal;
   };
-  std::vector<Connection> m_Connections;
 
-  std::atomic_size_t m_nNextConnectionId;
+private:
+  boost::asio::io_service& m_IOContext;
+  std::vector<Connection>  m_Connections;
+  std::atomic_size_t       m_nNextConnectionId;
 };
+
+using ConnectionManagerPtr = std::shared_ptr<ConnectionManager>;
 
 } // namespace network

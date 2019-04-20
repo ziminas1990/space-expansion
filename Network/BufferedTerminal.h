@@ -12,12 +12,18 @@ class BufferedTerminal : public ITerminal
 public:
   BufferedTerminal();
 
+  // overrides from ITerminal interface
   void onMessageReceived(MessagePtr pMessage, size_t nLength) override;
+  void attachToChannel(IChannelPtr pChannel) override;
+  void detachFromChannel() override { m_pChannel.reset(); }
 
   void handleBufferedMessages();
 
 protected:
   virtual void handleMessage(MessagePtr pMessage, size_t nLength) = 0;
+  bool send(MessagePtr pMessage, size_t nLength) {
+    return m_pChannel && m_pChannel->sendMessage(pMessage, nLength);
+  }
 
 private:
   struct BufferedMessage
@@ -29,8 +35,22 @@ private:
 private:
   ChunksPool m_ChunksPool;
   std::vector<BufferedMessage> m_messages;
+
+  IChannelPtr m_pChannel;
 };
 
-using BufferedTerminalPtr     = std::shared_ptr<BufferedTerminal>;
+using BufferedTerminalPtr = std::shared_ptr<BufferedTerminal>;
+
+
+class IBufferedTerminalFactory
+{
+public:
+  virtual ~IBufferedTerminalFactory() = default;
+
+  virtual BufferedTerminalPtr make() = 0;
+};
+
+using IBufferedTerminalFactoryPtr     = std::shared_ptr<IBufferedTerminalFactory>;
+using IBufferedTerminalFactoryWeakPtr = std::weak_ptr<IBufferedTerminalFactory>;
 
 } // namespace network

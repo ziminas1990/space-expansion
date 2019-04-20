@@ -5,7 +5,6 @@
 #include "ChunksPool.h"
 #include "Interfaces.h"
 
-#include <boost/array.hpp>
 #include <boost/asio.hpp>
 
 namespace network
@@ -20,7 +19,10 @@ public:
   UdpSocket(UdpSocket const& other) = delete;
   UdpSocket(UdpSocket&& other)      = delete;
 
-  void attachToTerminal(ITerminalPtr pTerminal);
+  // overrides from IChannel
+  bool isValid() const override { return m_socket.is_open(); }
+  void attachToTerminal(ITerminalPtr pTerminal) override;
+  void detachFromTerminal() override { m_pTerminal.reset(); }
 
   // Message pMessage will be copied to internal buffer (probably, without allocation)
   bool sendMessage(MessagePtr pMessage, size_t nLength) override;

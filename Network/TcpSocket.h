@@ -5,7 +5,6 @@
 #include "ChunksPool.h"
 #include "Interfaces.h"
 
-#include <boost/array.hpp>
 #include <boost/asio.hpp>
 
 namespace network
@@ -18,13 +17,19 @@ public:
   TcpSocket(boost::asio::io_service& io_context);
   TcpSocket(TcpSocket const& other) = delete;
   TcpSocket(TcpSocket&& other)      = delete;
+  ~TcpSocket() override { m_socket.close(); }
 
-  void attachToTerminal(ITerminalPtr pTerminal);
+  void startReceiving() { receivingData(); }
+
+  // overrides from IChannel
+  bool isValid() const override { return m_socket.is_open(); }
+  void attachToTerminal(ITerminalPtr pTerminal) override;
+  void detachFromTerminal() override { m_pTerminal.reset(); }
 
   // Message pMessage will be copied to internal buffer (probably, without allocation)
   bool sendMessage(MessagePtr pMessage, size_t nLength) override;
 
-  tcp::socket& getSocket() { return m_socket; }
+  tcp::socket& getNativeSocket() { return m_socket; }
 
 private:
   void receivingData();

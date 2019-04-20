@@ -19,11 +19,16 @@ void BufferedTerminal::onMessageReceived(MessagePtr pMessage, size_t nLength)
   m_messages.push_back(std::move(message));
 }
 
+void BufferedTerminal::attachToChannel(IChannelPtr pChannel)
+{
+  m_pChannel = pChannel;
+}
+
 void BufferedTerminal::handleBufferedMessages()
 {
   for(BufferedMessage& message : m_messages) {
     handleMessage(message.m_pBody, message.m_nLength);
-    if (m_ChunksPool.release(message.m_pBody))
+    if (!m_ChunksPool.release(message.m_pBody))
       delete [] message.m_pBody;
   }
   m_messages.clear();

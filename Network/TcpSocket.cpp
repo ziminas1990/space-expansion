@@ -1,14 +1,14 @@
 #include "TcpSocket.h"
 
+#include <boost/array.hpp>
+
 namespace network {
 
 TcpSocket::TcpSocket(boost::asio::io_service &io_context)
   : m_socket(io_context),
     m_nReceiveBufferSize(8196),
     m_pReceiveBuffer(new uint8_t[m_nReceiveBufferSize])
-{
-  receivingData();
-}
+{}
 
 void TcpSocket::attachToTerminal(ITerminalPtr pTerminal)
 {
@@ -46,6 +46,8 @@ void TcpSocket::onDataReceived(boost::system::error_code const& error,
     if (m_pTerminal)
       m_pTerminal->onMessageReceived(m_pReceiveBuffer, nTotalBytes);
     receivingData();
+  } else {
+    std::cerr << "TcpSocket::onDataReceived: " << error.message() << std::endl;
   }
 }
 
