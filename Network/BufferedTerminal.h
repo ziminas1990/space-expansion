@@ -3,14 +3,14 @@
 #include "Interfaces.h"
 #include <functional>
 #include <vector>
+#include "ChunksPool.h"
 
 namespace network {
 
 class BufferedTerminal : public ITerminal
 {
 public:
-  BufferedTerminal(size_t nCapacity);
-  ~BufferedTerminal() override;
+  BufferedTerminal();
 
   void onMessageReceived(MessagePtr pMessage, size_t nLength) override;
 
@@ -20,18 +20,17 @@ protected:
   virtual void handleMessage(MessagePtr pMessage, size_t nLength) = 0;
 
 private:
-  bool ableToSave(size_t nLength) const { return nLength <= m_nBytesLeft; }
-  void onMessagePushed(size_t nLength);
-
-  uint8_t* front()                { return m_pBuffer + m_nBytesReceived; }
-  size_t   bytesAvaliable() const { return m_nBytesLeft; }
+  struct BufferedMessage
+  {
+    uint8_t* m_pBody       = nullptr;
+    size_t   m_nLength = 0;
+  };
 
 private:
-  size_t   m_nBytesReceived;
-  size_t   m_nBytesLeft;
-  uint8_t* m_pBuffer;
-  std::vector<size_t> m_messagesLengths;
+  ChunksPool m_ChunksPool;
+  std::vector<BufferedMessage> m_messages;
 };
 
+using BufferedTerminalPtr     = std::shared_ptr<BufferedTerminal>;
 
 } // namespace network

@@ -35,7 +35,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
-  COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra"
+  COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Wextra;-Werror=return-type"
 )
 add_dependencies(${PROJECT_NAME} protobuf-generated)
 target_link_libraries(${PROJECT_NAME} ${CONAN_TARGETS})

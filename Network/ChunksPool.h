@@ -6,9 +6,9 @@
 class ChunksPool
 {
 public:
-  ChunksPool(size_t nSmallChunksSize  = 256,  size_t nSmallChunksCount  = 64,
-             size_t nMediumChunksSize = 1024, size_t nMediumChunksCount = 16,
-             size_t nHugeChunksSize   = 8192, size_t nHugeChunksCount   = 8)
+  ChunksPool(size_t nSmallChunksSize  = 256,   size_t nSmallChunksCount  = 512,
+             size_t nMediumChunksSize = 2048,  size_t nMediumChunksCount = 64,
+             size_t nHugeChunksSize   = 16384, size_t nHugeChunksCount   = 16)
     : m_nSmallChunksSize(nSmallChunksSize),   m_nSmallChunksCount(nSmallChunksCount),
       m_nSmallArenaSize(nSmallChunksSize * nSmallChunksCount),
       m_nMediumChunksSize(nMediumChunksSize), m_nMediumChunksCount(nMediumChunksCount),
@@ -52,18 +52,22 @@ public:
     return pChunk;
   }
 
-  void release(uint8_t* pChunk)
+  bool release(uint8_t* pChunk)
   {
     if (pChunk < m_pArena)
-      return;
+      return false;
     size_t nOffset = static_cast<size_t>(pChunk - m_pArena);
     if (nOffset < m_nSmallArenaSize) {
       m_smallChunks.push_back(pChunk);
+      return true;
     } else if (nOffset < m_nSmallArenaSize + m_nMediumChunksSize) {
       m_mediumChunks.push_back(pChunk);
+      return true;
     } else if (nOffset < m_nSmallArenaSize + m_nMediumChunksSize + m_nHugeArenaSize) {
       m_hugeChunks.push_back(pChunk);
+      return true;
     }
+    return false;
   }
 
 private:

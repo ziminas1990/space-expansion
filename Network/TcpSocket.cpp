@@ -18,22 +18,15 @@ void TcpSocket::attachToTerminal(ITerminalPtr pTerminal)
 bool TcpSocket::sendMessage(MessagePtr pMessage, size_t nLength)
 {
   uint8_t* pChunk = m_ChunksPool.get(nLength);
-  if (pChunk) {
-    memcpy(pChunk, pMessage, nLength);
-    m_socket.async_send(
-          boost::asio::buffer(pMessage, nLength),
-          [this, pChunk](const boost::system::error_code&, std::size_t) {
-            m_ChunksPool.release(pChunk);
-          });
-  } else {
+  if (!pChunk)
     pChunk = new uint8_t[nLength];
-    memcpy(pChunk, pMessage, nLength);
-    m_socket.async_send(
-          boost::asio::buffer(pMessage, nLength),
-          [pChunk](const boost::system::error_code&, std::size_t) {
+  memcpy(pChunk, pMessage, nLength);
+  m_socket.async_send(
+        boost::asio::buffer(pMessage, nLength),
+        [this, pChunk](const boost::system::error_code&, std::size_t) {
+          if (!m_ChunksPool.release(pChunk))
             delete [] pChunk;
-          });
-  }
+        });
   return true;
 }
 

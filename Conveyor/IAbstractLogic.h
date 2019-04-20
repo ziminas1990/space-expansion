@@ -21,7 +21,14 @@ public:
   virtual bool prephareStage(uint16_t nStageId) = 0;
 
   // This function will be called for every stage, if prhephareStage() returned true
-  virtual void proceedStage(uint16_t nStageId, size_t nTicksCount) = 0;
+  // nIntervalUs - in-game time (im microseconds), that passed since last proceed
+  virtual void proceedStage(uint16_t nStageId, size_t nIntervalUs) = 0;
+
+  // This function returns a number of microseconds (of in-game time), during wich
+  // logic shouldn't be proceeded again
+  // If functions returns 1 or 0, it means "procced again as soon as possible"
+  // Note: in-game time could differ from real time
+  virtual uint16_t getCooldownTimeUs() { return 1; }
 };
 
 using IAbstractLogicPtr = std::shared_ptr<IAbstractLogic>;

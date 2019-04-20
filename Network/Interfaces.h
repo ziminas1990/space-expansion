@@ -50,4 +50,7 @@ using IChannelPtr          = std::shared_ptr<IChannel>;
 using IProtobufTerminalPtr = std::shared_ptr<IProtobufTerminal>;
 using IProtobufChannelPtr  = std::shared_ptr<IProtobufChannel>;
 
+using IProtobufChannelWeakPtr  = std::weak_ptr<IProtobufChannel>;
+using IProtobufTerminalWeakPtr = std::weak_ptr<IProtobufTerminal>;
+
 } // namespace network

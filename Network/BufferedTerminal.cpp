@@ -2,44 +2,31 @@
 
 namespace network {
 
-BufferedTerminal::BufferedTerminal(size_t nCapacity) :
-  m_nBytesReceived(0),
-  m_nBytesLeft(nCapacity),
-  m_pBuffer(new uint8_t[nCapacity])
+BufferedTerminal::BufferedTerminal()
 {
-  m_messagesLengths.reserve(0xFF);
-}
-
-BufferedTerminal::~BufferedTerminal()
-{
-  delete [] m_pBuffer;
+  m_messages.reserve(0xFF);
 }
 
 void BufferedTerminal::onMessageReceived(MessagePtr pMessage, size_t nLength)
 {
-  if (!ableToSave(nLength))
-    return;
-  memcpy(front(), pMessage, nLength);
-  onMessagePushed(nLength);
+  BufferedMessage message;
+  message.m_pBody = m_ChunksPool.get(nLength);
+  if (message.m_pBody == nullptr)
+    message.m_pBody = new uint8_t[nLength];
+  message.m_nLength = nLength;
+  memcpy(message.m_pBody, pMessage, nLength);
+
+  m_messages.push_back(std::move(message));
 }
 
 void BufferedTerminal::handleBufferedMessages()
 {
-  uint8_t* pMessage = m_pBuffer;
-  for (size_t nLength : m_messagesLengths) {
-    handleMessage(pMessage, nLength);
-    pMessage += nLength;
+  for(BufferedMessage& message : m_messages) {
+    handleMessage(message.m_pBody, message.m_nLength);
+    if (m_ChunksPool.release(message.m_pBody))
+      delete [] message.m_pBody;
   }
-  m_messagesLengths.clear();
-  m_nBytesLeft     += m_nBytesReceived;
-  m_nBytesReceived  = 0;
-}
-
-void BufferedTerminal::onMessagePushed(size_t nLength)
-{
-  m_nBytesReceived += nLength;
-  m_nBytesLeft     -= nLength;
-  m_messagesLengths.push_back(nLength);
+  m_messages.clear();
 }
 
 } // namespace network

@@ -7,19 +7,30 @@ Conveyor::Conveyor(uint16_t nTotalNumberOfThreads)
   : m_Barrier(nTotalNumberOfThreads)
 {}
 
-void Conveyor::addLogicToChain(IAbstractLogicPtr&& pLogic)
+void Conveyor::addLogicToChain(IAbstractLogicPtr pLogic)
 {
-  m_LogicChain.emplace_back(std::move(pLogic));
+  LogicContext context;
+  context.m_pLogic             = pLogic;
+  context.m_nLastProceedAt     = m_State.nCurrentTimeUs;
+  context.m_nDoNotDisturbUntil = 0;
+  m_LogicChain.push_back(std::move(context));
 }
 
-void Conveyor::proceed(size_t nTicksCount)
+void Conveyor::proceed(size_t nIntervalUs)
 {
-  m_State.reset();
-  m_State.nTicksCount = nTicksCount;
-  for(uint16_t nLogicId = 0; nLogicId < m_LogicChain.size(); ++nLogicId)
+  m_State.nCurrentTimeUs  += nIntervalUs;
+  m_State.pSelectedLogic  = nullptr;
+  for(LogicContext& context : m_LogicChain)
   {
-    m_State.nLogicId = nLogicId;
-    IAbstractLogicPtr& pLogic = m_LogicChain[nLogicId];
+    if (m_State.nCurrentTimeUs < context.m_nDoNotDisturbUntil)
+      continue;
+
+    // prepharing state for proceeding selected logic
+    IAbstractLogic* pLogic  = context.m_pLogic.get();
+    m_State.pSelectedLogic  = pLogic;
+    m_State.nLastIntervalUs = m_State.nCurrentTimeUs - context.m_nLastProceedAt;
+
+    // proceeding logic stages
     uint16_t nTotalStages = pLogic->getStagesCount();
     for (uint16_t nStageId = 0; nStageId < nTotalStages; ++nStageId)
     {
@@ -27,9 +38,11 @@ void Conveyor::proceed(size_t nTicksCount)
         continue;
       m_State.nStageId = nStageId;
       m_Barrier.wait();
-      pLogic->proceedStage(nStageId, nTicksCount);
+      pLogic->proceedStage(nStageId, nIntervalUs);
       m_Barrier.wait();
     }
+    context.m_nDoNotDisturbUntil += pLogic->getCooldownTimeUs();
+    context.m_nLastProceedAt      = m_State.nCurrentTimeUs;
   }
 }
 
@@ -37,17 +50,9 @@ void Conveyor::joinAsSlave()
 {
   while (true) {
     m_Barrier.wait();
-    IAbstractLogicPtr& pLogic = m_LogicChain[m_State.nLogicId];
-    pLogic->proceedStage(m_State.nStageId, m_State.nTicksCount);
+    m_State.pSelectedLogic->proceedStage(m_State.nStageId, m_State.nLastIntervalUs);
     m_Barrier.wait();
   }
-}
-
-void Conveyor::State::reset()
-{
-  nLogicId    = 0;
-  nStageId    = 0;
-  nTicksCount = 0;
 }
 
 } // namespace conveoyr

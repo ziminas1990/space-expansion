@@ -20,22 +20,15 @@ void UdpSocket::attachToTerminal(ITerminalPtr pTerminal)
 bool UdpSocket::sendMessage(MessagePtr pMessage, size_t nLength)
 {
   uint8_t* pChunk = m_ChunksPool.get(nLength);
-  if (pChunk) {
-    memcpy(pChunk, pMessage, nLength);
-    m_socket.async_send_to(
-          boost::asio::buffer(pMessage, nLength), m_remoteAddress,
-          [this, pChunk](const boost::system::error_code&, std::size_t) {
-            m_ChunksPool.release(pChunk);
-          });
-  } else {
+  if (!pChunk)
     pChunk = new uint8_t[nLength];
-    memcpy(pChunk, pMessage, nLength);
-    m_socket.async_send_to(
-          boost::asio::buffer(pMessage, nLength), m_remoteAddress,
-          [pChunk](const boost::system::error_code&, std::size_t) {
+  memcpy(pChunk, pMessage, nLength);
+  m_socket.async_send_to(
+        boost::asio::buffer(pMessage, nLength), m_remoteAddress,
+        [this, pChunk](const boost::system::error_code&, std::size_t) {
+          if (!m_ChunksPool.release(pChunk))
             delete [] pChunk;
-          });
-  }
+        });
   return true;
 }
 
@@ -53,12 +46,8 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
 {
   if (!error)
   {
-    if (m_remoteAddress != udp::endpoint() && m_remoteAddress != m_senderAddress)
-      return;
-
-    if (m_pTerminal)
+    if (m_pTerminal && m_senderAddress != m_remoteAddress)
       m_pTerminal->onMessageReceived(m_pReceiveBuffer, nTotalBytes);
-
     receivingData();
   }
 }
