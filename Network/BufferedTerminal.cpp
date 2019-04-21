@@ -2,7 +2,11 @@
 
 namespace network {
 
-BufferedTerminal::BufferedTerminal()
+
+BufferedTerminal::BufferedTerminal(size_t nSmallChunksCount,
+                                   size_t nMediumChunksCount,
+                                   size_t nHugeChunksCount)
+  : m_ChunksPool(nSmallChunksCount, nMediumChunksCount, nHugeChunksCount)
 {
   m_messages.reserve(0xFF);
 }

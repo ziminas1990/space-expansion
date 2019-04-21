@@ -6,9 +6,12 @@
 class ChunksPool
 {
 public:
-  ChunksPool(size_t nSmallChunksSize  = 256,   size_t nSmallChunksCount  = 512,
-             size_t nMediumChunksSize = 2048,  size_t nMediumChunksCount = 64,
-             size_t nHugeChunksSize   = 16384, size_t nHugeChunksCount   = 16)
+  ChunksPool(size_t nSmallChunksCount  = 512,
+             size_t nMediumChunksCount = 64,
+             size_t nHugeChunksCount   = 16,
+             size_t nSmallChunksSize   = 256,
+             size_t nMediumChunksSize  = 2048,
+             size_t nHugeChunksSize    = 16384)
     : m_nSmallChunksSize(nSmallChunksSize),   m_nSmallChunksCount(nSmallChunksCount),
       m_nSmallArenaSize(nSmallChunksSize * nSmallChunksCount),
       m_nMediumChunksSize(nMediumChunksSize), m_nMediumChunksCount(nMediumChunksCount),

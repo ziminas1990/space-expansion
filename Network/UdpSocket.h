@@ -27,6 +27,8 @@ public:
   // Message pMessage will be copied to internal buffer (probably, without allocation)
   bool sendMessage(MessagePtr pMessage, size_t nLength) override;
 
+  udp::socket& getNativeSocket() { return m_socket; }
+
 private:
   void receivingData();
 
@@ -43,6 +45,7 @@ private:
   ChunksPool     m_ChunksPool;
 };
 
+using UdpSocketPtr  = std::shared_ptr<UdpSocket>;
 using UdpSocketUptr = std::unique_ptr<UdpSocket>;
 
 } // namespace network

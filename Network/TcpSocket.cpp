@@ -36,6 +36,8 @@ void TcpSocket::receivingData()
   m_socket.async_receive(
         boost::asio::buffer(m_pReceiveBuffer, m_nReceiveBufferSize),
         std::bind(&TcpSocket::onDataReceived, this, _1, _2));
+
+  m_socket.remote_endpoint();
 }
 
 void TcpSocket::onDataReceived(boost::system::error_code const& error,

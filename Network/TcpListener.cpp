@@ -8,7 +8,10 @@ namespace network {
 TcpListener::TcpListener(boost::asio::io_service& ioContext, uint16_t nLocalTcpPort)
   : m_IOContext(ioContext),
     m_ListenSocket(ioContext, tcp::endpoint(tcp::v4(), nLocalTcpPort))
-{}
+{
+  boost::asio::socket_base::reuse_address optReuseAddr(true);
+  m_ListenSocket.set_option(optReuseAddr);
+}
 
 void TcpListener::startListening()
 {
@@ -30,7 +33,7 @@ void TcpListener::onNewConnection(boost::system::error_code const& error)
     BufferedTerminalPtr pTerminal = pFactory->make();
     if (m_pConnectionManager && pTerminal) {
       m_pNewConnectionSocket->startReceiving();
-      m_pConnectionManager->addConnection(m_pNewConnectionSocket, pTerminal);
+      m_pConnectionManager->registerConnection(m_pNewConnectionSocket, pTerminal);
     }
   }
   m_pNewConnectionSocket.reset();

@@ -9,26 +9,7 @@
 #include "Network/ConnectionManager.h"
 #include "Network/TcpListener.h"
 
-
-class EchoTerminal : public network::BufferedTerminal
-{
-protected:
-  // overrides BufferedTerminal interface
-  void handleMessage(network::MessagePtr pMessage, size_t nLength) override
-  {
-    send(pMessage, nLength);
-  }
-};
-
-class EchoTerminalFactory : public network::IBufferedTerminalFactory
-{
-public:
-  // overrides from IBufferedTerminalFactory interface
-  network::BufferedTerminalPtr make() { return std::make_shared<EchoTerminal>(); }
-};
-
-using EchoTerminalFactoryPtr     = std::shared_ptr<EchoTerminalFactory>;
-using EchoTerminalFactoryWeakPtr = std::weak_ptr<EchoTerminalFactory>;
+#include "Modules/AccessPanel/AccessPanel.h"
 
 [[noreturn]] int main(int, char*[])
 {
@@ -36,16 +17,22 @@ using EchoTerminalFactoryWeakPtr = std::weak_ptr<EchoTerminalFactory>;
 
   boost::asio::io_service ioContext;
 
+
+  // Creating components
   network::ConnectionManagerPtr pConnectionManager =
       std::make_shared<network::ConnectionManager>(ioContext);
 
   network::TcpListener tcpListener(ioContext, 31419);
+
+  modules::AccessPanelFacotryPtr pAccessPanelFactory =
+      std::make_shared<modules::AccessPanelFacotry>();
+
+  // Setting and linking components
   tcpListener.attachToConnectionManage(pConnectionManager);
+  pAccessPanelFactory->setCreationData(pConnectionManager);
+  tcpListener.attachToTeminalFactory(pAccessPanelFactory);
 
-  EchoTerminalFactoryPtr pTcpEchoTerminalFactory =
-      std::make_shared<EchoTerminalFactory>();
-  tcpListener.attachToTeminalFactory(pTcpEchoTerminalFactory);
-
+  // Creating and running conveoyr
   conveyor::Conveyor conveyor(nTotalThreadsCount);
   conveyor.addLogicToChain(pConnectionManager);
 

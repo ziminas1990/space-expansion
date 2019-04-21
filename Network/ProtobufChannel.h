@@ -10,7 +10,6 @@ class ProtobufChannel : public BufferedTerminal, public IProtobufChannel
 {
 public:
   void attachToTerminal(IProtobufTerminalPtr pTerminal);
-  void attachToChannel(IChannelPtr pChannel);
 
   // IProtobufChannel interface
   void sendMessage(spex::CommandCenterMessage const& message) override;
@@ -20,7 +19,6 @@ protected:
 
 private:
   IProtobufTerminalPtr m_pTerminal;
-  IChannelPtr          m_pChannel;
 };
 
 using ProtobufChannelPtr = std::shared_ptr<ProtobufChannel>;

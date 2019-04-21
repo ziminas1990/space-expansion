@@ -7,16 +7,11 @@ void ProtobufChannel::attachToTerminal(IProtobufTerminalPtr pTerminal)
   m_pTerminal = pTerminal;
 }
 
-void ProtobufChannel::attachToChannel(IChannelPtr pChannel)
-{
-  m_pChannel = pChannel;
-}
-
 void ProtobufChannel::sendMessage(spex::CommandCenterMessage const& message)
 {
   std::string buffer;
   message.SerializeToString(&buffer);
-  m_pChannel->sendMessage(reinterpret_cast<MessagePtr>(buffer.data()), buffer.size());
+  send(reinterpret_cast<MessagePtr>(buffer.data()), buffer.size());
 }
 
 void ProtobufChannel::handleMessage(MessagePtr pMessage, size_t nLength)

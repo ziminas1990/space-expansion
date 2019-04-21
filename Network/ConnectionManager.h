@@ -4,23 +4,31 @@
 
 #include <atomic>
 #include <Conveyor/IAbstractLogic.h>
+#include <Utils/SimplePool.h>
 #include "BufferedTerminal.h"
 
 namespace network
 {
 
+using UdpEndPoint = boost::asio::ip::udp::endpoint;
+using TcpEndPoint = boost::asio::ip::tcp::endpoint;
+
 class ConnectionManager : public conveyor::IAbstractLogic
-{
+{ 
 public:
   ConnectionManager(boost::asio::io_service& ioContext);
 
-  void addConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal);
+  void registerConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal);
+  UdpEndPoint createUdpConnection(UdpEndPoint&& remote, BufferedTerminalPtr pTerminal);
 
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() override { return 1; }
   bool     prephareStage(uint16_t nStageId) override;
   void     proceedStage(uint16_t nStageId, size_t nIntervalUs) override;
   size_t   getCooldownTimeUs() const override { return 3000; }
+
+private:
+  void addConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal);
 
 private:
   struct Connection
@@ -36,7 +44,11 @@ private:
 private:
   boost::asio::io_service& m_IOContext;
   std::vector<Connection>  m_Connections;
-  std::atomic_size_t       m_nNextConnectionId;
+
+  utils::SimplePool<uint16_t, 0> m_portsPool;
+
+  std::atomic_size_t m_nNextConnectionId;
+  std::mutex         m_Mutex;
 };
 
 using ConnectionManagerPtr = std::shared_ptr<ConnectionManager>;

@@ -11,6 +11,8 @@ UdpSocket::UdpSocket(boost::asio::io_service &io_context, uint16_t nLocalPort,
     m_nReceiveBufferSize(8196),
     m_pReceiveBuffer(new uint8_t[m_nReceiveBufferSize])
 {
+  boost::asio::socket_base::reuse_address optReuseAddr(true);
+  m_socket.set_option(optReuseAddr);
   receivingData();
 }
 
@@ -48,7 +50,7 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
 {
   if (!error)
   {
-    if (m_pTerminal && m_senderAddress != m_remoteAddress)
+    if (m_pTerminal && m_senderAddress == m_remoteAddress)
       m_pTerminal->onMessageReceived(m_pReceiveBuffer, nTotalBytes);
     receivingData();
   }

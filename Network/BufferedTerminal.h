@@ -10,7 +10,9 @@ namespace network {
 class BufferedTerminal : public ITerminal
 {
 public:
-  BufferedTerminal();
+  BufferedTerminal(size_t nSmallChunksCount  = 512,
+                   size_t nMediumChunksCount = 64,
+                   size_t nHugeChunksCount   = 16);
 
   // overrides from ITerminal interface
   void onMessageReceived(MessagePtr pMessage, size_t nLength) override;

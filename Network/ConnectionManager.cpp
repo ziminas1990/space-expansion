@@ -1,16 +1,32 @@
 #include "ConnectionManager.h"
+#include "UdpSocket.h"
 
 namespace network {
 
 ConnectionManager::ConnectionManager(boost::asio::io_service& ioContext)
-  : m_IOContext(ioContext)
+  : m_IOContext(ioContext),
+    m_portsPool(36000, 36000)
 {}
 
-void ConnectionManager::addConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal)
+void ConnectionManager::registerConnection(
+    IChannelPtr pChannel, BufferedTerminalPtr pTerminal)
 {
-  pChannel->attachToTerminal(pTerminal);
-  pTerminal->attachToChannel(pChannel);
-  m_Connections.emplace_back(std::move(pChannel), std::move(pTerminal));
+  std::lock_guard<std::mutex> guard(m_Mutex);
+  addConnection(pChannel, pTerminal);
+}
+
+UdpEndPoint ConnectionManager::createUdpConnection(
+    UdpEndPoint &&remote, BufferedTerminalPtr pTerminal)
+{
+  std::lock_guard<std::mutex> guard(m_Mutex);
+
+  uint16_t nLocalPort = m_portsPool.getNext();
+  if (!nLocalPort)
+    return UdpEndPoint();
+
+  UdpSocketPtr pUdpSocket = std::make_shared<UdpSocket>(m_IOContext, nLocalPort, remote);
+  addConnection(pUdpSocket, pTerminal);
+  return pUdpSocket->getNativeSocket().local_endpoint();
 }
 
 bool ConnectionManager::prephareStage(uint16_t)
@@ -29,6 +45,13 @@ void ConnectionManager::proceedStage(uint16_t, size_t)
     m_Connections[nConnectionId].m_pTerminal->handleBufferedMessages();
     nConnectionId = m_nNextConnectionId.fetch_add(1);
   }
+}
+
+void ConnectionManager::addConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal)
+{
+  pChannel->attachToTerminal(pTerminal);
+  pTerminal->attachToChannel(pChannel);
+  m_Connections.emplace_back(std::move(pChannel), std::move(pTerminal));
 }
 
 } // namespace network
