@@ -12,7 +12,7 @@ public:
   void attachToTerminal(IProtobufTerminalPtr pTerminal);
 
   // IProtobufChannel interface
-  void sendMessage(spex::CommandCenterMessage const& message) override;
+  bool sendMessage(spex::CommandCenterMessage const& message) override;
 
 protected:
   void handleMessage(MessagePtr pMessage, size_t nLength) override;
