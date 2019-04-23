@@ -11,16 +11,19 @@ namespace network
 using MessagePtr = uint8_t const*;
 
 class ITerminal;
-class IChannel;
 using ITerminalPtr = std::shared_ptr<ITerminal>;
+
+class IChannel;
 using IChannelPtr  = std::shared_ptr<IChannel>;
 
 class IProtobufTerminal;
-class IProtobufChannel;
 using IProtobufTerminalPtr     = std::shared_ptr<IProtobufTerminal>;
 using IProtobufTerminalWeakPtr = std::weak_ptr<IProtobufTerminal>;
+
+class IProtobufChannel;
 using IProtobufChannelPtr      = std::shared_ptr<IProtobufChannel>;
 using IProtobufChannelWeakPtr  = std::weak_ptr<IProtobufChannel>;
+
 
 class ITerminal
 {
@@ -70,5 +73,6 @@ public:
   virtual void attachToTerminal(IProtobufTerminalPtr pTerminal) = 0;
   virtual void detachFromTerminal() = 0;
 };
+
 
 } // namespace network

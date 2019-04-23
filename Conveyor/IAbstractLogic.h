@@ -27,8 +27,9 @@ public:
   // This function returns a number of microseconds (of in-game time), during wich
   // logic shouldn't be proceeded again
   // If functions returns 1 or 0, it means "procced again as soon as possible"
-  // Note: in-game time could differ from real time
-  virtual size_t getCooldownTimeUs() const { return 1; }
+  // NOTE: By default, logic won't be proceeded more than 100 times per second
+  // NOTE: in-game time could differ from real time
+  virtual size_t getCooldownTimeUs() const { return 10 * 1000; }
 };
 
 using IAbstractLogicPtr = std::shared_ptr<IAbstractLogic>;
