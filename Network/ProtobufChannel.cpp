@@ -2,16 +2,21 @@
 
 namespace network {
 
-void ProtobufChannel::attachToTerminal(IProtobufTerminalPtr pTerminal)
-{
-  m_pTerminal = pTerminal;
-}
-
 bool ProtobufChannel::sendMessage(spex::CommandCenterMessage const& message)
 {
   std::string buffer;
   message.SerializeToString(&buffer);
   return send(reinterpret_cast<MessagePtr>(buffer.data()), buffer.size());
+}
+
+void ProtobufChannel::attachToTerminal(IProtobufTerminalPtr pTerminal)
+{
+  m_pTerminal = pTerminal;
+}
+
+void ProtobufChannel::detachFromTerminal()
+{
+  m_pTerminal.reset();
 }
 
 void ProtobufChannel::handleMessage(MessagePtr pMessage, size_t nLength)

@@ -3,18 +3,14 @@
 #include <Utils/memstream.h>
 
 #include <Network/UdpSocket.h>
+#include <Network/ProtobufChannel.h>
+#include <Network/BufferedProtobufTerminal.h>
+
+#include <Modules/CommandCenter/CommandCenter.h>
+
 #include <sstream>
 
 namespace modules {
-
-class EchoServer : public network::BufferedTerminal
-{
-protected:
-  void handleMessage(network::MessagePtr pMessage, size_t nLength)
-  {
-    send(pMessage, nLength);
-  }
-};
 
 void AccessPanel::handleMessage(network::MessagePtr pMessage, size_t nLength)
 {
@@ -36,17 +32,37 @@ void AccessPanel::handleMessage(network::MessagePtr pMessage, size_t nLength)
     return;
   }
 
+  network::ProtobufChannelPtr pProtobufChannel =
+      std::make_shared<network::ProtobufChannel>();
+
   network::UdpEndPoint const& localAddress =
       m_pConnectionManager->createUdpConnection(
         network::UdpEndPoint(
           boost::asio::ip::address_v4::from_string(sIp),
           nPort),
-        std::make_shared<EchoServer>());
+        pProtobufChannel);
 
   if (localAddress == network::UdpEndPoint()) {
-    sendLoginFailed("Can't creat UDP socket");
+    sendLoginFailed("Can't create UDP socket");
     return;
   }
+
+  auto pPlayerStorage = m_pPlayersStorage.lock();
+  if (!pPlayerStorage) {
+    sendLoginFailed("Can't create CommandCenter");
+    return;
+  }
+
+  modules::CommandCenterPtr pCommandCenter =
+      pPlayerStorage->getOrCreateCommandCenter(std::move(sLogin));
+  if (!pCommandCenter) {
+    sendLoginFailed("Failed to create CommandCenter instance");
+    return;
+  }
+
+  pProtobufChannel->attachToTerminal(pCommandCenter);
+  pCommandCenter->attachToChannel(pProtobufChannel);
+
   sendLoginSuccess(localAddress);
 }
 
@@ -69,6 +85,25 @@ void AccessPanel::sendLoginFailed(std::string const& reason)
   response << "FAILED " << reason;
   send(reinterpret_cast<uint8_t const*>(response.str().c_str()),
        response.str().size());
+}
+
+//========================================================================================
+// AccessPanelFacotry
+//========================================================================================
+
+void AccessPanelFacotry::setCreationData(network::ConnectionManagerPtr pManager,
+                                         world::PlayerStorageWeakPtr pPlayersStorage)
+{
+  m_pManager        = pManager;
+  m_pPlayersStorage = pPlayersStorage;
+}
+
+network::BufferedTerminalPtr AccessPanelFacotry::make()
+{
+  AccessPanelPtr pPanel = std::make_shared<AccessPanel>();
+  pPanel->attachToConnectionManager(m_pManager);
+  pPanel->attachToPlayerStorage(m_pPlayersStorage);
+  return std::move(pPanel);
 }
 
 } // namespace modules

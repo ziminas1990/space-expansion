@@ -15,9 +15,9 @@ class TcpListener
 public:
   TcpListener(boost::asio::io_service& ioContext, uint16_t nLocalTcpPort);
 
-  void attachToTeminalFactory(IBufferedTerminalFactoryWeakPtr pTerminalFactory)
+  void attachToTerminalFactory(IBufferedTerminalFactoryWeakPtr pTerminalFactory)
   { m_pTerminalFactory = pTerminalFactory; }
-  void attachToConnectionManage(ConnectionManagerPtr pConnectionManager)
+  void attachToConnectionManager(ConnectionManagerPtr pConnectionManager)
   { m_pConnectionManager = pConnectionManager; }
 
   void start() { startListening(); }

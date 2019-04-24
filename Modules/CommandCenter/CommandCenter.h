@@ -18,6 +18,7 @@ private:
   network::IProtobufChannelWeakPtr m_pChannel;
 };
 
-using CommandCenterPtr = std::shared_ptr<CommandCenter>;
+using CommandCenterPtr     = std::shared_ptr<CommandCenter>;
+using CommandCenterWeakPtr = std::weak_ptr<CommandCenter>;
 
 } // namespace modules

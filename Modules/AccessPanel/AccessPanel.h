@@ -1,8 +1,17 @@
 #pragma once
 
 #include <memory>
-#include <Network/BufferedTerminal.h>
 #include <Network/ConnectionManager.h>
+#include <Network/BufferedTerminal.h>
+#include <World/PlayersStorage.h>
+
+namespace world {
+
+class PlayerStorage;
+using PlayerStorageWeakPtr = std::weak_ptr<PlayerStorage>;
+
+} // namespace world
+
 
 namespace modules {
 
@@ -11,6 +20,9 @@ class AccessPanel : public network::BufferedTerminal
 public:
   void attachToConnectionManager(network::ConnectionManagerPtr pManager)
   { m_pConnectionManager = pManager; }
+
+  void attachToPlayerStorage(world::PlayerStorageWeakPtr pPlayersStorage)
+  { m_pPlayersStorage = pPlayersStorage; }
 
 protected:
   // overrides from BufferedTerminal interface
@@ -24,6 +36,7 @@ private:
 
 private:
   network::ConnectionManagerPtr m_pConnectionManager;
+  world::PlayerStorageWeakPtr   m_pPlayersStorage;
 };
 
 using AccessPanelPtr = std::shared_ptr<AccessPanel>;
@@ -33,21 +46,15 @@ class AccessPanelFacotry : public network::IBufferedTerminalFactory
 {
 public:
 
-  void setCreationData(network::ConnectionManagerPtr pManager)
-  {
-    m_pManager = pManager;
-  }
+  void setCreationData(network::ConnectionManagerPtr pManager,
+                       world::PlayerStorageWeakPtr   pPlayersStorage);
 
   // overrides from IBufferedTerminalFactory interface
-  network::BufferedTerminalPtr make()
-  {
-    AccessPanelPtr pPanel = std::make_shared<AccessPanel>();
-    pPanel->attachToConnectionManager(m_pManager);
-    return pPanel;
-  }
+  network::BufferedTerminalPtr make();
 
 private:
   network::ConnectionManagerPtr m_pManager;
+  world::PlayerStorageWeakPtr   m_pPlayersStorage;
 };
 
 using AccessPanelFacotryPtr = std::shared_ptr<AccessPanelFacotry>;

@@ -27,6 +27,7 @@ bool CommandCenterManager::prephareStage(uint16_t /*nStageId*/)
         m_CommandCentres.pop_back();
       }
     }
+    // TODO: change to rand() call for interval from 50 to 200
     m_nRemovingZombiesTimeout = 100;
   }
 

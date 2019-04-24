@@ -30,4 +30,7 @@ private:
   std::mutex         m_Mutex;
 };
 
+using CommandCenterManagerPtr     = std::shared_ptr<CommandCenterManager>;
+using CommandCenterManagerWeakPtr = std::weak_ptr<CommandCenterManager>;
+
 } // namespace modules

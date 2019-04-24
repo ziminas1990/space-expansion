@@ -9,7 +9,10 @@
 #include "Network/ConnectionManager.h"
 #include "Network/TcpListener.h"
 
+#include <World/PlayersStorage.h>
+
 #include "Modules/AccessPanel/AccessPanel.h"
+#include "Modules/CommandCenter/CommanCenterManager.h"
 
 [[noreturn]] int main(int, char*[])
 {
@@ -24,17 +27,25 @@
 
   network::TcpListener tcpListener(ioContext, 31419);
 
+  world::PlayerStoragePtr pPlayersStorage =
+      std::make_shared<world::PlayerStorage>();
+
   modules::AccessPanelFacotryPtr pAccessPanelFactory =
       std::make_shared<modules::AccessPanelFacotry>();
 
+  modules::CommandCenterManagerPtr pCommandCenterManager =
+      std::make_shared<modules::CommandCenterManager>();
+
   // Setting and linking components
-  tcpListener.attachToConnectionManage(pConnectionManager);
-  pAccessPanelFactory->setCreationData(pConnectionManager);
-  tcpListener.attachToTeminalFactory(pAccessPanelFactory);
+  tcpListener.attachToConnectionManager(pConnectionManager);
+  pAccessPanelFactory->setCreationData(pConnectionManager, pPlayersStorage);
+  tcpListener.attachToTerminalFactory(pAccessPanelFactory);
+  pPlayersStorage->attachToCommandCenterManager(pCommandCenterManager);
 
   // Creating and running conveoyr
   conveyor::Conveyor conveyor(nTotalThreadsCount);
   conveyor.addLogicToChain(pConnectionManager);
+  conveyor.addLogicToChain(pCommandCenterManager);
 
   for(size_t i = 1; i < nTotalThreadsCount; ++i)
     new std::thread([&conveyor]() { conveyor.joinAsSlave();} );
