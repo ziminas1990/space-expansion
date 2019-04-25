@@ -19,6 +19,65 @@ message INavigation {
   }
 }
 
+
+message ICommutator {
+
+  message ModuleInfo {
+    uint32 nSlotId     = 1;
+    string sModuleType = 2; 
+  }
+
+  message GetModulesList {}
+  message ModulesListResponse {
+    repeated ModuleInfo modules = 1;
+  }
+
+  message OpenTunnel {
+    uint32 nSequense = 1;
+    uint32 nSlotId   = 2;
+  }
+  message OpenTunnelSuccess {
+    // Sequence has the same value as in OpenTunnelRequest
+    uint32 nSequense = 1;
+    uint32 nTunnelId = 2;
+  }
+  message OpenTunnelFailed {
+    // Sequence has the same value as in OpenTunnelRequest
+    uint32 nSequense = 1;
+  }
+
+  message MessageExchange {
+    uint32 nTunnelId = 1;
+
+    oneof choice {
+      // All possible interfaces are listed here
+      INavigation navigationMessage = 2;
+      ICommutator commutator        = 3;
+    }
+  }
+
+  message CloseTunnel {
+    uint32 nTunnelId = 1;
+  }
+  message TunnelClosed {
+    uint32 nTunnelId = 1;
+  }
+
+  oneof choice {
+    GetModulesList      getModulesList      = 1;
+    OpenTunnel          openTunnel          = 2;
+    CloseTunnel         closeTunnel         = 3;
+
+    MessageExchange     messageExchange     = 4;
+
+    ModulesListResponse modulesListResponse = 5;
+    OpenTunnelSuccess   openTunnelSuccess   = 6;
+    OpenTunnelFailed    openTunnelFailed    = 7; 
+    TunnelClosed        tunnelClosed        = 8;
+  }
+}
+
+
 message CommandCenterMessage
 {
   uint32 tick = 1;
@@ -26,6 +85,7 @@ message CommandCenterMessage
   oneof choice {
     // Inherited interfaces
     INavigation navigation = 2;
+    ICommutator commutator = 3;
   }
 }
 
