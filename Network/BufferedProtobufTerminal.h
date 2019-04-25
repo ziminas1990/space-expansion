@@ -3,7 +3,6 @@
 #include "Interfaces.h"
 #include <functional>
 #include <vector>
-#include "ChunksPool.h"
 
 namespace network {
 
@@ -13,26 +12,33 @@ public:
   BufferedProtobufTerminal() { m_messages.reserve(0x40); }
 
   // overrides from IProtobufTerminal interface
-  void onMessageReceived(spex::CommandCenterMessage&& message) override {
-    m_messages.push_back(std::move(message));
-  }
+  void onMessageReceived(
+      size_t nSessionId, spex::CommandCenterMessage&& message) override;
   void attachToChannel(IProtobufChannelPtr pChannel) override { m_pChannel = pChannel; }
   void detachFromChannel() override { m_pChannel.reset(); }
 
-  void handleBufferedMessages() {
-    for(spex::CommandCenterMessage const& message : m_messages)
-      handleMessage(message);
-    m_messages.clear();
-  }
+  void handleBufferedMessages();
 
 protected:
-  virtual void handleMessage(spex::CommandCenterMessage const& message) = 0;
-  bool send(spex::CommandCenterMessage const& message) {
-    return m_pChannel && m_pChannel->sendMessage(message);
+  virtual void handleMessage(size_t nSessionId,
+                             spex::CommandCenterMessage&& message) = 0;
+  bool send(size_t nSessionId, spex::CommandCenterMessage const& message) {
+    return m_pChannel && m_pChannel->sendMessage(nSessionId, message);
   }
 
 private:
-  std::vector<spex::CommandCenterMessage> m_messages;
+  struct BufferedMessage
+  {
+    BufferedMessage(size_t nSessionId, spex::CommandCenterMessage&& body)
+      : m_nSessionId(nSessionId), m_body(std::move(body))
+    {}
+
+    size_t m_nSessionId = 0;
+    spex::CommandCenterMessage m_body;
+  };
+
+private:
+  std::vector<BufferedMessage> m_messages;
 
   IProtobufChannelPtr m_pChannel;
 };

@@ -7,7 +7,6 @@
 
 #include "Network/BufferedTerminal.h"
 #include "Network/ConnectionManager.h"
-#include "Network/TcpListener.h"
 
 #include <World/PlayersStorage.h>
 
@@ -23,24 +22,21 @@
 
   // Creating components
   network::ConnectionManagerPtr pConnectionManager =
-      std::make_shared<network::ConnectionManager>(ioContext);
-
-  network::TcpListener tcpListener(ioContext, 31419);
-
-  world::PlayerStoragePtr pPlayersStorage =
-      std::make_shared<world::PlayerStorage>();
-
-  modules::AccessPanelFacotryPtr pAccessPanelFactory =
-      std::make_shared<modules::AccessPanelFacotry>();
+      std::make_shared<network::UdpDispatcher>(ioContext);
 
   modules::CommandCenterManagerPtr pCommandCenterManager =
       std::make_shared<modules::CommandCenterManager>();
 
+  world::PlayerStoragePtr pPlayersStorage =
+      std::make_shared<world::PlayerStorage>();
+
+  modules::AccessPanelPtr pAccessPanel = std::make_shared<modules::AccessPanel>();
+
   // Setting and linking components
-  tcpListener.attachToConnectionManager(pConnectionManager);
-  pAccessPanelFactory->setCreationData(pConnectionManager, pPlayersStorage);
-  tcpListener.attachToTerminalFactory(pAccessPanelFactory);
   pPlayersStorage->attachToCommandCenterManager(pCommandCenterManager);
+  pAccessPanel->attachToPlayerStorage(pPlayersStorage);
+  pAccessPanel->attachToConnectionManager(pConnectionManager);
+  pConnectionManager->createUdpConnection(pAccessPanel, 31415);
 
   // Creating and running conveoyr
   conveyor::Conveyor conveyor(nTotalThreadsCount);
@@ -49,8 +45,6 @@
 
   for(size_t i = 1; i < nTotalThreadsCount; ++i)
     new std::thread([&conveyor]() { conveyor.joinAsSlave();} );
-
-  tcpListener.start();
 
   // Main application loop starts here:
   auto nMinTickSize = std::chrono::microseconds(100);

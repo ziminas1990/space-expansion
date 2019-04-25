@@ -2,7 +2,6 @@
 
 namespace network {
 
-
 BufferedTerminal::BufferedTerminal(size_t nSmallChunksCount,
                                    size_t nMediumChunksCount,
                                    size_t nHugeChunksCount)
@@ -11,9 +10,11 @@ BufferedTerminal::BufferedTerminal(size_t nSmallChunksCount,
   m_messages.reserve(0xFF);
 }
 
-void BufferedTerminal::onMessageReceived(MessagePtr pMessage, size_t nLength)
+void BufferedTerminal::onMessageReceived(
+    size_t nSessionId, MessagePtr pMessage, size_t nLength)
 {
   BufferedMessage message;
+  message.m_nSessionId = nSessionId;
   message.m_pBody = m_ChunksPool.get(nLength);
   if (message.m_pBody == nullptr)
     message.m_pBody = new uint8_t[nLength];
@@ -31,11 +32,17 @@ void BufferedTerminal::attachToChannel(IChannelPtr pChannel)
 void BufferedTerminal::handleBufferedMessages()
 {
   for(BufferedMessage& message : m_messages) {
-    handleMessage(message.m_pBody, message.m_nLength);
+    handleMessage(message.m_nSessionId, message.m_pBody, message.m_nLength);
     if (!m_ChunksPool.release(message.m_pBody))
       delete [] message.m_pBody;
   }
   m_messages.clear();
+}
+
+void BufferedTerminal::closeSession(size_t nSessionId)
+{
+  if (m_pChannel)
+    m_pChannel->closeSession(nSessionId);
 }
 
 } // namespace network

@@ -12,7 +12,8 @@
 
 namespace modules {
 
-void AccessPanel::handleMessage(network::MessagePtr pMessage, size_t nLength)
+void AccessPanel::handleMessage(
+    size_t nSessionId, network::MessagePtr pMessage, size_t nLength)
 {
   // HACK :(
   utils::memstream ss(reinterpret_cast<char*>(const_cast<uint8_t*>(pMessage)), nLength);
@@ -24,46 +25,47 @@ void AccessPanel::handleMessage(network::MessagePtr pMessage, size_t nLength)
   ss >> sLogin >> sPassword >> sIp >> nPort;
 
   if (!checkLogin(sLogin, sPassword)) {
-    sendLoginFailed("Invalid login or password");
+    sendLoginFailed(nSessionId, "Invalid login or password");
     return;
   }
   if (!m_pConnectionManager) {
-    sendLoginFailed("Internal error");
+    sendLoginFailed(nSessionId, "Internal error");
     return;
   }
 
   network::ProtobufChannelPtr pProtobufChannel =
       std::make_shared<network::ProtobufChannel>();
 
-  network::UdpEndPoint const& localAddress =
-      m_pConnectionManager->createUdpConnection(
-        network::UdpEndPoint(
-          boost::asio::ip::address_v4::from_string(sIp),
-          nPort),
-        pProtobufChannel);
+  network::UdpSocketPtr pLocalSocket =
+      m_pConnectionManager->createUdpConnection(pProtobufChannel);
 
-  if (localAddress == network::UdpEndPoint()) {
-    sendLoginFailed("Can't create UDP socket");
+  if (!pLocalSocket) {
+    sendLoginFailed(nSessionId, "Can't create UDP socket");
     return;
   }
 
+  pLocalSocket->addRemote(
+        network::UdpEndPoint(
+          boost::asio::ip::address_v4::from_string(sIp),
+          nPort));
+
   auto pPlayerStorage = m_pPlayersStorage.lock();
   if (!pPlayerStorage) {
-    sendLoginFailed("Can't create CommandCenter");
+    sendLoginFailed(nSessionId, "Can't create CommandCenter");
     return;
   }
 
   modules::CommandCenterPtr pCommandCenter =
       pPlayerStorage->getOrCreateCommandCenter(std::move(sLogin));
   if (!pCommandCenter) {
-    sendLoginFailed("Failed to create CommandCenter instance");
+    sendLoginFailed(nSessionId, "Failed to create CommandCenter instance");
     return;
   }
 
   pProtobufChannel->attachToTerminal(pCommandCenter);
   pCommandCenter->attachToChannel(pProtobufChannel);
 
-  sendLoginSuccess(localAddress);
+  sendLoginSuccess(nSessionId, pLocalSocket->getNativeSocket().local_endpoint());
 }
 
 bool AccessPanel::checkLogin(std::string const& sLogin, std::string const& sPassword)
@@ -71,39 +73,23 @@ bool AccessPanel::checkLogin(std::string const& sLogin, std::string const& sPass
   return sLogin == "admin" && sPassword == "admin";
 }
 
-void AccessPanel::sendLoginSuccess(const network::UdpEndPoint &localAddress)
+void AccessPanel::sendLoginSuccess(
+    size_t nSessionId, const network::UdpEndPoint &localAddress)
 {
   std::stringstream response;
   response << "OK " << localAddress.port();
-  send(reinterpret_cast<uint8_t const*>(response.str().c_str()),
+  send(nSessionId, reinterpret_cast<uint8_t const*>(response.str().c_str()),
        response.str().size());
+  closeSession(nSessionId);
 }
 
-void AccessPanel::sendLoginFailed(std::string const& reason)
+void AccessPanel::sendLoginFailed(size_t nSessionId, std::string const& reason)
 {
   std::stringstream response;
   response << "FAILED " << reason;
-  send(reinterpret_cast<uint8_t const*>(response.str().c_str()),
+  send(nSessionId, reinterpret_cast<uint8_t const*>(response.str().c_str()),
        response.str().size());
-}
-
-//========================================================================================
-// AccessPanelFacotry
-//========================================================================================
-
-void AccessPanelFacotry::setCreationData(network::ConnectionManagerPtr pManager,
-                                         world::PlayerStorageWeakPtr pPlayersStorage)
-{
-  m_pManager        = pManager;
-  m_pPlayersStorage = pPlayersStorage;
-}
-
-network::BufferedTerminalPtr AccessPanelFacotry::make()
-{
-  AccessPanelPtr pPanel = std::make_shared<AccessPanel>();
-  pPanel->attachToConnectionManager(m_pManager);
-  pPanel->attachToPlayerStorage(m_pPlayersStorage);
-  return std::move(pPanel);
+  closeSession(nSessionId);
 }
 
 } // namespace modules

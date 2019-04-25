@@ -4,10 +4,8 @@
 
 namespace network {
 
-UdpSocket::UdpSocket(boost::asio::io_service &io_context, uint16_t nLocalPort,
-                     boost::asio::ip::udp::endpoint const& remoteAddress)
+UdpSocket::UdpSocket(boost::asio::io_service &io_context, uint16_t nLocalPort)
   : m_socket(io_context, udp::endpoint(udp::v4(), nLocalPort)),
-    m_remoteAddress(remoteAddress),
     m_nReceiveBufferSize(8196),
     m_pReceiveBuffer(new uint8_t[m_nReceiveBufferSize])
 {
@@ -16,24 +14,60 @@ UdpSocket::UdpSocket(boost::asio::io_service &io_context, uint16_t nLocalPort,
   receivingData();
 }
 
+void UdpSocket::addRemote(udp::endpoint const& remote)
+{
+  m_WhiteList.insert(remote);
+  if (m_WhiteList.size() == 1) {
+    // Closing all existing sessions expect one with specified remote
+    for(size_t i = 0; i < m_nSessionsLimit; ++i) {
+      if (m_Sessions[i] != remote)
+        m_Sessions[i] = udp::endpoint();
+    }
+  }
+}
+
+void UdpSocket::removeRemote(udp::endpoint const& remote)
+{
+  m_WhiteList.erase(remote);
+  // If there is a session for remote, we should close them
+  for(size_t i = 0; i < m_nSessionsLimit; ++i) {
+    if (m_Sessions[i] == remote)
+      m_Sessions[i] = udp::endpoint();
+  }
+}
+
 void UdpSocket::attachToTerminal(ITerminalPtr pTerminal)
 {
   m_pTerminal = pTerminal;
 }
 
-bool UdpSocket::sendMessage(MessagePtr pMessage, size_t nLength)
+bool UdpSocket::sendMessage(size_t nSessionId, MessagePtr pMessage, size_t nLength)
 {
+  if (nSessionId >= m_Sessions.size())
+    return false;
+  udp::endpoint const& remote = m_Sessions[nSessionId];
+  if (remote == udp::endpoint())
+    return false;
+
   uint8_t* pChunk = m_ChunksPool.get(nLength);
   if (!pChunk)
     pChunk = new uint8_t[nLength];
   memcpy(pChunk, pMessage, nLength);
   m_socket.async_send_to(
-        boost::asio::buffer(pMessage, nLength), m_remoteAddress,
+        boost::asio::buffer(pMessage, nLength), remote,
         [this, pChunk](const boost::system::error_code&, std::size_t) {
           if (!m_ChunksPool.release(pChunk))
             delete [] pChunk;
         });
   return true;
+}
+
+void UdpSocket::closeSession(size_t nSessionId)
+{
+  if (nSessionId < m_nSessionsLimit) {
+    m_WhiteList.erase(m_Sessions[nSessionId]);
+    m_Sessions[nSessionId] = udp::endpoint();
+  }
 }
 
 void UdpSocket::receivingData()
@@ -48,11 +82,34 @@ void UdpSocket::receivingData()
 void UdpSocket::onDataReceived(boost::system::error_code const& error,
                                std::size_t nTotalBytes)
 {
+  // Linear complicity in searching for sessionId is OK, because in general we won't
+  // have a lot of sessions (nSessionsLimit is just 8)
   if (!error)
-  {
-    if (m_pTerminal && m_senderAddress == m_remoteAddress)
-      m_pTerminal->onMessageReceived(m_pReceiveBuffer, nTotalBytes);
+  { 
+    // Continue receiving data
     receivingData();
+
+    for(size_t nSessionId = 0; nSessionId <= m_nSessionsLimit; ++nSessionId) {
+      if (m_senderAddress == m_Sessions[nSessionId]) {
+        m_pTerminal->onMessageReceived(nSessionId, m_pReceiveBuffer, nTotalBytes);
+        return;
+      }
+    }
+
+    // It sees, that it is the first message from m_senderAddress
+    if (!m_WhiteList.empty() && m_WhiteList.find(m_senderAddress) == m_WhiteList.end()) {
+      // This remote address is NOT allowed
+      return;
+    }
+
+    // Looking for free sessionId
+    for(size_t nSessionId = 0; nSessionId <= m_nSessionsLimit; ++nSessionId) {
+      if (m_Sessions[nSessionId] == udp::endpoint()) {
+        m_Sessions[nSessionId] = m_senderAddress;
+        m_pTerminal->onMessageReceived(nSessionId, m_pReceiveBuffer, nTotalBytes);
+        break;
+      }
+    }
   }
 }
 

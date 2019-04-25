@@ -30,7 +30,8 @@ class ITerminal
 public:
   virtual ~ITerminal() = default;
 
-  virtual void onMessageReceived(MessagePtr pMessage, size_t nLength) = 0;
+  virtual void onMessageReceived(
+      size_t nSessionId, MessagePtr pMessage, size_t nLength) = 0;
 
   virtual void attachToChannel(IChannelPtr pChannel) = 0;
   virtual void detachFromChannel() = 0;
@@ -42,7 +43,8 @@ class IChannel
 public:
   virtual ~IChannel() = default;
 
-  virtual bool sendMessage(MessagePtr pMessage, size_t nLength) = 0;
+  virtual bool sendMessage(size_t nSessionId, MessagePtr pMessage, size_t nLength) = 0;
+  virtual void closeSession(size_t nSessionId) = 0;
 
   virtual bool isValid() const = 0;
 
@@ -56,7 +58,8 @@ class IProtobufTerminal
 public:
   virtual ~IProtobufTerminal() = default;
 
-  virtual void onMessageReceived(spex::CommandCenterMessage&& message) = 0;
+  virtual void onMessageReceived(
+      size_t nSessionId, spex::CommandCenterMessage&& message) = 0;
 
   virtual void attachToChannel(IProtobufChannelPtr pChannel) = 0;
   virtual void detachFromChannel() = 0;
@@ -68,7 +71,8 @@ class IProtobufChannel
 public:
   virtual ~IProtobufChannel() = default;
 
-  virtual bool sendMessage(spex::CommandCenterMessage const& message) = 0;
+  virtual bool sendMessage(
+      size_t nSessionId, spex::CommandCenterMessage const& message) = 0;
 
   virtual void attachToTerminal(IProtobufTerminalPtr pTerminal) = 0;
   virtual void detachFromTerminal() = 0;

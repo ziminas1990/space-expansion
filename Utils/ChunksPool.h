@@ -3,6 +3,8 @@
 #include <vector>
 #include <stdint.h>
 
+namespace utils {
+
 class ChunksPool
 {
 public:
@@ -89,3 +91,5 @@ private:
   size_t m_nHugeArenaSize     = 0;
   uint8_t* m_pArena           = nullptr;
 };
+
+} // namespace utils

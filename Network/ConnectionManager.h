@@ -6,6 +6,7 @@
 #include <Conveyor/IAbstractLogic.h>
 #include <Utils/SimplePool.h>
 #include "BufferedTerminal.h"
+#include "UdpSocket.h"
 
 namespace network
 {
@@ -13,13 +14,13 @@ namespace network
 using UdpEndPoint = boost::asio::ip::udp::endpoint;
 using TcpEndPoint = boost::asio::ip::tcp::endpoint;
 
-class ConnectionManager : public conveyor::IAbstractLogic
+class UdpDispatcher : public conveyor::IAbstractLogic
 { 
 public:
-  ConnectionManager(boost::asio::io_service& ioContext);
+  UdpDispatcher(boost::asio::io_service& ioContext);
 
-  void registerConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal);
-  UdpEndPoint createUdpConnection(UdpEndPoint&& remote, BufferedTerminalPtr pTerminal);
+  UdpSocketPtr createUdpConnection(BufferedTerminalPtr pTerminal,
+                                   uint16_t nLocalPort = 0);
 
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() override { return 1; }
@@ -51,6 +52,6 @@ private:
   std::mutex         m_Mutex;
 };
 
-using ConnectionManagerPtr = std::shared_ptr<ConnectionManager>;
+using ConnectionManagerPtr = std::shared_ptr<UdpDispatcher>;
 
 } // namespace network

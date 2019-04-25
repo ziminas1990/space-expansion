@@ -11,8 +11,8 @@ class CommandCenter :
     public newton::PhysicalObject
 {
 private:
-  void handleMessage(spex::CommandCenterMessage const& message);
-  void onNavigationMessage(spex::INavigation const& message);
+  void handleMessage(size_t nSessionId, spex::CommandCenterMessage&& message) override;
+  void onNavigationMessage(size_t nSessionId, spex::INavigation const& message);
 
 private:
   network::IProtobufChannelWeakPtr m_pChannel;
