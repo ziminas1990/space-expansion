@@ -29,16 +29,16 @@ public:
   size_t   getCooldownTimeUs() const override { return 3000; }
 
 private:
-  void addConnection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal);
+  void addConnection(IBinaryChannelPtr pChannel, BufferedTerminalPtr pTerminal);
 
 private:
   struct Connection
   {
-    Connection(IChannelPtr pChannel, BufferedTerminalPtr pTerminal)
+    Connection(IBinaryChannelPtr pChannel, BufferedTerminalPtr pTerminal)
       : m_pSocket(pChannel), m_pTerminal(pTerminal)
     {}
 
-    IChannelPtr         m_pSocket;
+    IBinaryChannelPtr   m_pSocket;
     BufferedTerminalPtr m_pTerminal;
   };
 

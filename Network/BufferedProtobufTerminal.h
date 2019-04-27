@@ -12,7 +12,7 @@ public:
   BufferedProtobufTerminal() { m_messages.reserve(0x40); }
 
   // overrides from IProtobufTerminal interface
-  void onMessageReceived(size_t nSessionId, spex::ICommutator&& message) override;
+  void onMessageReceived(uint32_t nSessionId, spex::ICommutator&& message) override;
   void attachToChannel(IProtobufChannelPtr pChannel) override { m_pChannel = pChannel; }
   void detachFromChannel() override { m_pChannel.reset(); }
 
@@ -20,8 +20,8 @@ public:
 
 protected:
   virtual void handleMessage(size_t nSessionId, spex::ICommutator&& message) = 0;
-  bool send(size_t nSessionId, spex::ICommutator&& message) {
-    return m_pChannel && m_pChannel->sendMessage(nSessionId, std::move(message));
+  bool send(uint32_t nSessionId, spex::ICommutator&& message) {
+    return m_pChannel && m_pChannel->send(nSessionId, std::move(message));
   }
 
 private:

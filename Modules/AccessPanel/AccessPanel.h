@@ -26,15 +26,13 @@ public:
 
 protected:
   // overrides from BufferedTerminal interface
-  void handleMessage(size_t nSessionId,
-                     network::MessagePtr pMessage,
-                     size_t nLength) override;
+  void handleMessage(uint32_t nSessionId, network::BinaryMessage const& message) override;
 
 private:
   bool checkLogin(std::string const& sLogin, std::string const& nPassword);
 
-  void sendLoginSuccess(size_t nSessionId, network::UdpEndPoint const& localAddress);
-  void sendLoginFailed(size_t nSessionId, std::string const& reason);
+  void sendLoginSuccess(uint32_t nSessionId, network::UdpEndPoint const& localAddress);
+  void sendLoginFailed(uint32_t nSessionId, std::string const& reason);
 
 private:
   network::ConnectionManagerPtr m_pConnectionManager;

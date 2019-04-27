@@ -10,12 +10,14 @@ class ProtobufChannel : public BufferedTerminal, public IProtobufChannel
 {
 public:
   // IProtobufChannel interface
-  bool sendMessage(size_t nSessionId, spex::ICommutator&& message) override;
+  bool send(uint32_t nSessionId, spex::ICommutator&& message) override;
   void attachToTerminal(IProtobufTerminalPtr pTerminal) override;
   void detachFromTerminal() override;
+  void closeSession(uint32_t nSessionId) override;
+  bool isValid() const override;
 
 protected:
-  void handleMessage(size_t nSessionId, MessagePtr pMessage, size_t nLength) override;
+  void handleMessage(uint32_t nSessionId, BinaryMessage const& message) override;
 
 private:
   IProtobufTerminalPtr m_pTerminal;

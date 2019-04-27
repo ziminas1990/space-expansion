@@ -8,73 +8,79 @@
 namespace network
 {
 
-using MessagePtr = uint8_t const*;
+template<typename FrameType> class ITerminal;
+template<typename FrameType>
+using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;
 
-class ITerminal;
-using ITerminalPtr = std::shared_ptr<ITerminal>;
-
-class IChannel;
-using IChannelPtr  = std::shared_ptr<IChannel>;
-
-class IProtobufTerminal;
-using IProtobufTerminalPtr     = std::shared_ptr<IProtobufTerminal>;
-using IProtobufTerminalWeakPtr = std::weak_ptr<IProtobufTerminal>;
-
-class IProtobufChannel;
-using IProtobufChannelPtr      = std::shared_ptr<IProtobufChannel>;
-using IProtobufChannelWeakPtr  = std::weak_ptr<IProtobufChannel>;
+template<typename FrameType> class IChannel;
+template<typename FrameType>
+using IChannelPtr  = std::shared_ptr<IChannel<FrameType>>;
 
 
-class ITerminal
-{
-public:
-  virtual ~ITerminal() = default;
-
-  virtual void onMessageReceived(
-      size_t nSessionId, MessagePtr pMessage, size_t nLength) = 0;
-
-  virtual void attachToChannel(IChannelPtr pChannel) = 0;
-  virtual void detachFromChannel() = 0;
-};
-
-
+template<typename FrameType>
 class IChannel
 {
 public:
   virtual ~IChannel() = default;
 
-  virtual bool sendMessage(size_t nSessionId, MessagePtr pMessage, size_t nLength) = 0;
-  virtual void closeSession(size_t nSessionId) = 0;
+  virtual bool send(uint32_t nSessionId, FrameType&& frame) = 0;
+  virtual void closeSession(uint32_t nSessionId) = 0;
 
   virtual bool isValid() const = 0;
 
-  virtual void attachToTerminal(ITerminalPtr pTerminal) = 0;
+  virtual void attachToTerminal(ITerminalPtr<FrameType> pTerminal) = 0;
   virtual void detachFromTerminal() = 0;
 };
 
 
-class IProtobufTerminal
+template<typename FrameType>
+class ITerminal
 {
 public:
-  virtual ~IProtobufTerminal() = default;
+  virtual ~ITerminal() = default;
 
-  virtual void onMessageReceived(size_t nSessionId, spex::ICommutator&& message) = 0;
+  //virtual void openSession(uint32_t nSessionId) = 0;
+  virtual void onMessageReceived(uint32_t nSessionId, FrameType&& frame) = 0;
+  //virtual void onSessionClsed(uint32_t nSessionId) = 0;
 
-  virtual void attachToChannel(IProtobufChannelPtr pChannel) = 0;
+  virtual void attachToChannel(IChannelPtr<FrameType> pChannel) = 0;
   virtual void detachFromChannel() = 0;
 };
 
 
-class IProtobufChannel
+// This class is just a container for message body
+// It doesn't own message and should NOT release it!
+struct BinaryMessage
 {
-public:
-  virtual ~IProtobufChannel() = default;
+  BinaryMessage() = default;
+  BinaryMessage(BinaryMessage const& other) = delete;
+  BinaryMessage(uint8_t const* pBody, size_t nLength)
+    : m_pBody(pBody), m_nLength(nLength)
+  {}
+  BinaryMessage(char const* pBody, size_t nLength)
+    : m_pBody(reinterpret_cast<uint8_t const*>(pBody)), m_nLength(nLength)
+  {}
 
-  virtual bool sendMessage(size_t nSessionId, spex::ICommutator&& message) = 0;
-
-  virtual void attachToTerminal(IProtobufTerminalPtr pTerminal) = 0;
-  virtual void detachFromTerminal() = 0;
+  uint8_t const* m_pBody   = nullptr;
+  size_t         m_nLength = 0;
 };
+
+
+using IBinaryChannel           = IChannel<BinaryMessage>;
+using IBinaryChannelPtr        = std::shared_ptr<IBinaryChannel>;
+using IBinaryChannelWeakPtr    = std::weak_ptr<IBinaryChannel>;
+
+using IBinaryTerminal          = ITerminal<BinaryMessage>;
+using IBinaryTerminalPtr       = std::shared_ptr<IBinaryTerminal>;
+using IBinaryTerminalWeakPtr   = std::weak_ptr<IBinaryTerminal>;
+
+using IProtobufChannel         = IChannel<spex::ICommutator>;
+using IProtobufChannelPtr      = std::shared_ptr<IProtobufChannel>;
+using IProtobufChannelWeakPtr  = std::weak_ptr<IProtobufChannel>;
+
+using IProtobufTerminal        = ITerminal<spex::ICommutator>;
+using IProtobufTerminalPtr     = std::shared_ptr<IProtobufTerminal>;
+using IProtobufTerminalWeakPtr = std::weak_ptr<IProtobufTerminal>;
 
 
 } // namespace network

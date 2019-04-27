@@ -10,21 +10,22 @@ BufferedTerminal::BufferedTerminal(size_t nSmallChunksCount,
   m_messages.reserve(0xFF);
 }
 
-void BufferedTerminal::onMessageReceived(
-    size_t nSessionId, MessagePtr pMessage, size_t nLength)
+void BufferedTerminal::onMessageReceived(uint32_t nSessionId, BinaryMessage&& body)
 {
-  BufferedMessage message;
-  message.m_nSessionId = nSessionId;
-  message.m_pBody = m_ChunksPool.get(nLength);
-  if (message.m_pBody == nullptr)
-    message.m_pBody = new uint8_t[nLength];
-  message.m_nLength = nLength;
-  memcpy(message.m_pBody, pMessage, nLength);
+  uint8_t* pCopiedBody = m_ChunksPool.get(body.m_nLength);
+  if (!pCopiedBody)
+    pCopiedBody = new uint8_t[body.m_nLength];
+  memcpy(pCopiedBody, body.m_pBody, body.m_nLength);
 
-  m_messages.push_back(std::move(message));
+  BufferedMessage storedMessage;
+  storedMessage.m_nSessionId = nSessionId;
+  storedMessage.m_nLength    = body.m_nLength;
+  storedMessage.m_pBody      = pCopiedBody;
+
+  m_messages.push_back(std::move(storedMessage));
 }
 
-void BufferedTerminal::attachToChannel(IChannelPtr pChannel)
+void BufferedTerminal::attachToChannel(IBinaryChannelPtr pChannel)
 {
   m_pChannel = pChannel;
 }
@@ -32,17 +33,12 @@ void BufferedTerminal::attachToChannel(IChannelPtr pChannel)
 void BufferedTerminal::handleBufferedMessages()
 {
   for(BufferedMessage& message : m_messages) {
-    handleMessage(message.m_nSessionId, message.m_pBody, message.m_nLength);
+    handleMessage(message.m_nSessionId,
+                  BinaryMessage(message.m_pBody, message.m_nLength));
     if (!m_ChunksPool.release(message.m_pBody))
       delete [] message.m_pBody;
   }
   m_messages.clear();
-}
-
-void BufferedTerminal::closeSession(size_t nSessionId)
-{
-  if (m_pChannel)
-    m_pChannel->closeSession(nSessionId);
 }
 
 } // namespace network

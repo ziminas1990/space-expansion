@@ -11,7 +11,7 @@
 namespace network
 {
 
-class UdpSocket : public IChannel
+class UdpSocket : public IBinaryChannel
 {
   using udp = boost::asio::ip::udp;
 public:
@@ -24,12 +24,12 @@ public:
 
   // overrides from IChannel
   bool isValid() const override { return m_socket.is_open(); }
-  void attachToTerminal(ITerminalPtr pTerminal) override;
+  void attachToTerminal(IBinaryTerminalPtr pTerminal) override;
   void detachFromTerminal() override { m_pTerminal.reset(); }
 
   // Message pMessage will be copied to internal buffer (probably, without allocation)
-  bool sendMessage(size_t nSessionId, MessagePtr pMessage, size_t nLength) override;
-  void closeSession(size_t nSessionId) override;
+  bool send(uint32_t nSessionId, BinaryMessage&& message) override;
+  void closeSession(uint32_t nSessionId) override;
 
   udp::socket& getNativeSocket() { return m_socket; }
 
@@ -49,7 +49,7 @@ private:
 
   std::array<udp::endpoint, m_nSessionsLimit> m_Sessions;
 
-  ITerminalPtr   m_pTerminal;
+  IBinaryTerminalPtr m_pTerminal;
 
   size_t   m_nReceiveBufferSize;
   uint8_t* m_pReceiveBuffer;

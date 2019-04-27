@@ -3,7 +3,7 @@
 namespace network {
 
 void BufferedProtobufTerminal::onMessageReceived(
-    size_t nSessionId, spex::ICommutator &&message)
+    uint32_t nSessionId, spex::ICommutator&& message)
 {
   m_messages.emplace_back(nSessionId, std::move(message));
 }

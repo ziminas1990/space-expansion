@@ -12,11 +12,12 @@
 
 namespace modules {
 
-void AccessPanel::handleMessage(
-    size_t nSessionId, network::MessagePtr pMessage, size_t nLength)
+void AccessPanel::handleMessage(uint32_t nSessionId,
+                                network::BinaryMessage const& message)
 {
   // HACK :(
-  utils::memstream ss(reinterpret_cast<char*>(const_cast<uint8_t*>(pMessage)), nLength);
+  utils::memstream ss(reinterpret_cast<char*>(const_cast<uint8_t*>(message.m_pBody)),
+                      message.m_nLength);
 
   std::string sLogin;
   std::string sPassword;
@@ -74,22 +75,24 @@ bool AccessPanel::checkLogin(std::string const& sLogin, std::string const& sPass
 }
 
 void AccessPanel::sendLoginSuccess(
-    size_t nSessionId, const network::UdpEndPoint &localAddress)
+    uint32_t nSessionId, const network::UdpEndPoint &localAddress)
 {
   std::stringstream response;
   response << "OK " << localAddress.port();
-  send(nSessionId, reinterpret_cast<uint8_t const*>(response.str().c_str()),
-       response.str().size());
-  closeSession(nSessionId);
+  getChannel()->send(
+        nSessionId,
+        network::BinaryMessage(response.str().c_str(), response.str().size()));
+  getChannel()->closeSession(nSessionId);
 }
 
-void AccessPanel::sendLoginFailed(size_t nSessionId, std::string const& reason)
+void AccessPanel::sendLoginFailed(uint32_t nSessionId, std::string const& reason)
 {
   std::stringstream response;
   response << "FAILED " << reason;
-  send(nSessionId, reinterpret_cast<uint8_t const*>(response.str().c_str()),
-       response.str().size());
-  closeSession(nSessionId);
+  getChannel()->send(
+        nSessionId,
+        network::BinaryMessage(response.str().c_str(), response.str().size()));
+  getChannel()->closeSession(nSessionId);
 }
 
 } // namespace modules
