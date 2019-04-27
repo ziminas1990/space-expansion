@@ -24,10 +24,25 @@ add_custom_command(
 add_custom_target(protobuf-generated DEPENDS ${PROTOBUF_OUTPUT})
 
 #=========================================================================================
+# Creating Protocol libarary target:
+add_library(Protocol ${PROTOBUF_OUTPUT})
+add_dependencies(Protocol protobuf-generated)
+target_include_directories(Protocol PUBLIC
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
+set_target_properties(Protocol PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  # Protobufs spawns a lot of warnings (unused variable) in it's generated code,
+  # so I won't pass -Wpedantic or -Wall or -Wextra or etc to this target
+)
+target_link_libraries(Protocol CONAN_PKG::protobuf)
+
+#=========================================================================================
 # Creating main target:
 file(GLOB_RECURSE ALL_SOURCES_FILES "*.h" "*.cpp")
 
-add_executable(${PROJECT_NAME} ${ALL_SOURCES_FILES} ${PROTOBUF_OUTPUT})
+add_executable(${PROJECT_NAME} ${ALL_SOURCES_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -35,10 +50,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
-  COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Wextra;-Werror=return-type"
+  COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Werror=return-type"
 )
-add_dependencies(${PROJECT_NAME} protobuf-generated)
-target_link_libraries(${PROJECT_NAME} ${CONAN_TARGETS})
+
+target_link_libraries(${PROJECT_NAME} Protocol ${CONAN_TARGETS})
 
 #=========================================================================================
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

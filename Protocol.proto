@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option cc_enable_arenas = true;
+
 package spex;
 
 message INavigation {
@@ -22,14 +24,18 @@ message INavigation {
 
 message ICommutator {
 
-  message ModuleInfo {
-    uint32 nSlotId     = 1;
-    string sModuleType = 2; 
+  message GetTotalSlots {}
+  message GetTotalSlotsResponse {
+    uint32 nTotalSlots = 1;
   }
 
-  message GetModulesList {}
-  message ModulesListResponse {
-    repeated ModuleInfo modules = 1;
+  message GetModuleInfo {
+    uint32 nSlotId     = 1;
+  }
+  message GetAllModulesInfo {}
+  message ModuleInfo {
+    uint32 nSlotId     = 1;
+    string sModuleType = 2;
   }
 
   message OpenTunnel {
@@ -46,13 +52,13 @@ message ICommutator {
     uint32 nSequense = 1;
   }
 
-  message MessageExchange {
+  message Message {
     uint32 nTunnelId = 1;
 
     oneof choice {
       // All possible interfaces are listed here
-      INavigation navigationMessage = 2;
-      ICommutator commutator        = 3;
+      ICommutator commutator        = 2;
+      INavigation navigationMessage = 3;
     }
   }
 
@@ -64,28 +70,21 @@ message ICommutator {
   }
 
   oneof choice {
-    GetModulesList      getModulesList      = 1;
-    OpenTunnel          openTunnel          = 2;
-    CloseTunnel         closeTunnel         = 3;
+    // Requests and command from Client
+    GetTotalSlots     getTotalSlots     = 1;
+    GetModuleInfo     getModuleInfo     = 2;
+    GetAllModulesInfo getAllModulesInfo = 3;
+    OpenTunnel        openTunnel        = 4;
+    CloseTunnel       closeTunnel       = 5;
 
-    MessageExchange     messageExchange     = 4;
+    // Message could be sent in both directions
+    Message           message           = 6;
 
-    ModulesListResponse modulesListResponse = 5;
-    OpenTunnelSuccess   openTunnelSuccess   = 6;
-    OpenTunnelFailed    openTunnelFailed    = 7; 
-    TunnelClosed        tunnelClosed        = 8;
-  }
-}
-
-
-message CommandCenterMessage
-{
-  uint32 tick = 1;
-
-  oneof choice {
-    // Inherited interfaces
-    INavigation navigation = 2;
-    ICommutator commutator = 3;
+    // Responces and indications from server
+    ModuleInfo        moduleInfo        = 7;
+    OpenTunnelSuccess openTunnelSuccess = 8;
+    OpenTunnelFailed  openTunnelFailed  = 9; 
+    TunnelClosed      tunnelClosed      = 10;
   }
 }
 

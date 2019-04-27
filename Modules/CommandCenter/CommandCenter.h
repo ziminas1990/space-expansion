@@ -2,17 +2,18 @@
 
 #include <memory>
 #include <Newton/PhysicalObject.h>
-#include <Network/BufferedProtobufTerminal.h>
+#include <Modules/BaseModule.h>
 
 namespace modules {
 
-class CommandCenter :
-    public network::BufferedProtobufTerminal,
-    public newton::PhysicalObject
+class CommandCenter : public BaseModule, public newton::PhysicalObject
 {
-private:
-  void handleMessage(size_t nSessionId, spex::CommandCenterMessage&& message) override;
-  void onNavigationMessage(size_t nSessionId, spex::INavigation const& message);
+public:
+  CommandCenter() : BaseModule("Ship/CommandCenter") {}
+
+protected:
+  void handleNavigationMessage(
+      size_t nSessionId, spex::INavigation const& message) override;
 
 private:
   network::IProtobufChannelWeakPtr m_pChannel;

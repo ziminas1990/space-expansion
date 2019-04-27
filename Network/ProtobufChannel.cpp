@@ -2,8 +2,7 @@
 
 namespace network {
 
-bool ProtobufChannel::sendMessage(
-    size_t nSessionId, spex::CommandCenterMessage const& message)
+bool ProtobufChannel::sendMessage(size_t nSessionId, spex::ICommutator&& message)
 {
   std::string buffer;
   message.SerializeToString(&buffer);
@@ -23,7 +22,7 @@ void ProtobufChannel::detachFromTerminal()
 void ProtobufChannel::handleMessage(
     size_t nSessionId, MessagePtr pMessage, size_t nLength)
 {
-  spex::CommandCenterMessage message;
+  spex::ICommutator message;
   if (message.ParseFromArray(pMessage, static_cast<int>(nLength)))
     m_pTerminal->onMessageReceived(nSessionId, std::move(message));
 }

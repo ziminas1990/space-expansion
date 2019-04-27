@@ -58,8 +58,7 @@ class IProtobufTerminal
 public:
   virtual ~IProtobufTerminal() = default;
 
-  virtual void onMessageReceived(
-      size_t nSessionId, spex::CommandCenterMessage&& message) = 0;
+  virtual void onMessageReceived(size_t nSessionId, spex::ICommutator&& message) = 0;
 
   virtual void attachToChannel(IProtobufChannelPtr pChannel) = 0;
   virtual void detachFromChannel() = 0;
@@ -71,8 +70,7 @@ class IProtobufChannel
 public:
   virtual ~IProtobufChannel() = default;
 
-  virtual bool sendMessage(
-      size_t nSessionId, spex::CommandCenterMessage const& message) = 0;
+  virtual bool sendMessage(size_t nSessionId, spex::ICommutator&& message) = 0;
 
   virtual void attachToTerminal(IProtobufTerminalPtr pTerminal) = 0;
   virtual void detachFromTerminal() = 0;
