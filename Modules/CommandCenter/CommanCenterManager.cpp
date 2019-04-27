@@ -2,6 +2,7 @@
 
 #include <utility>
 #include "CommandCenter.h"
+#include <Utils/WeakPtrs.h>
 
 namespace modules {
 
@@ -19,15 +20,8 @@ bool CommandCenterManager::prephareStage(uint16_t /*nStageId*/)
 {
   if (--m_nRemovingZombiesTimeout == 0) {
     // sometimes we should remove empty weak_ptr's from m_CommandCentres
-    for(size_t i = 0; i < m_CommandCentres.size(); ++i) {
-      if (m_CommandCentres[i].expired()) {
-        // To remove element, just swap it with last element and than remove last element
-        if (i < m_CommandCentres.size() - 1)
-          std::swap(m_CommandCentres.at(i), m_CommandCentres.back());
-        m_CommandCentres.pop_back();
-      }
-    }
-    // TODO: change to rand() call for interval from 50 to 200
+    utils::removeExpiredWeakPtrs(m_CommandCentres);
+    // TODO: change to rand()?
     m_nRemovingZombiesTimeout = 100;
   }
 
