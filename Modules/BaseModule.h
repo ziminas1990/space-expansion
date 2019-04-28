@@ -11,22 +11,27 @@ namespace modules
 class BaseModule : public network::BufferedProtobufTerminal
 {
 public:
-
   BaseModule(std::string&& sModuleType)
     : m_sModuleType(std::move(sModuleType))
   {}
 
   std::string const& getModuleType() const { return m_sModuleType; }
 
+  // from IProtobufTerminal:
+  // By default, there is no reason to reject new session opening and there is
+  // nothing to do, when some session has been closed
+  bool openSession(uint32_t /*nSessionId*/) override { return true; }
+  void onSessionClosed(uint32_t /*nSessionId*/) override {}
+
 protected:
   // BufferedProtobufTerminal interface
-  void handleMessage(size_t nSessionId, spex::ICommutator &&message) override;
+  void handleMessage(uint32_t nSessionId, spex::ICommutator &&message) override;
 
   virtual void handleCommutatorMessage(size_t, spex::ICommutator const&) {}
   // Messages, that were incapsulated to spex::ICommutator::Message message
   virtual void handleNavigationMessage(size_t, spex::INavigation const&) {}
 
-  void send(size_t nSessionId, spex::INavigation &&message);
+  void send(uint32_t nSessionId, spex::INavigation &&message);
 
 private:
   std::string m_sModuleType;

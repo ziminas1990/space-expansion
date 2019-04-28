@@ -2,6 +2,17 @@
 
 namespace network {
 
+bool ProtobufChannel::openSession(uint32_t nSessionId)
+{
+  return m_pTerminal && m_pTerminal->openSession(nSessionId);
+}
+
+void ProtobufChannel::onSessionClosed(uint32_t nSessionId)
+{
+  if (m_pTerminal)
+    m_pTerminal->onSessionClosed(nSessionId);
+}
+
 bool ProtobufChannel::send(uint32_t nSessionId, spex::ICommutator&& message)
 {
   std::string buffer;

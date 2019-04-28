@@ -2,7 +2,7 @@
 
 namespace modules {
 
-void BaseModule::handleMessage(size_t nSessionId, spex::ICommutator &&message)
+void BaseModule::handleMessage(uint32_t nSessionId, spex::ICommutator &&message)
 {
   if (message.choice_case() != spex::ICommutator::kMessage) {
     handleCommutatorMessage(nSessionId, message);
@@ -22,7 +22,7 @@ void BaseModule::handleMessage(size_t nSessionId, spex::ICommutator &&message)
   }
 }
 
-void BaseModule::send(size_t nSessionId, spex::INavigation&& message)
+void BaseModule::send(uint32_t nSessionId, spex::INavigation&& message)
 {
   spex::ICommutator commutatorMessage;
   *commutatorMessage.mutable_message()->mutable_navigationmessage() = std::move(message);

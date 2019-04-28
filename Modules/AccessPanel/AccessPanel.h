@@ -24,6 +24,10 @@ public:
   void attachToPlayerStorage(world::PlayerStorageWeakPtr pPlayersStorage)
   { m_pPlayersStorage = pPlayersStorage; }
 
+  // from BufferedTerminal->IBinaryTerminal interface:
+  bool openSession(uint32_t /*nSessionId*/) override { return true; }
+  void onSessionClosed(uint32_t /*nSessionId*/) override {}
+
 protected:
   // overrides from BufferedTerminal interface
   void handleMessage(uint32_t nSessionId, network::BinaryMessage const& message) override;

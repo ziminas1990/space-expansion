@@ -6,6 +6,9 @@
 
 namespace network {
 
+// When subclassing this class, you MUST override:
+// 1. IProtobufTerminal::openSession(sessionId)
+// 2. IProtobufTerminal::onSessionClosed(sessionId)
 class BufferedProtobufTerminal : public IProtobufTerminal
 {
 public:
@@ -19,7 +22,7 @@ public:
   void handleBufferedMessages();
 
 protected:
-  virtual void handleMessage(size_t nSessionId, spex::ICommutator&& message) = 0;
+  virtual void handleMessage(uint32_t nSessionId, spex::ICommutator&& message) = 0;
   bool send(uint32_t nSessionId, spex::ICommutator&& message) {
     return m_pChannel && m_pChannel->send(nSessionId, std::move(message));
   }

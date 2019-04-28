@@ -97,7 +97,7 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
       }
     }
 
-    // It sees, that it is the first message from m_senderAddress
+    // It seems, that it is the first message from m_senderAddress
     if (!m_WhiteList.empty() && m_WhiteList.find(m_senderAddress) == m_WhiteList.end()) {
       // This remote address is NOT allowed
       return;
@@ -105,7 +105,9 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
 
     // Looking for free sessionId
     for(uint32_t nSessionId = 0; nSessionId <= m_nSessionsLimit; ++nSessionId) {
-      if (m_Sessions[nSessionId] == udp::endpoint()) {
+      if (m_Sessions[nSessionId] == udp::endpoint() &&
+          m_pTerminal->openSession(nSessionId))
+      {
         m_Sessions[nSessionId] = m_senderAddress;
         m_pTerminal->onMessageReceived(
               nSessionId, BinaryMessage(m_pReceiveBuffer, nTotalBytes));

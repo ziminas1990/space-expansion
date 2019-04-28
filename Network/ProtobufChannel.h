@@ -9,6 +9,10 @@ namespace network {
 class ProtobufChannel : public BufferedTerminal, public IProtobufChannel
 {
 public:
+  // from BufferedTerminal->IBinaryTerminal interface:
+  bool openSession(uint32_t nSessionId) override;
+  void onSessionClosed(uint32_t nSessionId) override;
+
   // IProtobufChannel interface
   bool send(uint32_t nSessionId, spex::ICommutator&& message) override;
   void attachToTerminal(IProtobufTerminalPtr pTerminal) override;
