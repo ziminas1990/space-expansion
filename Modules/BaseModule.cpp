@@ -22,11 +22,11 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::ICommutator &&message)
   }
 }
 
-void BaseModule::send(uint32_t nSessionId, spex::INavigation&& message)
+bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation&& message) const
 {
   spex::ICommutator commutatorMessage;
   *commutatorMessage.mutable_message()->mutable_navigationmessage() = std::move(message);
-  BufferedProtobufTerminal::send(nSessionId, std::move(commutatorMessage));
+  return BufferedProtobufTerminal::send(nSessionId, std::move(commutatorMessage));
 }
 
 } // namespace modules

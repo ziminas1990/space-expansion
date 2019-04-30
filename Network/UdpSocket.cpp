@@ -41,8 +41,10 @@ void UdpSocket::attachToTerminal(IBinaryTerminalPtr pTerminal)
   m_pTerminal = pTerminal;
 }
 
-bool UdpSocket::send(uint32_t nSessionId, BinaryMessage&& message)
+bool UdpSocket::send(uint32_t nSessionId, BinaryMessage&& message) const
 {
+  std::lock_guard<std::mutex> guard(m_Mutex);
+
   if (nSessionId >= m_Sessions.size())
     return false;
   udp::endpoint const& remote = m_Sessions[nSessionId];

@@ -13,7 +13,7 @@ void ProtobufChannel::onSessionClosed(uint32_t nSessionId)
     m_pTerminal->onSessionClosed(nSessionId);
 }
 
-bool ProtobufChannel::send(uint32_t nSessionId, spex::ICommutator&& message)
+bool ProtobufChannel::send(uint32_t nSessionId, spex::ICommutator&& message) const
 {
   std::string buffer;
   message.SerializeToString(&buffer);

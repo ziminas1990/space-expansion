@@ -14,7 +14,7 @@ public:
   void onSessionClosed(uint32_t nSessionId) override;
 
   // IProtobufChannel interface
-  bool send(uint32_t nSessionId, spex::ICommutator&& message) override;
+  bool send(uint32_t nSessionId, spex::ICommutator&& message) const override;
   void attachToTerminal(IProtobufTerminalPtr pTerminal) override;
   void detachFromTerminal() override;
   void closeSession(uint32_t nSessionId) override;

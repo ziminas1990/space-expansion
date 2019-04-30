@@ -23,7 +23,8 @@ public:
 
 protected:
   virtual void handleMessage(uint32_t nSessionId, spex::ICommutator&& message) = 0;
-  bool send(uint32_t nSessionId, spex::ICommutator&& message) {
+  bool channelIsValid() const { return m_pChannel && m_pChannel->isValid(); }
+  bool send(uint32_t nSessionId, spex::ICommutator&& message) const {
     return m_pChannel && m_pChannel->send(nSessionId, std::move(message));
   }
 

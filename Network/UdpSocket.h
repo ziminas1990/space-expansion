@@ -28,7 +28,7 @@ public:
   void detachFromTerminal() override { m_pTerminal.reset(); }
 
   // Message pMessage will be copied to internal buffer (probably, without allocation)
-  bool send(uint32_t nSessionId, BinaryMessage&& message) override;
+  bool send(uint32_t nSessionId, BinaryMessage&& message) const override;
   void closeSession(uint32_t nSessionId) override;
 
   udp::socket& getNativeSocket() { return m_socket; }
@@ -40,8 +40,8 @@ private:
 private:
   static const size_t m_nSessionsLimit = 8;
 
-  udp::socket    m_socket;
-  udp::endpoint  m_senderAddress;
+  mutable udp::socket m_socket;
+  udp::endpoint       m_senderAddress;
 
   // set of all remote clients, whom messages would be handled
   // if empty, than messages from everyone would be handled
@@ -53,7 +53,9 @@ private:
 
   size_t   m_nReceiveBufferSize;
   uint8_t* m_pReceiveBuffer;
-  utils::ChunksPool  m_ChunksPool;
+  mutable utils::ChunksPool  m_ChunksPool;
+
+  mutable std::mutex m_Mutex;
 };
 
 using UdpSocketPtr  = std::shared_ptr<UdpSocket>;

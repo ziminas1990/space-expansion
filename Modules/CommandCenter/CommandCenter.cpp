@@ -14,7 +14,7 @@ void CommandCenter::handleNavigationMessage(
       pBody->set_y(getPosition().y);
       pBody->set_vx(getVelocity().getPosition().x);
       pBody->set_vy(getVelocity().getPosition().y);
-      send(nSessionId, std::move(navigation));
+      sendToClient(nSessionId, std::move(navigation));
       break;
     }
     default: {

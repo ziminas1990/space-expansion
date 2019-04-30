@@ -39,18 +39,12 @@ message ICommutator {
   }
 
   message OpenTunnel {
-    uint32 nSequense = 1;
     uint32 nSlotId   = 2;
   }
   message OpenTunnelSuccess {
-    // Sequence has the same value as in OpenTunnelRequest
-    uint32 nSequense = 1;
     uint32 nTunnelId = 2;
   }
-  message OpenTunnelFailed {
-    // Sequence has the same value as in OpenTunnelRequest
-    uint32 nSequense = 1;
-  }
+  message OpenTunnelFailed {}
 
   message Message {
     uint32 nTunnelId = 1;
