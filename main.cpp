@@ -6,7 +6,7 @@
 #include "Conveyor/Conveyor.h"
 
 #include "Network/BufferedTerminal.h"
-#include "Network/ConnectionManager.h"
+#include "Network/UdpDispatcher.h"
 
 #include <World/PlayersStorage.h>
 

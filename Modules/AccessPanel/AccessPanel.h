@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <Network/ConnectionManager.h>
+#include <Network/UdpDispatcher.h>
 #include <Network/BufferedTerminal.h>
 #include <World/PlayersStorage.h>
 
