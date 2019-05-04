@@ -65,20 +65,21 @@ message ICommutator {
 
   oneof choice {
     // Requests and command from Client
-    GetTotalSlots     getTotalSlots     = 1;
-    GetModuleInfo     getModuleInfo     = 2;
-    GetAllModulesInfo getAllModulesInfo = 3;
-    OpenTunnel        openTunnel        = 4;
-    CloseTunnel       closeTunnel       = 5;
+    GetTotalSlots     getTotalSlots          = 1;
+    GetModuleInfo     getModuleInfo          = 2;
+    GetAllModulesInfo getAllModulesInfo      = 3;
+    OpenTunnel        openTunnel             = 4;
+    CloseTunnel       closeTunnel            = 5;
 
     // Message could be sent in both directions
-    Message           message           = 6;
+    Message           message                = 21;
 
     // Responces and indications from server
-    ModuleInfo        moduleInfo        = 7;
-    OpenTunnelSuccess openTunnelSuccess = 8;
-    OpenTunnelFailed  openTunnelFailed  = 9; 
-    TunnelClosed      tunnelClosed      = 10;
+    GetTotalSlotsResponse totalSlotsResponse = 41;
+    ModuleInfo            moduleInfo         = 42;
+    OpenTunnelSuccess     openTunnelSuccess  = 43;
+    OpenTunnelFailed      openTunnelFailed   = 44; 
+    TunnelClosed          tunnelClosed       = 45;
   }
 }
 

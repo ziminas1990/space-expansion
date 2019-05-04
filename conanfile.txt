@@ -2,6 +2,7 @@
 boost/1.69.0@conan/stable
 protobuf/3.5.2@bincrafters/stable
 protoc_installer/3.5.1@bincrafters/stable
+gtest/1.8.1@bincrafters/stable
 
 [options]
 # Boost component, that are required:
