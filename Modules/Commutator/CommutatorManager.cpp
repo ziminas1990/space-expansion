@@ -1,12 +1,21 @@
 #include "CommutatorManager.h"
+#include <mutex>
 
 namespace modules
 {
 
+CommutatorManager::CommutatorManager()
+{
+  m_commutators.reserve(0xFF);
+}
+
 CommutatorPtr CommutatorManager::makeCommutator()
 {
   CommutatorPtr pCommutator = std::make_shared<Commutator>();
-
+  {
+    std::lock_guard<utils::SpinLock> lock(m_AccessLock);
+    m_commutators.push_back(pCommutator);
+  }
   return pCommutator;
 }
 

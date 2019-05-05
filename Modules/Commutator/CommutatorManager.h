@@ -5,6 +5,7 @@
 #include <vector>
 #include "Commutator.h"
 #include <Conveyor/IAbstractLogic.h>
+#include <Utils/Spinlock.h>
 
 namespace modules
 {
@@ -12,6 +13,8 @@ namespace modules
 class CommutatorManager : public conveyor::IAbstractLogic
 {
 public:
+  CommutatorManager();
+
   CommutatorPtr makeCommutator();
 
   // IAbstractLogic interface
@@ -25,7 +28,9 @@ private:
 private:
   std::vector<CommutatorPtr> m_commutators;
   std::atomic_size_t         m_nNextId;
-  std::atomic_flag           m_lInactiveCommutatorDetected;
+  std::atomic_flag           m_lInactiveCommutatorDetected = ATOMIC_FLAG_INIT;
+
+  utils::SpinLock m_AccessLock;
 };
 
 using CommutatorManagerPtr = std::shared_ptr<CommutatorManager>;
