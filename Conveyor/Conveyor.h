@@ -1,3 +1,5 @@
+#pragma once
+
 #include "IAbstractLogic.h"
 #include <vector>
 #include <boost/fiber/barrier.hpp>
