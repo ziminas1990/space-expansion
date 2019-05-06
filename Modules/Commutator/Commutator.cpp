@@ -66,11 +66,14 @@ void Commutator::onSessionClosed(uint32_t nSessionId)
   }
 }
 
-bool Commutator::send(uint32_t nTunnelId, spex::ICommutator &&frame) const
+bool Commutator::send(uint32_t nTunnelId, spex::Message &&message) const
 {
   // in this context, sessionId (we got it from terminal) is a tunnelId
-  return nTunnelId >= m_Tunnels.size()
-      && sendToClient(m_Tunnels[nTunnelId].m_nSessionId, std::move(frame));
+  spex::Message tunnelPDU;
+  tunnelPDU.set_tunnelid(nTunnelId);
+  *tunnelPDU.mutable_encapsulated() = std::move(message);
+  return nTunnelId < m_Tunnels.size()
+      && sendToClient(m_Tunnels[nTunnelId].m_nSessionId, std::move(tunnelPDU));
 }
 
 void Commutator::closeSession(uint32_t nSessionId)
@@ -79,29 +82,33 @@ void Commutator::closeSession(uint32_t nSessionId)
   onCloseTunnelRequest(nSessionId);
 }
 
-void Commutator::handleMessage(uint32_t nSessionId, spex::ICommutator &&message)
+void Commutator::handleMessage(uint32_t nSessionId, spex::Message&& message)
 {
-  switch(message.choice_case()) {
-    case spex::ICommutator::kGetTotalSlots:
-      onGetTotalSlotsRequest(nSessionId);
-      return;
-    case spex::ICommutator::kGetModuleInfo:
-      getModuleInfo(nSessionId, message.getmoduleinfo().nslotid());
-      return;
-    case spex::ICommutator::kGetAllModulesInfo:
-      getAllModulesInfo(nSessionId);
-      return;
-    case spex::ICommutator::kOpenTunnel:
-      onOpenTunnelRequest(nSessionId, message.opentunnel().nslotid());
-      return;
-    case spex::ICommutator::kCloseTunnel:
-      onCloseTunnelRequest(nSessionId, message.closetunnel().ntunnelid());
-      return;
-    case spex::ICommutator::kMessage:
-      commutateMessage(nSessionId, message);
-      return;
-    default:
-      return;
+  if (message.choice_case() == spex::Message::kEncapsulated) {
+    spex::Message encapsulated = std::move(message.encapsulated());
+    commutateMessage(message.tunnelid(), std::move(encapsulated));
+
+  } else if (message.choice_case() == spex::Message::kCommutator) {
+    spex::ICommutator const& commutatorPdu = message.commutator();
+    switch(commutatorPdu.choice_case()) {
+      case spex::ICommutator::kGetTotalSlots:
+        onGetTotalSlotsRequest(nSessionId);
+        return;
+      case spex::ICommutator::kGetModuleInfo:
+        getModuleInfo(nSessionId, commutatorPdu.getmoduleinfo().nslotid());
+        return;
+      case spex::ICommutator::kGetAllModulesInfo:
+        getAllModulesInfo(nSessionId);
+        return;
+      case spex::ICommutator::kOpenTunnel:
+        onOpenTunnelRequest(nSessionId, commutatorPdu.opentunnel().nslotid());
+        return;
+      case spex::ICommutator::kCloseTunnel:
+        onCloseTunnelRequest(nSessionId, commutatorPdu.closetunnel().ntunnelid());
+        return;
+      default:
+        return;
+    }
   }
 }
 
@@ -177,7 +184,7 @@ void Commutator::onCloseTunnelRequest(uint32_t nTunnelId, uint32_t nSessionId)
   tunnel = Tunnel();
 }
 
-void Commutator::commutateMessage(uint32_t nTunnelId, spex::ICommutator& message)
+void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message&& message)
 {
   if (nTunnelId >= m_Tunnels.size())
     return;

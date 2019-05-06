@@ -38,15 +38,16 @@ protected:
   void doestroyed() { m_eStatus = eDestoyed; }
 
   // BufferedProtobufTerminal interface
-  void handleMessage(uint32_t nSessionId, spex::ICommutator &&message) override;
+  void handleMessage(uint32_t nSessionId, spex::Message &&message) override;
 
   virtual void handleCommutatorMessage(size_t, spex::ICommutator const&) {}
   // Messages, that were incapsulated to spex::ICommutator::Message message
   virtual void handleNavigationMessage(size_t, spex::INavigation const&) {}
 
-  inline bool sendToClient(uint32_t nSessionId, spex::ICommutator &&message) const {
+  inline bool sendToClient(uint32_t nSessionId, spex::Message&& message) const {
     return network::BufferedProtobufTerminal::send(nSessionId, std::move(message));
   }
+  bool sendToClient(uint32_t nSessionId, spex::ICommutator &&message) const;
   bool sendToClient(uint32_t nSessionId, spex::INavigation &&message) const;
 
 private:

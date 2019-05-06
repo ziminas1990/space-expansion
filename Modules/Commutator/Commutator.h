@@ -27,7 +27,7 @@ public:
   void onSessionClosed(uint32_t nSessionId) override;
 
   // overrides from network::IProtobufChannel
-  bool send(uint32_t nSessionId, spex::ICommutator&& frame) const override;
+  bool send(uint32_t nSessionId, spex::Message&& message) const override;
   void closeSession(uint32_t nSessionId) override;
   bool isValid() const override { return channelIsValid(); }
   void attachToTerminal(network::IProtobufTerminalPtr) override {}
@@ -35,7 +35,7 @@ public:
 
 protected:
   // overides from BufferedProtobufTerminal interface
-  void handleMessage(uint32_t nSessionId, spex::ICommutator &&message) override;
+  void handleMessage(uint32_t nSessionId, spex::Message &&message) override;
 
 private:
   // Command handlers
@@ -45,7 +45,7 @@ private:
   void onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot);
   void onCloseTunnelRequest(uint32_t nTunnelId, uint32_t nSessionId = uint32_t(-1));
 
-  void commutateMessage(uint32_t nTunnelId, spex::ICommutator &message);
+  void commutateMessage(uint32_t nTunnelId, spex::Message &&message);
 
   void onModuleHasBeenDetached(uint32_t nSlotId);
   void onModuleHasBeenAttached(uint32_t nSlotId);

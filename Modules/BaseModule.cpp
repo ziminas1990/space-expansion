@@ -2,31 +2,40 @@
 
 namespace modules {
 
-void BaseModule::handleMessage(uint32_t nSessionId, spex::ICommutator &&message)
+void BaseModule::handleMessage(uint32_t nSessionId, spex::Message&& message)
 {
-  if (message.choice_case() != spex::ICommutator::kMessage) {
-    handleCommutatorMessage(nSessionId, message);
-    return;
-  }
-
-  switch(message.message().choice_case()) {
-    case spex::ICommutator::Message::kNavigationMessage: {
-      handleNavigationMessage(nSessionId, message.message().navigationmessage());
+  switch(message.choice_case()) {
+    case spex::Message::kCommutator: {
+      handleCommutatorMessage(nSessionId, message.commutator());
       return;
     }
-    case spex::ICommutator::Message::kCommutator:
-    case spex::ICommutator::Message::CHOICE_NOT_SET: {
+    case spex::Message::kNavigation: {
+      handleNavigationMessage(nSessionId, message.navigation());
+      return;
+    }
+    case spex::Message::kEncapsulated: {
+      // Only commutator is able to handle such messages!
+      return;
+    }
+    case spex::Message::CHOICE_NOT_SET: {
       // Just ignoring
       return;
     }
   }
 }
 
+bool BaseModule::sendToClient(uint32_t nSessionId, spex::ICommutator &&message) const
+{
+  spex::Message pdu;
+  *pdu.mutable_commutator() = std::move(message);
+  return BufferedProtobufTerminal::send(nSessionId, std::move(pdu));
+}
+
 bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation&& message) const
 {
-  spex::ICommutator commutatorMessage;
-  *commutatorMessage.mutable_message()->mutable_navigationmessage() = std::move(message);
-  return BufferedProtobufTerminal::send(nSessionId, std::move(commutatorMessage));
+  spex::Message pdu;
+  *pdu.mutable_navigation() = std::move(message);
+  return BufferedProtobufTerminal::send(nSessionId, std::move(pdu));
 }
 
 } // namespace modules

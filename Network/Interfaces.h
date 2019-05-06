@@ -74,11 +74,11 @@ using IBinaryTerminal          = ITerminal<BinaryMessage>;
 using IBinaryTerminalPtr       = std::shared_ptr<IBinaryTerminal>;
 using IBinaryTerminalWeakPtr   = std::weak_ptr<IBinaryTerminal>;
 
-using IProtobufChannel         = IChannel<spex::ICommutator>;
+using IProtobufChannel         = IChannel<spex::Message>;
 using IProtobufChannelPtr      = std::shared_ptr<IProtobufChannel>;
 using IProtobufChannelWeakPtr  = std::weak_ptr<IProtobufChannel>;
 
-using IProtobufTerminal        = ITerminal<spex::ICommutator>;
+using IProtobufTerminal        = ITerminal<spex::Message>;
 using IProtobufTerminalPtr     = std::shared_ptr<IProtobufTerminal>;
 using IProtobufTerminalWeakPtr = std::weak_ptr<IProtobufTerminal>;
 

@@ -13,7 +13,7 @@ void ProtobufChannel::onSessionClosed(uint32_t nSessionId)
     m_pTerminal->onSessionClosed(nSessionId);
 }
 
-bool ProtobufChannel::send(uint32_t nSessionId, spex::ICommutator&& message) const
+bool ProtobufChannel::send(uint32_t nSessionId, spex::Message &&message) const
 {
   std::string buffer;
   message.SerializeToString(&buffer);
@@ -44,10 +44,9 @@ bool ProtobufChannel::isValid() const
 
 void ProtobufChannel::handleMessage(uint32_t nSessionId, BinaryMessage const& message)
 {
-  spex::ICommutator protobufMessage;
-  if (protobufMessage.ParseFromArray(message.m_pBody,
-                                     static_cast<int>(message.m_nLength)))
-    m_pTerminal->onMessageReceived(nSessionId, std::move(protobufMessage));
+  spex::Message pdu;
+  if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength)))
+    m_pTerminal->onMessageReceived(nSessionId, std::move(pdu));
 }
 
 } // namespace network

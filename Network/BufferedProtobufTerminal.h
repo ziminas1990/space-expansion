@@ -15,28 +15,28 @@ public:
   BufferedProtobufTerminal() { m_messages.reserve(0x40); }
 
   // overrides from IProtobufTerminal interface
-  void onMessageReceived(uint32_t nSessionId, spex::ICommutator&& message) override;
+  void onMessageReceived(uint32_t nSessionId, spex::Message&& message) override;
   void attachToChannel(IProtobufChannelPtr pChannel) override { m_pChannel = pChannel; }
   void detachFromChannel() override { m_pChannel.reset(); }
 
   void handleBufferedMessages();
 
 protected:
-  virtual void handleMessage(uint32_t nSessionId, spex::ICommutator&& message) = 0;
+  virtual void handleMessage(uint32_t nSessionId, spex::Message&& message) = 0;
   bool channelIsValid() const { return m_pChannel && m_pChannel->isValid(); }
-  bool send(uint32_t nSessionId, spex::ICommutator&& message) const {
+  bool send(uint32_t nSessionId, spex::Message&& message) const {
     return m_pChannel && m_pChannel->send(nSessionId, std::move(message));
   }
 
 private:
   struct BufferedMessage
   {
-    BufferedMessage(size_t nSessionId, spex::ICommutator&& body)
+    BufferedMessage(uint32_t nSessionId, spex::Message&& body)
       : m_nSessionId(nSessionId), m_body(std::move(body))
     {}
 
-    size_t m_nSessionId = 0;
-    spex::ICommutator m_body;
+    uint32_t      m_nSessionId = 0;
+    spex::Message m_body;
   };
 
 private:

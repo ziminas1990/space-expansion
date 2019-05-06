@@ -46,16 +46,6 @@ message ICommutator {
   }
   message OpenTunnelFailed {}
 
-  message Message {
-    uint32 nTunnelId = 1;
-
-    oneof choice {
-      // All possible interfaces are listed here
-      ICommutator commutator        = 2;
-      INavigation navigationMessage = 3;
-    }
-  }
-
   message CloseTunnel {
     uint32 nTunnelId = 1;
   }
@@ -71,9 +61,6 @@ message ICommutator {
     OpenTunnel        openTunnel             = 4;
     CloseTunnel       closeTunnel            = 5;
 
-    // Message could be sent in both directions
-    Message           message                = 21;
-
     // Responces and indications from server
     GetTotalSlotsResponse totalSlotsResponse = 41;
     ModuleInfo            moduleInfo         = 42;
@@ -83,3 +70,13 @@ message ICommutator {
   }
 }
 
+message Message {
+  uint32 tunnelId = 1;
+
+  oneof choice {
+    // All possible interfaces are listed here
+    Message     encapsulated  = 2;
+    ICommutator commutator    = 3;
+    INavigation navigation    = 4;
+  }
+}

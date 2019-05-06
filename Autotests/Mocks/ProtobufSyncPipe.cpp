@@ -4,7 +4,7 @@
 namespace autotests {
 
 bool ProtobufSyncPipe::waitAny(
-    uint32_t nSessionId, spex::ICommutator &out, uint16_t nTimeoutMs)
+    uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs)
 {
   if (m_knownSessionsIds.find(nSessionId) == m_knownSessionsIds.end())
     return false;
@@ -23,7 +23,7 @@ bool ProtobufSyncPipe::waitAny(
 }
 
 bool ProtobufSyncPipe::waitAny(
-    uint32_t* pNewSessionId, spex::ICommutator &out, uint16_t nTimeoutMs)
+    uint32_t* pNewSessionId, spex::Message &out, uint16_t nTimeoutMs)
 {
   std::function<bool()> fPredicate = [this]() { return m_newSessionIds.empty(); };
   if (!utils::waitFor(fPredicate, m_fEnviromentProceeder, nTimeoutMs))
@@ -43,33 +43,32 @@ bool ProtobufSyncPipe::waitAny(
 
 bool ProtobufSyncPipe::expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs)
 {
-  spex::ICommutator message;
+  spex::Message message;
   return !waitAny(nSessionId, message, nTimeoutMs);
 }
 
-void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::ICommutator &&frame)
+void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message&& message)
 {
   if (m_eMode == eMockedTerminalMode) {
-    storeMessage(nSessionId, std::move(frame));
+    storeMessage(nSessionId, std::move(message));
   } else {
-    m_pAttachedTerminal->onMessageReceived(nSessionId, std::move(frame));
+    m_pAttachedTerminal->onMessageReceived(nSessionId, std::move(message));
     m_knownSessionsIds.insert(nSessionId);
   }
 }
 
-bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::ICommutator &&frame) const
+bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message&& message) const
 {
   if (m_eMode == eMockedChannelMode) {
-    storeMessage(nSessionId, std::move(frame));
+    storeMessage(nSessionId, std::move(message));
   } else {
-    m_pAttachedChannel->send(nSessionId, std::move(frame));
+    m_pAttachedChannel->send(nSessionId, std::move(message));
     m_knownSessionsIds.insert(nSessionId);
   }
   return true;
 }
 
-void ProtobufSyncPipe::storeMessage(
-    uint32_t nSessionId, spex::ICommutator &&message) const
+void ProtobufSyncPipe::storeMessage(uint32_t nSessionId, spex::Message &&message) const
 {
   if (m_Sessions.find(nSessionId) == m_Sessions.end()) {
     m_newSessionIds.insert(nSessionId);
