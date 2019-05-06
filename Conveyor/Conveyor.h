@@ -14,7 +14,7 @@ public:
 
   void addLogicToChain(IAbstractLogicPtr pLogic);
 
-  void proceed(size_t nIntervalUs);
+  void proceed(uint32_t nIntervalUs);
   [[noreturn]] void joinAsSlave();
 
 private:

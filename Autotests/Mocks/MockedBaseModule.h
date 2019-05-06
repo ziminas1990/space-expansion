@@ -19,14 +19,6 @@ public:
     : modules::BaseModule("MockedBaseModule"),
       ProtobufSyncPipe(ProtobufSyncPipe::eMockedTerminalMode)
   {}
-
-  // override from ITerminal interface
-  void onMessageReceived(uint32_t nSessionId, spex::ICommutator&& frame) override
-  {
-    ProtobufSyncPipe::onMessageReceived(nSessionId, std::move(frame));
-  }
-
-  void attachToChannel(network::IProtobufChannelPtr /*pChannel*/) override {}
 };
 
 using MockedBaseModulePtr = std::shared_ptr<MockedBaseModule>;

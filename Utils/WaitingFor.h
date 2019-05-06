@@ -11,10 +11,10 @@ bool waitFor(std::function<bool()> predicate, std::function<void()> proceeder,
   auto start = std::chrono::high_resolution_clock::now();
   std::chrono::milliseconds duration;
   do {
+    proceeder();
     if(predicate())
       return true;
-    proceeder();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::yield();
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::high_resolution_clock::now() - start);
   } while(duration < nTimeout);

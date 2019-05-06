@@ -20,7 +20,7 @@ public:
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() { return 1; }
   bool prephareStage(uint16_t nStageId);
-  void proceedStage(uint16_t nStageId, size_t nIntervalUs);
+  void proceedStage(uint16_t nStageId, uint32_t nIntervalUs);
 
 private:
   std::vector<CommandCenterWeakPtr> m_CommandCentres;

@@ -6,7 +6,7 @@
 
 namespace conveyor {
 
-void runRealTimeProceeder(Conveyor* conveyor)
+void runRealTimeProceeder(Conveyor* pConveyor)
 {
   auto nMinTickSize = std::chrono::microseconds(100);
   auto nMaxTickSize = std::chrono::milliseconds(20);
@@ -26,7 +26,7 @@ void runRealTimeProceeder(Conveyor* conveyor)
       dt = nMaxTickSize;
     if (dt > nMinTickSize * 10)
       std::cout << "Proceeding " << dt.count() << " usec..." << std::endl;
-    conveyor->proceed(static_cast<size_t>(dt.count()));
+    pConveyor->proceed(static_cast<size_t>(dt.count()));
     inGameTime += dt;
   }
 }

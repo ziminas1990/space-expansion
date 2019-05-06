@@ -29,7 +29,7 @@ bool CommandCenterManager::prephareStage(uint16_t /*nStageId*/)
   return !m_CommandCentres.empty();
 }
 
-void CommandCenterManager::proceedStage(uint16_t /*nStageId*/, size_t /*nIntervalUs*/)
+void CommandCenterManager::proceedStage(uint16_t /*nStageId*/, uint32_t /*nIntervalUs*/)
 {
   size_t nId = m_nNextId.fetch_add(1);
   while (nId < m_CommandCentres.size()) {

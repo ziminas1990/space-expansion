@@ -16,7 +16,7 @@ void Conveyor::addLogicToChain(IAbstractLogicPtr pLogic)
   m_LogicChain.push_back(std::move(context));
 }
 
-void Conveyor::proceed(size_t nIntervalUs)
+void Conveyor::proceed(uint32_t nIntervalUs)
 {
   m_State.nCurrentTimeUs  += nIntervalUs;
   m_State.pSelectedLogic  = nullptr;

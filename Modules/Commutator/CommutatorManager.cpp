@@ -29,10 +29,12 @@ bool CommutatorManager::prephareStage(uint16_t)
   return true;
 }
 
-void CommutatorManager::proceedStage(uint16_t, size_t)
+void CommutatorManager::proceedStage(uint16_t, uint32_t)
 {
-  size_t nCommutatorId = m_nNextId.fetch_add(1);
-  while(nCommutatorId < m_commutators.size()) {
+  for (size_t nCommutatorId = m_nNextId.fetch_add(1);
+       nCommutatorId < m_commutators.size();
+       nCommutatorId = m_nNextId.fetch_add(1))
+  {
     CommutatorPtr& pCommutator = m_commutators[nCommutatorId];
     if (pCommutator && pCommutator->getStatus() != Commutator::eDestoyed) {
       pCommutator->handleBufferedMessages();

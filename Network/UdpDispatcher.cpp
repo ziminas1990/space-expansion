@@ -34,7 +34,7 @@ bool UdpDispatcher::prephareStage(uint16_t)
   return true;
 }
 
-void UdpDispatcher::proceedStage(uint16_t, size_t)
+void UdpDispatcher::proceedStage(uint16_t, uint32_t)
 {
   size_t nConnectionId = m_nNextConnectionId.fetch_add(1);
   while (nConnectionId < m_Connections.size()) {

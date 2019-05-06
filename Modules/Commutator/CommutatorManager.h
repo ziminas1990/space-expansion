@@ -19,8 +19,9 @@ public:
 
   // IAbstractLogic interface
   uint16_t getStagesCount() { return 1; }
-  bool prephareStage(uint16_t nStageId);
-  void proceedStage(uint16_t nStageId, size_t nIntervalUs);
+  bool     prephareStage(uint16_t nStageId);
+  void     proceedStage(uint16_t nStageId, uint32_t nIntervalUs);
+  size_t   getCooldownTimeUs() const { return 1000; }
 
 private:
   void removeInactiveCommutators();

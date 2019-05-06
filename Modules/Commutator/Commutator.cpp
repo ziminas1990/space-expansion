@@ -145,12 +145,12 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
     message.mutable_opentunnelfailed();
   } else {
     uint32_t nTunnelId;
-    if (m_ReusableTunnels.empty()) {
+    if (!m_ReusableTunnels.empty()) {
       nTunnelId = m_ReusableTunnels.top();
       m_ReusableTunnels.pop();
     } else {
       m_Tunnels.push_back(Tunnel());
-      nTunnelId = static_cast<uint32_t>(m_Tunnels.size());
+      nTunnelId = static_cast<uint32_t>(m_Tunnels.size() - 1);
     }
     Tunnel& tunnel      = m_Tunnels[nTunnelId];
     tunnel.m_nSlotId    = nSlot;

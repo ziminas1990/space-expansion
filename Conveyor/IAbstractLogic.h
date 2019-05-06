@@ -22,7 +22,7 @@ public:
 
   // This function will be called for every stage, if prhephareStage() returned true
   // nIntervalUs - in-game time (im microseconds), that passed since last proceed
-  virtual void proceedStage(uint16_t nStageId, size_t nIntervalUs) = 0;
+  virtual void proceedStage(uint16_t nStageId, uint32_t nIntervalUs) = 0;
 
   // This function returns a number of microseconds (of in-game time), during wich
   // logic shouldn't be proceeded again
