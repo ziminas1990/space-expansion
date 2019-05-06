@@ -1,3 +1,5 @@
+#ifndef AUTOTESTS_MODE
+
 #include <thread>
 
 #include <boost/asio.hpp>
@@ -50,3 +52,13 @@
   conveyor::runRealTimeProceeder(&conveyor);
 }
 
+#else
+
+#include <gtest/gtest.h>
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+
+#endif

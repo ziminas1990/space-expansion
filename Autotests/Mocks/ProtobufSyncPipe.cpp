@@ -3,6 +3,16 @@
 
 namespace autotests {
 
+ProtobufSyncPipePtr ProtobufSyncPipe::MakeMockedChannelPipe()
+{
+  return std::make_shared<ProtobufSyncPipe>(eMockedChannelMode);
+}
+
+ProtobufSyncPipePtr ProtobufSyncPipe::MakeMockedTeminalPipe()
+{
+  return std::make_shared<ProtobufSyncPipe>(eMockedTerminalMode);
+}
+
 bool ProtobufSyncPipe::waitAny(
     uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs)
 {
@@ -41,26 +51,78 @@ bool ProtobufSyncPipe::waitAny(
   return true;
 }
 
+bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::ICommutator &out,
+                            uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(nSessionId, spex::Message::kCommutator, message, nTimeoutMs))
+    return false;
+  out = std::move(message.commutator());
+  return true;
+}
+
+bool ProtobufSyncPipe::wait(uint32_t *pSessionId, spex::ICommutator &out,
+                            uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(pSessionId, spex::Message::kCommutator, message, nTimeoutMs))
+    return false;
+  out = std::move(message.commutator());
+  return true;
+}
+
+bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::INavigation &out,
+                            uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(nSessionId, spex::Message::kNavigation, message, nTimeoutMs))
+    return false;
+  out = std::move(message.navigation());
+  return true;
+}
+
+bool ProtobufSyncPipe::wait(uint32_t *pSessionId, spex::INavigation &out,
+                            uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(pSessionId, spex::Message::kNavigation, message, nTimeoutMs))
+    return false;
+  out = std::move(message.navigation());
+  return true;
+}
+
 bool ProtobufSyncPipe::expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs)
 {
   spex::Message message;
   return !waitAny(nSessionId, message, nTimeoutMs);
 }
 
+bool ProtobufSyncPipe::openSession(uint32_t nSessionId)
+{
+  return m_pAttachedTerminal && m_pAttachedTerminal->openSession(nSessionId);
+}
+
 void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message&& message)
 {
   if (m_eMode == eMockedTerminalMode) {
-    storeMessage(nSessionId, std::move(message));
+    proxyOrStoreMessage(nSessionId, std::move(message));
   } else {
     m_pAttachedTerminal->onMessageReceived(nSessionId, std::move(message));
     m_knownSessionsIds.insert(nSessionId);
   }
 }
 
+
+void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
+{
+  if (m_pAttachedTerminal)
+    m_pAttachedTerminal->onSessionClosed(nSessionId);
+}
+
 bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message&& message) const
 {
   if (m_eMode == eMockedChannelMode) {
-    storeMessage(nSessionId, std::move(message));
+    proxyOrStoreMessage(nSessionId, std::move(message));
   } else {
     m_pAttachedChannel->send(nSessionId, std::move(message));
     m_knownSessionsIds.insert(nSessionId);
@@ -68,12 +130,33 @@ bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message&& message) const
   return true;
 }
 
-void ProtobufSyncPipe::storeMessage(uint32_t nSessionId, spex::Message &&message) const
+void ProtobufSyncPipe::closeSession(uint32_t nSessionId)
+{
+  if (m_pAttachedChannel)
+    m_pAttachedChannel->closeSession(nSessionId);
+}
+
+void ProtobufSyncPipe::proxyOrStoreMessage(
+    uint32_t nSessionId, spex::Message &&message) const
 {
   if (m_Sessions.find(nSessionId) == m_Sessions.end()) {
     m_newSessionIds.insert(nSessionId);
   }
   m_Sessions[nSessionId].push(std::move(message));
+}
+
+bool ProtobufSyncPipe::waitConcrete(
+    uint32_t nSessionId, spex::Message::ChoiceCase eExpectedChoice,
+    spex::Message &out, uint16_t nTimeoutMs)
+{
+  return waitAny(nSessionId, out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
+}
+
+bool ProtobufSyncPipe::waitConcrete(
+    uint32_t *pSessionId, spex::Message::ChoiceCase eExpectedChoice,
+    spex::Message &out, uint16_t nTimeoutMs)
+{
+  return waitAny(pSessionId, out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
 }
 
 } // namespace autotest
