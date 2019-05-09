@@ -5,7 +5,8 @@
 #include <Conveyor/Conveyor.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/Commutator/CommutatorManager.h>
-#include <Autotests/Mocks/ProtobufSyncPipe.h>
+#include <Autotests/TestUtils/ProtobufSyncPipe.h>
+#include <Autotests/TestUtils/BidirectionalChannel.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
 
 namespace autotests
@@ -23,8 +24,9 @@ protected:
   conveyor::Conveyor            conveyor;
   modules::CommutatorManagerPtr m_pCommutatorManager;
   modules::CommutatorPtr        m_pCommutatator;
-  ProtobufSyncPipePtr           m_pProtobufPipe;
   CommutatorClientPtr           m_pClient;
+  ProtobufSyncPipePtr           m_pProtobufPipe;
+  BidirectionalChannelPtr       m_pChannel;
 };
 
 } // namespace autotests

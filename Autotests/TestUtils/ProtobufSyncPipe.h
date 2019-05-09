@@ -20,24 +20,14 @@ class ProtobufSyncPipe :
   using SessionsQueue = std::map<uint32_t, MessagesQueue>;
 
 public:
-  static ProtobufSyncPipePtr MakeMockedChannelPipe();
-  static ProtobufSyncPipePtr MakeMockedTeminalPipe();
-
-  enum Mode {
-    eMockedChannelMode,
-    eMockedTerminalMode
-  };
-
-  ProtobufSyncPipe(Mode eMode) : m_eMode(eMode) {}
-
   virtual ~ProtobufSyncPipe() override = default;
 
   void setEnviromentProceeder(std::function<void()>&& fProceeder)
   { m_fEnviromentProceeder = std::move(fProceeder); }
 
-  // All ICommutator::Message'es, that has been received in nSessionId, will be
-  // deencapsulated in forwarded to uplevel tunnel
-  void attachToUplevelTunnel(uint32_t nSessionId, ProtobufSyncPipePtr pUplevelTunnel);
+  // All encapsulated (tunneled) messages, that are received in session nSessionId
+  // will be deencapsulated and passed to pUplevel
+  void attachToTunnel(uint32_t nSessionId, network::IProtobufTerminalPtr pUplevel);
 
   // Waiting message in already opened session nSessionId
   bool waitAny(uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs = 500);
@@ -69,7 +59,7 @@ public:
   void detachFromTerminal() override { m_pAttachedTerminal.reset(); }
 
 protected:
-  void proxyOrStoreMessage(uint32_t nSessionId, spex::Message&& message) const;
+  void storeMessage(uint32_t nSessionId, spex::Message&& message) const;
 
 private:
   bool waitConcrete(uint32_t nSessionId, spex::Message::ChoiceCase eExpectedChoice,
@@ -78,11 +68,12 @@ private:
                     spex::Message &out, uint16_t nTimeoutMs = 500);
 
 private:
-  Mode m_eMode;
   // Used only in eMockedTerminalMode
   network::IProtobufChannelPtr m_pAttachedChannel;
   // Used only in eMockedChannelMode
   network::IProtobufTerminalPtr m_pAttachedTerminal;
+  // Users tunnels
+  std::map<uint32_t, network::IProtobufTerminalPtr> m_clientTunnels;
 
   std::function<void()>      m_fEnviromentProceeder;
   mutable SessionsQueue      m_Sessions;

@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <Protocol.pb.h>
-#include <Autotests/Mocks/ProtobufSyncPipe.h>
+#include <Autotests/TestUtils/ProtobufSyncPipe.h>
 #include <Modules/BaseModule.h>
 
 namespace autotests {

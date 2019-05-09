@@ -10,7 +10,8 @@ void CommutatorTests::SetUp()
   m_pCommutatorManager = std::make_shared<modules::CommutatorManager>();
   m_pCommutatator      = m_pCommutatorManager->makeCommutator();
   m_pClient            = std::make_shared<CommutatorClient>();
-  m_pProtobufPipe      = ProtobufSyncPipe::MakeMockedChannelPipe();
+  m_pProtobufPipe      = std::make_shared<ProtobufSyncPipe>();
+  m_pChannel           = std::make_shared<BidirectionalChannel>();
 
   // Setting up components
   conveyor.addLogicToChain(m_pCommutatorManager);
@@ -18,8 +19,10 @@ void CommutatorTests::SetUp()
 
   // Linking components
   m_pClient->attachToSyncChannel(m_pProtobufPipe);
-  m_pProtobufPipe->attachToTerminal(m_pCommutatator);
-  m_pCommutatator->attachToChannel(m_pProtobufPipe);
+  m_pCommutatator->attachToChannel(m_pChannel);
+  m_pChannel->attachToTerminal(m_pCommutatator);
+  m_pProtobufPipe->attachToChannel(m_pChannel);
+  m_pChannel->createNewSession(1, m_pProtobufPipe);
 }
 
 void CommutatorTests::TearDown()
@@ -55,8 +58,9 @@ TEST_F(CommutatorTests, OpenTunnelSuccessCase)
 
   // 2. Opening 10 tunnels to each module
   for (uint32_t nSlotId = 0; nSlotId < nTotalSlots; ++nSlotId) {
-    for (uint32_t nSessionId = 1; nSessionId <= 10; ++nSessionId)
-      m_pClient->openTunnel(nSessionId, nSlotId);
+    for (uint32_t nCount = 1; nCount <= 10; ++nCount)
+      ASSERT_TRUE(m_pClient->openTunnel(1, nSlotId))
+          << "failed to open tunnel #" << nCount << " for slot #" << nSlotId;
   }
 }
 
@@ -69,7 +73,7 @@ TEST_F(CommutatorTests, OpenTunnelToNonExistingSlot)
   for (uint32_t nSlotId = 0; nSlotId < nTotalSlots; ++nSlotId) {
     m_pCommutatator->attachModule(std::make_shared<MockedBaseModule>());
   }
-  m_pClient->openTunnel(1, nTotalSlots, false);
+  ASSERT_TRUE(m_pClient->openTunnel(1, nTotalSlots, false));
 }
 
 } // namespace autotests

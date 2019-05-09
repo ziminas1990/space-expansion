@@ -4,7 +4,7 @@
 #include <queue>
 #include <functional>
 #include <Modules/BaseModule.h>
-#include "ProtobufSyncPipe.h"
+#include <Autotests/TestUtils/ProtobufSyncPipe.h>
 
 namespace autotests
 {
@@ -16,8 +16,7 @@ class MockedBaseModule :
 public:
 
   MockedBaseModule()
-    : modules::BaseModule("MockedBaseModule"),
-      ProtobufSyncPipe(ProtobufSyncPipe::eMockedTerminalMode)
+    : modules::BaseModule("MockedBaseModule")
   {}
 };
 

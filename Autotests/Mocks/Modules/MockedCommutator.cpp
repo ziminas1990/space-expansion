@@ -11,7 +11,7 @@ bool CommutatorClient::sendGetTotalSlots(uint32_t nSessionId, uint32_t nExpected
 {
   spex::Message request;
   request.mutable_commutator()->mutable_gettotalslots();
-  m_pSyncPipe->onMessageReceived(nSessionId, std::move(request));
+  m_pSyncPipe->send(nSessionId, std::move(request));
 
   spex::ICommutator message;
   if (!m_pSyncPipe->wait(nSessionId, message))
@@ -26,7 +26,7 @@ bool CommutatorClient::openTunnel(
 {
   spex::Message request;
   request.mutable_commutator()->mutable_opentunnel()->set_nslotid(nSlotId);
-  m_pSyncPipe->onMessageReceived(nSessionId, std::move(request));
+  m_pSyncPipe->send(nSessionId, std::move(request));
 
   spex::ICommutator message;
   if (!m_pSyncPipe->wait(nSessionId, message))
@@ -39,7 +39,7 @@ bool CommutatorClient::openTunnel(
     }
     return true;
   } else {
-    return message.choice_case() != spex::ICommutator::kOpenTunnelFailed;
+    return message.choice_case() == spex::ICommutator::kOpenTunnelFailed;
   }
 }
 
@@ -48,8 +48,7 @@ bool CommutatorClient::openTunnel(
 //========================================================================================
 
 MockedCommutator::MockedCommutator()
-  : ProtobufSyncPipe(ProtobufSyncPipe::eMockedTerminalMode),
-    modules::BaseModule("MockedCommutator")
+  : modules::BaseModule("MockedCommutator")
 {}
 
 bool MockedCommutator::waitOpenTunnel(uint32_t nSessionId, uint32_t nSlotId)

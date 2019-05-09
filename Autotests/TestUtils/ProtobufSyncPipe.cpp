@@ -3,14 +3,10 @@
 
 namespace autotests {
 
-ProtobufSyncPipePtr ProtobufSyncPipe::MakeMockedChannelPipe()
+void ProtobufSyncPipe::attachToTunnel(
+    uint32_t nSessionId, network::IProtobufTerminalPtr pUplevel)
 {
-  return std::make_shared<ProtobufSyncPipe>(eMockedChannelMode);
-}
-
-ProtobufSyncPipePtr ProtobufSyncPipe::MakeMockedTeminalPipe()
-{
-  return std::make_shared<ProtobufSyncPipe>(eMockedTerminalMode);
+  m_clientTunnels[nSessionId] = pUplevel;
 }
 
 bool ProtobufSyncPipe::waitAny(
@@ -104,14 +100,15 @@ bool ProtobufSyncPipe::openSession(uint32_t nSessionId)
 
 void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message&& message)
 {
-  if (m_eMode == eMockedTerminalMode) {
-    proxyOrStoreMessage(nSessionId, std::move(message));
-  } else {
-    m_pAttachedTerminal->onMessageReceived(nSessionId, std::move(message));
-    m_knownSessionsIds.insert(nSessionId);
+  if (message.choice_case() == spex::Message::kEncapsulated) {
+    auto itTunnel = m_clientTunnels.find(nSessionId);
+    if (itTunnel != m_clientTunnels.end()) {
+      spex::Message encapsulated = std::move(message.encapsulated());
+      itTunnel->second->onMessageReceived(message.tunnelid(), std::move(encapsulated));
+    }
   }
+  storeMessage(nSessionId, std::move(message));
 }
-
 
 void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
 {
@@ -121,12 +118,8 @@ void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
 
 bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message&& message) const
 {
-  if (m_eMode == eMockedChannelMode) {
-    proxyOrStoreMessage(nSessionId, std::move(message));
-  } else {
-    m_pAttachedChannel->send(nSessionId, std::move(message));
-    m_knownSessionsIds.insert(nSessionId);
-  }
+  m_pAttachedChannel->send(nSessionId, std::move(message));
+  m_knownSessionsIds.insert(nSessionId);
   return true;
 }
 
@@ -136,10 +129,9 @@ void ProtobufSyncPipe::closeSession(uint32_t nSessionId)
     m_pAttachedChannel->closeSession(nSessionId);
 }
 
-void ProtobufSyncPipe::proxyOrStoreMessage(
-    uint32_t nSessionId, spex::Message &&message) const
+void ProtobufSyncPipe::storeMessage(uint32_t nSessionId, spex::Message &&message) const
 {
-  if (m_Sessions.find(nSessionId) == m_Sessions.end()) {
+  if (m_knownSessionsIds.find(nSessionId) == m_knownSessionsIds.end()) {
     m_newSessionIds.insert(nSessionId);
   }
   m_Sessions[nSessionId].push(std::move(message));
