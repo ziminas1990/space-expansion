@@ -66,14 +66,14 @@ void Commutator::onSessionClosed(uint32_t nSessionId)
   }
 }
 
-bool Commutator::send(uint32_t nTunnelId, spex::Message &&message) const
+bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
 {
   // in this context, sessionId (we got it from terminal) is a tunnelId
   spex::Message tunnelPDU;
   tunnelPDU.set_tunnelid(nTunnelId);
-  *tunnelPDU.mutable_encapsulated() = std::move(message);
+  *tunnelPDU.mutable_encapsulated() = message;
   return nTunnelId < m_Tunnels.size()
-      && sendToClient(m_Tunnels[nTunnelId].m_nSessionId, std::move(tunnelPDU));
+      && sendToClient(m_Tunnels[nTunnelId].m_nSessionId, tunnelPDU);
 }
 
 void Commutator::closeSession(uint32_t nSessionId)
@@ -82,11 +82,10 @@ void Commutator::closeSession(uint32_t nSessionId)
   onCloseTunnelRequest(nSessionId);
 }
 
-void Commutator::handleMessage(uint32_t nSessionId, spex::Message&& message)
+void Commutator::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
   if (message.choice_case() == spex::Message::kEncapsulated) {
-    spex::Message encapsulated = std::move(message.encapsulated());
-    commutateMessage(message.tunnelid(), std::move(encapsulated));
+    commutateMessage(message.tunnelid(), message.encapsulated());
 
   } else if (message.choice_case() == spex::Message::kCommutator) {
     spex::ICommutator const& commutatorPdu = message.commutator();
@@ -184,7 +183,7 @@ void Commutator::onCloseTunnelRequest(uint32_t nTunnelId, uint32_t nSessionId)
   tunnel = Tunnel();
 }
 
-void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message&& message)
+void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message const& message)
 {
   if (nTunnelId >= m_Tunnels.size())
     return;
@@ -194,7 +193,7 @@ void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message&& message)
   BaseModulePtr& pModule = m_Slots[tunnel.m_nSlotId];
   if (!pModule || pModule->getStatus() != BaseModule::eOnline)
     return;
-  pModule->onMessageReceived(nTunnelId, std::move(message));
+  pModule->onMessageReceived(nTunnelId, message);
 }
 
 void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)

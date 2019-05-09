@@ -98,16 +98,15 @@ bool ProtobufSyncPipe::openSession(uint32_t nSessionId)
   return m_pAttachedTerminal && m_pAttachedTerminal->openSession(nSessionId);
 }
 
-void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message&& message)
+void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
 {
   if (message.choice_case() == spex::Message::kEncapsulated) {
     auto itTunnel = m_clientTunnels.find(nSessionId);
     if (itTunnel != m_clientTunnels.end()) {
-      spex::Message encapsulated = std::move(message.encapsulated());
-      itTunnel->second->onMessageReceived(message.tunnelid(), std::move(encapsulated));
+      itTunnel->second->onMessageReceived(message.tunnelid(), message.encapsulated());
     }
   }
-  storeMessage(nSessionId, std::move(message));
+  storeMessage(nSessionId, message);
 }
 
 void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
@@ -116,9 +115,9 @@ void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
     m_pAttachedTerminal->onSessionClosed(nSessionId);
 }
 
-bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message&& message) const
+bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message const& message) const
 {
-  m_pAttachedChannel->send(nSessionId, std::move(message));
+  m_pAttachedChannel->send(nSessionId, message);
   m_knownSessionsIds.insert(nSessionId);
   return true;
 }
@@ -129,12 +128,13 @@ void ProtobufSyncPipe::closeSession(uint32_t nSessionId)
     m_pAttachedChannel->closeSession(nSessionId);
 }
 
-void ProtobufSyncPipe::storeMessage(uint32_t nSessionId, spex::Message &&message) const
+void ProtobufSyncPipe::storeMessage(uint32_t nSessionId,
+                                    spex::Message const& message) const
 {
   if (m_knownSessionsIds.find(nSessionId) == m_knownSessionsIds.end()) {
     m_newSessionIds.insert(nSessionId);
   }
-  m_Sessions[nSessionId].push(std::move(message));
+  m_Sessions[nSessionId].push(message);
 }
 
 bool ProtobufSyncPipe::waitConcrete(

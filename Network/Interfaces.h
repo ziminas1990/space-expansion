@@ -23,7 +23,7 @@ class IChannel
 public:
   virtual ~IChannel() = default;
 
-  virtual bool send(uint32_t nSessionId, FrameType&& frame) const = 0;
+  virtual bool send(uint32_t nSessionId, FrameType const& frame) const = 0;
   virtual void closeSession(uint32_t nSessionId) = 0;
 
   virtual bool isValid() const = 0;
@@ -40,7 +40,7 @@ public:
   virtual ~ITerminal() = default;
 
   virtual bool openSession(uint32_t nSessionId) = 0;
-  virtual void onMessageReceived(uint32_t nSessionId, FrameType&& frame) = 0;
+  virtual void onMessageReceived(uint32_t nSessionId, FrameType const& frame) = 0;
   virtual void onSessionClosed(uint32_t nSessionId) = 0;
 
   virtual void attachToChannel(IChannelPtr<FrameType> pChannel) = 0;

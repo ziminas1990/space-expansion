@@ -2,7 +2,7 @@
 
 namespace modules {
 
-void BaseModule::handleMessage(uint32_t nSessionId, spex::Message&& message)
+void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
   switch(message.choice_case()) {
     case spex::Message::kCommutator: {
@@ -24,18 +24,18 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message&& message)
   }
 }
 
-bool BaseModule::sendToClient(uint32_t nSessionId, spex::ICommutator &&message) const
+bool BaseModule::sendToClient(uint32_t nSessionId, spex::ICommutator const& message) const
 {
   spex::Message pdu;
-  *pdu.mutable_commutator() = std::move(message);
-  return BufferedProtobufTerminal::send(nSessionId, std::move(pdu));
+  *pdu.mutable_commutator() = message;
+  return BufferedProtobufTerminal::send(nSessionId, pdu);
 }
 
-bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation&& message) const
+bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation const& message) const
 {
   spex::Message pdu;
-  *pdu.mutable_navigation() = std::move(message);
-  return BufferedProtobufTerminal::send(nSessionId, std::move(pdu));
+  *pdu.mutable_navigation() = message;
+  return BufferedProtobufTerminal::send(nSessionId, pdu);
 }
 
 } // namespace modules

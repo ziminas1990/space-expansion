@@ -28,7 +28,7 @@ public:
   void detachFromTerminal() override { m_pTerminal.reset(); }
 
   // Message pMessage will be copied to internal buffer (probably, without allocation)
-  bool send(uint32_t nSessionId, BinaryMessage&& message) const override;
+  bool send(uint32_t nSessionId, BinaryMessage const& message) const override;
   void closeSession(uint32_t nSessionId) override;
 
   udp::socket& getNativeSocket() { return m_socket; }

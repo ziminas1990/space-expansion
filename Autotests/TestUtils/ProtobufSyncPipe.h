@@ -44,14 +44,14 @@ public:
 
   // overrides from ITerminal interface
   bool openSession(uint32_t /*nSessionId*/) override;
-  void onMessageReceived(uint32_t nSessionId, spex::Message &&frame) override;
+  void onMessageReceived(uint32_t nSessionId, spex::Message const& frame) override;
   void onSessionClosed(uint32_t /*nSessionId*/) override;
   void attachToChannel(network::IProtobufChannelPtr pChannel) override
   { m_pAttachedChannel = pChannel; }
   void detachFromChannel() override { m_pAttachedChannel.reset(); }
 
   // overrides from IChannel interface
-  bool send(uint32_t nSessionId, spex::Message &&frame) const override;
+  bool send(uint32_t nSessionId, spex::Message const& frame) const override;
   void closeSession(uint32_t /*nSessionId*/) override;
   bool isValid() const override { return true; }
   void attachToTerminal(network::IProtobufTerminalPtr pTerminal) override
@@ -59,7 +59,7 @@ public:
   void detachFromTerminal() override { m_pAttachedTerminal.reset(); }
 
 protected:
-  void storeMessage(uint32_t nSessionId, spex::Message&& message) const;
+  void storeMessage(uint32_t nSessionId, spex::Message const& message) const;
 
 private:
   bool waitConcrete(uint32_t nSessionId, spex::Message::ChoiceCase eExpectedChoice,

@@ -10,19 +10,13 @@ BufferedTerminal::BufferedTerminal(size_t nSmallChunksCount,
   m_messages.reserve(0xFF);
 }
 
-void BufferedTerminal::onMessageReceived(uint32_t nSessionId, BinaryMessage&& body)
+void BufferedTerminal::onMessageReceived(uint32_t nSessionId, BinaryMessage const& body)
 {
   uint8_t* pCopiedBody = m_ChunksPool.get(body.m_nLength);
   if (!pCopiedBody)
     pCopiedBody = new uint8_t[body.m_nLength];
   memcpy(pCopiedBody, body.m_pBody, body.m_nLength);
-
-  BufferedMessage storedMessage;
-  storedMessage.m_nSessionId = nSessionId;
-  storedMessage.m_nLength    = body.m_nLength;
-  storedMessage.m_pBody      = pCopiedBody;
-
-  m_messages.push_back(std::move(storedMessage));
+  m_messages.emplace_back(nSessionId, pCopiedBody, body.m_nLength);
 }
 
 void BufferedTerminal::attachToChannel(IBinaryChannelPtr pChannel)

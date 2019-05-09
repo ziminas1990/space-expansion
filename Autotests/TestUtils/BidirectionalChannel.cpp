@@ -12,16 +12,16 @@ bool BidirectionalChannel::createNewSession(
   return true;
 }
 
-bool BidirectionalChannel::send(uint32_t nSessionId, spex::Message &&message) const
+bool BidirectionalChannel::send(uint32_t nSessionId, spex::Message const& message) const
 {
   Direction eDirection = determineDirection(message);
   if (eDirection == eForward) {
-    m_pServer->onMessageReceived(nSessionId, std::move(message));
+    m_pServer->onMessageReceived(nSessionId, message);
     return true;
   } else {
     network::IProtobufTerminalPtr pClient = getClientForSession(nSessionId);
     if (pClient) {
-      pClient->onMessageReceived(nSessionId, std::move(message));
+      pClient->onMessageReceived(nSessionId, message);
       return true;
     }
   }
@@ -106,7 +106,5 @@ BidirectionalChannel::getClientForSession(uint32_t nSessionId) const
   auto I = m_pClients.find(nSessionId);
   return (I == m_pClients.end()) ? nullptr : I->second;
 }
-
-
 
 } // namespace autotests

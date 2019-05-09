@@ -18,7 +18,7 @@ public:
                    size_t nHugeChunksCount   = 16);
 
   // overrides from ITerminal interface
-  void onMessageReceived(uint32_t nSessionId, BinaryMessage&& body) override;
+  void onMessageReceived(uint32_t nSessionId, BinaryMessage const& body) override;
   void attachToChannel(IBinaryChannelPtr pChannel) override;
   void detachFromChannel() override { m_pChannel.reset(); }
 
@@ -34,6 +34,10 @@ protected:
 private:
   struct BufferedMessage
   {
+    BufferedMessage(uint32_t nSessionId, uint8_t* pBody, size_t nLength)
+      : m_nSessionId(nSessionId), m_pBody(pBody), m_nLength(nLength)
+    {}
+
     uint32_t m_nSessionId = 0;
     uint8_t* m_pBody      = nullptr;
     size_t   m_nLength    = 0;

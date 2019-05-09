@@ -21,7 +21,7 @@ public:
   bool createNewSession(uint32_t nSessionId, network::IProtobufTerminalPtr pClient);
 
   // overrides from IChannel interface
-  bool send(uint32_t nSessionId, spex::Message&& message) const override;
+  bool send(uint32_t nSessionId, spex::Message const& message) const override;
   void closeSession(uint32_t nSessionId) override;
   bool isValid() const override;
   void attachToTerminal(network::IProtobufTerminalPtr pServer) override;
