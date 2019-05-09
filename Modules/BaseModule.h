@@ -37,11 +37,10 @@ protected:
   void online()     { m_eStatus = eOnline; }
   void doestroyed() { m_eStatus = eDestoyed; }
 
-  // BufferedProtobufTerminal interface
+  // overrides from BufferedProtobufTerminal interface
   void handleMessage(uint32_t nSessionId, spex::Message const& message) override;
 
   virtual void handleCommutatorMessage(size_t, spex::ICommutator const&) {}
-  // Messages, that were incapsulated to spex::ICommutator::Message message
   virtual void handleNavigationMessage(size_t, spex::INavigation const&) {}
 
   inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {

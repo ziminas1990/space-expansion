@@ -1,4 +1,5 @@
 #include "BidirectionalChannel.h"
+#include <iostream>
 
 namespace autotests
 {
@@ -16,9 +17,11 @@ bool BidirectionalChannel::send(uint32_t nSessionId, spex::Message const& messag
 {
   Direction eDirection = determineDirection(message);
   if (eDirection == eForward) {
+    //std::cout << "Client -> Server: " << message.ShortDebugString() << std::endl;
     m_pServer->onMessageReceived(nSessionId, message);
     return true;
   } else {
+    //std::cout << "Server -> Client: " << message.ShortDebugString() << std::endl;
     network::IProtobufTerminalPtr pClient = getClientForSession(nSessionId);
     if (pClient) {
       pClient->onMessageReceived(nSessionId, message);

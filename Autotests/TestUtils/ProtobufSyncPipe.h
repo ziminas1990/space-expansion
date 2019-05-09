@@ -22,7 +22,7 @@ class ProtobufSyncPipe :
 public:
   virtual ~ProtobufSyncPipe() override = default;
 
-  void setEnviromentProceeder(std::function<void()>&& fProceeder)
+  void setEnviromentProceeder(std::function<void()> fProceeder)
   { m_fEnviromentProceeder = std::move(fProceeder); }
 
   // All encapsulated (tunneled) messages, that are received in session nSessionId
@@ -31,13 +31,9 @@ public:
 
   // Waiting message in already opened session nSessionId
   bool waitAny(uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs = 500);
-  // Waiting for any message, that creates new session
-  bool waitAny(uint32_t* pNewSessionId, spex::Message &out, uint16_t nTimeoutMs = 500);
 
   bool wait(uint32_t nSessionId, spex::ICommutator &out, uint16_t nTimeoutMs = 500);
-  bool wait(uint32_t* pSessionId, spex::ICommutator &out, uint16_t nTimeoutMs = 500);
   bool wait(uint32_t nSessionId, spex::INavigation &out, uint16_t nTimeoutMs = 500);
-  bool wait(uint32_t* pSessionId, spex::INavigation &out, uint16_t nTimeoutMs = 500);
 
   // Expect, that no message will be received in session
   bool expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs);
@@ -63,8 +59,6 @@ protected:
 
 private:
   bool waitConcrete(uint32_t nSessionId, spex::Message::ChoiceCase eExpectedChoice,
-                    spex::Message &out, uint16_t nTimeoutMs = 500);
-  bool waitConcrete(uint32_t* pSessionId, spex::Message::ChoiceCase eExpectedChoice,
                     spex::Message &out, uint16_t nTimeoutMs = 500);
 
 private:

@@ -164,7 +164,7 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
     tunnel.m_lUp        = true;
     message.mutable_opentunnelsuccess()->set_ntunnelid(nTunnelId);
   }
-  sendToClient(nSessionId, std::move(message));
+  sendToClient(nSessionId, message);
 }
 
 void Commutator::onCloseTunnelRequest(uint32_t nTunnelId, uint32_t nSessionId)

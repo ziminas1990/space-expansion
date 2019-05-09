@@ -27,14 +27,14 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
 bool BaseModule::sendToClient(uint32_t nSessionId, spex::ICommutator const& message) const
 {
   spex::Message pdu;
-  *pdu.mutable_commutator() = message;
+  pdu.mutable_commutator()->CopyFrom(message);
   return BufferedProtobufTerminal::send(nSessionId, pdu);
 }
 
 bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation const& message) const
 {
   spex::Message pdu;
-  *pdu.mutable_navigation() = message;
+  pdu.mutable_navigation()->CopyFrom(message);
   return BufferedProtobufTerminal::send(nSessionId, pdu);
 }
 

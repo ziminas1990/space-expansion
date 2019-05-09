@@ -12,9 +12,6 @@ void ProtobufSyncPipe::attachToTunnel(
 bool ProtobufSyncPipe::waitAny(
     uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs)
 {
-  if (m_knownSessionsIds.find(nSessionId) == m_knownSessionsIds.end())
-    return false;
-
   std::function<bool()> fPredicate = [this, nSessionId]() {
     auto itSession = m_Sessions.find(nSessionId);
     return itSession != m_Sessions.end() && !itSession->second.empty();
@@ -23,25 +20,6 @@ bool ProtobufSyncPipe::waitAny(
     return false;
 
   auto& sessionQueue = m_Sessions[nSessionId];
-  out = std::move(sessionQueue.front());
-  sessionQueue.pop();
-  return true;
-}
-
-bool ProtobufSyncPipe::waitAny(
-    uint32_t* pNewSessionId, spex::Message &out, uint16_t nTimeoutMs)
-{
-  std::function<bool()> fPredicate = [this]() { return m_newSessionIds.empty(); };
-  if (!utils::waitFor(fPredicate, m_fEnviromentProceeder, nTimeoutMs))
-    return false;
-
-  uint32_t nNewSessionId = *m_newSessionIds.begin();
-  m_newSessionIds.erase(m_newSessionIds.begin());
-  m_knownSessionsIds.insert(nNewSessionId);
-  if (pNewSessionId)
-    *pNewSessionId = nNewSessionId;
-
-  auto& sessionQueue = m_Sessions[nNewSessionId];
   out = std::move(sessionQueue.front());
   sessionQueue.pop();
   return true;
@@ -57,31 +35,11 @@ bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::ICommutator &out,
   return true;
 }
 
-bool ProtobufSyncPipe::wait(uint32_t *pSessionId, spex::ICommutator &out,
-                            uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(pSessionId, spex::Message::kCommutator, message, nTimeoutMs))
-    return false;
-  out = std::move(message.commutator());
-  return true;
-}
-
 bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::INavigation &out,
                             uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(nSessionId, spex::Message::kNavigation, message, nTimeoutMs))
-    return false;
-  out = std::move(message.navigation());
-  return true;
-}
-
-bool ProtobufSyncPipe::wait(uint32_t *pSessionId, spex::INavigation &out,
-                            uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(pSessionId, spex::Message::kNavigation, message, nTimeoutMs))
     return false;
   out = std::move(message.navigation());
   return true;
@@ -105,8 +63,9 @@ void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message cons
     if (itTunnel != m_clientTunnels.end()) {
       itTunnel->second->onMessageReceived(message.tunnelid(), message.encapsulated());
     }
+  } else {
+    storeMessage(nSessionId, message);
   }
-  storeMessage(nSessionId, message);
 }
 
 void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
@@ -117,9 +76,8 @@ void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
 
 bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message const& message) const
 {
-  m_pAttachedChannel->send(nSessionId, message);
   m_knownSessionsIds.insert(nSessionId);
-  return true;
+  return m_pAttachedChannel->send(nSessionId, message);
 }
 
 void ProtobufSyncPipe::closeSession(uint32_t nSessionId)
@@ -128,8 +86,8 @@ void ProtobufSyncPipe::closeSession(uint32_t nSessionId)
     m_pAttachedChannel->closeSession(nSessionId);
 }
 
-void ProtobufSyncPipe::storeMessage(uint32_t nSessionId,
-                                    spex::Message const& message) const
+void ProtobufSyncPipe::storeMessage(
+    uint32_t nSessionId, spex::Message const& message) const
 {
   if (m_knownSessionsIds.find(nSessionId) == m_knownSessionsIds.end()) {
     m_newSessionIds.insert(nSessionId);
@@ -142,13 +100,6 @@ bool ProtobufSyncPipe::waitConcrete(
     spex::Message &out, uint16_t nTimeoutMs)
 {
   return waitAny(nSessionId, out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
-}
-
-bool ProtobufSyncPipe::waitConcrete(
-    uint32_t *pSessionId, spex::Message::ChoiceCase eExpectedChoice,
-    spex::Message &out, uint16_t nTimeoutMs)
-{
-  return waitAny(pSessionId, out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
 }
 
 } // namespace autotest

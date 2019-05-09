@@ -2,8 +2,8 @@
 
 namespace network {
 
-void BufferedProtobufTerminal::onMessageReceived(uint32_t nSessionId,
-                                                 spex::Message const& message)
+void BufferedProtobufTerminal::onMessageReceived(
+    uint32_t nSessionId, spex::Message const& message)
 {
   m_messages.emplace_back(nSessionId, message);
 }

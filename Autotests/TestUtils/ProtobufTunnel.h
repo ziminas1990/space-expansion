@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "ProtobufSyncPipe.h"
 
 namespace autotests {
@@ -17,5 +18,7 @@ public:
 private:
   uint32_t m_nSessionId;
 };
+
+using ProtobufTunnelPtr = std::shared_ptr<ProtobufTunnel>;
 
 } // namespace autotests
