@@ -6,7 +6,7 @@
 #include <Network/ProtobufChannel.h>
 #include <Network/BufferedProtobufTerminal.h>
 
-#include <Modules/CommandCenter/CommandCenter.h>
+#include <Ships/CommandCenter.h>
 
 #include <sstream>
 
@@ -53,7 +53,7 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     return;
   }
 
-  modules::CommandCenterPtr pCommandCenter =
+  ships::CommandCenterPtr pCommandCenter =
       pPlayerStorage->getOrCreateCommandCenter(loginRequest.login());
   if (!pCommandCenter) {
     sendLoginFailed(nSessionId, "Failed to create CommandCenter instance");

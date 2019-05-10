@@ -10,7 +10,7 @@ void Commutator::attachModule(BaseModulePtr pModule)
   // execute it in O(N) time
   for (uint32_t nSlotId = 0; nSlotId < m_Slots.size(); ++nSlotId)
   {
-    if (m_Slots[nSlotId]->getStatus() == BaseModule::eDestoyed)
+    if (m_Slots[nSlotId]->isDestroyed())
     {
       onModuleHasBeenDetached(nSlotId);
       m_Slots[nSlotId] = pModule;
@@ -28,7 +28,7 @@ void Commutator::checkSlotsAndTunnels()
     if (!tunnel.m_lUp)
       continue;
     BaseModulePtr const& pModule = m_Slots[tunnel.m_nSlotId];
-    if (!pModule || pModule->getStatus() != BaseModule::eOnline) {
+    if (!pModule || !pModule->isOnline()) {
       spex::ICommutator message;
       message.mutable_closetunnel()->set_ntunnelid(nTunnelId);
       sendToClient(tunnel.m_nSessionId, std::move(message));
@@ -38,7 +38,7 @@ void Commutator::checkSlotsAndTunnels()
 
   for (uint32_t nSlotId = 0; nSlotId < m_Slots.size(); ++nSlotId)
   {
-    if (m_Slots[nSlotId]->getStatus() == BaseModule::eDestoyed)
+    if (m_Slots[nSlotId]->isDestroyed())
     {
       onModuleHasBeenDetached(nSlotId);
       m_Slots[nSlotId].reset();
@@ -191,7 +191,7 @@ void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message const& messa
   if (!tunnel.m_lUp || tunnel.m_nSlotId >= m_Slots.size())
     return;
   BaseModulePtr& pModule = m_Slots[tunnel.m_nSlotId];
-  if (!pModule || pModule->getStatus() != BaseModule::eOnline)
+  if (!pModule || !pModule->isOnline())
     return;
   pModule->onMessageReceived(nTunnelId, message);
 }

@@ -24,7 +24,13 @@ public:
 
   std::string const& getModuleType() const { return m_sModuleType; }
 
-  Status getStatus() const { return m_eStatus; }
+  void   putOffline()         { m_eStatus = eOffline; }
+  void   putOnline()          { m_eStatus = eOnline; }
+  void   onDoestroyed()       { m_eStatus = eDestoyed; }
+  bool   isOffline()    const { return m_eStatus == eOffline; }
+  bool   isOnline()     const { return m_eStatus == eOnline; }
+  bool   isDestroyed()  const { return m_eStatus == eDestoyed; }
+
 
   // from IProtobufTerminal:
   // By default, there is no reason to reject new session opening and there is
@@ -33,15 +39,11 @@ public:
   void onSessionClosed(uint32_t /*nSessionId*/) override {}
 
 protected:
-  void offline()    { m_eStatus = eOffline; }
-  void online()     { m_eStatus = eOnline; }
-  void doestroyed() { m_eStatus = eDestoyed; }
-
   // overrides from BufferedProtobufTerminal interface
   void handleMessage(uint32_t nSessionId, spex::Message const& message) override;
 
-  virtual void handleCommutatorMessage(size_t, spex::ICommutator const&) {}
-  virtual void handleNavigationMessage(size_t, spex::INavigation const&) {}
+  virtual void handleCommutatorMessage(uint32_t, spex::ICommutator const&) {}
+  virtual void handleNavigationMessage(uint32_t, spex::INavigation const&) {}
 
   inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {
     return network::BufferedProtobufTerminal::send(nSessionId, message);

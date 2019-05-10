@@ -5,17 +5,17 @@
 #include <vector>
 #include <Conveyor/IAbstractLogic.h>
 
-namespace modules {
+namespace ships {
 
-class CommandCenter;
-using CommandCenterWeakPtr = std::weak_ptr<CommandCenter>;
+class Ship;
+using ShipWeakPtr = std::weak_ptr<Ship>;
 
-class CommandCenterManager : public conveyor::IAbstractLogic
+class ShipsManager : public conveyor::IAbstractLogic
 {
 public:
-  CommandCenterManager();
+  ShipsManager();
 
-  void addNewOne(CommandCenterWeakPtr pCommandCenter);
+  void addNewOne(ShipWeakPtr pCommandCenter);
 
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() { return 1; }
@@ -23,14 +23,14 @@ public:
   void proceedStage(uint16_t nStageId, uint32_t nIntervalUs);
 
 private:
-  std::vector<CommandCenterWeakPtr> m_CommandCentres;
+  std::vector<ShipWeakPtr> m_Ships;
 
   size_t             m_nRemovingZombiesTimeout;
   std::atomic_size_t m_nNextId;
   std::mutex         m_Mutex;
 };
 
-using CommandCenterManagerPtr     = std::shared_ptr<CommandCenterManager>;
-using CommandCenterManagerWeakPtr = std::weak_ptr<CommandCenterManager>;
+using ShipsManagerPtr     = std::shared_ptr<ShipsManager>;
+using ShipsManagerWeakPtr = std::weak_ptr<ShipsManager>;
 
 } // namespace modules

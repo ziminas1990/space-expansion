@@ -30,10 +30,11 @@ public:
   void attachToTunnel(uint32_t nSessionId, network::IProtobufTerminalPtr pUplevel);
 
   // Waiting message in already opened session nSessionId
-  bool waitAny(uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs = 500);
+  bool waitAny(uint32_t nSessionId, uint16_t nTimeoutMs = 100);
+  bool waitAny(uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs = 100);
 
-  bool wait(uint32_t nSessionId, spex::ICommutator &out, uint16_t nTimeoutMs = 500);
-  bool wait(uint32_t nSessionId, spex::INavigation &out, uint16_t nTimeoutMs = 500);
+  bool wait(uint32_t nSessionId, spex::ICommutator &out, uint16_t nTimeoutMs = 100);
+  bool wait(uint32_t nSessionId, spex::INavigation &out, uint16_t nTimeoutMs = 100);
 
   // Expect, that no message will be received in session
   bool expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs);

@@ -9,16 +9,20 @@ void ProtobufSyncPipe::attachToTunnel(
   m_clientTunnels[nSessionId] = pUplevel;
 }
 
-bool ProtobufSyncPipe::waitAny(
-    uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs)
+bool ProtobufSyncPipe::waitAny(uint32_t nSessionId, uint16_t nTimeoutMs)
 {
   std::function<bool()> fPredicate = [this, nSessionId]() {
     auto itSession = m_Sessions.find(nSessionId);
     return itSession != m_Sessions.end() && !itSession->second.empty();
   };
-  if (!utils::waitFor(fPredicate, m_fEnviromentProceeder, nTimeoutMs))
-    return false;
+  return utils::waitFor(fPredicate, m_fEnviromentProceeder, nTimeoutMs);
+}
 
+bool ProtobufSyncPipe::waitAny(
+    uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs)
+{
+  if (!waitAny(nSessionId, nTimeoutMs))
+    return false;
   auto& sessionQueue = m_Sessions[nSessionId];
   out = std::move(sessionQueue.front());
   sessionQueue.pop();

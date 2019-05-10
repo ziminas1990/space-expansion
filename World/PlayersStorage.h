@@ -5,12 +5,12 @@
 #include <string>
 #include <map>
 
-namespace modules {
+namespace ships {
 class CommandCenter;
 using CommandCenterPtr     = std::shared_ptr<CommandCenter>;
 
-class CommandCenterManager;
-using CommandCenterManagerWeakPtr = std::weak_ptr<CommandCenterManager>;
+class ShipsManager;
+using ShipsManagerWeakPtr = std::weak_ptr<ShipsManager>;
 }
 
 namespace world {
@@ -18,15 +18,15 @@ namespace world {
 class PlayerStorage
 {
 public:
-  void attachToCommandCenterManager(modules::CommandCenterManagerWeakPtr pManager);
+  void attachToCommandCenterManager(ships::ShipsManagerWeakPtr pManager);
 
   // Returns command canter for player with login "sLogin".
-  modules::CommandCenterPtr getOrCreateCommandCenter(std::string const& sLogin);
+  ships::CommandCenterPtr getOrCreateCommandCenter(std::string const& sLogin);
 
 private:
   // Login -> CommandCenter
-  std::map<std::string, modules::CommandCenterPtr> m_Players;
-  modules::CommandCenterManagerWeakPtr m_pCommandCenterManager;
+  std::map<std::string, ships::CommandCenterPtr> m_Players;
+  ships::ShipsManagerWeakPtr m_pShipsManager;
 
   std::mutex m_Mutex;
 };

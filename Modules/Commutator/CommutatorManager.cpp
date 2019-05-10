@@ -36,7 +36,7 @@ void CommutatorManager::proceedStage(uint16_t, uint32_t)
        nCommutatorId = m_nNextId.fetch_add(1))
   {
     CommutatorPtr& pCommutator = m_commutators[nCommutatorId];
-    if (pCommutator && pCommutator->getStatus() != Commutator::eDestoyed) {
+    if (pCommutator && pCommutator->isOnline()) {
       pCommutator->handleBufferedMessages();
     } else {
       m_lInactiveCommutatorDetected.test_and_set();
@@ -48,7 +48,7 @@ void CommutatorManager::removeInactiveCommutators()
 {
   for(size_t i = 0; i < m_commutators.size(); ++i) {
     CommutatorPtr& pCommutator = m_commutators[i];
-    if (!pCommutator || pCommutator->getStatus() == Commutator::eDestoyed) {
+    if (!pCommutator || pCommutator->isDestroyed()) {
       if (i < m_commutators.size() - 1)
         std::swap(m_commutators.at(i), m_commutators.back());
       m_commutators.pop_back();

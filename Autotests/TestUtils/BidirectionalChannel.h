@@ -37,6 +37,7 @@ private:
   Direction determineDirection(spex::Message const& message) const;
   Direction determineDirection(spex::ICommutator const& message) const;
   Direction determineDirection(spex::INavigation const& message) const;
+  Direction determineDirection(spex::IAccessPanel const& message) const;
 
   network::IProtobufTerminalPtr getClientForSession(uint32_t nSessionId) const;
 

@@ -122,12 +122,13 @@ TEST_F(CommutatorTests, TunnelingMessage)
   m_pCommutatator->attachModule(pMockedCommutator);
   pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
 
+  // 2. Doing 5 times:
   for(uint32_t nSlotId = 5; nSlotId < 10; ++nSlotId) {
-    // 2. Opening tunnel to mocked commutator
+    //   2.1. Opening new tunnel TO mocked commutator
     uint32_t nTunnelId = 0;
     ASSERT_TRUE(m_pClient->openTunnel(0, true, &nTunnelId));
 
-    // 3. Requesting slots count from MockedCommutator
+    //   2.2. Opening new tunnel ON mocked commutator (via tunnel from 2.1)
     CommutatorClientPtr pAnotherClient = std::make_shared<CommutatorClient>(nTunnelId);
     pAnotherClient->attachToSyncChannel(m_pTunnels);
     ASSERT_TRUE(pAnotherClient->sendOpenTunnel(nSlotId));
@@ -135,6 +136,26 @@ TEST_F(CommutatorTests, TunnelingMessage)
     ASSERT_TRUE(pMockedCommutator->sendOpenTunnelFailed(nTunnelId));
     ASSERT_TRUE(pAnotherClient->waitOpenTunnelFailed());
   }
+}
+
+TEST_F(CommutatorTests, TunnelingMessageToOfflineModule)
+{
+  // 1. Attaching commutator to MockedCommutator
+  MockedCommutatorPtr pMockedCommutator = std::make_shared<MockedCommutator>();
+  pMockedCommutator->attachToChannel(m_pCommutatator);
+  m_pCommutatator->attachModule(pMockedCommutator);
+  pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
+
+  // 2. Opening tunnel to mocked commutator
+  uint32_t nTunnelId = 0;
+  ASSERT_TRUE(m_pClient->openTunnel(0, true, &nTunnelId));
+
+  // 3. Put mocked commutator to offline and sending any command
+  CommutatorClientPtr pAnotherClient = std::make_shared<CommutatorClient>(nTunnelId);
+  pAnotherClient->attachToSyncChannel(m_pTunnels);
+  pMockedCommutator->putOffline();
+  ASSERT_TRUE(pAnotherClient->sendOpenTunnel(1));
+  ASSERT_FALSE(pMockedCommutator->waitAny(nTunnelId, 50));
 }
 
 } // namespace autotests

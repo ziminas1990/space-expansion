@@ -14,7 +14,7 @@
 #include <World/PlayersStorage.h>
 
 #include "Modules/AccessPanel/AccessPanel.h"
-#include "Modules/CommandCenter/CommanCenterManager.h"
+#include "Ships/ShipsManager.h"
 
 [[noreturn]] int main(int, char*[])
 {
@@ -27,8 +27,7 @@
   network::ConnectionManagerPtr pConnectionManager =
       std::make_shared<network::UdpDispatcher>(ioContext);
 
-  modules::CommandCenterManagerPtr pCommandCenterManager =
-      std::make_shared<modules::CommandCenterManager>();
+  ships::ShipsManagerPtr pShipsManager = std::make_shared<ships::ShipsManager>();
 
   world::PlayerStoragePtr pPlayersStorage =
       std::make_shared<world::PlayerStorage>();
@@ -38,7 +37,7 @@
   modules::AccessPanelPtr pAccessPanel = std::make_shared<modules::AccessPanel>();
 
   // Setting and linking components
-  pPlayersStorage->attachToCommandCenterManager(pCommandCenterManager);
+  pPlayersStorage->attachToCommandCenterManager(pShipsManager);
   pAccessPanel->attachToPlayerStorage(pPlayersStorage);
   pAccessPanel->attachToConnectionManager(pConnectionManager);
   pConnectionManager->createUdpConnection(pLoginChannel, 31415);
@@ -47,7 +46,7 @@
   // Creating and running conveoyr
   conveyor::Conveyor conveyor(nTotalThreadsCount);
   conveyor.addLogicToChain(pConnectionManager);
-  conveyor.addLogicToChain(pCommandCenterManager);
+  conveyor.addLogicToChain(pShipsManager);
 
   for(size_t i = 1; i < nTotalThreadsCount; ++i)
     new std::thread([&conveyor]() { conveyor.joinAsSlave();} );

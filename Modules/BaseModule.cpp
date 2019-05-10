@@ -17,6 +17,11 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       // Only commutator is able to handle such messages!
       return;
     }
+    case spex::Message::kAccessPanel: {
+      // Only AccessPanel is able to handle such massaged, but it is NOT a subclass of
+      // this class
+      return;
+    }
     case spex::Message::CHOICE_NOT_SET: {
       // Just ignoring
       return;

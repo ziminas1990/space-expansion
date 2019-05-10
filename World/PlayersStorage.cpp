@@ -1,16 +1,15 @@
 #include "PlayersStorage.h"
-#include <Modules/CommandCenter/CommandCenter.h>
-#include <Modules/CommandCenter/CommanCenterManager.h>
+#include <Ships/CommandCenter.h>
+#include <Ships/ShipsManager.h>
 
 namespace world {
 
-void PlayerStorage::attachToCommandCenterManager(
-    modules::CommandCenterManagerWeakPtr pManager)
+void PlayerStorage::attachToCommandCenterManager(ships::ShipsManagerWeakPtr pManager)
 {
-  m_pCommandCenterManager = pManager;
+  m_pShipsManager = pManager;
 }
 
-modules::CommandCenterPtr
+ships::CommandCenterPtr
 PlayerStorage::getOrCreateCommandCenter(std::string const& sLogin)
 {
   std::lock_guard<std::mutex> guard(m_Mutex);
@@ -18,12 +17,11 @@ PlayerStorage::getOrCreateCommandCenter(std::string const& sLogin)
   if (I != m_Players.end())
     return I->second;
 
-  modules::CommandCenterManagerPtr pManager = m_pCommandCenterManager.lock();
+  ships::ShipsManagerPtr pManager = m_pShipsManager.lock();
   if (!pManager)
-    return modules::CommandCenterPtr();
+    return ships::CommandCenterPtr();
 
-  modules::CommandCenterPtr pNewCommandCenter =
-      std::make_shared<modules::CommandCenter>();
+  ships::CommandCenterPtr pNewCommandCenter = std::make_shared<ships::CommandCenter>();
   pManager->addNewOne(pNewCommandCenter);
 
   m_Players.insert(std::make_pair(sLogin, pNewCommandCenter));
