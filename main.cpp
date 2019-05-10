@@ -7,6 +7,7 @@
 #include "Conveyor/Conveyor.h"
 #include "Conveyor/Proceeders.h"
 
+#include "Network/ProtobufChannel.h"
 #include "Network/BufferedTerminal.h"
 #include "Network/UdpDispatcher.h"
 
@@ -32,13 +33,16 @@
   world::PlayerStoragePtr pPlayersStorage =
       std::make_shared<world::PlayerStorage>();
 
+  network::ProtobufChannelPtr pLoginChannel =
+      std::make_shared<network::ProtobufChannel>();
   modules::AccessPanelPtr pAccessPanel = std::make_shared<modules::AccessPanel>();
 
   // Setting and linking components
   pPlayersStorage->attachToCommandCenterManager(pCommandCenterManager);
   pAccessPanel->attachToPlayerStorage(pPlayersStorage);
   pAccessPanel->attachToConnectionManager(pConnectionManager);
-  pConnectionManager->createUdpConnection(pAccessPanel, 31415);
+  pConnectionManager->createUdpConnection(pLoginChannel, 31415);
+  pLoginChannel->attachToTerminal(pAccessPanel);
 
   // Creating and running conveoyr
   conveyor::Conveyor conveyor(nTotalThreadsCount);

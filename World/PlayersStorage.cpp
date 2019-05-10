@@ -11,7 +11,7 @@ void PlayerStorage::attachToCommandCenterManager(
 }
 
 modules::CommandCenterPtr
-PlayerStorage::getOrCreateCommandCenter(std::string&& sLogin)
+PlayerStorage::getOrCreateCommandCenter(std::string const& sLogin)
 {
   std::lock_guard<std::mutex> guard(m_Mutex);
   auto I = m_Players.find(sLogin);
@@ -26,7 +26,7 @@ PlayerStorage::getOrCreateCommandCenter(std::string&& sLogin)
       std::make_shared<modules::CommandCenter>();
   pManager->addNewOne(pNewCommandCenter);
 
-  m_Players.insert(std::make_pair(std::move(sLogin), pNewCommandCenter));
+  m_Players.insert(std::make_pair(sLogin, pNewCommandCenter));
   return pNewCommandCenter;
 }
 

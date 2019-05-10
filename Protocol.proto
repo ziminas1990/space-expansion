@@ -4,6 +4,29 @@ option cc_enable_arenas = true;
 
 package spex;
 
+message IAccessPanel {
+  message LoginRequest {
+    string login    = 1;
+    string password = 2;
+    string ip       = 3;
+    uint32 port     = 4;
+  }
+  message LoginSuccess {
+    uint32 port     = 1;
+  }
+  message LoginFailed {
+    string reason   = 1;
+  }
+  
+  oneof choice {
+    LoginRequest login        = 1;
+    
+    LoginSuccess loginSuccess = 21;
+    LoginFailed  loginFailed  = 22;
+  }
+}
+
+
 message INavigation {
 
   message GetPosition {}
@@ -75,8 +98,9 @@ message Message {
 
   oneof choice {
     // All possible interfaces are listed here
-    Message     encapsulated  = 2;
-    ICommutator commutator    = 3;
-    INavigation navigation    = 4;
+    Message      encapsulated  = 2;
+    IAccessPanel accessPanel   = 3;
+    ICommutator  commutator    = 4;
+    INavigation  navigation    = 5;
   }
 }

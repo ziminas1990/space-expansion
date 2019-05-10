@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <Network/UdpDispatcher.h>
-#include <Network/BufferedTerminal.h>
+#include <Network/BufferedProtobufTerminal.h>
 #include <World/PlayersStorage.h>
 
 namespace world {
@@ -15,7 +15,7 @@ using PlayerStorageWeakPtr = std::weak_ptr<PlayerStorage>;
 
 namespace modules {
 
-class AccessPanel : public network::BufferedTerminal
+class AccessPanel : public network::BufferedProtobufTerminal
 {
 public:
   void attachToConnectionManager(network::ConnectionManagerPtr pManager)
@@ -30,13 +30,13 @@ public:
 
 protected:
   // overrides from BufferedTerminal interface
-  void handleMessage(uint32_t nSessionId, network::BinaryMessage const& message) override;
+  void handleMessage(uint32_t nSessionId, spex::Message const& message) override;
 
 private:
   bool checkLogin(std::string const& sLogin, std::string const& nPassword);
 
-  void sendLoginSuccess(uint32_t nSessionId, network::UdpEndPoint const& localAddress);
-  void sendLoginFailed(uint32_t nSessionId, std::string const& reason);
+  bool sendLoginSuccess(uint32_t nSessionId, network::UdpEndPoint const& localAddress);
+  bool sendLoginFailed(uint32_t nSessionId, std::string const& reason);
 
 private:
   network::ConnectionManagerPtr m_pConnectionManager;

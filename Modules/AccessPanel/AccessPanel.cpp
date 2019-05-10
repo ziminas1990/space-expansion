@@ -12,22 +12,19 @@
 
 namespace modules {
 
-void AccessPanel::handleMessage(uint32_t nSessionId,
-                                network::BinaryMessage const& message)
+void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
-  // HACK :(
-  utils::memstream ss(reinterpret_cast<char*>(const_cast<uint8_t*>(message.m_pBody)),
-                      message.m_nLength);
-
-  std::string sLogin;
-  std::string sPassword;
-  std::string sIp;
-  uint16_t    nPort;
-  ss >> sLogin >> sPassword >> sIp >> nPort;
-
-  if (!checkLogin(sLogin, sPassword)) {
-    sendLoginFailed(nSessionId, "Invalid login or password");
+  if (message.choice_case() != spex::Message::kAccessPanel)
     return;
+
+  spex::IAccessPanel const& body = message.accesspanel();
+  if (body.choice_case() != spex::IAccessPanel::kLogin)
+    return;
+
+  spex::IAccessPanel::LoginRequest const& loginRequest = body.login();
+
+  if (!checkLogin(loginRequest.login(), loginRequest.password())) {
+    sendLoginFailed(nSessionId, "Invalid login or password");
   }
   if (!m_pConnectionManager) {
     sendLoginFailed(nSessionId, "Internal error");
@@ -47,8 +44,8 @@ void AccessPanel::handleMessage(uint32_t nSessionId,
 
   pLocalSocket->addRemote(
         network::UdpEndPoint(
-          boost::asio::ip::address_v4::from_string(sIp),
-          nPort));
+          boost::asio::ip::address_v4::from_string(loginRequest.ip()),
+          uint16_t(loginRequest.port())));
 
   auto pPlayerStorage = m_pPlayersStorage.lock();
   if (!pPlayerStorage) {
@@ -57,7 +54,7 @@ void AccessPanel::handleMessage(uint32_t nSessionId,
   }
 
   modules::CommandCenterPtr pCommandCenter =
-      pPlayerStorage->getOrCreateCommandCenter(std::move(sLogin));
+      pPlayerStorage->getOrCreateCommandCenter(loginRequest.login());
   if (!pCommandCenter) {
     sendLoginFailed(nSessionId, "Failed to create CommandCenter instance");
     return;
@@ -74,25 +71,23 @@ bool AccessPanel::checkLogin(std::string const& sLogin, std::string const& sPass
   return sLogin == "admin" && sPassword == "admin";
 }
 
-void AccessPanel::sendLoginSuccess(
+bool AccessPanel::sendLoginSuccess(
     uint32_t nSessionId, const network::UdpEndPoint &localAddress)
 {
-  std::stringstream response;
-  response << "OK " << localAddress.port();
-  getChannel()->send(
-        nSessionId,
-        network::BinaryMessage(response.str().c_str(), response.str().size()));
-  getChannel()->closeSession(nSessionId);
+  spex::Message message;
+  spex::IAccessPanel::LoginSuccess* pBody =
+      message.mutable_accesspanel()->mutable_loginsuccess();
+  pBody->set_port(localAddress.port());
+  return send(nSessionId, message);
 }
 
-void AccessPanel::sendLoginFailed(uint32_t nSessionId, std::string const& reason)
+bool AccessPanel::sendLoginFailed(uint32_t nSessionId, std::string const& reason)
 {
-  std::stringstream response;
-  response << "FAILED " << reason;
-  getChannel()->send(
-        nSessionId,
-        network::BinaryMessage(response.str().c_str(), response.str().size()));
-  getChannel()->closeSession(nSessionId);
+  spex::Message message;
+  spex::IAccessPanel::LoginFailed* pBody =
+      message.mutable_accesspanel()->mutable_loginfailed();
+  pBody->set_reason(reason);
+  return send(nSessionId, message);
 }
 
 } // namespace modules

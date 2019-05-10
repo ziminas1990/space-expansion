@@ -21,7 +21,7 @@ public:
   void attachToCommandCenterManager(modules::CommandCenterManagerWeakPtr pManager);
 
   // Returns command canter for player with login "sLogin".
-  modules::CommandCenterPtr getOrCreateCommandCenter(std::string&& sLogin);
+  modules::CommandCenterPtr getOrCreateCommandCenter(std::string const& sLogin);
 
 private:
   // Login -> CommandCenter
