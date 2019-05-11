@@ -7,8 +7,8 @@
 
 namespace world {
 
-class PlayerStorage;
-using PlayerStorageWeakPtr = std::weak_ptr<PlayerStorage>;
+class PlayersStorage;
+using PlayerStorageWeakPtr = std::weak_ptr<PlayersStorage>;
 
 } // namespace world
 

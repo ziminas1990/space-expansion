@@ -63,6 +63,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if (autotests-mode)
   target_compile_definitions(${PROJECT_NAME} PRIVATE AUTOTESTS_MODE)
 endif ()
+if (build-debug)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE DEBUG_MODE)
+endif()
 
 target_link_libraries(${PROJECT_NAME} Protocol ${CONAN_TARGETS})
 

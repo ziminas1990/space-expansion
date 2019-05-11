@@ -5,33 +5,46 @@
 #include <string>
 #include <map>
 
-namespace ships {
-class CommandCenter;
-using CommandCenterPtr     = std::shared_ptr<CommandCenter>;
-
-class ShipsManager;
-using ShipsManagerWeakPtr = std::weak_ptr<ShipsManager>;
-}
+#include <Modules/Commutator/Commutator.h>
+#include <Ships/ShipsManager.h>
+#include <Ships/CommandCenter.h>
+#include <Ships/Corvet.h>
+#include <Ships/Zond.h>
+#include <Ships/Miner.h>
 
 namespace world {
 
-class PlayerStorage
+class PlayersStorage
 {
-public:
-  void attachToCommandCenterManager(ships::ShipsManagerWeakPtr pManager);
+  struct PlayerInfo
+  {
+    modules::CommutatorPtr        m_pEntryPoint;
+    ships::CommandCenterPtr       m_pCommandCenter;
+    // Probably, there is no need to separate different types of ships to
+    // different containers
+    std::vector<ships::MinerPtr>  m_miners;
+    std::vector<ships::CorvetPtr> m_corvets;
+    std::vector<ships::ZondPtr>   m_zonds;
+  };
 
-  // Returns command canter for player with login "sLogin".
-  ships::CommandCenterPtr getOrCreateCommandCenter(std::string const& sLogin);
+public:
+  void attachToShipManager(ships::ShipsManagerWeakPtr pManager);
+
+  modules::CommutatorPtr getOrSpawnPlayer(std::string const& sLogin);
+
+private:
+  PlayerInfo spawnPlayer();
 
 private:
   // Login -> CommandCenter
-  std::map<std::string, ships::CommandCenterPtr> m_Players;
+  std::map<std::string, PlayerInfo> m_players;
   ships::ShipsManagerWeakPtr m_pShipsManager;
 
+  // TODO: replace with spinlock?
   std::mutex m_Mutex;
 };
 
-using PlayerStoragePtr     = std::shared_ptr<PlayerStorage>;
-using PlayerStorageWeakPtr = std::weak_ptr<PlayerStorage>;
+using PlayerStoragePtr     = std::shared_ptr<PlayersStorage>;
+using PlayerStorageWeakPtr = std::weak_ptr<PlayersStorage>;
 
 } // namespace World

@@ -22,7 +22,6 @@
 
   boost::asio::io_service ioContext;
 
-
   // Creating components
   network::ConnectionManagerPtr pConnectionManager =
       std::make_shared<network::UdpDispatcher>(ioContext);
@@ -30,14 +29,14 @@
   ships::ShipsManagerPtr pShipsManager = std::make_shared<ships::ShipsManager>();
 
   world::PlayerStoragePtr pPlayersStorage =
-      std::make_shared<world::PlayerStorage>();
+      std::make_shared<world::PlayersStorage>();
 
   network::ProtobufChannelPtr pLoginChannel =
       std::make_shared<network::ProtobufChannel>();
   modules::AccessPanelPtr pAccessPanel = std::make_shared<modules::AccessPanel>();
 
   // Setting and linking components
-  pPlayersStorage->attachToCommandCenterManager(pShipsManager);
+  pPlayersStorage->attachToShipManager(pShipsManager);
   pAccessPanel->attachToPlayerStorage(pPlayersStorage);
   pAccessPanel->attachToConnectionManager(pConnectionManager);
   pConnectionManager->createUdpConnection(pLoginChannel, 31415);

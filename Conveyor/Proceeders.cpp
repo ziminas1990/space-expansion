@@ -24,9 +24,14 @@ void runRealTimeProceeder(Conveyor* pConveyor)
     }
     if (dt > nMaxTickSize)
       dt = nMaxTickSize;
-    if (dt > nMinTickSize * 10)
+
+#ifdef DEBUG_MODE
+    if (dt > nMaxTickSize / 2) {
       std::cout << "Proceeding " << dt.count() << " usec..." << std::endl;
-    pConveyor->proceed(static_cast<size_t>(dt.count()));
+    }
+#endif // ifdef DEBUG_MODE
+
+    pConveyor->proceed(static_cast<uint32_t>(dt.count()));
     inGameTime += dt;
   }
 }

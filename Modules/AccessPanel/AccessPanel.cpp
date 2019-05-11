@@ -31,37 +31,37 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     return;
   }
 
-  network::ProtobufChannelPtr pProtobufChannel =
-      std::make_shared<network::ProtobufChannel>();
-
-  network::UdpSocketPtr pLocalSocket =
-      m_pConnectionManager->createUdpConnection(pProtobufChannel);
-
-  if (!pLocalSocket) {
-    sendLoginFailed(nSessionId, "Can't create UDP socket");
-    return;
-  }
-
-  pLocalSocket->addRemote(
-        network::UdpEndPoint(
-          boost::asio::ip::address_v4::from_string(loginRequest.ip()),
-          uint16_t(loginRequest.port())));
-
   auto pPlayerStorage = m_pPlayersStorage.lock();
   if (!pPlayerStorage) {
     sendLoginFailed(nSessionId, "Can't create CommandCenter");
     return;
   }
 
-  ships::CommandCenterPtr pCommandCenter =
-      pPlayerStorage->getOrCreateCommandCenter(loginRequest.login());
-  if (!pCommandCenter) {
-    sendLoginFailed(nSessionId, "Failed to create CommandCenter instance");
+  // Creating protobuf transport layer
+  network::ProtobufChannelPtr pProtobufChannel =
+      std::make_shared<network::ProtobufChannel>();
+
+  // Creating low-level transport (UDP)
+  network::UdpSocketPtr pLocalSocket =
+      m_pConnectionManager->createUdpConnection(pProtobufChannel);
+  if (!pLocalSocket) {
+    sendLoginFailed(nSessionId, "Can't create UDP socket");
     return;
   }
+  pLocalSocket->addRemote(
+        network::UdpEndPoint(
+          boost::asio::ip::address_v4::from_string(loginRequest.ip()),
+          uint16_t(loginRequest.port())));
 
-  pProtobufChannel->attachToTerminal(pCommandCenter);
-  pCommandCenter->attachToChannel(pProtobufChannel);
+  // Getting (or spawning new) player instance
+  modules::CommutatorPtr pEntryPoint =
+      pPlayerStorage->getOrSpawnPlayer(loginRequest.login());
+  if (!pEntryPoint) {
+    sendLoginFailed(nSessionId, "Failed to get or spawn player");
+    return;
+  }
+  pProtobufChannel->attachToTerminal(pEntryPoint);
+  pEntryPoint->attachToChannel(pProtobufChannel);
 
   sendLoginSuccess(nSessionId, pLocalSocket->getNativeSocket().local_endpoint());
 }
