@@ -1,10 +1,10 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
 #include <string>
 #include <map>
 
+#include <Utils/Mutex.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/ShipsManager.h>
 #include <Ships/CommandCenter.h>
@@ -41,7 +41,7 @@ private:
   ships::ShipsManagerWeakPtr m_pShipsManager;
 
   // TODO: replace with spinlock?
-  std::mutex m_Mutex;
+  utils::Mutex m_Mutex;
 };
 
 using PlayerStoragePtr     = std::shared_ptr<PlayersStorage>;

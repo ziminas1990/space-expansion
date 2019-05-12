@@ -4,6 +4,7 @@
 #include <mutex>
 #include <vector>
 #include <Conveyor/IAbstractLogic.h>
+#include <Utils/Mutex.h>
 
 namespace ships {
 
@@ -27,7 +28,7 @@ private:
 
   size_t             m_nRemovingZombiesTimeout;
   std::atomic_size_t m_nNextId;
-  std::mutex         m_Mutex;
+  utils::Mutex       m_Mutex;
 };
 
 using ShipsManagerPtr     = std::shared_ptr<ShipsManager>;

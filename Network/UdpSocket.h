@@ -4,6 +4,7 @@
 #include <memory>
 #include <thread>
 #include <Utils/ChunksPool.h>
+#include <Utils/Mutex.h>
 #include "Interfaces.h"
 
 #include <boost/asio.hpp>
@@ -55,7 +56,7 @@ private:
   uint8_t* m_pReceiveBuffer;
   mutable utils::ChunksPool  m_ChunksPool;
 
-  mutable std::mutex m_Mutex;
+  mutable utils::Mutex m_Mutex;
 };
 
 using UdpSocketPtr  = std::shared_ptr<UdpSocket>;

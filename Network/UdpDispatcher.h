@@ -5,6 +5,7 @@
 #include <atomic>
 #include <Conveyor/IAbstractLogic.h>
 #include <Utils/SimplePool.h>
+#include <Utils/Mutex.h>
 #include "BufferedTerminal.h"
 #include "UdpSocket.h"
 
@@ -49,7 +50,7 @@ private:
   utils::SimplePool<uint16_t, 0> m_portsPool;
 
   std::atomic_size_t m_nNextConnectionId;
-  std::mutex         m_Mutex;
+  utils::Mutex       m_Mutex;
 };
 
 using ConnectionManagerPtr = std::shared_ptr<UdpDispatcher>;

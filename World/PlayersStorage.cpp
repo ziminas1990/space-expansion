@@ -11,7 +11,7 @@ void PlayersStorage::attachToShipManager(ships::ShipsManagerWeakPtr pManager)
 
 modules::CommutatorPtr PlayersStorage::getOrSpawnPlayer(std::string const& sLogin)
 {
-  std::lock_guard<std::mutex> guard(m_Mutex);
+  std::lock_guard<utils::Mutex> guard(m_Mutex);
   auto I = m_players.find(sLogin);
   if (I != m_players.end())
     return I->second.m_pEntryPoint;

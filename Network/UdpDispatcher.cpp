@@ -10,7 +10,7 @@ UdpDispatcher::UdpDispatcher(boost::asio::io_service& ioContext)
 UdpSocketPtr UdpDispatcher::createUdpConnection(
     BufferedTerminalPtr pTerminal, uint16_t nLocalPort)
 {
-  std::lock_guard<std::mutex> guard(m_Mutex);
+  std::lock_guard<utils::Mutex> guard(m_Mutex);
 
   if (!nLocalPort) {
     nLocalPort = m_portsPool.getNext();

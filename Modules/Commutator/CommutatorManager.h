@@ -5,7 +5,7 @@
 #include <vector>
 #include "Commutator.h"
 #include <Conveyor/IAbstractLogic.h>
-#include <Utils/Spinlock.h>
+#include <Utils/Mutex.h>
 
 namespace modules
 {
@@ -31,7 +31,7 @@ private:
   std::atomic_size_t         m_nNextId;
   std::atomic_flag           m_lInactiveCommutatorDetected = ATOMIC_FLAG_INIT;
 
-  utils::SpinLock m_AccessLock;
+  utils::Mutex m_AccessLock;
 };
 
 using CommutatorManagerPtr = std::shared_ptr<CommutatorManager>;

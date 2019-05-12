@@ -12,7 +12,7 @@ ShipsManager::ShipsManager()
 
 void ShipsManager::addNewOne(ShipWeakPtr pShip)
 {
-  std::lock_guard<std::mutex> guard(m_Mutex);
+  std::lock_guard<utils::Mutex> guard(m_Mutex);
   m_Ships.push_back(pShip);
 }
 

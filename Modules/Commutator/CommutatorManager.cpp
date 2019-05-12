@@ -13,7 +13,7 @@ CommutatorPtr CommutatorManager::makeCommutator()
 {
   CommutatorPtr pCommutator = std::make_shared<Commutator>();
   {
-    std::lock_guard<utils::SpinLock> lock(m_AccessLock);
+    std::lock_guard<utils::Mutex> lock(m_AccessLock);
     m_commutators.push_back(pCommutator);
   }
   return pCommutator;

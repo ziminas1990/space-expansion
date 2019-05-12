@@ -4,6 +4,7 @@ set(PROJECT_NAME space-expansion-server)
 
 option(autotests-mode "Build autotest binary" OFF)
 option(build-debug    "Bulding debug version" OFF)
+option(mutex-only     "Using mutex instead of spinlocks" ON)
 
 project(${PROJECT_NAME} VERSION 0.1.0)
 
@@ -65,6 +66,9 @@ if (autotests-mode)
 endif ()
 if (build-debug)
   target_compile_definitions(${PROJECT_NAME} PRIVATE DEBUG_MODE)
+endif()
+if (mutex-only)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE MUTEX_ONLY_MODE)
 endif()
 
 target_link_libraries(${PROJECT_NAME} Protocol ${CONAN_TARGETS})
