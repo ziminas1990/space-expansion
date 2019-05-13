@@ -1,11 +1,38 @@
 #include "Conveyor.h"
 
+#include <thread>
+
 namespace conveyor
 {
+
+thread_local static bool gContinueSlave = true;
+
+//========================================================================================
+// SlaveTerminator
+//========================================================================================
+
+// Helper logic, that will be used to terminate all attached slave threads
+class SlaveTerminator : public IAbstractLogic
+{
+public:
+  // overrides from IAbstractLogic interface
+  uint16_t getStagesCount()                 override { return 1; }
+  bool     prephareStage(uint16_t)          override { return true; }
+  void     proceedStage(uint16_t, uint32_t) override { gContinueSlave = false; }
+};
+
+//========================================================================================
+// Conveyor
+//========================================================================================
 
 Conveyor::Conveyor(uint16_t nTotalNumberOfThreads)
   : m_Barrier(nTotalNumberOfThreads)
 {}
+
+Conveyor::~Conveyor()
+{
+  stop();
+}
 
 void Conveyor::addLogicToChain(IAbstractLogicPtr pLogic)
 {
@@ -48,11 +75,24 @@ void Conveyor::proceed(uint32_t nIntervalUs)
 
 void Conveyor::joinAsSlave()
 {
-  while (true) {
+  gContinueSlave = true;
+  while (gContinueSlave) {
     m_Barrier.wait();
-    m_State.pSelectedLogic->proceedStage(m_State.nStageId, m_State.nLastIntervalUs);
+    m_State.pSelectedLogic->proceedStage(
+          m_State.nStageId, uint32_t(m_State.nLastIntervalUs));
     m_Barrier.wait();
   }
+}
+
+void Conveyor::stop()
+{
+  SlaveTerminator terminator;
+  m_State.pSelectedLogic = &terminator;
+  m_Barrier.wait();
+  // all slave threads will set gContinueSlave to false and after next barrier
+  // they will quit from Conveyor::joinAsSlave() function
+  m_Barrier.wait();
+  std::this_thread::yield();  // for sure
 }
 
 } // namespace conveoyr

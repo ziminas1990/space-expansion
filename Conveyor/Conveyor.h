@@ -11,11 +11,14 @@ class Conveyor
 {
 public:
   Conveyor(uint16_t nTotalNumberOfThreads);
+  ~Conveyor();
 
   void addLogicToChain(IAbstractLogicPtr pLogic);
 
   void proceed(uint32_t nIntervalUs);
-  [[noreturn]] void joinAsSlave();
+  void joinAsSlave();
+
+  void stop();
 
 private:
   struct LogicContext
