@@ -18,7 +18,7 @@ namespace modules {
 class AccessPanel : public network::BufferedProtobufTerminal
 {
 public:
-  void attachToConnectionManager(network::ConnectionManagerPtr pManager)
+  void attachToConnectionManager(network::UdpDispatcherPtr pManager)
   { m_pConnectionManager = pManager; }
 
   void attachToPlayerStorage(world::PlayerStorageWeakPtr pPlayersStorage)
@@ -39,7 +39,7 @@ private:
   bool sendLoginFailed(uint32_t nSessionId, std::string const& reason);
 
 private:
-  network::ConnectionManagerPtr m_pConnectionManager;
+  network::UdpDispatcherPtr m_pConnectionManager;
   world::PlayerStorageWeakPtr   m_pPlayersStorage;
 };
 

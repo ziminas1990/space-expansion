@@ -53,6 +53,6 @@ private:
   utils::Mutex       m_Mutex;
 };
 
-using ConnectionManagerPtr = std::shared_ptr<UdpDispatcher>;
+using UdpDispatcherPtr = std::shared_ptr<UdpDispatcher>;
 
 } // namespace network

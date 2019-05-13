@@ -1,57 +1,32 @@
 #ifndef AUTOTESTS_MODE
 
 #include <thread>
+#include "ConfigDI/Containers.h"
+#include "SystemManager.h"
 
-#include <boost/asio.hpp>
 
-#include "Conveyor/Conveyor.h"
-#include "Conveyor/Proceeders.h"
-
-#include "Network/ProtobufChannel.h"
-#include "Network/BufferedTerminal.h"
-#include "Network/UdpDispatcher.h"
-
-#include <World/PlayersStorage.h>
-
-#include "Modules/AccessPanel/AccessPanel.h"
-#include "Ships/ShipsManager.h"
-
-[[noreturn]] int main(int, char*[])
+int main(int, char*[])
 {
-  uint16_t nTotalThreadsCount = 4;
+  SystemManager app(
+        config::ApplicationCfg()
+        .setLoginUdpPort(6842)
+        .setTotalThreads(4)
+        .setPortsPool(
+          config::PortsPoolCfg()
+          .setBegin(25000)
+          .setEnd(25100))
+        );
 
-  boost::asio::io_service ioContext;
+  if (!app.initialize()) {
+    std::cerr << "FAILED to initialize application!" << std::endl;
+    return 1;
+  }
 
-  // Creating components
-  network::ConnectionManagerPtr pConnectionManager =
-      std::make_shared<network::UdpDispatcher>(ioContext);
+  if (!app.start()) {
+    std::cerr << "FAILED to start application!" << std::endl;
+  }
 
-  ships::ShipsManagerPtr pShipsManager = std::make_shared<ships::ShipsManager>();
-
-  world::PlayerStoragePtr pPlayersStorage =
-      std::make_shared<world::PlayersStorage>();
-
-  network::ProtobufChannelPtr pLoginChannel =
-      std::make_shared<network::ProtobufChannel>();
-  modules::AccessPanelPtr pAccessPanel = std::make_shared<modules::AccessPanel>();
-
-  // Setting and linking components
-  pPlayersStorage->attachToShipManager(pShipsManager);
-  pAccessPanel->attachToPlayerStorage(pPlayersStorage);
-  pAccessPanel->attachToConnectionManager(pConnectionManager);
-  pConnectionManager->createUdpConnection(pLoginChannel, 31415);
-  pLoginChannel->attachToTerminal(pAccessPanel);
-
-  // Creating and running conveoyr
-  conveyor::Conveyor conveyor(nTotalThreadsCount);
-  conveyor.addLogicToChain(pConnectionManager);
-  conveyor.addLogicToChain(pShipsManager);
-
-  for(size_t i = 1; i < nTotalThreadsCount; ++i)
-    new std::thread([&conveyor]() { conveyor.joinAsSlave();} );
-
-  // Main application loop starts here:
-  conveyor::runRealTimeProceeder(&conveyor);
+  app.proceed();
 }
 
 #else
