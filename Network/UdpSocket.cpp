@@ -17,6 +17,7 @@ UdpSocket::UdpSocket(boost::asio::io_service &io_context, uint16_t nLocalPort)
 UdpSocket::~UdpSocket()
 {
   m_socket.close();
+  delete [] m_pReceiveBuffer;
 }
 
 void UdpSocket::addRemote(udp::endpoint const& remote)
