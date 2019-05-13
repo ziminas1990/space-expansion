@@ -20,6 +20,18 @@ void Commutator::attachModule(BaseModulePtr pModule)
   m_Slots.push_back(pModule);
 }
 
+void Commutator::detachFromModules()
+{
+  for (Tunnel& tunnel : m_Tunnels) {
+    m_Slots[tunnel.m_nSlotId]->onSessionClosed(tunnel.m_nSessionId);
+    tunnel.m_lUp = false;
+  }
+  m_Tunnels.clear();
+  for (BaseModulePtr& pModule : m_Slots) {
+    pModule->detachFromChannel();
+  }
+}
+
 void Commutator::checkSlotsAndTunnels()
 {
   for (uint32_t nTunnelId = 0; nTunnelId < m_Tunnels.size(); ++nTunnelId)
@@ -80,6 +92,11 @@ void Commutator::closeSession(uint32_t nSessionId)
 {
   // in this context, sessionId (we got it from terminal) is a tunnelId
   onCloseTunnelRequest(nSessionId);
+}
+
+void Commutator::detachFromTerminal()
+{
+  detachFromModules();
 }
 
 void Commutator::handleMessage(uint32_t nSessionId, spex::Message const& message)

@@ -12,10 +12,12 @@
 class SystemManager
 {
 public:
-  SystemManager(config::IApplicationCfg const& cfg);
 
-  bool initialize();
+  ~SystemManager();
+
+  bool initialize(config::IApplicationCfg const& cfg);
   bool start();
+  void stop();
 
   [[noreturn]] void proceed();
 
@@ -30,7 +32,7 @@ private:
 
 private:
   config::ApplicationCfg      m_configuration;
-  conveyor::Conveyor          m_conveyor;
+  conveyor::Conveyor*         m_pConveyor;
   boost::asio::io_service     m_IoService;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;

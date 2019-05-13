@@ -14,6 +14,11 @@ UdpSocket::UdpSocket(boost::asio::io_service &io_context, uint16_t nLocalPort)
   receivingData();
 }
 
+UdpSocket::~UdpSocket()
+{
+  m_socket.close();
+}
+
 void UdpSocket::addRemote(udp::endpoint const& remote)
 {
   m_WhiteList.insert(remote);

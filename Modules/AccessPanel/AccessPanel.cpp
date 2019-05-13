@@ -54,14 +54,13 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
           uint16_t(loginRequest.port())));
 
   // Getting (or spawning new) player instance
-  modules::CommutatorPtr pEntryPoint =
-      pPlayerStorage->getOrSpawnPlayer(loginRequest.login());
+  modules::CommutatorPtr pEntryPoint = pPlayerStorage->getPlayer(loginRequest.login());
+  if (!pEntryPoint)
+    pEntryPoint = pPlayerStorage->spawnPlayer(loginRequest.login(), pProtobufChannel);
   if (!pEntryPoint) {
     sendLoginFailed(nSessionId, "Failed to get or spawn player");
     return;
   }
-  pProtobufChannel->attachToTerminal(pEntryPoint);
-  pEntryPoint->attachToChannel(pProtobufChannel);
 
   sendLoginSuccess(nSessionId, pLocalSocket->getNativeSocket().local_endpoint());
 }

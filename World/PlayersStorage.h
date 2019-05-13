@@ -5,6 +5,7 @@
 #include <map>
 
 #include <Utils/Mutex.h>
+#include <Network/ProtobufChannel.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/ShipsManager.h>
 #include <Ships/CommandCenter.h>
@@ -18,6 +19,7 @@ class PlayersStorage
 {
   struct PlayerInfo
   {
+    network::ProtobufChannelPtr   m_pChannel;
     modules::CommutatorPtr        m_pEntryPoint;
     ships::CommandCenterPtr       m_pCommandCenter;
     // Probably, there is no need to separate different types of ships to
@@ -28,12 +30,18 @@ class PlayersStorage
   };
 
 public:
+  ~PlayersStorage();
+
   void attachToShipManager(ships::ShipsManagerWeakPtr pManager);
 
-  modules::CommutatorPtr getOrSpawnPlayer(std::string const& sLogin);
+  modules::CommutatorPtr getPlayer(std::string const& sLogin) const;
+  modules::CommutatorPtr spawnPlayer(
+      std::string const& sLogin, network::ProtobufChannelPtr pChannel);
+
 
 private:
-  PlayerInfo spawnPlayer();
+  PlayerInfo createNewPlayer(network::ProtobufChannelPtr pChannel);
+  void       kickPlayer(PlayerInfo& player);
 
 private:
   // Login -> CommandCenter
@@ -41,7 +49,7 @@ private:
   ships::ShipsManagerWeakPtr m_pShipsManager;
 
   // TODO: replace with spinlock?
-  utils::Mutex m_Mutex;
+  mutable utils::Mutex m_Mutex;
 };
 
 using PlayerStoragePtr     = std::shared_ptr<PlayersStorage>;

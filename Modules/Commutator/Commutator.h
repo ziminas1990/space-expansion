@@ -17,6 +17,7 @@ public:
   Commutator() : BaseModule("Commutator") {}
 
   void attachModule(BaseModulePtr pModule);
+  void detachFromModules();
 
   // Check if all slotes are still active; if some slot is NOT active anymore,
   // commutator will send an indication
@@ -31,7 +32,7 @@ public:
   void closeSession(uint32_t nSessionId) override;
   bool isValid() const override { return channelIsValid(); }
   void attachToTerminal(network::IProtobufTerminalPtr) override {}
-  void detachFromTerminal() override {}
+  void detachFromTerminal() override;
 
 protected:
   // overides from BufferedProtobufTerminal interface

@@ -4,23 +4,34 @@
 
 namespace world {
 
+PlayersStorage::~PlayersStorage()
+{
+  for (auto& player : m_players) {
+    kickPlayer(player.second);
+  }
+}
+
 void PlayersStorage::attachToShipManager(ships::ShipsManagerWeakPtr pManager)
 {
   m_pShipsManager = pManager;
 }
 
-modules::CommutatorPtr PlayersStorage::getOrSpawnPlayer(std::string const& sLogin)
+modules::CommutatorPtr PlayersStorage::getPlayer(std::string const& sLogin) const
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
   auto I = m_players.find(sLogin);
-  if (I != m_players.end())
-    return I->second.m_pEntryPoint;
+  return (I != m_players.end()) ? I->second.m_pEntryPoint : modules::CommutatorPtr();
+}
 
+modules::CommutatorPtr PlayersStorage::spawnPlayer(
+    std::string const& sLogin, network::ProtobufChannelPtr pChannel)
+{
+  std::lock_guard<utils::Mutex> guard(m_Mutex);
   ships::ShipsManagerPtr pShipsManager = m_pShipsManager.lock();
   if (!pShipsManager)
     return modules::CommutatorPtr();
 
-  PlayerInfo info = spawnPlayer();
+  PlayerInfo info = createNewPlayer(pChannel);
   pShipsManager->addNewOne(info.m_pCommandCenter);
   for (ships::ShipPtr pSomeShip : info.m_miners)
     pShipsManager->addNewOne(pSomeShip);
@@ -31,13 +42,19 @@ modules::CommutatorPtr PlayersStorage::getOrSpawnPlayer(std::string const& sLogi
 
   modules::CommutatorPtr pEntryPoint = info.m_pEntryPoint;
   m_players.insert(std::make_pair(sLogin, std::move(info)));
-
   return pEntryPoint;
 }
 
-PlayersStorage::PlayerInfo PlayersStorage::spawnPlayer()
+PlayersStorage::PlayerInfo PlayersStorage::createNewPlayer(
+    network::ProtobufChannelPtr pChannel)
 {
   PlayerInfo info;
+
+  // TODO SES-20: thread safe commutator should be used here!
+  info.m_pEntryPoint = std::make_shared<modules::Commutator>();
+  info.m_pChannel    = pChannel;
+  info.m_pChannel->attachToTerminal(info.m_pEntryPoint);
+  info.m_pEntryPoint->attachToChannel(info.m_pChannel);
 
   // Creating all ships:
   info.m_pCommandCenter = std::make_shared<ships::CommandCenter>();
@@ -51,18 +68,29 @@ PlayersStorage::PlayerInfo PlayersStorage::spawnPlayer()
     info.m_zonds.push_back(std::make_shared<ships::Zond>());
   }
 
-  // TODO SES-20: thread safe commutator should be used here!
-  info.m_pEntryPoint = std::make_shared<modules::Commutator>();
-
   // Adding ships to Commutator:
-  for (ships::ShipPtr pSomeShip : info.m_miners)
+  for (ships::ShipPtr pSomeShip : info.m_miners) {
     info.m_pEntryPoint->attachModule(pSomeShip);
-  for (ships::ShipPtr pSomeShip : info.m_zonds)
+    pSomeShip->attachToChannel(info.m_pEntryPoint);
+  }
+  for (ships::ShipPtr pSomeShip : info.m_zonds) {
     info.m_pEntryPoint->attachModule(pSomeShip);
-  for (ships::ShipPtr pSomeShip : info.m_corvets)
+    pSomeShip->attachToChannel(info.m_pEntryPoint);
+  }
+  for (ships::ShipPtr pSomeShip : info.m_corvets) {
     info.m_pEntryPoint->attachModule(pSomeShip);
+    pSomeShip->attachToChannel(info.m_pEntryPoint);
+  }
 
   return info;
+}
+
+void PlayersStorage::kickPlayer(PlayersStorage::PlayerInfo& player)
+{
+  player.m_pEntryPoint->detachFromModules();
+  player.m_pEntryPoint->detachFromChannel();
+  player.m_pChannel->detachFromTerminal();
+  player.m_pChannel->detachFromChannel();
 }
 
 } // namespace world
