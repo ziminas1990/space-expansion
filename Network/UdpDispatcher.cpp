@@ -27,9 +27,11 @@ UdpSocketPtr UdpDispatcher::createUdpConnection(
 
 bool UdpDispatcher::prephareStage(uint16_t)
 {
+  // Move to proceedStage
   if (!m_IOContext.poll())
       return false;
   while(m_IOContext.poll());
+
   m_nNextConnectionId.store(0);
   return true;
 }

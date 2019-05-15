@@ -37,8 +37,10 @@ void UdpSocket::removeRemote(udp::endpoint const& remote)
   m_WhiteList.erase(remote);
   // If there is a session for remote, we should close them
   for(size_t i = 0; i < m_nSessionsLimit; ++i) {
-    if (m_Sessions[i] == remote)
+    if (m_Sessions[i] == remote) {
       m_Sessions[i] = udp::endpoint();
+      break;
+    }
   }
 }
 
@@ -62,7 +64,7 @@ bool UdpSocket::send(uint32_t nSessionId, BinaryMessage const& message) const
     pChunk = new uint8_t[message.m_nLength];
   memcpy(pChunk, message.m_pBody, message.m_nLength);
   m_socket.async_send_to(
-        boost::asio::buffer(message.m_pBody, message.m_nLength), remote,
+        boost::asio::buffer(pChunk, message.m_nLength), remote,
         [this, pChunk](const boost::system::error_code&, std::size_t) {
           if (!m_ChunksPool.release(pChunk))
             delete [] pChunk;
@@ -84,7 +86,12 @@ void UdpSocket::receivingData()
   m_socket.async_receive_from(
         boost::asio::buffer(m_pReceiveBuffer, m_nReceiveBufferSize),
         m_senderAddress,
-        std::bind(&UdpSocket::onDataReceived, this, _1, _2));
+        [this](boost::system::error_code const& error, std::size_t nTotalBytes)
+        {
+          onDataReceived(error, nTotalBytes);
+          // Continue receiving data
+          receivingData();
+        });
 }
 
 void UdpSocket::onDataReceived(boost::system::error_code const& error,
@@ -94,9 +101,6 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
   // have a lot of sessions (nSessionsLimit is just 8)
   if (!error)
   { 
-    // Continue receiving data
-    receivingData();
-
     for(uint32_t nSessionId = 0; nSessionId <= m_nSessionsLimit; ++nSessionId) {
       if (m_senderAddress == m_Sessions[nSessionId]) {
         m_pTerminal->onMessageReceived(
