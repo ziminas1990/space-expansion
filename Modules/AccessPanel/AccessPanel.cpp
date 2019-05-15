@@ -12,6 +12,12 @@
 
 namespace modules {
 
+bool AccessPanel::prephareStage(uint16_t)
+{
+  handleBufferedMessages();
+  return false;
+}
+
 void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
   if (message.choice_case() != spex::Message::kAccessPanel)
@@ -25,6 +31,7 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
 
   if (!checkLogin(loginRequest.login(), loginRequest.password())) {
     sendLoginFailed(nSessionId, "Invalid login or password");
+    return;
   }
   if (!m_pConnectionManager) {
     sendLoginFailed(nSessionId, "Internal error");

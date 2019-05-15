@@ -4,6 +4,7 @@
 #include <Network/UdpDispatcher.h>
 #include <Network/BufferedProtobufTerminal.h>
 #include <World/PlayersStorage.h>
+#include <Conveyor/IAbstractLogic.h>
 
 namespace world {
 
@@ -15,7 +16,9 @@ using PlayerStorageWeakPtr = std::weak_ptr<PlayersStorage>;
 
 namespace modules {
 
-class AccessPanel : public network::BufferedProtobufTerminal
+class AccessPanel :
+    public network::BufferedProtobufTerminal,
+    public conveyor::IAbstractLogic
 {
 public:
   void attachToConnectionManager(network::UdpDispatcherPtr pManager)
@@ -27,6 +30,12 @@ public:
   // from BufferedTerminal->IBinaryTerminal interface:
   bool openSession(uint32_t /*nSessionId*/) override { return true; }
   void onSessionClosed(uint32_t /*nSessionId*/) override {}
+
+  // from IAbstractLogic interface
+  uint16_t getStagesCount() override { return 1; }
+  bool prephareStage(uint16_t nStageId) override;
+  void proceedStage(uint16_t, uint32_t) override {}
+  size_t getCooldownTimeUs() const override { return 50000; }
 
 protected:
   // overrides from BufferedTerminal interface

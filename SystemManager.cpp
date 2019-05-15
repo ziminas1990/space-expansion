@@ -63,13 +63,14 @@ bool SystemManager::linkComponents()
   m_pUdpDispatcher->createUdpConnection(
         m_pLoginChannel, m_configuration.getLoginUdpPort());
   m_pLoginChannel->attachToTerminal(m_pAccessPanel);
+  m_pAccessPanel->attachToChannel(m_pLoginChannel);
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);
 
   m_pPlayersStorage->attachToShipManager(m_pShipsManager);
 
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
+  m_pConveyor->addLogicToChain(m_pAccessPanel);
   m_pConveyor->addLogicToChain(m_pShipsManager);
-
   return true;
 }
