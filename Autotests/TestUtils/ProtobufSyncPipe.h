@@ -33,6 +33,7 @@ public:
   bool waitAny(uint32_t nSessionId, uint16_t nTimeoutMs = 100);
   bool waitAny(uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs = 100);
 
+  bool wait(uint32_t nSessionId, spex::IAccessPanel &out, uint16_t nTimeoutMs = 100);
   bool wait(uint32_t nSessionId, spex::ICommutator &out, uint16_t nTimeoutMs = 100);
   bool wait(uint32_t nSessionId, spex::INavigation &out, uint16_t nTimeoutMs = 100);
 
@@ -63,9 +64,7 @@ private:
                     spex::Message &out, uint16_t nTimeoutMs = 500);
 
 private:
-  // Used only in eMockedTerminalMode
-  network::IProtobufChannelPtr m_pAttachedChannel;
-  // Used only in eMockedChannelMode
+  network::IProtobufChannelPtr  m_pAttachedChannel;
   network::IProtobufTerminalPtr m_pAttachedTerminal;
   // Users tunnels
   std::map<uint32_t, network::IProtobufTerminalPtr> m_clientTunnels;

@@ -8,7 +8,8 @@ void BufferedProtobufTerminal::onMessageReceived(
   m_messages.emplace_back(nSessionId, message);
 }
 
-void BufferedProtobufTerminal::handleBufferedMessages() {
+void BufferedProtobufTerminal::handleBufferedMessages()
+{
   for(BufferedMessage& message : m_messages)
     handleMessage(message.m_nSessionId, message.m_body);
   m_messages.clear();

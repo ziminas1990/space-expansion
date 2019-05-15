@@ -8,10 +8,10 @@
 
 namespace autotests {
 
-class CommutatorClient
+class ClientCommutator
 {
 public:
-  CommutatorClient(uint32_t nTunnelId) : m_nTunnelId(nTunnelId) {}
+  ClientCommutator(uint32_t nTunnelId) : m_nTunnelId(nTunnelId) {}
 
   void attachToSyncChannel(ProtobufSyncPipePtr pSyncPipe)
   { m_pSyncPipe = pSyncPipe; }
@@ -42,7 +42,7 @@ public:
 };
 
 
-using CommutatorClientPtr = std::shared_ptr<CommutatorClient>;
+using ClientCommutatorPtr = std::shared_ptr<ClientCommutator>;
 using MockedCommutatorPtr = std::shared_ptr<MockedCommutator>;
 
 } // namespace autotests

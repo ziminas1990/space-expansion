@@ -35,7 +35,7 @@ void CommutatorTests::SetUp()
   m_pCommutatator      = m_pCommutatorManager->makeCommutator();
   m_pChannel           = std::make_shared<BidirectionalChannel>();
   m_pProtobufPipe      = std::make_shared<ProtobufSyncPipe>();
-  m_pClient            = std::make_shared<CommutatorClient>(m_nMainSessionId);
+  m_pClient            = std::make_shared<ClientCommutator>(m_nMainSessionId);
   m_pTunnels           = std::make_shared<ProtobufTunnel>(m_nMainSessionId);
 
   // Setting up components
@@ -129,7 +129,7 @@ TEST_F(CommutatorTests, TunnelingMessage)
     ASSERT_TRUE(m_pClient->openTunnel(0, true, &nTunnelId));
 
     //   2.2. Opening new tunnel ON mocked commutator (via tunnel from 2.1)
-    CommutatorClientPtr pAnotherClient = std::make_shared<CommutatorClient>(nTunnelId);
+    ClientCommutatorPtr pAnotherClient = std::make_shared<ClientCommutator>(nTunnelId);
     pAnotherClient->attachToSyncChannel(m_pTunnels);
     ASSERT_TRUE(pAnotherClient->sendOpenTunnel(nSlotId));
     ASSERT_TRUE(pMockedCommutator->waitOpenTunnel(nTunnelId, nSlotId));
@@ -151,7 +151,7 @@ TEST_F(CommutatorTests, TunnelingMessageToOfflineModule)
   ASSERT_TRUE(m_pClient->openTunnel(0, true, &nTunnelId));
 
   // 3. Put mocked commutator to offline and sending any command
-  CommutatorClientPtr pAnotherClient = std::make_shared<CommutatorClient>(nTunnelId);
+  ClientCommutatorPtr pAnotherClient = std::make_shared<ClientCommutator>(nTunnelId);
   pAnotherClient->attachToSyncChannel(m_pTunnels);
   pMockedCommutator->putOffline();
   ASSERT_TRUE(pAnotherClient->sendOpenTunnel(1));

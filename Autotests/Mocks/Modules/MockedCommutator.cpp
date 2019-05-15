@@ -7,7 +7,7 @@ namespace autotests
 // CommutatorClient
 //========================================================================================
 
-bool CommutatorClient::sendGetTotalSlots(uint32_t nExpectedSlots)
+bool ClientCommutator::sendGetTotalSlots(uint32_t nExpectedSlots)
 {
   spex::Message request;
   request.mutable_commutator()->mutable_gettotalslots();
@@ -21,7 +21,7 @@ bool CommutatorClient::sendGetTotalSlots(uint32_t nExpectedSlots)
   return message.totalslotsresponse().ntotalslots() == nExpectedSlots;
 }
 
-bool CommutatorClient::openTunnel(uint32_t nSlotId, bool lExpectSuccess,
+bool ClientCommutator::openTunnel(uint32_t nSlotId, bool lExpectSuccess,
                                   uint32_t* pOpenedTunnelId)
 {
   return sendOpenTunnel(nSlotId)
@@ -29,14 +29,14 @@ bool CommutatorClient::openTunnel(uint32_t nSlotId, bool lExpectSuccess,
                         : waitOpenTunnelFailed();
 }
 
-bool CommutatorClient::sendOpenTunnel(uint32_t nSlotId)
+bool ClientCommutator::sendOpenTunnel(uint32_t nSlotId)
 {
   spex::Message request;
   request.mutable_commutator()->mutable_opentunnel()->set_nslotid(nSlotId);
   return m_pSyncPipe->send(m_nTunnelId, request);
 }
 
-bool CommutatorClient::waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId)
+bool ClientCommutator::waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId)
 {
   spex::ICommutator message;
   if (!m_pSyncPipe->wait(m_nTunnelId, message))
@@ -49,7 +49,7 @@ bool CommutatorClient::waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId)
   return true;
 }
 
-bool CommutatorClient::waitOpenTunnelFailed()
+bool ClientCommutator::waitOpenTunnelFailed()
 {
   spex::ICommutator message;
   return m_pSyncPipe->wait(m_nTunnelId, message)

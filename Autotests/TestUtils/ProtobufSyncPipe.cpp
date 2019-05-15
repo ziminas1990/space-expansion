@@ -29,6 +29,16 @@ bool ProtobufSyncPipe::waitAny(
   return true;
 }
 
+bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::IAccessPanel &out,
+                            uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(nSessionId, spex::Message::kAccessPanel, message, nTimeoutMs))
+    return false;
+  out = std::move(message.accesspanel());
+  return true;
+}
+
 bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::ICommutator &out,
                             uint16_t nTimeoutMs)
 {

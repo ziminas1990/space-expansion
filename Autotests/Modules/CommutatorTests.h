@@ -31,7 +31,7 @@ protected:
   std::function<void()>         m_fConveyorProceeder;
   modules::CommutatorManagerPtr m_pCommutatorManager;
   modules::CommutatorPtr        m_pCommutatator;
-  CommutatorClientPtr           m_pClient;
+  ClientCommutatorPtr           m_pClient;
   ProtobufSyncPipePtr           m_pProtobufPipe;
   BidirectionalChannelPtr       m_pChannel;
   ProtobufTunnelPtr             m_pTunnels;
