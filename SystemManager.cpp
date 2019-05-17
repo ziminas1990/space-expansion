@@ -1,5 +1,8 @@
 #include "SystemManager.h"
 #include <thread>
+
+#include "Modules/Commutator/CommutatorManager.h"
+#include "Ships/ShipsManager.h"
 #include "Conveyor/Proceeders.h"
 
 SystemManager::~SystemManager()
@@ -44,11 +47,11 @@ void SystemManager::proceed()
 
 bool SystemManager::createAllComponents()
 {
+  m_pManagersHive   = std::make_shared<ManagersHive>();
   m_pConveyor       = new conveyor::Conveyor(m_configuration.getTotalThreads());
   m_pUdpDispatcher  = std::make_shared<network::UdpDispatcher>(m_IoService);
   m_pLoginChannel   = std::make_shared<network::ProtobufChannel>();
   m_pAccessPanel    = std::make_shared<modules::AccessPanel>();
-  m_pShipsManager   = std::make_shared<ships::ShipsManager>();
   m_pPlayersStorage = std::make_shared<world::PlayersStorage>();
   return true;
 }
@@ -67,10 +70,11 @@ bool SystemManager::linkComponents()
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);
 
-  m_pPlayersStorage->attachToShipManager(m_pShipsManager);
+  m_pPlayersStorage->attachToManagersHive(m_pManagersHive);
 
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
-  m_pConveyor->addLogicToChain(m_pShipsManager);
+  m_pConveyor->addLogicToChain(m_pManagersHive->m_pCommutatorsManager);
+  m_pConveyor->addLogicToChain(m_pManagersHive->m_pShipsManager);
   return true;
 }

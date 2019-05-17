@@ -12,6 +12,7 @@
 #include <Ships/Corvet.h>
 #include <Ships/Zond.h>
 #include <Ships/Miner.h>
+#include <ManagersHive.h>
 
 namespace world {
 
@@ -32,7 +33,7 @@ class PlayersStorage
 public:
   ~PlayersStorage();
 
-  void attachToShipManager(ships::ShipsManagerWeakPtr pManager);
+  void attachToManagersHive(ManagersHivePtr pManagersHive);
 
   modules::CommutatorPtr getPlayer(std::string const& sLogin) const;
   modules::CommutatorPtr spawnPlayer(
@@ -46,9 +47,8 @@ private:
 private:
   // Login -> CommandCenter
   std::map<std::string, PlayerInfo> m_players;
-  ships::ShipsManagerWeakPtr m_pShipsManager;
+  ManagersHivePtr m_pManagersHive;
 
-  // TODO: replace with spinlock?
   mutable utils::Mutex m_Mutex;
 };
 

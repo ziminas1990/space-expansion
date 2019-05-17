@@ -6,8 +6,8 @@
 #include "Network/UdpDispatcher.h"
 #include "Network/ProtobufChannel.h"
 #include "Modules/AccessPanel/AccessPanel.h"
-#include "Ships/ShipsManager.h"
 #include "World/PlayersStorage.h"
+#include "ManagersHive.h"
 
 class SystemManager
 {
@@ -32,6 +32,7 @@ private:
 
 private:
   config::ApplicationCfg      m_configuration;
+  ManagersHivePtr             m_pManagersHive;
   conveyor::Conveyor*         m_pConveyor;
   boost::asio::io_service     m_IoService;
 

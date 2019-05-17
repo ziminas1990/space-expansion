@@ -11,9 +11,9 @@ PlayersStorage::~PlayersStorage()
   }
 }
 
-void PlayersStorage::attachToShipManager(ships::ShipsManagerWeakPtr pManager)
+void PlayersStorage::attachToManagersHive(ManagersHivePtr pManagersHive)
 {
-  m_pShipsManager = pManager;
+  m_pManagersHive = pManagersHive;
 }
 
 modules::CommutatorPtr PlayersStorage::getPlayer(std::string const& sLogin) const
@@ -27,9 +27,7 @@ modules::CommutatorPtr PlayersStorage::spawnPlayer(
     std::string const& sLogin, network::ProtobufChannelPtr pChannel)
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
-  ships::ShipsManagerPtr pShipsManager = m_pShipsManager.lock();
-  if (!pShipsManager)
-    return modules::CommutatorPtr();
+  ships::ShipsManagerPtr pShipsManager = m_pManagersHive->m_pShipsManager;
 
   PlayerInfo info = createNewPlayer(pChannel);
   pShipsManager->addNewOne(info.m_pCommandCenter);
@@ -51,7 +49,7 @@ PlayersStorage::PlayerInfo PlayersStorage::createNewPlayer(
   PlayerInfo info;
 
   // TODO SES-20: thread safe commutator should be used here!
-  info.m_pEntryPoint = std::make_shared<modules::Commutator>();
+  info.m_pEntryPoint = m_pManagersHive->m_pCommutatorsManager->makeCommutator();
   info.m_pChannel    = pChannel;
   info.m_pChannel->attachToTerminal(info.m_pEntryPoint);
   info.m_pEntryPoint->attachToChannel(info.m_pChannel);
@@ -69,6 +67,7 @@ PlayersStorage::PlayerInfo PlayersStorage::createNewPlayer(
   }
 
   // Adding ships to Commutator:
+  info.m_pEntryPoint->attachModule(info.m_pCommandCenter);
   for (ships::ShipPtr pSomeShip : info.m_miners) {
     info.m_pEntryPoint->attachModule(pSomeShip);
     pSomeShip->attachToChannel(info.m_pEntryPoint);
