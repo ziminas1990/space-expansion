@@ -17,6 +17,7 @@ bool ProtobufChannel::send(uint32_t nSessionId, spex::Message const& message) co
 {
   std::string buffer;
   message.SerializeToString(&buffer);
+  std::cout << "Sending\n" << message.DebugString() << std::endl;
   return isAttachedToChannel()
       && getChannel()->send(nSessionId, BinaryMessage(buffer.data(), buffer.size()));
 }
@@ -45,8 +46,10 @@ bool ProtobufChannel::isValid() const
 void ProtobufChannel::handleMessage(uint32_t nSessionId, BinaryMessage const& message)
 {
   spex::Message pdu;
-  if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength)))
+  if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength))) {
+    std::cout << "Received\n" << pdu.DebugString() << std::endl;
     m_pTerminal->onMessageReceived(nSessionId, std::move(pdu));
+  }
 }
 
 } // namespace network
