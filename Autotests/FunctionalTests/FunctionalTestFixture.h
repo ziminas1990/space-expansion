@@ -20,7 +20,10 @@ namespace autotests
 // 2. creates basic components stack on client side
 class FunctionalTestFixture : public ::testing::Test
 {
+  friend class Scenarios;
 public:
+  FunctionalTestFixture();
+
   void SetUp() override;
   void TearDown() override;
 

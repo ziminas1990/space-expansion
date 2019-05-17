@@ -1,7 +1,13 @@
 #include "FunctionalTestFixture.h"
+#include "Scenarios.h"
 
 namespace autotests
 {
+
+FunctionalTestFixture::FunctionalTestFixture()
+{
+  Scenarios::m_pEnv = this;
+}
 
 void FunctionalTestFixture::SetUp()
 {
