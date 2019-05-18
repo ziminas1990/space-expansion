@@ -8,6 +8,14 @@
 
 namespace autotests {
 
+struct ModuleInfo
+{
+  uint32_t    nSlotId;
+  std::string sModuleType;
+};
+
+using ModulesList = std::vector<ModuleInfo>;
+
 class ClientCommutator
 {
 public:
@@ -17,7 +25,9 @@ public:
   { m_pSyncPipe = pSyncPipe; }
 
   // Sending GetTotalSlots request and checking response
-  bool sendGetTotalSlots(uint32_t nExpectedSlots);
+  bool getTotalSlots(uint32_t nExpectedSlots);
+
+  bool getAttachedModulesList(uint32_t nTotal, ModulesList& attachedModules);
 
   bool openTunnel(uint32_t nSlotId, bool lExpectSuccess = true,
                   uint32_t *pOpenedTunnelId = nullptr);

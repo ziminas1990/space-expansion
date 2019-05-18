@@ -17,7 +17,17 @@ public:
     BaseScenario(FunctionalTestFixture* pEnv) : m_pEnv(pEnv) {}
     virtual ~BaseScenario() = default;
 
-    virtual bool run() = 0;
+    // HACK: allows to run scenario in ASSERT_TRUE or EXPECT_TRUE without calling run()
+    operator bool() const { return const_cast<BaseScenario*>(this)->run(); }
+
+    bool run() {
+      execute();
+      return !::testing::Test::HasFailure();
+    }
+
+  protected:
+    virtual void execute() = 0;
+
   protected:
     FunctionalTestFixture* m_pEnv;
   };
@@ -34,7 +44,8 @@ public:
     LoginScenario& expectSuccess() { lExpectSuccess = true;  return *this; }
     LoginScenario& expectFailed()  { lExpectSuccess = false; return *this; }
 
-    bool run() override;
+  protected:
+    void execute() override;
 
   private:
     bool lSendRequest = false;
@@ -46,7 +57,30 @@ public:
     bool lExpectSuccess = false;
   };
 
+
+  class CheckAttachedModulesScenario : public BaseScenario
+  {
+  public:
+    CheckAttachedModulesScenario(ClientCommutatorPtr pCommutator,
+                                 FunctionalTestFixture* pEnv);
+
+    CheckAttachedModulesScenario&
+    hasModule(std::string const& sType, size_t nCount = 1);
+
+  protected:
+    void execute() override;
+
+  private:
+    ClientCommutatorPtr pCommutator;
+    std::map<std::string, size_t> expectedModules;
+  };
+
+  // =====================================================================================
+  // Easy creation of scenarios objects:
   static LoginScenario Login() { return LoginScenario(m_pEnv); }
+
+  static CheckAttachedModulesScenario
+  CheckAttachedModules(ClientCommutatorPtr pClientCommutator);
 
 private:
   static FunctionalTestFixture* m_pEnv;

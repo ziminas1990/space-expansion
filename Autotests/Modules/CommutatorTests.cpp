@@ -74,7 +74,7 @@ TEST_F(CommutatorTests, GetSlotsCount)
   for (uint32_t i = 0; i < nExpectedSlotsCount; ++i) {
     m_pCommutatator->attachModule(std::make_shared<MockedBaseModule>());
   }
-  ASSERT_TRUE(m_pClient->sendGetTotalSlots(nExpectedSlotsCount));
+  ASSERT_TRUE(m_pClient->getTotalSlots(nExpectedSlotsCount));
 }
 
 TEST_F(CommutatorTests, OpenTunnelSuccessCase)

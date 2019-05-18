@@ -9,7 +9,7 @@ namespace ships
 class Corvet : public Ship
 {
 public:
-  Corvet() : Ship("Convet") {}
+  Corvet() : Ship("Corvet") {}
 };
 
 using CorvetPtr     = std::shared_ptr<Corvet>;

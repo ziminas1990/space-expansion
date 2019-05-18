@@ -12,8 +12,7 @@ TEST_F(LoginFunctionalTests, SuccessCase)
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("admin", "admin")
-        .expectSuccess()
-        .run());
+        .expectSuccess());
 }
 
 TEST_F(LoginFunctionalTests, LoginFailed)
@@ -21,8 +20,7 @@ TEST_F(LoginFunctionalTests, LoginFailed)
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("dsdf", "sdfsdf")
-        .expectFailed()
-        .run());
+        .expectFailed());
 }
 
 } // namespace autotests

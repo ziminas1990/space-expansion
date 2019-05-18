@@ -7,11 +7,12 @@ namespace autotests
 // CommutatorClient
 //========================================================================================
 
-bool ClientCommutator::sendGetTotalSlots(uint32_t nExpectedSlots)
+bool ClientCommutator::getTotalSlots(uint32_t nExpectedSlots)
 {
   spex::Message request;
   request.mutable_commutator()->mutable_gettotalslots();
-  m_pSyncPipe->send(m_nTunnelId, std::move(request));
+  if (!m_pSyncPipe->send(m_nTunnelId, std::move(request)))
+    return false;
 
   spex::ICommutator message;
   if (!m_pSyncPipe->wait(m_nTunnelId, message))
@@ -19,6 +20,27 @@ bool ClientCommutator::sendGetTotalSlots(uint32_t nExpectedSlots)
   if (message.choice_case() != spex::ICommutator::kTotalSlotsResponse)
     return false;
   return message.totalslotsresponse().ntotalslots() == nExpectedSlots;
+}
+
+bool ClientCommutator::getAttachedModulesList(
+    uint32_t nTotal, ModulesList& attachedModules)
+{
+  spex::Message request;
+  request.mutable_commutator()->mutable_getallmodulesinfo();
+  m_pSyncPipe->send(m_nTunnelId, std::move(request));
+
+  for (size_t i = 0; i < nTotal; ++i) {
+    spex::ICommutator response;
+    if (!m_pSyncPipe->wait(m_nTunnelId, response))
+      return false;
+    if (response.choice_case() != spex::ICommutator::kModuleInfo)
+      return false;
+    attachedModules.push_back(
+          ModuleInfo({response.moduleinfo().nslotid(),
+                      response.moduleinfo().smoduletype()}));
+  }
+
+  return attachedModules.size() == nTotal;
 }
 
 bool ClientCommutator::openTunnel(uint32_t nSlotId, bool lExpectSuccess,
