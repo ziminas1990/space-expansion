@@ -13,7 +13,7 @@ namespace ships
 class Ship : public modules::BaseModule, public newton::PhysicalObject
 {
 public:
-  Ship(std::string const& sShipType);
+  Ship(std::string const& sShipType, double weight);
   ~Ship() override;
 
   void installModule(modules::BaseModulePtr pModule);

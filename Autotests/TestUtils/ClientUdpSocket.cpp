@@ -37,7 +37,7 @@ bool ClientUdpSocket::send(uint32_t /*nSessionId*/,
   memcpy(pChunk, message.m_pBody, message.m_nLength);
   m_socket.async_send_to(
         boost::asio::buffer(message.m_pBody, message.m_nLength), m_serverAddress,
-        [pChunk](const boost::system::error_code&, std::size_t nSize) {
+        [pChunk](const boost::system::error_code&, std::size_t) {
           delete [] pChunk;
         });
   return true;

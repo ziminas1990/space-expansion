@@ -9,7 +9,7 @@ namespace ships
 class Miner : public Ship
 {
 public:
-  Miner() : Ship("Miner") {}
+  Miner() : Ship("Miner", 35000) {}
 };
 
 using MinerPtr     = std::shared_ptr<Miner>;

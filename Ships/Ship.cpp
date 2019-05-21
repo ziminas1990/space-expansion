@@ -3,8 +3,9 @@
 namespace ships
 {
 
-Ship::Ship(std::string const& sShipType)
-  : BaseModule(std::string("Ship/") + sShipType)
+Ship::Ship(std::string const& sShipType, double weight)
+  : BaseModule(std::string("Ship/") + sShipType),
+    newton::PhysicalObject(weight)
 {
   m_Modules.reserve(0x0F);
 }

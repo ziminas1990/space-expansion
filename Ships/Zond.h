@@ -9,7 +9,7 @@ namespace ships
 class Zond : public Ship
 {
 public:
-  Zond() : Ship("Zond") {}
+  Zond() : Ship("Zond", 10000) {}
 };
 
 using ZondPtr     = std::shared_ptr<Zond>;

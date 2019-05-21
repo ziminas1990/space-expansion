@@ -1,7 +1,10 @@
 #pragma once
 
+#include <mutex>
 #include <stdlib.h>
 #include <set>
+
+#include <Utils/Mutex.h>
 
 namespace utils
 {
@@ -10,9 +13,11 @@ template<typename IntType, IntType nInvalidValue = IntType(-1)>
 class SimplePool
 {
 public:
-  SimplePool(IntType nFirst, IntType nLast)
+  SimplePool(IntType nFirst = 0, IntType nLast = IntType(nInvalidValue - 1))
     : m_nFirst(nFirst), m_nLast(nLast), m_nNext(nFirst)
   {}
+
+  IntType end() const { return nInvalidValue; }
 
   IntType getNext()
   {
@@ -34,7 +39,7 @@ public:
       while (I != m_Avaliable.end()) {
         m_Avaliable.erase(I);
         --m_nNext;
-        auto I = m_Avaliable.find(m_nNext - 1);
+        I = m_Avaliable.find(m_nNext - 1);
       }
     } else {
       m_Avaliable.insert(element);
@@ -47,5 +52,32 @@ private:
   IntType m_nNext;
   std::set<IntType> m_Avaliable;
 };
+
+
+template<typename IntType, IntType nInvalidValue = IntType(-1)>
+class ThreadSafePool
+{
+public:
+  ThreadSafePool(IntType nFirst = 0, IntType nLast = IntType(nInvalidValue - 1))
+    : m_pool(nFirst, nLast)
+  {}
+
+  IntType getNext()
+  {
+    std::lock_guard<utils::Mutex> guard(m_mutex);
+    return m_pool.getNext();
+  }
+
+  void release(IntType element)
+  {
+    std::lock_guard<utils::Mutex> guard(m_mutex);
+    m_pool.release(element);
+  }
+
+private:
+  utils::Mutex m_mutex;
+  SimplePool<IntType, nInvalidValue> m_pool;
+};
+
 
 } // namespace utils

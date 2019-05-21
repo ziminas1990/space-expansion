@@ -8,7 +8,7 @@ namespace ships {
 class CommandCenter : public Ship
 {
 public:
-  CommandCenter() : Ship("CommandCenter") {}
+  CommandCenter() : Ship("CommandCenter", 400000) {}
 };
 
 using CommandCenterPtr     = std::shared_ptr<CommandCenter>;
