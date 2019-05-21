@@ -75,6 +75,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
   m_pConveyor->addLogicToChain(m_pManagersHive->m_pCommutatorsManager);
+  m_pConveyor->addLogicToChain(m_pManagersHive->m_pNewtonEngine);
   m_pConveyor->addLogicToChain(m_pManagersHive->m_pShipsManager);
   return true;
 }

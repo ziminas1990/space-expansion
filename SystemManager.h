@@ -6,6 +6,7 @@
 #include "Network/UdpDispatcher.h"
 #include "Network/ProtobufChannel.h"
 #include "Modules/AccessPanel/AccessPanel.h"
+#include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
 #include "ManagersHive.h"
 
@@ -41,6 +42,5 @@ private:
 
   modules::AccessPanelPtr     m_pAccessPanel;
 
-  ships::ShipsManagerPtr      m_pShipsManager;
   world::PlayerStoragePtr     m_pPlayersStorage;
 };
