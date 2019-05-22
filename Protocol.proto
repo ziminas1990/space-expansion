@@ -27,6 +27,40 @@ message IAccessPanel {
 }
 
 
+message IEngine
+{
+
+  message GetSpecification {}
+  message Specification {
+    uint32 maxThrust = 1;
+  }
+  
+  message SetThrust {
+    double x        = 1;
+    double y        = 2;
+    uint32 thrust   = 4;
+  }
+  
+  message GetThrust {}
+  
+  message CurrentThrust {
+    double x      = 1;
+    double y      = 2;
+    uint32 thrust = 4;
+  }
+
+  oneof choice {
+    GetSpecification getSpecification = 1;
+    SetThrust        setThrust        = 2;
+    GetThrust        getThrust        = 3;
+    
+    Specification    specification    = 21;
+    CurrentThrust    currentThrust    = 22;
+  }
+  
+}
+
+
 message INavigation {
 
   message GetPosition {}
@@ -102,5 +136,6 @@ message Message {
     IAccessPanel accessPanel   = 3;
     ICommutator  commutator    = 4;
     INavigation  navigation    = 5;
+    IEngine      engine        = 6;
   }
 }

@@ -63,6 +63,8 @@ BidirectionalChannel::determineDirection(spex::Message const& message) const
       return determineDirection(message.navigation());
     case spex::Message::kAccessPanel:
       return determineDirection(message.accesspanel());
+    case spex::Message::kEngine:
+      return determineDirection(message.engine());
     case spex::Message::CHOICE_NOT_SET:
       return eDirectionUnknown;
   }
@@ -115,6 +117,22 @@ BidirectionalChannel::determineDirection(spex::IAccessPanel const& message) cons
     case spex::IAccessPanel::kLoginFailed:
       return eBackward;
     case spex::IAccessPanel::CHOICE_NOT_SET:
+      return eDirectionUnknown;
+  }
+  return eDirectionUnknown;
+}
+
+BidirectionalChannel::Direction
+BidirectionalChannel::determineDirection(spex::IEngine const& message) const
+{
+  switch(message.choice_case()) {
+    case spex::IEngine::kGetSpecification:
+    case spex::IEngine::kSetThrust:
+      return eForward;
+    case spex::IEngine::kCurrentThrust:
+    case spex::IEngine::kSpecification:
+      return eBackward;
+    case spex::IEngine::CHOICE_NOT_SET:
       return eDirectionUnknown;
   }
   return eDirectionUnknown;
