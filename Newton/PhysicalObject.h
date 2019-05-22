@@ -37,6 +37,8 @@ public:
   size_t createExternalForce();
   geometry::Vector& getExternalForce_NoSync(size_t nForceId)
   { return m_externalForces[nForceId]; }
+  geometry::Vector const& getExternalForce_NoSync(size_t nForceId) const
+  { return m_externalForces[nForceId]; }
 
 private:
   uint32_t         m_nId;

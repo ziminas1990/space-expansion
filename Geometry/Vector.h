@@ -15,6 +15,17 @@ public:
   {}
 
   Point const& getPosition() const { return m_position; }
+  double getSqrLength() const
+  {
+    calculateLength();
+    return m_length.nSqrValue;
+  }
+
+  double getLength() const
+  {
+    calculateLength();
+    return m_length.nValue;
+  }
 
   void setPosition(double x, double y)
   {
@@ -44,26 +55,41 @@ public:
     return *this;
   }
 
-  double getSqrLength() const
+  void normalize()
   {
-    if (!m_length.lIsActual)
-      calculateLength();
-    return m_length.nSqrValue;
+    calculateLength();
+    m_position.x      /= m_length.nValue;
+    m_position.y      /= m_length.nValue;
+    m_length.nValue    = 1;
+    m_length.nSqrValue = 1;
   }
 
-  double getLength() const
+  void setLength(double newLength)
   {
-    if (!m_length.lIsActual)
-      calculateLength();
-    return m_length.nValue;
+    normalize();
+    m_position.x      *= newLength;
+    m_position.y      *= newLength;
+    m_length.nValue    = newLength;
+    m_length.nSqrValue = newLength * newLength;
+  }
+
+  void toZero()
+  {
+    m_position.x      *= 0;
+    m_position.y      *= 0;
+    m_length.nValue    = 0;
+    m_length.nSqrValue = 0;
+    m_length.lIsActual = true;
   }
 
 private:
   // Yeah, it is "const"
   void calculateLength() const {
-    m_length.nSqrValue = m_position.x * m_position.x + m_position.y * m_position.y;
-    m_length.nValue    = std::sqrt(m_length.nSqrValue);
-    m_length.lIsActual = true;
+    if (!m_length.lIsActual) {
+      m_length.nSqrValue = m_position.x * m_position.x + m_position.y * m_position.y;
+      m_length.nValue    = std::sqrt(m_length.nSqrValue);
+      m_length.lIsActual = true;
+    }
   }
 
 private:
