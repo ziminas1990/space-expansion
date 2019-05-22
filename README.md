@@ -8,3 +8,6 @@ conan install $SOURCE_DIR/conanfile.txt
 cmake $SOURCE_DIR
 cmake --build . -- -j4
 ```
+
+## What others tell about us
+```А код у тебя чистый, понятный, GJ``` - [Anton SX91](https://github.com/SX91)
