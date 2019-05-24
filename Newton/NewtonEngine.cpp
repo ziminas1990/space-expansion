@@ -15,11 +15,9 @@ void NewtonEngine::proceedStage(uint16_t, uint32_t nIntervalUs)
 {
   double nIntervalSec = nIntervalUs / 1000000.0;
 
-  std::vector<PhysicalObject*>& allObjectst = PhysicalObject::m_allPhysicalObjects;
-
   size_t nId = m_nNextObjectId.fetch_add(1);
-  while (nId < allObjectst.size()) {
-    PhysicalObject* pObject = allObjectst[nId];
+  while (nId < PhysicalObject::TotalInstancies()) {
+    PhysicalObject* pObject = PhysicalObject::Instance(nId);
     if (pObject) {
       // acc_t - acceleration * time
       geometry::Vector acc_t;

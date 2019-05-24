@@ -5,23 +5,22 @@
 
 #include <Utils/SimplePool.h>
 #include <Utils/Spinlock.h>
+#include <Utils/GlobalContainer.h>
 #include <Geometry/Point.h>
 #include <Geometry/Vector.h>
 
 namespace newton {
 
-class PhysicalObject
+class PhysicalObject : public utils::GlobalContainer<PhysicalObject>
 {
   friend class NewtonEngine;
   const double m_minimalWeight = 0.001;
 public:
   PhysicalObject(double weight);
-  ~PhysicalObject();
 
-  uint32_t                getId()           const { return m_nId;      }
-  double                  getWeight()       const { return m_weight;   }
-  geometry::Point  const& getPosition()     const { return m_position; }
-  geometry::Vector const& getVelocity()     const { return m_velocity; }
+  double                  getWeight()   const { return m_weight;   }
+  geometry::Point  const& getPosition() const { return m_position; }
+  geometry::Vector const& getVelocity() const { return m_velocity; }
 
   void changeWeight(double delta);
   void setWeight(double weight) {
@@ -41,7 +40,6 @@ public:
   { return m_externalForces[nForceId]; }
 
 private:
-  uint32_t         m_nId;
   double           m_weight;
   geometry::Point  m_position;
   geometry::Vector m_velocity;
@@ -49,9 +47,6 @@ private:
 
   // Number of external forces
   std::vector<geometry::Vector> m_externalForces;
-
-  static utils::ThreadSafePool<uint32_t> m_IdPool;
-  static std::vector<PhysicalObject*>    m_allPhysicalObjects;
 };
 
 } // namespace newton
