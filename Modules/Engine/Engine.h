@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <Newton/PhysicalObject.h>
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
@@ -27,5 +28,7 @@ private:
   size_t   m_nThrustVectorId = size_t(-1);
   uint32_t m_maxThrust       = 0;
 };
+
+using EnginePtr = std::shared_ptr<Engine>;
 
 } // namespace modules

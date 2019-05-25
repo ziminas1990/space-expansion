@@ -6,8 +6,6 @@
 #include <Network/ProtobufChannel.h>
 #include <Network/BufferedProtobufTerminal.h>
 
-#include <Ships/CommandCenter.h>
-
 #include <sstream>
 
 namespace modules {

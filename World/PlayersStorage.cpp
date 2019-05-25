@@ -1,6 +1,5 @@
 #include "PlayersStorage.h"
-#include <Ships/CommandCenter.h>
-#include <Ships/ShipsManager.h>
+#include <Ships/ShipBlueprint.h>
 
 namespace world {
 
@@ -41,32 +40,19 @@ PlayersStorage::PlayerInfo PlayersStorage::createNewPlayer(
   info.m_pEntryPoint->attachToChannel(info.m_pChannel);
 
   // Creating all ships:
-  info.m_pCommandCenter = std::make_shared<ships::CommandCenter>();
-  info.m_miners.reserve(0x80);
-  info.m_corvets.reserve(0x80);
-  info.m_zonds.reserve(0x80);
-
+  info.m_ships.reserve(0xFF);
+  info.m_ships.push_back(ships::BlueprintsStore::makeCommandCenterBlueprint()->build());
   for(size_t i = 0; i < 2; ++i) {
-    info.m_miners.push_back(std::make_shared<ships::Miner>());
-    info.m_corvets.push_back(std::make_shared<ships::Corvet>());
-    info.m_zonds.push_back(std::make_shared<ships::Zond>());
+    info.m_ships.push_back(ships::BlueprintsStore::makeCorvetBlueprint()->build());
+    info.m_ships.push_back(ships::BlueprintsStore::makeMinerBlueprint()->build());
+    info.m_ships.push_back(ships::BlueprintsStore::makeZondBlueprint()->build());
   }
 
   // Adding ships to Commutator:
-  info.m_pEntryPoint->attachModule(info.m_pCommandCenter);
-  for (ships::ShipPtr pSomeShip : info.m_miners) {
-    info.m_pEntryPoint->attachModule(pSomeShip);
-    pSomeShip->attachToChannel(info.m_pEntryPoint);
+  for (ships::ShipPtr pShip : info.m_ships) {
+    info.m_pEntryPoint->attachModule(pShip);
+    pShip->attachToChannel(info.m_pEntryPoint);
   }
-  for (ships::ShipPtr pSomeShip : info.m_zonds) {
-    info.m_pEntryPoint->attachModule(pSomeShip);
-    pSomeShip->attachToChannel(info.m_pEntryPoint);
-  }
-  for (ships::ShipPtr pSomeShip : info.m_corvets) {
-    info.m_pEntryPoint->attachModule(pSomeShip);
-    pSomeShip->attachToChannel(info.m_pEntryPoint);
-  }
-
   return info;
 }
 

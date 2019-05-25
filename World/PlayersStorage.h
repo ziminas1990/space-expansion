@@ -8,10 +8,6 @@
 #include <Network/ProtobufChannel.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/ShipsManager.h>
-#include <Ships/CommandCenter.h>
-#include <Ships/Corvet.h>
-#include <Ships/Zond.h>
-#include <Ships/Miner.h>
 
 namespace world {
 
@@ -21,12 +17,7 @@ class PlayersStorage
   {
     network::ProtobufChannelPtr   m_pChannel;
     modules::CommutatorPtr        m_pEntryPoint;
-    ships::CommandCenterPtr       m_pCommandCenter;
-    // Probably, there is no need to separate different types of ships to
-    // different containers
-    std::vector<ships::MinerPtr>  m_miners;
-    std::vector<ships::CorvetPtr> m_corvets;
-    std::vector<ships::ZondPtr>   m_zonds;
+    std::vector<ships::ShipPtr>   m_ships;
   };
 
 public:

@@ -7,7 +7,8 @@ namespace ships
 
 Ship::Ship(std::string const& sShipType, double weight)
   : BaseModule(std::string("Ship/") + sShipType),
-    newton::PhysicalObject(weight)
+    newton::PhysicalObject(weight),
+    m_pCommutator(std::make_shared<modules::Commutator>())
 {
   GlobalContainer<Ship>::registerSelf(this);
   m_Modules.reserve(0x0F);
