@@ -33,12 +33,9 @@ class PlayersStorage
 public:
   ~PlayersStorage();
 
-  void attachToManagersHive(ManagersHivePtr pManagersHive);
-
   modules::CommutatorPtr getPlayer(std::string const& sLogin) const;
   modules::CommutatorPtr spawnPlayer(
       std::string const& sLogin, network::ProtobufChannelPtr pChannel);
-
 
 private:
   PlayerInfo createNewPlayer(network::ProtobufChannelPtr pChannel);
@@ -47,7 +44,6 @@ private:
 private:
   // Login -> CommandCenter
   std::map<std::string, PlayerInfo> m_players;
-  ManagersHivePtr m_pManagersHive;
 
   mutable utils::Mutex m_Mutex;
 };

@@ -1,5 +1,7 @@
 #include "Ship.h"
 
+DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
+
 namespace ships
 {
 
@@ -7,6 +9,7 @@ Ship::Ship(std::string const& sShipType, double weight)
   : BaseModule(std::string("Ship/") + sShipType),
     newton::PhysicalObject(weight)
 {
+  GlobalContainer<Ship>::registerSelf(this);
   m_Modules.reserve(0x0F);
 }
 

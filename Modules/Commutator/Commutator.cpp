@@ -8,7 +8,7 @@ namespace modules
 
 Commutator::Commutator() : BaseModule("Commutator")
 {
-  GlobalContainer::registerSelf(this);
+  GlobalContainer<Commutator>::registerSelf(this);
 }
 
 void Commutator::attachModule(BaseModulePtr pModule)

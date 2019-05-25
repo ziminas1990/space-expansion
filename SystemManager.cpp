@@ -70,8 +70,6 @@ bool SystemManager::linkComponents()
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);
 
-  m_pPlayersStorage->attachToManagersHive(m_pManagersHive);
-
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
   m_pConveyor->addLogicToChain(m_pManagersHive->m_pCommutatorsManager);

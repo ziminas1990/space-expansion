@@ -6,11 +6,15 @@
 #include <Modules/BaseModule.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Newton/PhysicalObject.h>
+#include <Utils/GlobalContainer.h>
 
 namespace ships
 {
 
-class Ship : public modules::BaseModule, public newton::PhysicalObject
+class Ship :
+    public modules::BaseModule,
+    public newton::PhysicalObject,
+    public utils::GlobalContainer<Ship>
 {
 public:
   Ship(std::string const& sShipType, double weight);

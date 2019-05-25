@@ -11,11 +11,6 @@ PlayersStorage::~PlayersStorage()
   }
 }
 
-void PlayersStorage::attachToManagersHive(ManagersHivePtr pManagersHive)
-{
-  m_pManagersHive = pManagersHive;
-}
-
 modules::CommutatorPtr PlayersStorage::getPlayer(std::string const& sLogin) const
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
@@ -27,17 +22,8 @@ modules::CommutatorPtr PlayersStorage::spawnPlayer(
     std::string const& sLogin, network::ProtobufChannelPtr pChannel)
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
-  ships::ShipsManagerPtr pShipsManager = m_pManagersHive->m_pShipsManager;
 
   PlayerInfo info = createNewPlayer(pChannel);
-  pShipsManager->addNewOne(info.m_pCommandCenter);
-  for (ships::ShipPtr pSomeShip : info.m_miners)
-    pShipsManager->addNewOne(pSomeShip);
-  for (ships::ShipPtr pSomeShip : info.m_zonds)
-    pShipsManager->addNewOne(pSomeShip);
-  for (ships::ShipPtr pSomeShip : info.m_corvets)
-    pShipsManager->addNewOne(pSomeShip);
-
   modules::CommutatorPtr pEntryPoint = info.m_pEntryPoint;
   m_players.insert(std::make_pair(sLogin, std::move(info)));
   return pEntryPoint;

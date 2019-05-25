@@ -23,7 +23,7 @@ namespace utils {
 // NOTE: Inheriting this class you MUST:
 // 1. put DECLARE_GLOBAL_CONTAINER_CPP somewhere in your cpp-file with Inheriter
 //    name (with all namespaces!)
-// 2. call GlobalContainer::registerSelf(this) in your constructor
+// 2. call GlobalContainer<Inheriter>::registerSelf(this) in your constructor
 template<typename Inheriter>
 class GlobalContainer
 {

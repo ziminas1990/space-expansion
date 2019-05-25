@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <Conveyor/IAbstractLogic.h>
+#include <Utils/GlobalContainer.h>
 
 namespace modules
 {
@@ -27,9 +28,10 @@ public:
   void proceedStage(uint16_t, uint32_t)
   {
     size_t nId = m_nNextId.fetch_add(1);
-    for (; nId < ModuleType::TotalInstancies(); nId = m_nNextId.fetch_add(1))
+    for (; nId < utils::GlobalContainer<ModuleType>::TotalInstancies();
+         nId = m_nNextId.fetch_add(1))
     {
-      ModuleType* pObject = ModuleType::Instance(nId);
+      ModuleType* pObject = utils::GlobalContainer<ModuleType>::Instance(nId);
       if (!pObject || !pObject->isOnline())
         continue;
       pObject->handleBufferedMessages();

@@ -8,7 +8,7 @@ namespace newton {
 
 PhysicalObject::PhysicalObject(double weight)
 {
-  GlobalContainer::registerSelf(this);
+  GlobalContainer<PhysicalObject>::registerSelf(this);
   setWeight(weight);
   m_externalForces.reserve(4);
 }
