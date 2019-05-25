@@ -8,7 +8,10 @@
 #include "Modules/AccessPanel/AccessPanel.h"
 #include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
-#include "ManagersHive.h"
+
+#include "Newton/NewtonEngine.h"
+#include "Ships/ShipsManager.h"
+#include "Modules/Commutator/CommutatorManager.h"
 
 class SystemManager
 {
@@ -33,9 +36,13 @@ private:
 
 private:
   config::ApplicationCfg      m_configuration;
-  ManagersHivePtr             m_pManagersHive;
   conveyor::Conveyor*         m_pConveyor;
   boost::asio::io_service     m_IoService;
+
+  // Managers for all logics
+  newton::NewtonEnginePtr       m_pNewtonEngine;
+  ships::ShipsManagerPtr        m_pShipsManager;
+  modules::CommutatorManagerPtr m_pCommutatorsManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
   network::ProtobufChannelPtr m_pLoginChannel;

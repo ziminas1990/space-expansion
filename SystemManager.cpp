@@ -47,8 +47,12 @@ void SystemManager::proceed()
 
 bool SystemManager::createAllComponents()
 {
-  m_pManagersHive   = std::make_shared<ManagersHive>();
-  m_pConveyor       = new conveyor::Conveyor(m_configuration.getTotalThreads());
+  m_pConveyor = new conveyor::Conveyor(m_configuration.getTotalThreads());
+
+  m_pNewtonEngine       = std::make_shared<newton::NewtonEngine>();
+  m_pShipsManager       = std::make_shared<ships::ShipsManager>();
+  m_pCommutatorsManager = std::make_shared<modules::CommutatorManager>();
+
   m_pUdpDispatcher  = std::make_shared<network::UdpDispatcher>(m_IoService);
   m_pLoginChannel   = std::make_shared<network::ProtobufChannel>();
   m_pAccessPanel    = std::make_shared<modules::AccessPanel>();
@@ -72,8 +76,8 @@ bool SystemManager::linkComponents()
 
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
-  m_pConveyor->addLogicToChain(m_pManagersHive->m_pCommutatorsManager);
-  m_pConveyor->addLogicToChain(m_pManagersHive->m_pNewtonEngine);
-  m_pConveyor->addLogicToChain(m_pManagersHive->m_pShipsManager);
+  m_pConveyor->addLogicToChain(m_pNewtonEngine);
+  m_pConveyor->addLogicToChain(m_pCommutatorsManager);
+  m_pConveyor->addLogicToChain(m_pShipsManager);
   return true;
 }

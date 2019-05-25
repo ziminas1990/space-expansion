@@ -12,7 +12,6 @@
 #include <Ships/Corvet.h>
 #include <Ships/Zond.h>
 #include <Ships/Miner.h>
-#include <ManagersHive.h>
 
 namespace world {
 
