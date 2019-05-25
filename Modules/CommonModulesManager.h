@@ -42,7 +42,6 @@ public:
 
 private:
   std::atomic_size_t m_nNextId;
-  std::atomic_flag   m_lInactiveCommutatorDetected = ATOMIC_FLAG_INIT;
 };
 
 } // namespace modules

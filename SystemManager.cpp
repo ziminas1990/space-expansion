@@ -52,6 +52,7 @@ bool SystemManager::createAllComponents()
   m_pNewtonEngine       = std::make_shared<newton::NewtonEngine>();
   m_pShipsManager       = std::make_shared<ships::ShipsManager>();
   m_pCommutatorsManager = std::make_shared<modules::CommutatorManager>();
+  m_pEnginesManager     = std::make_shared<modules::EngineManager>();
 
   m_pUdpDispatcher  = std::make_shared<network::UdpDispatcher>(m_IoService);
   m_pLoginChannel   = std::make_shared<network::ProtobufChannel>();
@@ -79,5 +80,6 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pNewtonEngine);
   m_pConveyor->addLogicToChain(m_pCommutatorsManager);
   m_pConveyor->addLogicToChain(m_pShipsManager);
+  m_pConveyor->addLogicToChain(m_pEnginesManager);
   return true;
 }

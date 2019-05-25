@@ -1,11 +1,15 @@
 #include "Engine.h"
 
+DECLARE_GLOBAL_CONTAINER_CPP(modules::Engine);
+
 namespace modules {
 
 Engine::Engine(uint32_t maxThrust)
   : BaseModule ("Engine/Nuclear"),
     m_maxThrust(maxThrust)
-{}
+{
+  GlobalContainer<Engine>::registerSelf(this);
+}
 
 void Engine::installOn(newton::PhysicalObject *pPlatform)
 {

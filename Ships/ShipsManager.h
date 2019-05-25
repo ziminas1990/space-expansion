@@ -5,8 +5,7 @@
 
 namespace ships {
 
-using ShipsManager        = modules::CommonModulesManager<Ship>;
-using ShipsManagerPtr     = std::shared_ptr<ShipsManager>;
-using ShipsManagerWeakPtr = std::weak_ptr<ShipsManager>;
+using ShipsManager    = modules::CommonModulesManager<Ship, 10000>;
+using ShipsManagerPtr = std::shared_ptr<ShipsManager>;
 
 } // namespace modules

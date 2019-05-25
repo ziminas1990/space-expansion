@@ -2,11 +2,12 @@
 
 #include <Newton/PhysicalObject.h>
 #include <Modules/BaseModule.h>
+#include <Utils/GlobalContainer.h>
 #include <Protocol.pb.h>
 
 namespace modules {
 
-class Engine : public BaseModule
+class Engine : public BaseModule, public utils::GlobalContainer<Engine>
 {
 public:
   Engine(uint32_t maxThrust);

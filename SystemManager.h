@@ -12,6 +12,7 @@
 #include "Newton/NewtonEngine.h"
 #include "Ships/ShipsManager.h"
 #include "Modules/Commutator/CommutatorManager.h"
+#include "Modules/Engine/EnginesManager.h"
 
 class SystemManager
 {
@@ -43,6 +44,7 @@ private:
   newton::NewtonEnginePtr       m_pNewtonEngine;
   ships::ShipsManagerPtr        m_pShipsManager;
   modules::CommutatorManagerPtr m_pCommutatorsManager;
+  modules::EngineManagerPtr     m_pEnginesManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
   network::ProtobufChannelPtr m_pLoginChannel;
