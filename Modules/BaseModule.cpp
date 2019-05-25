@@ -2,6 +2,13 @@
 
 namespace modules {
 
+void BaseModule::installOn(ships::Ship* pShip)
+{
+  m_pPlatform = pShip;
+  if (m_pPlatform)
+    onInstalled(pShip);
+}
+
 void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
   switch(message.choice_case()) {

@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include <Ships/Ship.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Engine);
 
@@ -9,12 +10,6 @@ Engine::Engine(uint32_t maxThrust)
     m_maxThrust(maxThrust)
 {
   GlobalContainer<Engine>::registerSelf(this);
-}
-
-void Engine::installOn(newton::PhysicalObject *pPlatform)
-{
-  m_pPlatform       = pPlatform;
-  m_nThrustVectorId = m_pPlatform->createExternalForce();
 }
 
 void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& message)
@@ -39,6 +34,11 @@ void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& messa
   }
 }
 
+void Engine::onInstalled(ships::Ship* pPlatform)
+{
+  m_nThrustVectorId = pPlatform->createExternalForce();
+}
+
 void Engine::getSpecification(uint32_t nSessionId) const
 {
   spex::IEngine response;
@@ -49,7 +49,7 @@ void Engine::getSpecification(uint32_t nSessionId) const
 void Engine::setThrust(spex::IEngine::SetThrust const& req)
 {
   geometry::Vector& thrustVector =
-      m_pPlatform->getExternalForce_NoSync(m_nThrustVectorId);
+      getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
 
   uint32_t thrust = req.thrust();
   if (!thrust) {
@@ -68,7 +68,7 @@ void Engine::getThrust(uint32_t nSessionId) const
   spex::IEngine::CurrentThrust *pBody = response.mutable_currentthrust();
 
   geometry::Vector const& thrustVector =
-      m_pPlatform->getExternalForce_NoSync(m_nThrustVectorId);
+      getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
   pBody->set_x(thrustVector.getPosition().x);
   pBody->set_y(thrustVector.getPosition().y);
   pBody->set_y(thrustVector.getLength());

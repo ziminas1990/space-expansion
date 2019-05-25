@@ -4,6 +4,10 @@
 #include <string>
 #include <Network/BufferedProtobufTerminal.h>
 
+namespace ships {
+class Ship;
+};
+
 namespace modules
 {
 
@@ -31,6 +35,7 @@ public:
   bool   isOnline()     const { return m_eStatus == eOnline; }
   bool   isDestroyed()  const { return m_eStatus == eDestoyed; }
 
+  void installOn(ships::Ship* pShip);
 
   // from IProtobufTerminal:
   // By default, there is no reason to reject new session opening and there is
@@ -46,6 +51,13 @@ protected:
   virtual void handleNavigationMessage(uint32_t, spex::INavigation const&) {}
   virtual void handleEngineMessage(uint32_t, spex::IEngine const&) {}
 
+  // Will be called once, when module is installed on some ship
+  virtual void onInstalled(ships::Ship* /*pPlatform*/) {}
+
+  // returns a pointer to the ship, on which module has been installed
+  ships::Ship*       getPlatform()       { return m_pPlatform; }
+  ships::Ship const* getPlatform() const { return m_pPlatform; }
+
   inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {
     return network::BufferedProtobufTerminal::send(nSessionId, message);
   }
@@ -54,8 +66,9 @@ protected:
   bool sendToClient(uint32_t nSessionId, spex::IEngine const& message) const;
 
 private:
-  std::string m_sModuleType;
-  Status      m_eStatus;
+  std::string  m_sModuleType;
+  Status       m_eStatus;
+  ships::Ship* m_pPlatform = nullptr;
 };
 
 using BaseModulePtr     = std::shared_ptr<BaseModule>;

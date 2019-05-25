@@ -35,7 +35,7 @@ public:
   uint16_t getStagesCount() override { return 1; }
   bool prephareStage(uint16_t nStageId) override;
   void proceedStage(uint16_t, uint32_t) override {}
-  size_t getCooldownTimeUs() const override { return 50000; }
+  size_t getCooldownTimeUs() const override { return 100000; }
 
 protected:
   // overrides from BufferedTerminal interface

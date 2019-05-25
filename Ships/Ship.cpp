@@ -24,6 +24,7 @@ void Ship::installModule(modules::BaseModulePtr pModule)
 {
   m_Modules.push_back(pModule);
   m_pCommutator->attachModule(pModule);
+  pModule->installOn(this);
 }
 
 void Ship::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
