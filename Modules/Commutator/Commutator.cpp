@@ -1,8 +1,15 @@
 #include "Commutator.h"
 #include<Protocol.pb.h>
 
+DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
+
 namespace modules
 {
+
+Commutator::Commutator() : BaseModule("Commutator")
+{
+  GlobalContainer::registerSelf(this);
+}
 
 void Commutator::attachModule(BaseModulePtr pModule)
 {

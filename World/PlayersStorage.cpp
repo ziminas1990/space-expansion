@@ -49,7 +49,7 @@ PlayersStorage::PlayerInfo PlayersStorage::createNewPlayer(
   PlayerInfo info;
 
   // TODO SES-20: thread safe commutator should be used here!
-  info.m_pEntryPoint = m_pManagersHive->m_pCommutatorsManager->makeCommutator();
+  info.m_pEntryPoint = std::make_shared<modules::Commutator>();
   info.m_pChannel    = pChannel;
   info.m_pChannel->attachToTerminal(info.m_pEntryPoint);
   info.m_pEntryPoint->attachToChannel(info.m_pChannel);

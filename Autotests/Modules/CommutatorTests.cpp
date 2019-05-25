@@ -32,7 +32,7 @@ void CommutatorTests::SetUp()
 
   // Creating components
   m_pCommutatorManager = std::make_shared<modules::CommutatorManager>();
-  m_pCommutatator      = m_pCommutatorManager->makeCommutator();
+  m_pCommutatator      = std::make_shared<modules::Commutator>();
   m_pChannel           = std::make_shared<BidirectionalChannel>();
   m_pProtobufPipe      = std::make_shared<ProtobufSyncPipe>();
   m_pClient            = std::make_shared<ClientCommutator>(m_nMainSessionId);

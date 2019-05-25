@@ -6,15 +6,17 @@
 #include <stack>
 #include <stdint.h>
 #include <Modules/BaseModule.h>
+#include <Utils/GlobalContainer.h>
 
 namespace modules {
 
-class Commutator : public BaseModule, public network::IProtobufChannel
+class Commutator : public BaseModule, public utils::GlobalContainer<Commutator>,
+    public network::IProtobufChannel
 {
   static const size_t m_nSessionsLimit = 8;
 
 public:
-  Commutator() : BaseModule("Commutator") {}
+  Commutator();
 
   void attachModule(BaseModulePtr pModule);
   void detachFromModules();
@@ -53,7 +55,6 @@ private:
 
 private:
   struct Tunnel {
-
     bool     m_lUp        = false;
     uint32_t m_nSessionId = 0; // Session, that created a tunnel
     uint32_t m_nSlotId    = 0;
