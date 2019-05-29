@@ -1,6 +1,6 @@
 #include "ShipBlueprint.h"
 
-#include <Modules/Engine/EngineBlueprint.h>
+#include <Blueprints/Modules/Engine/EngineBlueprint.h>
 
 namespace ships {
 

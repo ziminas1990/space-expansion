@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Modules/ModuleBlueprint.h>
-#include "Engine.h"
+#include <Blueprints/Modules/ModuleBlueprint.h>
+#include <Modules/Engine/Engine.h>
 
 namespace modules {
 

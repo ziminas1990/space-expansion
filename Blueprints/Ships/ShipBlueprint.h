@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "Ship.h"
-#include <Modules/ModuleBlueprint.h>
+#include <Ships/Ship.h>
+#include <Blueprints/Modules/ModuleBlueprint.h>
 
 namespace ships {
 

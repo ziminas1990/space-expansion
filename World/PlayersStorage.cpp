@@ -1,5 +1,5 @@
 #include "PlayersStorage.h"
-#include <Ships/ShipBlueprint.h>
+#include <Blueprints/Ships/ShipBlueprint.h>
 
 namespace world {
 
