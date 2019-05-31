@@ -23,10 +23,12 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
     std::string sModuleName = kv.first.as<std::string>();
     if (pBlueprint->m_modules.find(sModuleName) != pBlueprint->m_modules.end()) {
       // Duplicate detected
+      assert(false);
       return ShipBlueprintPtr();
     }
     modules::ModuleBlueprintPtr pModuleBlueprint =
         modules::BlueprintsFactory::make(kv.second);
+    assert(pModuleBlueprint);
     if (!pModuleBlueprint)
       return ShipBlueprintPtr();
     pBlueprint->addModule(std::move(sModuleName), std::move(pModuleBlueprint));

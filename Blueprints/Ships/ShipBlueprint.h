@@ -10,7 +10,8 @@
 namespace ships {
 
 class ShipBlueprint;
-using ShipBlueprintPtr = std::shared_ptr<ShipBlueprint>;
+using ShipBlueprintPtr      = std::shared_ptr<ShipBlueprint>;
+using ShipBlueprintConstPtr = std::shared_ptr<ShipBlueprint const>;
 
 class ShipBlueprint
 {
