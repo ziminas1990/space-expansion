@@ -3,6 +3,8 @@
 #include "Point.h"
 #include <math.h>
 
+#include <Utils/YamlForwardDeclarations.h>
+
 namespace geometry {
 
 class Vector
@@ -13,6 +15,11 @@ public:
   Vector(Vector const& other, double k = 1)
     : m_position(other.m_position.x * k, other.m_position.y * k)
   {}
+
+  bool load(YAML::Node const& node) {
+    m_length.lIsActual = false;
+    return m_position.load(node);
+  }
 
   Point const& getPosition() const { return m_position; }
   double getSqrLength() const

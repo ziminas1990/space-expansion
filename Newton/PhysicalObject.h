@@ -8,6 +8,7 @@
 #include <Utils/GlobalContainer.h>
 #include <Geometry/Point.h>
 #include <Geometry/Vector.h>
+#include <Utils/YamlForwardDeclarations.h>
 
 namespace newton {
 
@@ -17,6 +18,8 @@ class PhysicalObject : public utils::GlobalContainer<PhysicalObject>
   const double m_minimalWeight = 0.001;
 public:
   PhysicalObject(double weight);
+
+  bool loadState(YAML::Node const& source);
 
   double                  getWeight()   const { return m_weight;   }
   geometry::Point  const& getPosition() const { return m_position; }
