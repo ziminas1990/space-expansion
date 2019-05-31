@@ -13,6 +13,8 @@ class Engine : public BaseModule, public utils::GlobalContainer<Engine>
 public:
   Engine(uint32_t maxThrust);
 
+  bool loadState(YAML::Node const& source) override;
+
 protected:
   // override from BaseModule
   void handleEngineMessage(uint32_t, spex::IEngine const&) override;

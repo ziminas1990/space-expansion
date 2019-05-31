@@ -12,6 +12,15 @@ Engine::Engine(uint32_t maxThrust)
   GlobalContainer<Engine>::registerSelf(this);
 }
 
+bool Engine::loadState(YAML::Node const& source)
+{
+  if (BaseModule::loadState(source))
+    return false;
+
+  geometry::Vector& thrust = getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+  return thrust.load(source);
+}
+
 void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& message)
 {
   switch(message.choice_case()) {

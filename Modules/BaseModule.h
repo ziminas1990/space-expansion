@@ -4,6 +4,8 @@
 #include <string>
 #include <Network/BufferedProtobufTerminal.h>
 
+#include <Utils/YamlForwardDeclarations.h>
+
 namespace ships {
 class Ship;
 };
@@ -25,6 +27,8 @@ public:
   BaseModule(std::string&& sModuleType)
     : m_sModuleType(std::move(sModuleType)), m_eStatus(eOnline)
   {}
+
+  virtual bool loadState(YAML::Node const& /*source*/) { return true; }
 
   std::string const& getModuleType() const { return m_sModuleType; }
 
