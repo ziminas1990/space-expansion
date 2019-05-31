@@ -1,5 +1,7 @@
 #include "Ship.h"
 
+#include <yaml-cpp/yaml.h>
+
 DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 
 namespace ships
@@ -11,20 +13,40 @@ Ship::Ship(std::string const& sShipType, double weight)
     m_pCommutator(std::make_shared<modules::Commutator>())
 {
   GlobalContainer<Ship>::registerSelf(this);
-  m_Modules.reserve(0x0F);
 }
 
 Ship::~Ship()
 {
-  for (modules::BaseModulePtr& pModule : m_Modules)
-    pModule->onDoestroyed();
+  for (auto& kv : m_Modules)
+    kv.second->onDoestroyed();
 }
 
-void Ship::installModule(modules::BaseModulePtr pModule)
+bool Ship::loadState(YAML::Node const& source)
 {
-  m_Modules.push_back(pModule);
-  m_pCommutator->attachModule(pModule);
+  if (!PhysicalObject::loadState(source))
+    return false;
+
+  // Loading state of modules
+  for (auto const& kv : source["modules"]) {
+    std::string const& sModuleName = kv.first.as<std::string>();
+    auto I = m_Modules.find(sModuleName);
+    if (I == m_Modules.end())
+      return false;
+    modules::BaseModulePtr& pModule = I->second;
+    if (!pModule->loadState(kv.second)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Ship::installModule(std::string sName, modules::BaseModulePtr pModule)
+{
+  if (m_Modules.find(sName) != m_Modules.end())
+    return false;
+  m_Modules.insert(std::make_pair(std::move(sName), pModule));
   pModule->installOn(this);
+  return true;
 }
 
 void Ship::onMessageReceived(uint32_t nSessionId, spex::Message const& message)

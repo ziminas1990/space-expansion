@@ -20,7 +20,9 @@ public:
   Ship(std::string const& sShipType, double weight);
   ~Ship() override;
 
-  void installModule(modules::BaseModulePtr pModule);
+  bool loadState(YAML::Node const& source) override;
+
+  bool installModule(std::string sName, modules::BaseModulePtr pModule);
 
   // overrides from IProtobufTerminal interface
   void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
@@ -31,7 +33,7 @@ protected:
 
 private:
   modules::CommutatorPtr m_pCommutator;
-  std::vector<modules::BaseModulePtr> m_Modules;
+  std::map<std::string, modules::BaseModulePtr> m_Modules;
 };
 
 using ShipPtr     = std::shared_ptr<Ship>;
