@@ -1,6 +1,8 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include "Utils/YamlForwardDeclarations.h"
+
 #include "ConfigDI/Containers.h"
 #include "Conveyor/Conveyor.h"
 #include "Network/UdpDispatcher.h"
@@ -8,6 +10,7 @@
 #include "Modules/AccessPanel/AccessPanel.h"
 #include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
+#include "Blueprints/BlueprintsStorage.h"
 
 #include "Newton/NewtonEngine.h"
 #include "Ships/ShipsManager.h"
@@ -21,6 +24,8 @@ public:
   ~SystemManager();
 
   bool initialize(config::IApplicationCfg const& cfg);
+  bool loadWorldState(YAML::Node const& data);
+
   bool start();
   void stop();
 
@@ -39,6 +44,8 @@ private:
   config::ApplicationCfg      m_configuration;
   conveyor::Conveyor*         m_pConveyor;
   boost::asio::io_service     m_IoService;
+
+  blueprints::BlueprintsStoragePtr m_pBlueprints;
 
   // Managers for all logics
   newton::NewtonEnginePtr       m_pNewtonEngine;

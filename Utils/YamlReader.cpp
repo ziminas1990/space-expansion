@@ -29,21 +29,21 @@ YamlReader::YamlReader(YAML::Node const& source)
   : source(source), noProblems(true)
 {}
 
-YamlReader &YamlReader::read(const char *pName, uint32_t &value)
+YamlReader& YamlReader::read(const char *pName, uint32_t &value)
 {
-  noProblems = readSomeValue(source, pName, value);
+  noProblems &= readSomeValue(source, pName, value);
   return *this;
 }
 
 YamlReader& YamlReader::read(char const* pName, double& value)
 {
-  noProblems = readSomeValue(source, pName, value);
+  noProblems &= readSomeValue(source, pName, value);
   return *this;
 }
 
-YamlReader &YamlReader::read(char const* pName, std::string &sValue)
+YamlReader& YamlReader::read(char const* pName, std::string &sValue)
 {
-  noProblems = readSomeValue(source, pName, sValue);
+  noProblems &= readSomeValue(source, pName, sValue);
   return *this;
 }
 

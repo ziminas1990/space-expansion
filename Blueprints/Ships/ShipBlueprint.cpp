@@ -12,8 +12,10 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
   std::string sShipType;
   double      shipWeight;
 
-  if (!utils::YamlReader(data).read("type", sShipType).read("weight", shipWeight))
+  if (!utils::YamlReader(data).read("weight", shipWeight)) {
+    assert(false);
     return ShipBlueprintPtr();
+  }
 
   ShipBlueprintPtr pBlueprint = std::make_shared<ShipBlueprint>();
   pBlueprint->setShipType(sShipType);
@@ -67,44 +69,5 @@ ShipBlueprint& ShipBlueprint::addModule(
   m_modules.insert(std::make_pair(std::move(sModuleName), std::move(pModuleBlueprint)));
   return *this;
 }
-
-ShipBlueprintPtr BlueprintsStore::makeCommandCenterBlueprint()
-{
-  return ShipBlueprint()
-      .setShipType("CommandCenter")
-      .setWeight(4000000)
-      .wrapToSharedPtr();
-}
-
-ShipBlueprintPtr BlueprintsStore::makeCorvetBlueprint()
-{
-  return ShipBlueprint()
-      .setShipType("Corvet")
-      .setWeight(250000)
-      .addModule("engine",
-                 modules::EngineBlueprint().setMaxThrust(5000000).wrapToSharedPtr())
-      .wrapToSharedPtr();
-}
-
-ShipBlueprintPtr BlueprintsStore::makeMinerBlueprint()
-{
-  return ShipBlueprint()
-      .setShipType("Miner")
-      .setWeight(100000)
-      .addModule("engine",
-                 modules::EngineBlueprint().setMaxThrust(3000000).wrapToSharedPtr())
-      .wrapToSharedPtr();
-}
-
-ShipBlueprintPtr BlueprintsStore::makeZondBlueprint()
-{
-  return ShipBlueprint()
-      .setShipType("Zond")
-      .setWeight(5000)
-      .addModule("engine",
-                 modules::EngineBlueprint().setMaxThrust(100000).wrapToSharedPtr())
-      .wrapToSharedPtr();
-}
-
 
 } // namespace ships

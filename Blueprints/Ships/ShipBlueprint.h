@@ -39,14 +39,4 @@ private:
   std::map<std::string, modules::ModuleBlueprintPtr> m_modules;
 };
 
-
-class BlueprintsStore
-{
-public:
-  static ShipBlueprintPtr makeCommandCenterBlueprint();
-  static ShipBlueprintPtr makeCorvetBlueprint();
-  static ShipBlueprintPtr makeMinerBlueprint();
-  static ShipBlueprintPtr makeZondBlueprint();
-};
-
 } // namespace ships

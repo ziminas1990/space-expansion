@@ -11,6 +11,8 @@
 #include <Autotests/Mocks/Modules/MockedAccessPoint.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
 
+#include <Utils/YamlForwardDeclarations.h>
+
 namespace autotests
 {
 
@@ -29,6 +31,7 @@ public:
 
 protected:
   virtual config::ApplicationCfg prephareConfiguration();
+  virtual bool initialWorldState(YAML::Node& /*state*/) { return false; }
 
   void proceedEnviroment(uint32_t nMilliseconds);
 

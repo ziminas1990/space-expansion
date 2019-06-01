@@ -1,6 +1,8 @@
 #include "FunctionalTestFixture.h"
 #include "Scenarios.h"
 
+#include <yaml-cpp/yaml.h>
+
 namespace autotests
 {
 
@@ -13,6 +15,11 @@ void FunctionalTestFixture::SetUp()
 {
   m_cfg = prephareConfiguration();
   m_application.initialize(m_cfg);
+
+  YAML::Node worldState;
+  if (initialWorldState(worldState))
+    m_application.loadWorldState(worldState);
+
   m_application.start();
 
   m_clientAddress =

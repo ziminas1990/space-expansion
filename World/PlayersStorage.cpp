@@ -10,6 +10,11 @@ PlayersStorage::~PlayersStorage()
   }
 }
 
+void PlayersStorage::attachToBlueprintsStorage(blueprints::BlueprintsStoragePtr pStorage)
+{
+  m_pBlueprintsStorage = pStorage;
+}
+
 modules::CommutatorPtr PlayersStorage::getPlayer(std::string const& sLogin) const
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
@@ -40,12 +45,24 @@ PlayersStorage::PlayerInfo PlayersStorage::createNewPlayer(
   info.m_pEntryPoint->attachToChannel(info.m_pChannel);
 
   // Creating all ships:
+  std::vector<std::pair<uint8_t, std::string>> fleet = {
+    {1, "CommandCenter"},
+    {2, "Corvet"},
+    {2, "Miner"},
+    {2, "Zond"}
+  };
+
   info.m_ships.reserve(0xFF);
-  info.m_ships.push_back(ships::BlueprintsStore::makeCommandCenterBlueprint()->build());
-  for(size_t i = 0; i < 2; ++i) {
-    info.m_ships.push_back(ships::BlueprintsStore::makeCorvetBlueprint()->build());
-    info.m_ships.push_back(ships::BlueprintsStore::makeMinerBlueprint()->build());
-    info.m_ships.push_back(ships::BlueprintsStore::makeZondBlueprint()->build());
+  for (auto const& squad : fleet)
+  {
+    ships::ShipBlueprintConstPtr pBlueprint =
+        m_pBlueprintsStorage->getBlueprint(squad.second);
+    assert(pBlueprint);
+    if (!pBlueprint)
+      continue;
+    for (size_t i = 0; i < squad.first; ++i) {
+      info.m_ships.push_back(pBlueprint->build());
+    }
   }
 
   // Adding ships to Commutator:

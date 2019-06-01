@@ -1,5 +1,6 @@
 #include "SystemManager.h"
 #include <thread>
+#include <yaml-cpp/yaml.h>
 
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Ships/ShipsManager.h"
@@ -19,6 +20,20 @@ bool SystemManager::initialize(config::IApplicationCfg const& cfg)
   return createAllComponents()
       && configureComponents()
       && linkComponents();
+}
+
+bool SystemManager::loadWorldState(YAML::Node const& data)
+{
+  YAML::Node const& blueprintsSection = data["Blueprints"];
+  assert(blueprintsSection.IsDefined());
+  if (!blueprintsSection.IsDefined())
+    return false;
+
+  if (!m_pBlueprints->loadBlueprints(blueprintsSection)) {
+    assert(false);
+    return false;
+  }
+  return true;
 }
 
 bool SystemManager::start()
@@ -48,6 +63,8 @@ void SystemManager::proceed()
 bool SystemManager::createAllComponents()
 {
   m_pConveyor = new conveyor::Conveyor(m_configuration.getTotalThreads());
+
+  m_pBlueprints = std::make_shared<blueprints::BlueprintsStorage>();
 
   m_pNewtonEngine       = std::make_shared<newton::NewtonEngine>();
   m_pShipsManager       = std::make_shared<ships::ShipsManager>();
@@ -81,5 +98,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pCommutatorsManager);
   m_pConveyor->addLogicToChain(m_pShipsManager);
   m_pConveyor->addLogicToChain(m_pEnginesManager);
+
+  m_pPlayersStorage->attachToBlueprintsStorage(m_pBlueprints);
   return true;
 }

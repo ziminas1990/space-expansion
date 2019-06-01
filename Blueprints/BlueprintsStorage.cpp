@@ -10,8 +10,9 @@ bool BlueprintsStorage::loadBlueprints(YAML::Node const& data)
   {
     std::string sBlueprintName = kv.first.as<std::string>();
     ships::ShipBlueprintPtr pBlueprint = ships::ShipBlueprint::make(kv.second);
+    pBlueprint->setShipType(sBlueprintName);
     assert(pBlueprint);
-    if (pBlueprint)
+    if (!pBlueprint)
       return false;
     m_blueprints.insert(std::make_pair(std::move(sBlueprintName), std::move(pBlueprint)));
   }

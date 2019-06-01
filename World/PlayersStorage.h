@@ -8,6 +8,7 @@
 #include <Network/ProtobufChannel.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/ShipsManager.h>
+#include <Blueprints/BlueprintsStorage.h>
 
 namespace world {
 
@@ -23,6 +24,8 @@ class PlayersStorage
 public:
   ~PlayersStorage();
 
+  void attachToBlueprintsStorage(blueprints::BlueprintsStoragePtr pStorage);
+
   modules::CommutatorPtr getPlayer(std::string const& sLogin) const;
   modules::CommutatorPtr spawnPlayer(
       std::string const& sLogin, network::ProtobufChannelPtr pChannel);
@@ -32,6 +35,8 @@ private:
   void       kickPlayer(PlayerInfo& player);
 
 private:
+  blueprints::BlueprintsStoragePtr m_pBlueprintsStorage;
+
   // Login -> CommandCenter
   std::map<std::string, PlayerInfo> m_players;
 
