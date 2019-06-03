@@ -1,13 +1,30 @@
 #include "PlayersStorage.h"
 #include <Blueprints/Ships/ShipBlueprint.h>
 
+#include <yaml-cpp/yaml.h>
+
 namespace world {
 
-PlayersStorage::~PlayersStorage()
+
+bool PlayersStorage::loadState(YAML::Node const& data)
 {
-  for (auto& player : m_players) {
-    kickPlayer(player.second);
+  for(auto const& kv : data) {
+    std::string sLogin = kv.first.as<std::string>();
+    assert(!sLogin.empty());
+    if (sLogin.empty())
+      return false;
+    PlayerPtr pPlayer = std::make_shared<Player>(sLogin);
+    if (!pPlayer->loadState(kv.second, m_pBlueprintsStorage)) {
+      assert(false);
+      return false;
+    }
+    if (m_players.find(sLogin) != m_players.end()) {
+      assert(false);
+      return  false;
+    }
+    m_players[sLogin] = pPlayer;
   }
+  return true;
 }
 
 void PlayersStorage::attachToBlueprintsStorage(blueprints::BlueprintsStoragePtr pStorage)
@@ -15,70 +32,11 @@ void PlayersStorage::attachToBlueprintsStorage(blueprints::BlueprintsStoragePtr 
   m_pBlueprintsStorage = pStorage;
 }
 
-modules::CommutatorPtr PlayersStorage::getPlayer(std::string const& sLogin) const
+PlayerPtr PlayersStorage::getPlayer(std::string const& sLogin) const
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
   auto I = m_players.find(sLogin);
-  return (I != m_players.end()) ? I->second.m_pEntryPoint : modules::CommutatorPtr();
-}
-
-modules::CommutatorPtr PlayersStorage::spawnPlayer(
-    std::string const& sLogin, network::ProtobufChannelPtr pChannel)
-{
-  std::lock_guard<utils::Mutex> guard(m_Mutex);
-
-  PlayerInfo info = createNewPlayer(pChannel);
-  modules::CommutatorPtr pEntryPoint = info.m_pEntryPoint;
-  m_players.insert(std::make_pair(sLogin, std::move(info)));
-  return pEntryPoint;
-}
-
-PlayersStorage::PlayerInfo PlayersStorage::createNewPlayer(
-    network::ProtobufChannelPtr pChannel)
-{
-  PlayerInfo info;
-
-  // TODO SES-20: thread safe commutator should be used here!
-  info.m_pEntryPoint = std::make_shared<modules::Commutator>();
-  info.m_pChannel    = pChannel;
-  info.m_pChannel->attachToTerminal(info.m_pEntryPoint);
-  info.m_pEntryPoint->attachToChannel(info.m_pChannel);
-
-  // Creating all ships:
-  std::vector<std::pair<uint8_t, std::string>> fleet = {
-    {1, "CommandCenter"},
-    {2, "Corvet"},
-    {2, "Miner"},
-    {2, "Zond"}
-  };
-
-  info.m_ships.reserve(0xFF);
-  for (auto const& squad : fleet)
-  {
-    ships::ShipBlueprintConstPtr pBlueprint =
-        m_pBlueprintsStorage->getBlueprint(squad.second);
-    assert(pBlueprint);
-    if (!pBlueprint)
-      continue;
-    for (size_t i = 0; i < squad.first; ++i) {
-      info.m_ships.push_back(pBlueprint->build());
-    }
-  }
-
-  // Adding ships to Commutator:
-  for (ships::ShipPtr pShip : info.m_ships) {
-    info.m_pEntryPoint->attachModule(pShip);
-    pShip->attachToChannel(info.m_pEntryPoint);
-  }
-  return info;
-}
-
-void PlayersStorage::kickPlayer(PlayersStorage::PlayerInfo& player)
-{
-  player.m_pEntryPoint->detachFromModules();
-  player.m_pEntryPoint->detachFromChannel();
-  player.m_pChannel->detachFromTerminal();
-  player.m_pChannel->detachFromChannel();
+  return (I != m_players.end()) ? I->second : PlayerPtr();
 }
 
 } // namespace world

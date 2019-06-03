@@ -14,15 +14,23 @@ protected:
   // overrides from FunctionalTestFixture interface
   bool initialWorldState(YAML::Node& state) {
     std::stringstream ss;
-    ss << "Blueprints:"           << std::endl <<
-          "  CommandCenter:"      << std::endl <<
-          "    weight : 4000000"  << std::endl <<
-          "  Corvet:"             << std::endl <<
-          "    weight : 500000"   << std::endl <<
-          "  Miner:"              << std::endl <<
-          "    weight : 300000"   << std::endl <<
-          "  Zond:"               << std::endl <<
-          "    weight : 10000";
+    ss    <<              "Blueprints:"
+          << std::endl << "  CommandCenter:"
+          << std::endl << "    weight : 4000000"
+          << std::endl << "  Corvet:"
+          << std::endl << "    weight : 500000"
+          << std::endl << "  Miner:"
+          << std::endl << "    weight : 300000"
+          << std::endl << "  Zond:"
+          << std::endl << "    weight : 10000"
+          << std::endl << "Players:"
+          << std::endl << "  admin:"
+          << std::endl << "    password: admin"
+          << std::endl << "    ships:"
+          << std::endl << "      Corvet:"
+          << std::endl << "        weight:   500000"
+          << std::endl << "        position: { x: 0, y: 0}"
+          << std::endl << "        velocity: { x: 0, y: 0}";
     state = YAML::Load(ss.str());
     return true;
   }
@@ -36,11 +44,19 @@ TEST_F(LoginFunctionalTests, SuccessCase)
         .expectSuccess());
 }
 
-TEST_F(LoginFunctionalTests, LoginFailed)
+TEST_F(LoginFunctionalTests, LoginFailed_IncorrectLogin)
 {
   ASSERT_TRUE(
         Scenarios::Login()
-        .sendLoginRequest("dsdf", "sdfsdf")
+        .sendLoginRequest("dsdf", "admin")
+        .expectFailed());
+}
+
+TEST_F(LoginFunctionalTests, LoginFailed_IncorrectPassword)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("admin", "sdfsdf")
         .expectFailed());
 }
 

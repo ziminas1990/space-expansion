@@ -33,6 +33,12 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
     assert(false);
     return false;
   }
+
+  YAML::Node const& playersState = data["Players"];
+  if (!m_pPlayersStorage->loadState(playersState)) {
+    assert(false);
+    return false;
+  }
   return true;
 }
 

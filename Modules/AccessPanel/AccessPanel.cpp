@@ -58,21 +58,27 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
           boost::asio::ip::address_v4::from_string(loginRequest.ip()),
           uint16_t(loginRequest.port())));
 
-  // Getting (or spawning new) player instance
-  modules::CommutatorPtr pEntryPoint = pPlayerStorage->getPlayer(loginRequest.login());
-  if (!pEntryPoint)
-    pEntryPoint = pPlayerStorage->spawnPlayer(loginRequest.login(), pProtobufChannel);
-  if (!pEntryPoint) {
+  world::PlayerPtr pPlayer = pPlayerStorage->getPlayer(loginRequest.login());
+  if (!pPlayer) {
     sendLoginFailed(nSessionId, "Failed to get or spawn player");
     return;
   }
 
+  pPlayer->attachToChannel(pProtobufChannel);
   sendLoginSuccess(nSessionId, pLocalSocket->getNativeSocket().local_endpoint());
 }
 
-bool AccessPanel::checkLogin(std::string const& sLogin, std::string const& sPassword)
+bool AccessPanel::checkLogin(std::string const& sLogin,
+                             std::string const& sPassword) const
 {
-  return sLogin == "admin" && sPassword == "admin";
+  auto pPlayerStorage = m_pPlayersStorage.lock();
+  if (!pPlayerStorage)
+    return false;
+  world::PlayerPtr pPlayer = pPlayerStorage->getPlayer(sLogin);
+  if (!pPlayer)
+    return false;
+  return pPlayer->getLogin()    == sLogin
+      && pPlayer->getPassword() == sPassword;
 }
 
 bool AccessPanel::sendLoginSuccess(

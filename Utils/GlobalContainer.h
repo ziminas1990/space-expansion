@@ -7,6 +7,7 @@
 #include "Mutex.h"
 
 // Inhteriter should contain its namespaces! For ex: "newton::PhysicalObject"
+// AvoidDummyWarningHack - to avoid warning about extra ";"
 #define DECLARE_GLOBAL_CONTAINER_CPP(Inheriter) \
   namespace utils { \
   template<> \
@@ -15,7 +16,8 @@
   Mutex GlobalContainer<Inheriter>::m_AllInstancesMutex = Mutex(); \
   template<> \
   std::vector<Inheriter*> GlobalContainer<Inheriter>::m_AllInstances = std::vector<Inheriter*>(); \
-  }
+  } \
+  class AvoidDummyWarningHack
 
 
 namespace utils {

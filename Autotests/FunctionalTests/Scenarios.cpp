@@ -36,7 +36,7 @@ void Scenarios::LoginScenario::execute()
   if (lExpectSuccess) {
     uint16_t nPort = 0;
     ASSERT_TRUE(m_pEnv->m_pClientAccessPoint->waitLoginSuccess(nPort))
-        << "No LoginSuccess response, or Port is 0";
+        << "No LoginSuccess response";
     ASSERT_NE(0, nPort) << "Port is 0";
     m_pEnv->m_serverAddress.port(nPort);
     m_pEnv->m_pClientUdpSocket->setServerAddress(m_pEnv->m_serverAddress);

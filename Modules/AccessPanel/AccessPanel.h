@@ -42,14 +42,14 @@ protected:
   void handleMessage(uint32_t nSessionId, spex::Message const& message) override;
 
 private:
-  bool checkLogin(std::string const& sLogin, std::string const& nPassword);
+  bool checkLogin(std::string const& sLogin, std::string const& nPassword) const;
 
   bool sendLoginSuccess(uint32_t nSessionId, network::UdpEndPoint const& localAddress);
   bool sendLoginFailed(uint32_t nSessionId, std::string const& reason);
 
 private:
-  network::UdpDispatcherPtr m_pConnectionManager;
-  world::PlayerStorageWeakPtr   m_pPlayersStorage;
+  network::UdpDispatcherPtr   m_pConnectionManager;
+  world::PlayerStorageWeakPtr m_pPlayersStorage;
 };
 
 using AccessPanelPtr = std::shared_ptr<AccessPanel>;

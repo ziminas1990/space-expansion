@@ -4,41 +4,27 @@
 #include <string>
 #include <map>
 
+#include "Player.h"
 #include <Utils/Mutex.h>
 #include <Network/ProtobufChannel.h>
 #include <Modules/Commutator/Commutator.h>
-#include <Ships/ShipsManager.h>
 #include <Blueprints/BlueprintsStorage.h>
+#include <Utils/YamlForwardDeclarations.h>
 
 namespace world {
 
 class PlayersStorage
 {
-  struct PlayerInfo
-  {
-    network::ProtobufChannelPtr   m_pChannel;
-    modules::CommutatorPtr        m_pEntryPoint;
-    std::vector<ships::ShipPtr>   m_ships;
-  };
-
 public:
-  ~PlayersStorage();
-
   void attachToBlueprintsStorage(blueprints::BlueprintsStoragePtr pStorage);
+  bool loadState(YAML::Node const& data);
 
-  modules::CommutatorPtr getPlayer(std::string const& sLogin) const;
-  modules::CommutatorPtr spawnPlayer(
-      std::string const& sLogin, network::ProtobufChannelPtr pChannel);
-
-private:
-  PlayerInfo createNewPlayer(network::ProtobufChannelPtr pChannel);
-  void       kickPlayer(PlayerInfo& player);
+  PlayerPtr getPlayer(std::string const& sLogin) const;
 
 private:
   blueprints::BlueprintsStoragePtr m_pBlueprintsStorage;
 
-  // Login -> CommandCenter
-  std::map<std::string, PlayerInfo> m_players;
+  std::map<std::string, PlayerPtr> m_players;
 
   mutable utils::Mutex m_Mutex;
 };

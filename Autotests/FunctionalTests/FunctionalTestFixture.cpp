@@ -14,13 +14,6 @@ FunctionalTestFixture::FunctionalTestFixture()
 void FunctionalTestFixture::SetUp()
 {
   m_cfg = prephareConfiguration();
-  m_application.initialize(m_cfg);
-
-  YAML::Node worldState;
-  if (initialWorldState(worldState))
-    m_application.loadWorldState(worldState);
-
-  m_application.start();
 
   m_clientAddress =
       boost::asio::ip::udp::endpoint(
@@ -33,6 +26,7 @@ void FunctionalTestFixture::SetUp()
       boost::asio::ip::udp::endpoint(
         boost::asio::ip::address::from_string("127.0.0.1"), 0);
 
+  // Initializing client components
   m_pClientUdpSocket =
       std::make_shared<autotests::ClientUdpSocket>(m_IoService, m_clientAddress);
   m_pProtobufChannel     = std::make_shared<network::ProtobufChannel>();
@@ -43,12 +37,20 @@ void FunctionalTestFixture::SetUp()
   m_pClientUdpSocket->setServerAddress(m_serverLoginAddress);
   m_pSyncProtobufChannel->setEnviromentProceeder([this](){ proceedEnviroment(10); });
 
+  // Linking client components
   m_pClientUdpSocket->attachToTerminal(m_pProtobufChannel);
   m_pProtobufChannel->attachToChannel(m_pClientUdpSocket);
   m_pProtobufChannel->attachToTerminal(m_pSyncProtobufChannel);
   m_pSyncProtobufChannel->attachToChannel(m_pProtobufChannel);
   m_pClientAccessPoint->attachToSyncChannel(m_pSyncProtobufChannel);
   m_pRootClientCommutator->attachToSyncChannel(m_pSyncProtobufChannel);
+
+  // And, finaly, loading and running the world:
+  m_application.initialize(m_cfg);
+  YAML::Node worldState;
+  if (initialWorldState(worldState))
+    m_application.loadWorldState(worldState);
+  m_application.start();
 }
 
 void FunctionalTestFixture::TearDown()
