@@ -61,7 +61,7 @@ public:
   class CheckAttachedModulesScenario : public BaseScenario
   {
   public:
-    CheckAttachedModulesScenario(ClientCommutatorPtr pCommutator,
+    CheckAttachedModulesScenario(client::ClientCommutatorPtr pCommutator,
                                  FunctionalTestFixture* pEnv);
 
     CheckAttachedModulesScenario&
@@ -71,7 +71,7 @@ public:
     void execute() override;
 
   private:
-    ClientCommutatorPtr pCommutator;
+    client::ClientCommutatorPtr pCommutator;
     std::map<std::string, size_t> expectedModules;
   };
 
@@ -80,7 +80,7 @@ public:
   static LoginScenario Login() { return LoginScenario(m_pEnv); }
 
   static CheckAttachedModulesScenario
-  CheckAttachedModules(ClientCommutatorPtr pClientCommutator);
+  CheckAttachedModules(client::ClientCommutatorPtr pClientCommutator);
 
 private:
   static FunctionalTestFixture* m_pEnv;

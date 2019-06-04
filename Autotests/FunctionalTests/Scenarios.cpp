@@ -28,20 +28,20 @@ void Scenarios::LoginScenario::execute()
 {
   if (lSendRequest) {
     ASSERT_TRUE(
-          m_pEnv->m_pClientAccessPoint->sendLoginRequest(
+          m_pEnv->m_pAccessPanel->sendLoginRequest(
             sLogin, sPassword, "127.0.0.1", m_pEnv->m_clientAddress.port()))
         << "Failed to send LoginRequest";
   }
 
   if (lExpectSuccess) {
     uint16_t nPort = 0;
-    ASSERT_TRUE(m_pEnv->m_pClientAccessPoint->waitLoginSuccess(nPort))
+    ASSERT_TRUE(m_pEnv->m_pAccessPanel->waitLoginSuccess(nPort))
         << "No LoginSuccess response";
     ASSERT_NE(0, nPort) << "Port is 0";
     m_pEnv->m_serverAddress.port(nPort);
-    m_pEnv->m_pClientUdpSocket->setServerAddress(m_pEnv->m_serverAddress);
+    m_pEnv->m_pSocket->setServerAddress(m_pEnv->m_serverAddress);
   } else {
-    ASSERT_TRUE(m_pEnv->m_pClientAccessPoint->waitLoginFailed())
+    ASSERT_TRUE(m_pEnv->m_pAccessPanel->waitLoginFailed())
         << "No LoginFailed response";
   }
 }
@@ -51,11 +51,9 @@ void Scenarios::LoginScenario::execute()
 //========================================================================================
 
 Scenarios::CheckAttachedModulesScenario::CheckAttachedModulesScenario(
-    ClientCommutatorPtr pCommutator, FunctionalTestFixture *pEnv)
+    client::ClientCommutatorPtr pCommutator, FunctionalTestFixture *pEnv)
   : BaseScenario (pEnv), pCommutator(pCommutator)
-{
-
-}
+{}
 
 Scenarios::CheckAttachedModulesScenario&
 Scenarios::CheckAttachedModulesScenario::hasModule(
@@ -71,11 +69,11 @@ void Scenarios::CheckAttachedModulesScenario::execute()
   for (auto const& typeAndCount : expectedModules)
     nExpectedTotal += typeAndCount.second;
 
-  ModulesList attachedModules;
+  client::ModulesList attachedModules;
   ASSERT_TRUE(pCommutator->getAttachedModulesList(nExpectedTotal, attachedModules))
       << "Can't get attached modules list from commutator!";
 
-  for (ModuleInfo const& module : attachedModules)
+  for (client::ModuleInfo const& module : attachedModules)
   {
     ASSERT_NE(expectedModules.end(), expectedModules.find(module.sModuleType))
         << "Unexpected module with type " << module.sModuleType;
@@ -90,10 +88,9 @@ void Scenarios::CheckAttachedModulesScenario::execute()
 //========================================================================================
 
 Scenarios::CheckAttachedModulesScenario Scenarios::CheckAttachedModules(
-    ClientCommutatorPtr pClientCommutator)
+    client::ClientCommutatorPtr pClientCommutator)
 {
   return CheckAttachedModulesScenario(pClientCommutator, m_pEnv);
 }
-
 
 } // namespace autotes

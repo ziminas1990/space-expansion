@@ -59,7 +59,9 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsCount)
         .sendLoginRequest("admin", "admin")
         .expectSuccess());
 
-  ASSERT_TRUE(m_pRootClientCommutator->getTotalSlots(5));
+  uint32_t nTotalSlots;
+  ASSERT_TRUE(m_pRootCommutator->getTotalSlots(nTotalSlots));
+  EXPECT_EQ(5, nTotalSlots);
 }
 
 
@@ -73,7 +75,7 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsTypes)
   // with cycle it's even more harder
   for(size_t i = 0; i < 200; ++i) {
     ASSERT_TRUE(
-          Scenarios::CheckAttachedModules(m_pRootClientCommutator)
+          Scenarios::CheckAttachedModules(m_pRootCommutator)
           .hasModule("Ship/CommandCenter", 1)
           .hasModule("Ship/Miner", 1)
           .hasModule("Ship/Zond", 1)
@@ -81,6 +83,18 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsTypes)
   }
 }
 
+//TEST_F(ExploringShipsFunctionalTests, OpenTunnelsToShips)
+//{
 
+//}
+
+//TEST_F(ExploringShipsFunctionalTests, GetShipsPosition)
+//{
+//  ASSERT_TRUE(
+//        Scenarios::Login()
+//        .sendLoginRequest("admin", "admin")
+//        .expectSuccess());
+
+//}
 
 } // namespace autotests

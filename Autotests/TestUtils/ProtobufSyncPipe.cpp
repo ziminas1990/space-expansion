@@ -3,12 +3,6 @@
 
 namespace autotests {
 
-void ProtobufSyncPipe::attachToTunnel(
-    uint32_t nSessionId, network::IProtobufTerminalPtr pUplevel)
-{
-  m_clientTunnels[nSessionId] = pUplevel;
-}
-
 bool ProtobufSyncPipe::waitAny(uint32_t nSessionId, uint16_t nTimeoutMs)
 {
   std::function<bool()> fPredicate = [this, nSessionId]() {
@@ -65,47 +59,8 @@ bool ProtobufSyncPipe::expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs)
   return !waitAny(nSessionId, message, nTimeoutMs);
 }
 
-bool ProtobufSyncPipe::openSession(uint32_t nSessionId)
-{
-  return m_pAttachedTerminal && m_pAttachedTerminal->openSession(nSessionId);
-}
-
 void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
 {
-  if (message.choice_case() == spex::Message::kEncapsulated) {
-    auto itTunnel = m_clientTunnels.find(nSessionId);
-    if (itTunnel != m_clientTunnels.end()) {
-      itTunnel->second->onMessageReceived(message.tunnelid(), message.encapsulated());
-    }
-  } else {
-    storeMessage(nSessionId, message);
-  }
-}
-
-void ProtobufSyncPipe::onSessionClosed(uint32_t nSessionId)
-{
-  if (m_pAttachedTerminal)
-    m_pAttachedTerminal->onSessionClosed(nSessionId);
-}
-
-bool ProtobufSyncPipe::send(uint32_t nSessionId, spex::Message const& message) const
-{
-  m_knownSessionsIds.insert(nSessionId);
-  return m_pAttachedChannel->send(nSessionId, message);
-}
-
-void ProtobufSyncPipe::closeSession(uint32_t nSessionId)
-{
-  if (m_pAttachedChannel)
-    m_pAttachedChannel->closeSession(nSessionId);
-}
-
-void ProtobufSyncPipe::storeMessage(
-    uint32_t nSessionId, spex::Message const& message) const
-{
-  if (m_knownSessionsIds.find(nSessionId) == m_knownSessionsIds.end()) {
-    m_newSessionIds.insert(nSessionId);
-  }
   m_Sessions[nSessionId].push(message);
 }
 

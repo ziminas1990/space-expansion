@@ -4,12 +4,11 @@
 #include <ConfigDI/Interfaces.h>
 #include <ConfigDI/Containers.h>
 #include <SystemManager.h>
-#include <Network/UdpDispatcher.h>
-#include <Network/ProtobufChannel.h>
-#include <Autotests/TestUtils/ProtobufSyncPipe.h>
-#include <Autotests/TestUtils/ClientUdpSocket.h>
-#include <Autotests/Mocks/Modules/MockedAccessPoint.h>
-#include <Autotests/Mocks/Modules/MockedCommutator.h>
+
+#include <Autotests/ClientSDK/Socket.h>
+#include <Autotests/ClientSDK/SyncPipe.h>
+#include <Autotests/ClientSDK/Modules/ClientAccessPanel.h>
+#include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 
 #include <Utils/YamlForwardDeclarations.h>
 
@@ -53,26 +52,21 @@ protected:
   //               +----------------+   +----------------+
   //                                |   |
   //                        +---------------------+
-  //                        | SyncProtobufChannel |
+  //                        |  client::SyncPipe   |
   //                        +---------------------+
   //                                  |
   //                        +---------------------+
-  //                        |   ProtobufChannel   |
-  //                        +---------------------+
-  //                                  |
-  //                        +---------------------+
-  //                        |   ClientUdpSocket   |
+  //                        |   client::Socket    |
   //                        +---------------------+
   //                                  |
   //                                  +-------------------------------> Server
   //
-  boost::asio::io_service         m_IoService;
-  autotests::ClientUdpSocketPtr   m_pClientUdpSocket;
-  network::ProtobufChannelPtr     m_pProtobufChannel;
-  autotests::ProtobufSyncPipePtr  m_pSyncProtobufChannel;
-  autotests::AccessPointClientPtr m_pClientAccessPoint;
-  autotests::ClientCommutatorPtr  m_pRootClientCommutator;
 
+  boost::asio::io_service         m_IoService;
+  client::SocketPtr               m_pSocket;
+  client::SyncPipePtr             m_pRootPipe;
+  client::ClientAccessPanelPtr    m_pAccessPanel;
+  client::ClientCommutatorPtr     m_pRootCommutator;
 };
 
 } // namespace autotests

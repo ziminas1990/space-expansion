@@ -27,23 +27,19 @@ void FunctionalTestFixture::SetUp()
         boost::asio::ip::address::from_string("127.0.0.1"), 0);
 
   // Initializing client components
-  m_pClientUdpSocket =
-      std::make_shared<autotests::ClientUdpSocket>(m_IoService, m_clientAddress);
-  m_pProtobufChannel     = std::make_shared<network::ProtobufChannel>();
-  m_pSyncProtobufChannel = std::make_shared<autotests::ProtobufSyncPipe>();
-  m_pClientAccessPoint   = std::make_shared<autotests::AccessPointClient>();
-  m_pRootClientCommutator = std::make_shared<autotests::ClientCommutator>(0);
+  m_pSocket         = std::make_shared<client::Socket>(m_IoService, m_clientAddress);
+  m_pRootPipe       = std::make_shared<client::SyncPipe>();
+  m_pAccessPanel    = std::make_shared<client::ClientAccessPanel>();
+  m_pRootCommutator = std::make_shared<client::ClientCommutator>();
 
-  m_pClientUdpSocket->setServerAddress(m_serverLoginAddress);
-  m_pSyncProtobufChannel->setEnviromentProceeder([this](){ proceedEnviroment(10); });
+  m_pSocket->setServerAddress(m_serverLoginAddress);
+  m_pRootPipe->setProceeder([this](){ proceedEnviroment(10); });
 
   // Linking client components
-  m_pClientUdpSocket->attachToTerminal(m_pProtobufChannel);
-  m_pProtobufChannel->attachToChannel(m_pClientUdpSocket);
-  m_pProtobufChannel->attachToTerminal(m_pSyncProtobufChannel);
-  m_pSyncProtobufChannel->attachToChannel(m_pProtobufChannel);
-  m_pClientAccessPoint->attachToSyncChannel(m_pSyncProtobufChannel);
-  m_pRootClientCommutator->attachToSyncChannel(m_pSyncProtobufChannel);
+  m_pSocket->attachToTerminal(m_pRootPipe);
+  m_pRootPipe->attachToDownlevel(m_pSocket);
+  m_pAccessPanel->attachToChannel(m_pRootPipe);
+  m_pRootCommutator->attachToChannel(m_pRootPipe);
 
   // And, finaly, loading and running the world:
   m_application.initialize(m_cfg);
@@ -56,12 +52,9 @@ void FunctionalTestFixture::SetUp()
 void FunctionalTestFixture::TearDown()
 {
   m_application.stop();
-
-  m_pClientUdpSocket->detachFromTerminal();
-  m_pProtobufChannel->detachFromChannel();
-  m_pProtobufChannel->detachFromTerminal();
-  m_pSyncProtobufChannel->detachFromTerminal();
-  m_pClientAccessPoint->detachFromSyncChannel();
+  m_pRootPipe->detachDownlevel();
+  m_pAccessPanel->detachChannel();
+  m_pRootCommutator->detachChannel();
 }
 
 config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
@@ -81,8 +74,6 @@ void FunctionalTestFixture::proceedEnviroment(uint32_t nMilliseconds)
     m_application.proceedOnce(1000);
 
   while(m_IoService.poll());
-
-  m_pProtobufChannel->handleBufferedMessages();
 }
 
 

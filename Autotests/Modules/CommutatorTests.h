@@ -9,8 +9,10 @@
 #include <Modules/Commutator/CommutatorManager.h>
 #include <Autotests/TestUtils/ProtobufSyncPipe.h>
 #include <Autotests/TestUtils/BidirectionalChannel.h>
-#include <Autotests/TestUtils/ProtobufTunnel.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
+
+#include <Autotests/ClientSDK/SyncPipe.h>
+#include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 
 namespace autotests
 {
@@ -27,16 +29,19 @@ private:
   void proceedEnviroment();
 
 protected:
-  conveyor::Conveyor            m_Conveyor;
   std::function<void()>         m_fConveyorProceeder;
+
+  // Components on server side
+  conveyor::Conveyor            m_Conveyor;
   modules::CommutatorManagerPtr m_pCommutatorManager;
   modules::CommutatorPtr        m_pCommutatator;
-  ClientCommutatorPtr           m_pClient;
-  ProtobufSyncPipePtr           m_pProtobufPipe;
-  BidirectionalChannelPtr       m_pChannel;
-  ProtobufTunnelPtr             m_pTunnels;
 
-  uint32_t m_nMainSessionId;
+  // Component, that connects client and server sides
+  BidirectionalChannelPtr       m_pChannel;
+
+  // Components on client side
+  client::ClientCommutatorPtr   m_pClient;
+  client::SyncPipePtr           m_pProtobufPipe;
 };
 
 } // namespace autotests
