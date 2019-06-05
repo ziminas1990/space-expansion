@@ -2,6 +2,8 @@
 
 #include "Scenarios.h"
 
+#include <Autotests/ClientSDK/Modules/ClientShip.h>
+
 #include <yaml-cpp/yaml.h>
 #include <sstream>
 
@@ -83,18 +85,36 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsTypes)
   }
 }
 
-//TEST_F(ExploringShipsFunctionalTests, OpenTunnelsToShips)
-//{
+TEST_F(ExploringShipsFunctionalTests, GetShipsPosition)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("admin", "admin")
+        .expectSuccess());
 
-//}
+  // Ships positions and velocities:
+  std::vector<std::pair<geometry::Point, geometry::Vector>> expectedPositions =
+  {
+    std::make_pair(geometry::Point(0,   0),   geometry::Vector({0,  0})),
+    std::make_pair(geometry::Point(15,  15),  geometry::Vector({0,  0})),
+    std::make_pair(geometry::Point(100, 100), geometry::Vector({10, 10})),
+    std::make_pair(geometry::Point(-50, -90), geometry::Vector({5,  -5})),
+    std::make_pair(geometry::Point(32,  -78), geometry::Vector({-1, 4}))
+  };
 
-//TEST_F(ExploringShipsFunctionalTests, GetShipsPosition)
-//{
-//  ASSERT_TRUE(
-//        Scenarios::Login()
-//        .sendLoginRequest("admin", "admin")
-//        .expectSuccess());
+  client::ClientShip ship;
+  geometry::Point  position;
+  geometry::Vector velocity;
 
-//}
+  for (size_t i = 0; i < 5; ++i) {
+    client::TunnelPtr pTunnel = m_pRootCommutator->openTunnel(i);
+    ASSERT_TRUE(pTunnel);
+    ship.attachToChannel(pTunnel);
+    ASSERT_TRUE(ship.getPosition(position, velocity));
+    if (i < 2)
+      ASSERT_EQ(expectedPositions[i].first,  position);
+    ASSERT_EQ(expectedPositions[i].second, velocity);
+  }
+}
 
 } // namespace autotests

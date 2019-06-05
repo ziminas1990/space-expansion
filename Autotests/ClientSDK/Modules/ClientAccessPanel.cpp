@@ -22,13 +22,13 @@ bool ClientAccessPanel::sendLoginRequest(
   pLoginReq->set_password(sPassword);
   pLoginReq->set_ip(sLocalIP);
   pLoginReq->set_port(nLocalPort);
-  return m_pSyncPipe->send(message);
+  return getChannel()->send(message);
 }
 
 bool ClientAccessPanel::waitLoginSuccess(uint16_t &nServerPort)
 {
   spex::IAccessPanel response;
-  if (!m_pSyncPipe->wait(response))
+  if (!getChannel()->wait(response))
     return false;
   if (response.choice_case() != spex::IAccessPanel::kLoginSuccess)
     return false;
@@ -39,7 +39,7 @@ bool ClientAccessPanel::waitLoginSuccess(uint16_t &nServerPort)
 bool ClientAccessPanel::waitLoginFailed()
 {
   spex::IAccessPanel response;
-  return m_pSyncPipe->wait(response)
+  return getChannel()->wait(response)
       && response.choice_case() == spex::IAccessPanel::kLoginFailed;
 }
 

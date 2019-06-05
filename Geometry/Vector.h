@@ -16,6 +16,10 @@ public:
     : m_position(other.m_position.x * k, other.m_position.y * k)
   {}
 
+  bool operator==(Vector const& other) const {
+    return m_position == other.m_position;
+  }
+
   bool load(YAML::Node const& node) {
     m_length.lIsActual = false;
     return m_position.load(node);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Autotests/ClientSDK/Interfaces.h>
-#include <Autotests/ClientSDK/SyncPipe.h>
+#include <Autotests/ClientSDK/ClientBaseModule.h>
 #include <stdint.h>
 #include <vector>
 
@@ -15,14 +15,9 @@ struct ModuleInfo
 
 using ModulesList = std::vector<ModuleInfo>;
 
-class ClientCommutator
+class ClientCommutator : public ClientBaseModule
 {
 public:
-
-  void attachToChannel(SyncPipePtr pSyncPipe) { m_pSyncPipe = pSyncPipe; }
-  void detachChannel() { m_pSyncPipe.reset(); }
-  SyncPipePtr getSyncChannel() { return m_pSyncPipe; }
-
   bool getTotalSlots(uint32_t &nTotalSlots);
   bool getAttachedModulesList(uint32_t nTotal, ModulesList& attachedModules);
 
@@ -32,9 +27,6 @@ public:
   bool sendOpenTunnel(uint32_t nSlotId);
   bool waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId = nullptr);
   bool waitOpenTunnelFailed();
-
-private:
-  SyncPipePtr m_pSyncPipe;
 };
 
 using ClientCommutatorPtr = std::shared_ptr<ClientCommutator>;
