@@ -26,6 +26,8 @@ public:
 
   // overrides from IProtobufTerminal interface
   void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
+  void attachToChannel(network::IProtobufChannelPtr pChannel) override;
+  void detachFromChannel() override;
 
 protected:
   void handleNavigationMessage(uint32_t nSessionId,

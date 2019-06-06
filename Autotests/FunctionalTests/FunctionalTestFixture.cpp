@@ -33,7 +33,7 @@ void FunctionalTestFixture::SetUp()
   m_pRootCommutator = std::make_shared<client::ClientCommutator>();
 
   m_pSocket->setServerAddress(m_serverLoginAddress);
-  m_pRootPipe->setProceeder([this](){ proceedEnviroment(10); });
+  m_pRootPipe->setProceeder([this](){ proceedFreezedWorld(); });
 
   // Linking client components
   m_pSocket->attachToTerminal(m_pRootPipe);
@@ -68,12 +68,27 @@ config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
         .setEnd(25100));
 }
 
-void FunctionalTestFixture::proceedEnviroment(uint32_t nMilliseconds)
+void FunctionalTestFixture::proceedFreezedWorld()
 {
-  while(nMilliseconds--)
-    m_application.proceedOnce(1000);
+  // Time dependent logic should be almost freezed, only data exchange is allowed
+  do {
+    do {
+      m_application.proceedOnce(0);
+    } while(m_IoService.poll());
+    std::this_thread::yield();
+  } while(m_IoService.poll());
+}
 
-  while(m_IoService.poll());
+void FunctionalTestFixture::proceedEnviroment(uint32_t nMilliseconds, uint32_t nTickUs)
+{
+  proceedFreezedWorld();
+  uint32_t nRemainUs = nMilliseconds * 1000;
+  while(nRemainUs > nTickUs) {
+    m_application.proceedOnce(nTickUs);
+    nRemainUs -= nTickUs;
+  };
+  m_application.proceedOnce(nRemainUs);
+  proceedFreezedWorld();
 }
 
 

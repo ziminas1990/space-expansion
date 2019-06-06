@@ -49,8 +49,12 @@ void Conveyor::proceed(uint32_t nIntervalUs)
   m_State.pSelectedLogic  = nullptr;
   for(LogicContext& context : m_LogicChain)
   {
+    // In autotests mode we can't afford to let logics to sleep for unpredictable period
+    // of time
+#ifndef AUTOTESTS_MODE
     if (m_State.nCurrentTimeUs < context.m_nDoNotDisturbUntil)
       continue;
+#endif
 
     // prepharing state for proceeding selected logic
     IAbstractLogic* pLogic  = context.m_pLogic.get();

@@ -6,11 +6,11 @@ bool ClientCommutator::getTotalSlots(uint32_t& nTotalSlots)
 {
   spex::Message request;
   request.mutable_commutator()->mutable_gettotalslots();
-  if (!getChannel()->send(request))
+  if (!send(request))
     return false;
 
   spex::ICommutator message;
-  if (!getChannel()->wait(message))
+  if (!wait(message))
     return false;
   if (message.choice_case() != spex::ICommutator::kTotalSlotsResponse)
     return false;
@@ -23,12 +23,12 @@ bool ClientCommutator::getAttachedModulesList(
 {
   spex::Message request;
   request.mutable_commutator()->mutable_getallmodulesinfo();
-  if (!getChannel()->send(request))
+  if (!send(request))
     return false;
 
   for (size_t i = 0; i < nTotal; ++i) {
     spex::ICommutator response;
-    if (!getChannel()->wait(response))
+    if (!wait(response))
       return false;
     if (response.choice_case() != spex::ICommutator::kModuleInfo)
       return false;
@@ -59,13 +59,13 @@ bool ClientCommutator::sendOpenTunnel(uint32_t nSlotId)
 {
   spex::Message request;
   request.mutable_commutator()->mutable_opentunnel()->set_nslotid(nSlotId);
-  return getChannel()->send(request);
+  return send(request);
 }
 
 bool ClientCommutator::waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId)
 {
   spex::ICommutator message;
-  if (!getChannel()->wait(message))
+  if (!wait(message))
     return false;
   if (message.choice_case() != spex::ICommutator::kOpenTunnelSuccess)
     return false;
@@ -78,7 +78,7 @@ bool ClientCommutator::waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId)
 bool ClientCommutator::waitOpenTunnelFailed()
 {
   spex::ICommutator message;
-  return getChannel()->wait(message)
+  return wait(message)
       && message.choice_case() == spex::ICommutator::kOpenTunnelFailed;
 }
 

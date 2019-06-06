@@ -111,8 +111,9 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsPosition)
     ASSERT_TRUE(pTunnel);
     ship.attachToChannel(pTunnel);
     ASSERT_TRUE(ship.getPosition(position, velocity));
-    if (i < 2)
+    if (i < 2) {
       ASSERT_EQ(expectedPositions[i].first,  position);
+    }
     ASSERT_EQ(expectedPositions[i].second, velocity);
   }
 }

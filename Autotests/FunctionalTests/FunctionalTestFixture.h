@@ -32,7 +32,8 @@ protected:
   virtual config::ApplicationCfg prephareConfiguration();
   virtual bool initialWorldState(YAML::Node& /*state*/) { return false; }
 
-  void proceedEnviroment(uint32_t nMilliseconds);
+  void proceedFreezedWorld();
+  void proceedEnviroment(uint32_t nMilliseconds, uint32_t nTickUs = 500);
 
 protected:
   config::ApplicationCfg m_cfg;

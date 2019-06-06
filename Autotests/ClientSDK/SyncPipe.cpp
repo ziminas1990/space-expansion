@@ -62,6 +62,15 @@ bool SyncPipe::wait(spex::INavigation &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool SyncPipe::wait(spex::IEngine &out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kEngine, message, nTimeoutMs))
+    return false;
+  out = std::move(message.engine());
+  return true;
+}
+
 
 void SyncPipe::onMessageReceived(spex::Message &&message)
 {

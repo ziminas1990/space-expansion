@@ -27,9 +27,8 @@ void NewtonEngine::proceedStage(uint16_t, uint32_t nIntervalUs)
 
       geometry::Vector movement(pObject->m_velocity, nIntervalSec);
       movement.add(acc_t, nIntervalSec * 0.5);
-      pObject->m_position.x += movement.getPosition().x;
-      pObject->m_position.y += movement.getPosition().y;
-      pObject->m_velocity   += acc_t;
+      pObject->m_position.translate(movement);
+      pObject->m_velocity += acc_t;
     }
     nId = m_nNextObjectId.fetch_add(1);
   }

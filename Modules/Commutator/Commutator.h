@@ -10,7 +10,9 @@
 
 namespace modules {
 
-class Commutator : public BaseModule, public utils::GlobalContainer<Commutator>,
+class Commutator :
+    public BaseModule,
+    public utils::GlobalContainer<Commutator>,
     public network::IProtobufChannel
 {
   static const size_t m_nSessionsLimit = 8;

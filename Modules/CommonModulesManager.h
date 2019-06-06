@@ -13,7 +13,8 @@ namespace modules
 // Type ModuleType:
 // 1. should be inherited from BaseModule
 // 2. should be inherited from utils::GlobalContainer<ModuleType>
-template<typename ModuleType, size_t nCooldownTimeUs = 1000>
+
+template <typename ModuleType, size_t nCooldownTimeUs = 10000>
 class CommonModulesManager : public conveyor::IAbstractLogic
 {
 public:

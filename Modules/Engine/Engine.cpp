@@ -14,7 +14,7 @@ Engine::Engine(uint32_t maxThrust)
 
 bool Engine::loadState(YAML::Node const& source)
 {
-  if (BaseModule::loadState(source))
+  if (!BaseModule::loadState(source))
     return false;
 
   geometry::Vector& thrust = getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
@@ -78,9 +78,9 @@ void Engine::getThrust(uint32_t nSessionId) const
 
   geometry::Vector const& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
-  pBody->set_x(thrustVector.getPosition().x);
-  pBody->set_y(thrustVector.getPosition().y);
-  pBody->set_y(thrustVector.getLength());
+  pBody->set_x(thrustVector.getX());
+  pBody->set_y(thrustVector.getY());
+  pBody->set_thrust(uint32_t(thrustVector.getLength()));
 
   sendToClient(nSessionId, response);
 }

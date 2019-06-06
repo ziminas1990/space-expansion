@@ -29,10 +29,9 @@ private:
   void proceedEnviroment();
 
 protected:
-  std::function<void()>         m_fConveyorProceeder;
-
   // Components on server side
   conveyor::Conveyor            m_Conveyor;
+  std::function<void()>         m_fConveyorProceeder;
   modules::CommutatorManagerPtr m_pCommutatorManager;
   modules::CommutatorPtr        m_pCommutatator;
 

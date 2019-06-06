@@ -8,11 +8,11 @@ bool ClientShip::getPosition(geometry::Point& position, geometry::Vector& veloci
 {
   spex::Message request;
   request.mutable_navigation()->mutable_positionrequest();
-  if (!getChannel()->send(request))
+  if (!send(request))
     return false;
 
   spex::INavigation response;
-  if (!getChannel()->wait(response))
+  if (!wait(response))
     return false;
   if (response.choice_case() != spex::INavigation::kPositionResponse)
     return false;
