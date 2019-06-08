@@ -19,6 +19,7 @@ protected:
     std::stringstream ss;
     ss    <<              "Blueprints:"
           << std::endl << "  Cubesat:"
+          << std::endl << "    radius:   0.1"
           << std::endl << "    weight: 10 "
           << std::endl << "    modules: "
           << std::endl << "      engine_1: "
@@ -32,9 +33,8 @@ protected:
           << std::endl << "    password: test"
           << std::endl << "    ships:"
           << std::endl << "      Cubesat:"
-          << std::endl << "        weight:   10"
-          << std::endl << "        position: { x: 0, y: 0}"
-          << std::endl << "        velocity: { x: 0, y: 0}"
+          << std::endl << "        position: { x: 100, y: 15}"
+          << std::endl << "        velocity: { x: 10,  y: 5}"
           << std::endl << "        modules:"
           << std::endl << "          engine_1: { x: 0, y: 0}"
           << std::endl << "          engine_2: { x: 0, y: 0}";
@@ -143,12 +143,12 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
   engine.attachToChannel(ship.openTunnel(1));
 
   // 2. getting current ship's position
-  geometry::Point  startPosition;
-  geometry::Vector startVelocity;
+  geometry::Point  startPosition(100, 15);
+  geometry::Vector startVelocity(10, 5);
   ASSERT_TRUE(ship.getPosition(startPosition, startVelocity));
 
   // 3. Setting max thrust (100 H)
-  geometry::Vector thrust(1, 0);
+  geometry::Vector thrust(20, -5);
   thrust.setLength(100);
   ASSERT_TRUE(engine.setThrust(thrust));
 

@@ -7,9 +7,9 @@ DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 namespace ships
 {
 
-Ship::Ship(std::string const& sShipType, double weight)
+Ship::Ship(std::string const& sShipType, double weight, double radius)
   : BaseModule(std::string("Ship/") + sShipType),
-    newton::PhysicalObject(weight),
+    newton::PhysicalObject(weight, radius),
     m_pCommutator(std::make_shared<modules::Commutator>())
 {
   GlobalContainer<Ship>::registerSelf(this);
@@ -24,7 +24,8 @@ Ship::~Ship()
 
 bool Ship::loadState(YAML::Node const& source)
 {
-  if (!PhysicalObject::loadState(source))
+  if (!PhysicalObject::loadState(
+        source, PhysicalObject::LoadMask().loadPosition().loadVelocity()))
     return false;
 
   // Loading state of modules

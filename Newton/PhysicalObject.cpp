@@ -7,19 +7,26 @@ DECLARE_GLOBAL_CONTAINER_CPP(newton::PhysicalObject);
 
 namespace newton {
 
-PhysicalObject::PhysicalObject(double weight)
+PhysicalObject::PhysicalObject(double weight, double radius)
+  : m_radius(radius)
 {
   GlobalContainer<PhysicalObject>::registerSelf(this);
   setWeight(weight);
   m_externalForces.reserve(4);
 }
 
-bool PhysicalObject::loadState(YAML::Node const& source)
+bool PhysicalObject::loadState(YAML::Node const& data, LoadMask mask)
 {
-  return utils::YamlReader(source)
-      .read("weight", m_weight)
-      .read("position", m_position)
-      .read("velocity", m_velocity);
+  utils::YamlReader reader(data);
+  if (mask.nValue & LoadMask::eLoadPosition)
+    reader.read("position", m_position);
+  if (mask.nValue & LoadMask::eLoadVelocity)
+    reader.read("velocity", m_velocity);
+  if (mask.nValue & LoadMask::eLoadWeight)
+    reader.read("weight", m_weight);
+  if (mask.nValue & LoadMask::eLoadRadius)
+    reader.read("radius", m_radius);
+  return reader.isOk();
 }
 
 void PhysicalObject::changeWeight(double delta)

@@ -19,34 +19,33 @@ protected:
     ss    <<              "Blueprints:"
           << std::endl << "  CommandCenter:"
           << std::endl << "    weight : 4000000"
+          << std::endl << "    radius : 800"
           << std::endl << "  Corvet:"
           << std::endl << "    weight : 500000"
+          << std::endl << "    radius : 180"
           << std::endl << "  Miner:"
           << std::endl << "    weight : 300000"
+          << std::endl << "    radius : 250"
           << std::endl << "  Zond:"
           << std::endl << "    weight : 10000"
+          << std::endl << "    radius : 5"
           << std::endl << "Players:"
           << std::endl << "  admin:"
           << std::endl << "    password: admin"
           << std::endl << "    ships:"
           << std::endl << "      CommandCenter:"
-          << std::endl << "        weight:   5000000"
           << std::endl << "        position: { x: 0, y: 0}"
           << std::endl << "        velocity: { x: 0, y: 0}"
           << std::endl << "      Corvet:"
-          << std::endl << "        weight:   500000"
           << std::endl << "        position: { x: 15, y: 15}"
           << std::endl << "        velocity: { x: 0,  y: 0}"
           << std::endl << "      Corvet:"
-          << std::endl << "        weight:   500000"
           << std::endl << "        position: { x: 100, y: 100}"
           << std::endl << "        velocity: { x: 10,  y: 10}"
           << std::endl << "      Miner:"
-          << std::endl << "        weight:   200000"
           << std::endl << "        position: { x: -50, y: -90}"
           << std::endl << "        velocity: { x: 5,   y: -5}"
           << std::endl << "      Zond:"
-          << std::endl << "        weight:   10000"
           << std::endl << "        position: { x: 32, y: -78}"
           << std::endl << "        velocity: { x: -1, y: 4}";
     state = YAML::Load(ss.str());
@@ -111,9 +110,7 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsPosition)
     ASSERT_TRUE(pTunnel);
     ship.attachToChannel(pTunnel);
     ASSERT_TRUE(ship.getPosition(position, velocity));
-    if (i < 2) {
-      ASSERT_EQ(expectedPositions[i].first,  position);
-    }
+    ASSERT_EQ(expectedPositions[i].first,  position);
     ASSERT_EQ(expectedPositions[i].second, velocity);
   }
 }

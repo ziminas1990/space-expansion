@@ -19,6 +19,7 @@ class YamlReader
 public:
   YamlReader(YAML::Node const& source);
 
+  bool isOk() const { return noProblems; }
   operator bool() const { return noProblems; }
 
   // Built-in types:

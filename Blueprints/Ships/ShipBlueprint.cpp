@@ -11,15 +11,18 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
 {
   std::string sShipType;
   double      shipWeight;
+  double      shipRadius;
 
-  if (!utils::YamlReader(data).read("weight", shipWeight)) {
+  if (!utils::YamlReader(data)
+      .read("weight", shipWeight)
+      .read("radius", shipRadius)) {
     assert(false);
     return ShipBlueprintPtr();
   }
 
   ShipBlueprintPtr pBlueprint = std::make_shared<ShipBlueprint>();
   pBlueprint->setShipType(sShipType);
-  pBlueprint->setWeight(shipWeight);
+  pBlueprint->setWeightAndRadius(shipWeight, shipRadius);
 
   for (auto const& kv : data["modules"]) {
     std::string sModuleName = kv.first.as<std::string>();
@@ -40,7 +43,7 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
 
 ShipPtr ShipBlueprint::build() const
 {
-  ShipPtr pShip = std::make_shared<Ship>(m_sShipType, m_shipWeight);
+  ShipPtr pShip = std::make_shared<Ship>(m_sType, m_weight, m_radius);
   for (auto const& kv : m_modules)
   {
     modules::BaseModulePtr pModule = kv.second->build();
@@ -49,15 +52,16 @@ ShipPtr ShipBlueprint::build() const
   return pShip;
 }
 
-ShipBlueprint& ShipBlueprint::setWeight(double weight)
+ShipBlueprint& ShipBlueprint::setWeightAndRadius(double weight, double radius)
 {
-  m_shipWeight = weight;
+  m_weight = weight;
+  m_radius = radius;
   return *this;
 }
 
 ShipBlueprint& ShipBlueprint::setShipType(std::string sShipType)
 {
-  m_sShipType = std::move(sShipType);
+  m_sType = std::move(sShipType);
   return *this;
 }
 

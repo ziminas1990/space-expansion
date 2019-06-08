@@ -27,14 +27,15 @@ public:
     return std::make_shared<ShipBlueprint>(std::move(*this));
   }
 
-  ShipBlueprint& setWeight(double weight);
+  ShipBlueprint& setWeightAndRadius(double weight, double radius);
   ShipBlueprint& setShipType(std::string sShipType);
   ShipBlueprint& addModule(std::string sModuleName,
                            modules::ModuleBlueprintPtr pModuleBlueprint);
 
 private:
-  std::string m_sShipType  = "unknown";
-  double      m_shipWeight = 1000;
+  std::string m_sType  = "unknown";
+  double      m_weight = 1;
+  double      m_radius = 1;
 
   std::map<std::string, modules::ModuleBlueprintPtr> m_modules;
 };
