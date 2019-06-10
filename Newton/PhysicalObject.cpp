@@ -29,6 +29,11 @@ bool PhysicalObject::loadState(YAML::Node const& data, LoadMask mask)
   return reader.isOk();
 }
 
+void PhysicalObject::moveTo(geometry::Point const& position)
+{
+  m_position = position;
+}
+
 void PhysicalObject::changeWeight(double delta)
 {
   std::lock_guard<utils::Spinlock> guard(m_spinlock);

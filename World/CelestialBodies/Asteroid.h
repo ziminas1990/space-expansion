@@ -1,21 +1,28 @@
 #pragma once
 
+#include <memory>
 #include <Utils/GlobalContainer.h>
 #include <Newton/PhysicalObject.h>
 
 #include <Utils/YamlForwardDeclarations.h>
 
-namespace celestial {
+namespace world {
 
 struct AsteroidComposition
 {
-  AsteroidComposition(uint32_t nSilicates, uint32_t nMettals, uint32_t nIce)
+  AsteroidComposition(double nSilicates, double nMettals, double nIce)
     : nSilicates(nSilicates), nMettals(nMettals), nIce(nIce)
+  {
+    normalize();
+  }
+  AsteroidComposition() : AsteroidComposition(1, 1, 1)
   {}
 
-  uint32_t nSilicates;
-  uint32_t nMettals;
-  uint32_t nIce;
+  void normalize();
+
+  double nSilicates;
+  double nMettals;
+  double nIce;
 };
 
 class Asteroid :
@@ -23,6 +30,7 @@ class Asteroid :
     public utils::GlobalContainer<Asteroid>
 {
 public:
+  Asteroid();
   Asteroid(double radius, double weight, AsteroidComposition composition);
 
   bool loadState(YAML::Node const& data);
@@ -33,5 +41,7 @@ private:
   AsteroidComposition m_composition;
 
 };
+
+using AsteroidUptr = std::unique_ptr<Asteroid>;
 
 } // namespace celestial

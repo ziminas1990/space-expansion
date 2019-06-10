@@ -41,9 +41,11 @@ public:
   bool loadState(YAML::Node const& source, LoadMask mask = LoadMask().loadAll());
 
   double                  getWeight()   const { return m_weight;   }
+  double                  getRadius()   const { return m_radius;   }
   geometry::Point  const& getPosition() const { return m_position; }
   geometry::Vector const& getVelocity() const { return m_velocity; }
 
+  void moveTo(geometry::Point const& position);
   void changeWeight(double delta);
   void setWeight(double weight) {
     // May be inlining this function is better
