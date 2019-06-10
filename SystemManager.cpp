@@ -39,6 +39,12 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
     assert(false);
     return false;
   }
+
+  YAML::Node const& worldState = data["World"];
+  if (worldState.IsDefined() && !m_world.loadState(worldState)) {
+    assert(false);
+    return false;
+  }
   return true;
 }
 

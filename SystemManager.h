@@ -10,6 +10,7 @@
 #include "Modules/AccessPanel/AccessPanel.h"
 #include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
+#include <World/World.h>
 #include "Blueprints/BlueprintsStorage.h"
 
 #include "Newton/NewtonEngine.h"
@@ -58,5 +59,6 @@ private:
 
   modules::AccessPanelPtr     m_pAccessPanel;
 
-  world::PlayerStoragePtr     m_pPlayersStorage;
+  world::World            m_world;
+  world::PlayerStoragePtr m_pPlayersStorage;
 };
