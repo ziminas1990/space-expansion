@@ -16,28 +16,32 @@ class EngineControllTests : public FunctionalTestFixture
 protected:
   // overrides from FunctionalTestFixture interface
   bool initialWorldState(YAML::Node& state) {
+    std::string data[] = {
+      "Blueprints:",
+      "  Cubesat:",
+      "    radius:   0.1",
+      "    weight: 10 ",
+      "    modules: ",
+      "      engine_1: ",
+      "        type:      engine",
+      "        maxThrust: 200",
+      "      engine_2: ",
+      "        type:      engine",
+      "        maxThrust: 100",
+      "Players:",
+      "  test:",
+      "    password: test",
+      "    ships:",
+      "      Cubesat:",
+      "        position: { x: 100, y: 15}",
+      "        velocity: { x: 10,  y: 5}",
+      "        modules:",
+      "          engine_1: { x: 0, y: 0}",
+      "          engine_2: { x: 0, y: 0}"
+    };
     std::stringstream ss;
-    ss    <<              "Blueprints:"
-          << std::endl << "  Cubesat:"
-          << std::endl << "    radius:   0.1"
-          << std::endl << "    weight: 10 "
-          << std::endl << "    modules: "
-          << std::endl << "      engine_1: "
-          << std::endl << "        type:      engine"
-          << std::endl << "        maxThrust: 200"
-          << std::endl << "      engine_2: "
-          << std::endl << "        type:      engine"
-          << std::endl << "        maxThrust: 100"
-          << std::endl << "Players:"
-          << std::endl << "  test:"
-          << std::endl << "    password: test"
-          << std::endl << "    ships:"
-          << std::endl << "      Cubesat:"
-          << std::endl << "        position: { x: 100, y: 15}"
-          << std::endl << "        velocity: { x: 10,  y: 5}"
-          << std::endl << "        modules:"
-          << std::endl << "          engine_1: { x: 0, y: 0}"
-          << std::endl << "          engine_2: { x: 0, y: 0}";
+    for (std::string const& line : data)
+      ss << line << "\n";
     state = YAML::Load(ss.str());
     return true;
   }

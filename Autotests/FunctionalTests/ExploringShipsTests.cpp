@@ -15,39 +15,43 @@ class ExploringShipsFunctionalTests : public FunctionalTestFixture
 protected:
   // overrides from FunctionalTestFixture interface
   bool initialWorldState(YAML::Node& state) {
+    std::string data[] = {
+      "Blueprints:",
+      "  CommandCenter:",
+      "    weight : 4000000",
+      "    radius : 800",
+      "  Corvet:",
+      "    weight : 500000",
+      "    radius : 180",
+      "  Miner:",
+      "    weight : 300000",
+      "    radius : 250",
+      "  Zond:",
+      "    weight : 10000",
+      "    radius : 5",
+      "Players:",
+      "  admin:",
+      "    password: admin",
+      "    ships:",
+      "      CommandCenter:",
+      "        position: { x: 0, y: 0}",
+      "        velocity: { x: 0, y: 0}",
+      "      Corvet:",
+      "        position: { x: 15, y: 15}",
+      "        velocity: { x: 0,  y: 0}",
+      "      Corvet:",
+      "        position: { x: 100, y: 100}",
+      "        velocity: { x: 10,  y: 10}",
+      "      Miner:",
+      "        position: { x: -50, y: -90}",
+      "        velocity: { x: 5,   y: -5}",
+      "      Zond:",
+      "        position: { x: 32, y: -78}",
+      "        velocity: { x: -1, y: 4}"
+    };
     std::stringstream ss;
-    ss    <<              "Blueprints:"
-          << std::endl << "  CommandCenter:"
-          << std::endl << "    weight : 4000000"
-          << std::endl << "    radius : 800"
-          << std::endl << "  Corvet:"
-          << std::endl << "    weight : 500000"
-          << std::endl << "    radius : 180"
-          << std::endl << "  Miner:"
-          << std::endl << "    weight : 300000"
-          << std::endl << "    radius : 250"
-          << std::endl << "  Zond:"
-          << std::endl << "    weight : 10000"
-          << std::endl << "    radius : 5"
-          << std::endl << "Players:"
-          << std::endl << "  admin:"
-          << std::endl << "    password: admin"
-          << std::endl << "    ships:"
-          << std::endl << "      CommandCenter:"
-          << std::endl << "        position: { x: 0, y: 0}"
-          << std::endl << "        velocity: { x: 0, y: 0}"
-          << std::endl << "      Corvet:"
-          << std::endl << "        position: { x: 15, y: 15}"
-          << std::endl << "        velocity: { x: 0,  y: 0}"
-          << std::endl << "      Corvet:"
-          << std::endl << "        position: { x: 100, y: 100}"
-          << std::endl << "        velocity: { x: 10,  y: 10}"
-          << std::endl << "      Miner:"
-          << std::endl << "        position: { x: -50, y: -90}"
-          << std::endl << "        velocity: { x: 5,   y: -5}"
-          << std::endl << "      Zond:"
-          << std::endl << "        position: { x: 32, y: -78}"
-          << std::endl << "        velocity: { x: -1, y: 4}";
+    for (std::string const& line : data)
+      ss << line << "\n";
     state = YAML::Load(ss.str());
     return true;
   }

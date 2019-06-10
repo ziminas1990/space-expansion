@@ -23,6 +23,7 @@ public:
   operator bool() const { return noProblems; }
 
   // Built-in types:
+  // TODO: replace with template?
   YamlReader& read(char const* pName, uint32_t& value);
   YamlReader& read(char const* pName, double& value);
   YamlReader& read(char const* pName, std::string& sValue);

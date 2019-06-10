@@ -13,18 +13,22 @@ class LoginFunctionalTests : public FunctionalTestFixture
 protected:
   // overrides from FunctionalTestFixture interface
   bool initialWorldState(YAML::Node& state) {
+    std::string data[] = {
+      "Blueprints:",
+      "  CommandCenter:",
+      "    weight : 4000000",
+      "    radius : 800",
+      "Players:",
+      "  admin:",
+      "    password: admin",
+      "    ships:",
+      "      CommandCenter:",
+      "        position: { x: 0, y: 0}",
+      "        velocity: { x: 0, y: 0}"
+    };
     std::stringstream ss;
-    ss    <<              "Blueprints:"
-          << std::endl << "  CommandCenter:"
-          << std::endl << "    weight : 4000000"
-          << std::endl << "    radius : 800"
-          << std::endl << "Players:"
-          << std::endl << "  admin:"
-          << std::endl << "    password: admin"
-          << std::endl << "    ships:"
-          << std::endl << "      CommandCenter:"
-          << std::endl << "        position: { x: 0, y: 0}"
-          << std::endl << "        velocity: { x: 0, y: 0}";
+    for (std::string const& line : data)
+      ss << line << "\n";
     state = YAML::Load(ss.str());
     return true;
   }
