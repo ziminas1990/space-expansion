@@ -11,7 +11,7 @@
 #define DECLARE_GLOBAL_CONTAINER_CPP(Inheriter) \
   namespace utils { \
   template<> \
-  ThreadSafePool<size_t> GlobalContainer<Inheriter>::m_IdPool = ThreadSafePool<size_t>(); \
+  ThreadSafePool<uint32_t> GlobalContainer<Inheriter>::m_IdPool = ThreadSafePool<uint32_t>(); \
   template<> \
   Mutex GlobalContainer<Inheriter>::m_AllInstancesMutex = Mutex(); \
   template<> \
@@ -44,11 +44,11 @@ public:
     m_IdPool.release(m_nInstanceId);
   }
 
-  size_t getInstanceId() const { return m_nInstanceId; }
+  uint32_t getInstanceId() const { return m_nInstanceId; }
 
   static std::vector<Inheriter*> const& getAllInstancies() { return m_AllInstances; }
-  static size_t     TotalInstancies() { return m_AllInstances.size(); }
-  static Inheriter* Instance(size_t nInstanceId) {
+  static uint32_t   TotalInstancies() { return m_AllInstances.size(); }
+  static Inheriter* Instance(uint32_t nInstanceId) {
     assert(nInstanceId < m_AllInstances.size());
     return m_AllInstances[nInstanceId];
   }
@@ -68,11 +68,11 @@ protected:
   }
 
 private:
-  size_t m_nInstanceId;
+  uint32_t m_nInstanceId;
 
-  static ThreadSafePool<size_t>  m_IdPool;
-  static Mutex                   m_AllInstancesMutex;
-  static std::vector<Inheriter*> m_AllInstances;
+  static ThreadSafePool<uint32_t> m_IdPool;
+  static Mutex                    m_AllInstancesMutex;
+  static std::vector<Inheriter*>  m_AllInstances;
 };
 
 } // namespace utils

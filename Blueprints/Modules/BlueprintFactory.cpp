@@ -1,6 +1,6 @@
 #include "BlueprintFactory.h"
 
-#include "Engine/EngineBlueprint.h"
+#include "EngineBlueprint.h"
 
 #include <Utils/YamlReader.h>
 

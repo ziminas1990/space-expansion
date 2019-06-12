@@ -2,7 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include <Utils/YamlReader.h>
-#include <Blueprints/Modules/Engine/EngineBlueprint.h>
+#include <Blueprints/Modules/EngineBlueprint.h>
 #include <Blueprints/Modules/BlueprintFactory.h>
 
 namespace ships {
