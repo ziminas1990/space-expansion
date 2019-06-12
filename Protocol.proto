@@ -79,6 +79,47 @@ message INavigation {
 }
 
 
+message ICelestialScanner {
+
+  message GetSpecification {}
+  message Specification {
+    uint32 max_radius_km      = 1;
+    uint32 processing_time_us = 2;
+  }
+
+  message Scan {
+    uint32 scanning_radius_km = 1;
+    uint32 minimal_radius_m   = 2;
+  }
+
+  message ScanResults {
+    message AsteroidInfo {
+      uint32 id = 1;
+      double x  = 2;
+      double y  = 3;
+      double vx = 4;
+      double vy = 5;
+      double r  = 6;
+    }
+    
+    repeated AsteroidInfo asteroids = 1;
+    uint32                left      = 2;
+  }
+
+  message ScannerBusy {}
+  
+  
+  oneof choice {
+    GetSpecification get_specification = 1;
+    Scan             scan              = 2;
+    
+    Specification specification  = 21;
+    ScanResults   scan_result    = 22;
+    ScannerBusy   busy_response  = 23;
+  }
+  
+}
+
 message ICommutator {
 
   message GetTotalSlots {}
@@ -132,10 +173,11 @@ message Message {
 
   oneof choice {
     // All possible interfaces are listed here
-    Message      encapsulated  = 2;
-    IAccessPanel accessPanel   = 3;
-    ICommutator  commutator    = 4;
-    INavigation  navigation    = 5;
-    IEngine      engine        = 6;
+    Message           encapsulated     = 2;
+    IAccessPanel      accessPanel      = 3;
+    ICommutator       commutator       = 4;
+    INavigation       navigation       = 5;
+    IEngine           engine           = 6;
+    ICelestialScanner celestialScanner = 7;
   }
 }

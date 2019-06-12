@@ -54,6 +54,7 @@ protected:
   virtual void handleCommutatorMessage(uint32_t, spex::ICommutator const&) {}
   virtual void handleNavigationMessage(uint32_t, spex::INavigation const&) {}
   virtual void handleEngineMessage(uint32_t, spex::IEngine const&) {}
+  virtual void handleCelestialScannerMessage(uint32_t, spex::ICelestialScanner const&) {}
 
   // Will be called once, when module is installed on some ship
   virtual void onInstalled(ships::Ship* /*pPlatform*/) {}

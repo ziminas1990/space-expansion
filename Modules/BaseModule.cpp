@@ -24,6 +24,10 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       handleCommutatorMessage(nSessionId, message.commutator());
       return;
     }
+    case spex::Message::kCelestialScanner: {
+      handleCelestialScannerMessage(nSessionId, message.celestialscanner());
+      return;
+    }
     case spex::Message::kAccessPanel: {
       // Only AccessPanel is able to handle such massaged, but it is NOT a subclass of
       // this class

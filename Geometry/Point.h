@@ -19,11 +19,16 @@ struct Point
         && utils::AlmostEqual(y, other.y);
   }
 
-  double distance(Point const& other) const
+  double distanceSqr(Point const& other) const
   {
     double dx = x - other.x;
     double dy = y - other.y;
-    return sqrt(dx * dx + dy * dy);
+    return dx * dx + dy * dy;
+  }
+
+  double distance(Point const& other) const
+  {
+    return sqrt(distanceSqr(other));
   }
 
   bool almostEqual(Point const& other, double epsilon) const

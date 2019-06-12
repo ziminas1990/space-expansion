@@ -37,6 +37,10 @@ public:
 
   AsteroidComposition const& getComposition() const { return m_composition; }
 
+  uint32_t getAsteroidId() const {
+    return utils::GlobalContainer<Asteroid>::getInstanceId();
+  }
+
 private:
   AsteroidComposition m_composition;
 
