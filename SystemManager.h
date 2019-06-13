@@ -17,6 +17,7 @@
 #include "Ships/ShipsManager.h"
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Modules/Engine/EnginesManager.h"
+#include "Modules/CelestialScanner/CelestialScannerManager.h"
 
 class SystemManager
 {
@@ -53,6 +54,7 @@ private:
   ships::ShipsManagerPtr        m_pShipsManager;
   modules::CommutatorManagerPtr m_pCommutatorsManager;
   modules::EngineManagerPtr     m_pEnginesManager;
+  modules::CelestialScannerManagerPtr m_pCelestialScannerManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
   network::ProtobufChannelPtr m_pLoginChannel;

@@ -14,15 +14,10 @@ namespace modules {
 
 class CelestialScanner : public BaseModule
 {
-  enum class State {
-    eIdle,
-    eScanning
-  };
-
 public:
   CelestialScanner(uint32_t m_nMaxScanningRadiusKm, uint32_t m_nProcessingTimeUs);
 
-  void proceed(uint32_t nIntervalUs);
+  void proceed(uint32_t nIntervalUs) override;
 
 private:
   void handleCelestialScannerMessage(
@@ -37,7 +32,6 @@ private:
   uint32_t m_nMaxScanningRadiusKm;
   uint32_t m_nProcessingTimeUs;
 
-  State    m_eState              = State::eIdle;
   uint64_t m_nScanningTimeLeftUs = 0;
 
   // Last scanning request parameters:

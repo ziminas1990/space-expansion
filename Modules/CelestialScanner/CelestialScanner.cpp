@@ -6,6 +6,8 @@
 
 #include <math.h>
 
+DECLARE_GLOBAL_CONTAINER_CPP(modules::CelestialScanner);
+
 namespace modules
 {
 
@@ -17,16 +19,12 @@ CelestialScanner::CelestialScanner(
 
 void CelestialScanner::proceed(uint32_t nIntervalUs)
 {
-  if (m_eState == State::eIdle)
-    return;
-
   if (nIntervalUs < m_nScanningTimeLeftUs) {
     m_nScanningTimeLeftUs -= nIntervalUs;
     return;
   }
-
   collectAndSendScanResults();
-  m_eState = State::eIdle;
+  switchToIdleState();
 }
 
 void CelestialScanner::handleCelestialScannerMessage(
@@ -56,7 +54,7 @@ void CelestialScanner::handleCelestialScannerMessage(
 void CelestialScanner::onScanRequest(
     uint32_t nTunnelId, uint32_t nScanningRadiusKm, uint32_t nMinimalRadius)
 {
-  if (m_eState != State::eIdle) {
+  if (!isIdle()) {
     spex::Message busyResponse;
     busyResponse.mutable_celestialscanner()->mutable_busy_response();
     sendToClient(nTunnelId, busyResponse);
@@ -72,12 +70,12 @@ void CelestialScanner::onScanRequest(
   m_nMinimalRadius    = nMinimalRadius;
   m_nTunnelId         = nTunnelId;
 
-  m_eState = State::eScanning;
   // ScanningTime = 100ms + 2 * RTT + ProcessingTime * (nScanningRadius/nMinimalRadius)
   // , where RTT = radius / c
   uint32_t RTT_Us       = nScanningRadiusKm * 10 / 3;
   uint32_t resolution   = nScanningRadiusKm * 1000 / nMinimalRadius;
   m_nScanningTimeLeftUs = 100000 + 2 * RTT_Us + resolution * m_nProcessingTimeUs;
+  switchToActiveState();
 }
 
 void CelestialScanner::collectAndSendScanResults()
@@ -95,6 +93,15 @@ void CelestialScanner::collectAndSendScanResults()
       continue;
     if (selfPosition.distanceSqr(pAsteroid->getPosition()) < maxRadiusSqr)
       scannedAsteroids.push_back(pAsteroid);
+  }
+
+  if (scannedAsteroids.empty()) {
+    spex::Message response;
+    spex::ICelestialScanner::ScanResults *pBody =
+        response.mutable_celestialscanner()->mutable_scan_result();
+    pBody->set_left(0);
+    sendToClient(m_nTunnelId, response);
+    return;
   }
 
   for (size_t i = 0; i < scannedAsteroids.size();)

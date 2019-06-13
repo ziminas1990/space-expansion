@@ -50,7 +50,9 @@ public:
 
   void onDeactivated() { m_eState = State::eIdle; }
   void onActivated()   { m_eState = State::eActive; }
+  bool isIdle()         const { return m_eState == State::eIdle; }
   bool isActivating()   const { return m_eState == State::eActivating; }
+  bool isActive()       const { return m_eState == State::eActive; }
   bool isDeactivating() const { return m_eState == State::eDeactivating; }
 
   void installOn(ships::Ship* pShip);
