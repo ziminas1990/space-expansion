@@ -17,7 +17,8 @@ class IdArray
 public:
 
   IdArray(size_t nInitialCapacity = 64)
-    : m_pIds( nInitialCapacity ? new IdType[nInitialCapacity] : nullptr)
+    : m_nCapacity(nInitialCapacity), m_nSize(0),
+      m_pIds( nInitialCapacity ? new IdType[nInitialCapacity] : nullptr)
   {}
 
   ~IdArray() { delete [] m_pIds; }
