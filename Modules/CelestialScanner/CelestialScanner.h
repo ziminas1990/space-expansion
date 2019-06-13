@@ -12,7 +12,9 @@ class Asteroid;
 
 namespace modules {
 
-class CelestialScanner : public BaseModule
+class CelestialScanner :
+    public BaseModule,
+    public utils::GlobalContainer<CelestialScanner>
 {
 public:
   CelestialScanner(uint32_t m_nMaxScanningRadiusKm, uint32_t m_nProcessingTimeUs);

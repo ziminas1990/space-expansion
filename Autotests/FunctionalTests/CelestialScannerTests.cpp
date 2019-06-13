@@ -3,6 +3,7 @@
 #include "Scenarios.h"
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
+#include <Autotests/ClientSDK/Modules/ClientCelestialScanner.h>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -26,8 +27,8 @@ protected:
       "        max_scanning_radius_km: 100000",
       "        processing_time_us:     10",
       "Players:",
-      "  test:",
-      "    password: test",
+      "  mega_miner:",
+      "    password: unabtainable",
       "    ships:",
       "      Zond:",
       "        position: { x: 0, y: 0}",
@@ -64,5 +65,27 @@ protected:
     return true;
   }
 };
+
+TEST_F(CelestialScannerTests, GetSpecification)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("mega_miner", "unabtainable")
+        .expectSuccess());
+
+  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
+  ASSERT_TRUE(pTunnelToShip);
+
+  client::ClientShip ship;
+  ship.attachToChannel(pTunnelToShip);
+
+  client::CelestialScanner scanner;
+  scanner.attachToChannel(ship.openTunnel(0));
+
+  client::CelestialScannerSpecification specification;
+  ASSERT_TRUE(scanner.getSpecification(specification));
+  EXPECT_EQ(100000, specification.m_nMaxScanningRadiusKm);
+  EXPECT_EQ(10,     specification.m_nProcessingTimeUs);
+}
 
 } // namespace autotests

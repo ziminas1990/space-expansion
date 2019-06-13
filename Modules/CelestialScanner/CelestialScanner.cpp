@@ -15,7 +15,9 @@ CelestialScanner::CelestialScanner(
     uint32_t nMaxScanningRadiusKm, uint32_t nProcessingTimeUs)
   : BaseModule("CelestialScanner"),
     m_nMaxScanningRadiusKm(nMaxScanningRadiusKm), m_nProcessingTimeUs(nProcessingTimeUs)
-{}
+{
+  GlobalContainer<CelestialScanner>::registerSelf(this);
+}
 
 void CelestialScanner::proceed(uint32_t nIntervalUs)
 {
