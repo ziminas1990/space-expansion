@@ -52,6 +52,7 @@ public:
     assert(nInstanceId < m_AllInstances.size());
     return m_AllInstances[nInstanceId];
   }
+  static bool empty() { return m_AllInstances.empty(); }
 
 protected:
   void registerSelf(Inheriter* pSelf)

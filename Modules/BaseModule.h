@@ -16,28 +16,42 @@ namespace modules
 // Each module should inherite BaseModule class
 class BaseModule : public network::BufferedProtobufTerminal
 {
-public:
-  enum Status {
+private:
+  enum class Status {
     eOffline,
     eOnline,
     eDestoyed
   };
 
+  enum class State {
+    eIdle,
+    eActivating,
+    eActive,
+    eDeactivating
+  };
+
 public:
   BaseModule(std::string&& sModuleType)
-    : m_sModuleType(std::move(sModuleType)), m_eStatus(eOnline)
+    : m_sModuleType(std::move(sModuleType)), m_eStatus(Status::eOnline),
+      m_eState(State::eIdle)
   {}
 
   virtual bool loadState(YAML::Node const& /*source*/) { return true; }
+  virtual void proceed(uint32_t /*nIntervalUs*/) { switchToIdleState(); }
 
   std::string const& getModuleType() const { return m_sModuleType; }
 
-  void   putOffline()         { m_eStatus = eOffline; }
-  void   putOnline()          { m_eStatus = eOnline; }
-  void   onDoestroyed()       { m_eStatus = eDestoyed; }
-  bool   isOffline()    const { return m_eStatus == eOffline; }
-  bool   isOnline()     const { return m_eStatus == eOnline; }
-  bool   isDestroyed()  const { return m_eStatus == eDestoyed; }
+  void putOffline()         { m_eStatus = Status::eOffline; }
+  void putOnline()          { m_eStatus = Status::eOnline; }
+  void onDoestroyed()       { m_eStatus = Status::eDestoyed; }
+  bool isOffline()    const { return m_eStatus == Status::eOffline; }
+  bool isOnline()     const { return m_eStatus == Status::eOnline; }
+  bool isDestroyed()  const { return m_eStatus == Status::eDestoyed; }
+
+  void onDeactivated() { m_eState = State::eIdle; }
+  void onActivated()   { m_eState = State::eActive; }
+  bool isActivating()   const { return m_eState == State::eActivating; }
+  bool isDeactivating() const { return m_eState == State::eDeactivating; }
 
   void installOn(ships::Ship* pShip);
 
@@ -70,9 +84,17 @@ protected:
   bool sendToClient(uint32_t nSessionId, spex::INavigation const& message) const;
   bool sendToClient(uint32_t nSessionId, spex::IEngine const& message) const;
 
+  void switchToIdleState() {
+    m_eState = (m_eState == State::eActive) ? State::eDeactivating : State::eIdle;
+  }
+  void switchToActiveState() {
+    m_eState = (m_eState == State::eIdle) ? State::eActivating : State::eActive;
+  }
+
 private:
   std::string  m_sModuleType;
   Status       m_eStatus;
+  State        m_eState;
   ships::Ship* m_pPlatform = nullptr;
 };
 

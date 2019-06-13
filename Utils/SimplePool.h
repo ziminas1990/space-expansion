@@ -62,6 +62,8 @@ public:
     : m_pool(nFirst, nLast)
   {}
 
+  IntType end() const { return nInvalidValue; }
+
   IntType getNext()
   {
     std::lock_guard<utils::Mutex> guard(m_mutex);
