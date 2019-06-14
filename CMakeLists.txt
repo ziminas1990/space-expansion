@@ -4,7 +4,8 @@ set(PROJECT_NAME space-expansion-server)
 
 option(autotests-mode "Build autotest binary" OFF)
 option(build-debug    "Bulding debug version" OFF)
-option(spinlocks-only  "Using spinlocks instead of mutex" OFF)
+option(build-32bit    "Bulding 32bit binary"  OFF)
+option(spinlocks-only "Using spinlocks instead of mutex" OFF)
 
 project(${PROJECT_NAME} VERSION 0.1.0)
 
@@ -44,6 +45,10 @@ set_target_properties(Protocol PROPERTIES
   # Protobufs spawns a lot of warnings (unused variable) in it's generated code,
   # so I won't pass -Wpedantic or -Wall or -Wextra or etc to this target
 )
+if (build-32bit)
+  set_property(TARGET Protocol APPEND_STRING PROPERTY COMPILE_FLAGS " -m32")
+endif (build-32bit)
+
 target_link_libraries(Protocol CONAN_PKG::protobuf)
 
 #=========================================================================================
@@ -60,6 +65,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD_REQUIRED ON
   COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Werror=return-type"
 )
+
+if (build-32bit)
+  set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS " -m32")
+  set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS   " -m32")
+endif (build-32bit)
 
 if (autotests-mode)
   target_compile_definitions(${PROJECT_NAME} PRIVATE AUTOTESTS_MODE)

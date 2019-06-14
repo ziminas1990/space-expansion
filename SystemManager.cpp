@@ -60,12 +60,10 @@ void SystemManager::stop()
   m_pConveyor->stop();
 }
 
-#ifdef AUTOTESTS_MODE
 void SystemManager::proceedOnce(uint32_t nIntervalUs)
 {
   m_pConveyor->proceed(nIntervalUs);
 }
-#endif
 
 void SystemManager::proceed()
 {

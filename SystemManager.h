@@ -33,9 +33,8 @@ public:
 
   [[noreturn]] void proceed();
 
-#ifdef AUTOTESTS_MODE
+  // For autotests only:
   void proceedOnce(uint32_t nIntervalUs);
-#endif
 
 private:
   bool createAllComponents();
