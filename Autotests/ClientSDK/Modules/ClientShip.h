@@ -11,6 +11,7 @@ class ClientShip : public ClientCommutator
 {
 public:
   bool getPosition(geometry::Point& position, geometry::Vector& velocity);
+  bool getPosition(geometry::Point& position);
 };
 
 using ClientShipPtr = std::shared_ptr<ClientShip>;

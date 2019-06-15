@@ -31,8 +31,8 @@ protected:
       "    password: unabtainable",
       "    ships:",
       "      Zond:",
-      "        position: { x: 0, y: 0}",
-      "        velocity: { x: 0, y: 0}",
+      "        position: { x: 100000, y: 0}",
+      "        velocity: { x: 0,      y: 0}",
       "World:",
       "  Asteroids:",
       "    - { position:  { x: 100000, y: 0},",
@@ -108,6 +108,71 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
   std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
   ASSERT_TRUE(scanner.scan(1000, 5, asteroids));
   EXPECT_EQ(22, asteroids.size());
+}
+
+TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("mega_miner", "unabtainable")
+        .expectSuccess());
+
+  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
+  ASSERT_TRUE(pTunnelToShip);
+
+  client::ClientShip ship;
+  ship.attachToChannel(pTunnelToShip);
+
+  client::CelestialScanner scanner;
+  scanner.attachToChannel(ship.openTunnel(0));
+
+  geometry::Point shipPosition;
+  ASSERT_TRUE(ship.getPosition(shipPosition));
+
+  animateWorld();
+
+  for (uint32_t nScanRadiusKm = 1; nScanRadiusKm <= 31; ++nScanRadiusKm) {
+    std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
+    ASSERT_TRUE(scanner.scan(nScanRadiusKm, 5, asteroids));
+
+    for(auto asteroid : asteroids)
+      EXPECT_LE(shipPosition.distance(asteroid.position), nScanRadiusKm * 1000);
+
+    if (nScanRadiusKm == 31)
+      EXPECT_EQ(11, asteroids.size());
+  }
+}
+
+TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("mega_miner", "unabtainable")
+        .expectSuccess());
+
+  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
+  ASSERT_TRUE(pTunnelToShip);
+
+  client::ClientShip ship;
+  ship.attachToChannel(pTunnelToShip);
+
+  client::CelestialScanner scanner;
+  scanner.attachToChannel(ship.openTunnel(0));
+
+  animateWorld();
+
+  for (uint32_t nMinimalRadius = 5; nMinimalRadius <= 15; ++nMinimalRadius)
+  {
+    std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
+    ASSERT_TRUE(scanner.scan(1000, nMinimalRadius, asteroids));
+
+    for(auto asteroid : asteroids)
+      EXPECT_GE(asteroid.radius, nMinimalRadius);
+
+    if (nMinimalRadius == 5) {
+      EXPECT_EQ(22, asteroids.size());
+    }
+  }
 }
 
 } // namespace autotests

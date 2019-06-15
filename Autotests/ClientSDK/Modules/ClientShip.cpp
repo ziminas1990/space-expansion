@@ -24,4 +24,10 @@ bool ClientShip::getPosition(geometry::Point& position, geometry::Vector& veloci
   return true;
 }
 
+bool ClientShip::getPosition(geometry::Point &position)
+{
+  geometry::Vector velocity;
+  return getPosition(position, velocity);
+}
+
 }}  // namespace autotests::client
