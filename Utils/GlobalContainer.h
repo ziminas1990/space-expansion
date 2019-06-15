@@ -40,8 +40,10 @@ public:
   {
     std::lock_guard<Mutex> guard(m_AllInstancesMutex);
     assert(m_nInstanceId < m_AllInstances.size());
-    m_AllInstances[m_nInstanceId] = nullptr;
-    m_IdPool.release(m_nInstanceId);
+    if (m_nInstanceId < m_AllInstances.size()) {
+      m_AllInstances[m_nInstanceId] = nullptr;
+      m_IdPool.release(m_nInstanceId);
+    }
   }
 
   uint32_t getInstanceId() const { return m_nInstanceId; }

@@ -7,12 +7,16 @@ DECLARE_GLOBAL_CONTAINER_CPP(world::Asteroid);
 namespace world {
 
 Asteroid::Asteroid() : newton::PhysicalObject(0, 0)
-{}
+{
+  utils::GlobalContainer<Asteroid>::registerSelf(this);
+}
 
 Asteroid::Asteroid(double radius, double weight, AsteroidComposition composition)
   : newton::PhysicalObject(weight, radius),
     m_composition(std::move(composition))
-{}
+{
+  utils::GlobalContainer<Asteroid>::registerSelf(this);
+}
 
 bool Asteroid::loadState(YAML::Node const& data)
 {

@@ -7,6 +7,7 @@ namespace autotests
 {
 
 FunctionalTestFixture::FunctionalTestFixture()
+  : m_lWorldFreezed(true)
 {
   Scenarios::m_pEnv = this;
 }
@@ -33,7 +34,14 @@ void FunctionalTestFixture::SetUp()
   m_pRootCommutator = std::make_shared<client::ClientCommutator>();
 
   m_pSocket->setServerAddress(m_serverLoginAddress);
-  m_pRootPipe->setProceeder([this](){ proceedFreezedWorld(); });
+  m_pRootPipe->setProceeder(
+        [this](){
+          if (m_lWorldFreezed)
+            proceedFreezedWorld();
+          else
+            proceedEnviroment(100, 1000);
+        }
+  );
 
   // Linking client components
   m_pSocket->attachToTerminal(m_pRootPipe);

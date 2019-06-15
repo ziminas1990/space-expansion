@@ -88,4 +88,26 @@ TEST_F(CelestialScannerTests, GetSpecification)
   EXPECT_EQ(10,     specification.m_nProcessingTimeUs);
 }
 
+TEST_F(CelestialScannerTests, ScanAllAsteroids)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("mega_miner", "unabtainable")
+        .expectSuccess());
+
+  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
+  ASSERT_TRUE(pTunnelToShip);
+
+  client::ClientShip ship;
+  ship.attachToChannel(pTunnelToShip);
+
+  client::CelestialScanner scanner;
+  scanner.attachToChannel(ship.openTunnel(0));
+
+  animateWorld();
+  std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
+  ASSERT_TRUE(scanner.scan(1000, 5, asteroids));
+  EXPECT_EQ(22, asteroids.size());
+}
+
 } // namespace autotests

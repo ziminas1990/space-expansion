@@ -32,12 +32,17 @@ protected:
   virtual config::ApplicationCfg prephareConfiguration();
   virtual bool initialWorldState(YAML::Node& /*state*/) { return false; }
 
+  void freezeWorld()  { m_lWorldFreezed = true; }
+  void animateWorld() { m_lWorldFreezed = false; }
+
   void proceedFreezedWorld();
   void proceedEnviroment(uint32_t nMilliseconds, uint32_t nTickUs = 500);
 
 protected:
   config::ApplicationCfg m_cfg;
   SystemManager          m_application;
+
+  bool m_lWorldFreezed;
 
   boost::asio::ip::udp::endpoint m_clientAddress;
   boost::asio::ip::udp::endpoint m_serverLoginAddress;

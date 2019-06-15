@@ -10,7 +10,7 @@ namespace geometry {
 class Vector
 {
 public:
-  Vector() = default;
+  Vector() : x(0), y(0) {}
   Vector(double x, double y) : x(x), y(y) {}
   Vector(Vector const& other, double k = 1)
     : x(other.x * k), y(other.y * k)

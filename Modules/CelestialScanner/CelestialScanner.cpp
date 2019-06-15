@@ -35,7 +35,7 @@ void CelestialScanner::handleCelestialScannerMessage(
   switch (message.choice_case())
   {
     case spex::ICelestialScanner::kScan: {
-      onScanRequest(nTunnelId, message.scan().scanning_radius_km() * 1000,
+      onScanRequest(nTunnelId, message.scan().scanning_radius_km(),
                     message.scan().minimal_radius_m());
       return;
     }
@@ -78,6 +78,7 @@ void CelestialScanner::onScanRequest(
   uint32_t resolution   = nScanningRadiusKm * 1000 / nMinimalRadius;
   m_nScanningTimeLeftUs = 100000 + 2 * RTT_Us + resolution * m_nProcessingTimeUs;
   switchToActiveState();
+
 }
 
 void CelestialScanner::collectAndSendScanResults()
