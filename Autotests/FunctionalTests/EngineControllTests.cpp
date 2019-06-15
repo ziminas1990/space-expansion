@@ -4,6 +4,7 @@
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
+#include <Autotests/ClientSDK/Procedures/FindModule.h>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -144,7 +145,7 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
   ship.attachToChannel(pTunnelToShip);
 
   client::Engine engine;
-  engine.attachToChannel(ship.openTunnel(1));
+  ASSERT_TRUE(client::FindMostPowerfulEngine(ship, engine));
 
   // 2. getting current ship's position
   geometry::Point  startPosition(100, 15);
