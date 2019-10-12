@@ -31,6 +31,11 @@ struct Point
     return sqrt(distanceSqr(other));
   }
 
+  Vector vectorTo(Point const& other) const
+  {
+    return Vector(other.x - x, other.y - y);
+  }
+
   bool almostEqual(Point const& other, double epsilon) const
   {
     return distance(other) < epsilon;

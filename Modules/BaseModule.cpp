@@ -12,6 +12,10 @@ void BaseModule::installOn(ships::Ship* pShip)
 void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
   switch(message.choice_case()) {
+    case spex::Message::kCommutator: {
+      handleCommutatorMessage(nSessionId, message.commutator());
+      return;
+    }
     case spex::Message::kNavigation: {
       handleNavigationMessage(nSessionId, message.navigation());
       return;
@@ -20,8 +24,8 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       handleEngineMessage(nSessionId, message.engine());
       return;
     }
-    case spex::Message::kCommutator: {
-      handleCommutatorMessage(nSessionId, message.commutator());
+    case spex::Message::kShip: {
+      handleShipMessage(nSessionId, message.ship());
       return;
     }
     case spex::Message::kCelestialScanner: {

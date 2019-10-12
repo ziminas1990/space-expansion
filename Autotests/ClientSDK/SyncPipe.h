@@ -27,6 +27,7 @@ public:
 
   bool wait(spex::IAccessPanel &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::ICommutator &out, uint16_t nTimeoutMs = 100);
+  bool wait(spex::IShip &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::INavigation &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IEngine &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs = 100);

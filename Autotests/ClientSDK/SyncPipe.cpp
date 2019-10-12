@@ -53,6 +53,15 @@ bool SyncPipe::wait(spex::ICommutator &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool SyncPipe::wait(spex::IShip &out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kShip, message, nTimeoutMs))
+    return false;
+  out = std::move(message.ship());
+  return true;
+}
+
 bool SyncPipe::wait(spex::INavigation &out, uint16_t nTimeoutMs)
 {
   spex::Message message;

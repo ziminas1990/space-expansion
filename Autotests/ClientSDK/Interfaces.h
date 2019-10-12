@@ -5,6 +5,15 @@
 
 namespace autotests { namespace client {
 
+class IProceedable
+{
+public:
+  virtual ~IProceedable() = default;
+
+  virtual void proceed(uint32_t nDeltaUs) = 0;
+  virtual bool isComplete() const = 0;
+};
+
 class IClientChannel
 {
 public:

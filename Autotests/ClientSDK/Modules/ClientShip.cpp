@@ -30,4 +30,21 @@ bool Ship::getPosition(geometry::Point &position)
   return getPosition(position, velocity);
 }
 
+bool Ship::getState(ShipState& state)
+{
+  spex::Message request;
+  request.mutable_ship()->mutable_staterequest();
+  if (!send(request))
+    return false;
+
+  spex::IShip response;
+  if (!wait(response))
+    return false;
+  if (response.choice_case() != spex::IShip::kStateResponse)
+    return false;
+
+  state.nWeight = response.stateresponse().weight();
+  return true;
+}
+
 }}  // namespace autotests::client
