@@ -105,7 +105,7 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsPosition)
     std::make_pair(geometry::Point(32,  -78), geometry::Vector({-1, 4}))
   };
 
-  client::ClientShip ship;
+  client::Ship ship;
   geometry::Point  position;
   geometry::Vector velocity;
 

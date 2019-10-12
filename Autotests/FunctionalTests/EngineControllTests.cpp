@@ -59,7 +59,7 @@ TEST_F(EngineControllTests, OpenTunnelToEngine)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   for (size_t nSlot = 0; nSlot < 2; ++nSlot) {
@@ -78,7 +78,7 @@ TEST_F(EngineControllTests, GetSpecification)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   client::Engine engine;
@@ -108,7 +108,7 @@ TEST_F(EngineControllTests, SetAndGetThrust)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   client::Engine engine;
@@ -141,7 +141,7 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   client::Engine engine;

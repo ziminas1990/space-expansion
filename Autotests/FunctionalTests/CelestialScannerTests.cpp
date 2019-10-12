@@ -76,7 +76,7 @@ TEST_F(CelestialScannerTests, GetSpecification)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
@@ -98,7 +98,7 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
@@ -120,7 +120,7 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
@@ -138,8 +138,9 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
     for(auto asteroid : asteroids)
       EXPECT_LE(shipPosition.distance(asteroid.position), nScanRadiusKm * 1000);
 
-    if (nScanRadiusKm == 31)
+    if (nScanRadiusKm == 31) {
       EXPECT_EQ(11, asteroids.size());
+    }
   }
 }
 
@@ -153,7 +154,7 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
   client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
   ASSERT_TRUE(pTunnelToShip);
 
-  client::ClientShip ship;
+  client::Ship ship;
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;

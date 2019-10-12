@@ -5,9 +5,9 @@
 
 namespace autotests { namespace client {
 
-bool GetAllModules(ClientShip& ship, std::string const& sModuleType,
+bool GetAllModules(Ship& ship, std::string const& sModuleType,
                    ModulesList& modules);
 
-bool FindMostPowerfulEngine(ClientShip& ship, Engine& mostPowerfullEngine);
+bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine);
 
 }}  // namespace autotests::client

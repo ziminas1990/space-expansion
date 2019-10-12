@@ -4,7 +4,7 @@
 
 namespace autotests { namespace client {
 
-bool ClientShip::getPosition(geometry::Point& position, geometry::Vector& velocity)
+bool Ship::getPosition(geometry::Point& position, geometry::Vector& velocity)
 {
   spex::Message request;
   request.mutable_navigation()->mutable_positionrequest();
@@ -24,7 +24,7 @@ bool ClientShip::getPosition(geometry::Point& position, geometry::Vector& veloci
   return true;
 }
 
-bool ClientShip::getPosition(geometry::Point &position)
+bool Ship::getPosition(geometry::Point &position)
 {
   geometry::Vector velocity;
   return getPosition(position, velocity);

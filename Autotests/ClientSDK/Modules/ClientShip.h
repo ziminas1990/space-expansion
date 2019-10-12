@@ -7,13 +7,13 @@
 namespace autotests { namespace client {
 
 // Ship is a commutator + INavigation interface
-class ClientShip : public ClientCommutator
+class Ship : public ClientCommutator
 {
 public:
   bool getPosition(geometry::Point& position, geometry::Vector& velocity);
   bool getPosition(geometry::Point& position);
 };
 
-using ClientShipPtr = std::shared_ptr<ClientShip>;
+using ShipPtr = std::shared_ptr<Ship>;
 
 }} // namespace autotests

@@ -2,7 +2,24 @@
 
 namespace autotests { namespace client {
 
-bool FindMostPowerfulEngine(ClientShip& ship, Engine& mostPowerfullEngine)
+bool GetAllModules(Ship &ship, std::string const& sModuleType, ModulesList &modules)
+{
+  uint32_t nTotalSlots;
+  if (!ship.getTotalSlots(nTotalSlots) || !nTotalSlots)
+    return false;
+
+  ModulesList attachedModules;
+  if (!ship.getAttachedModulesList(nTotalSlots, attachedModules))
+    return false;
+
+  for (ModuleInfo const& module : attachedModules) {
+    if (module.sModuleType == sModuleType)
+      modules.push_back(module);
+  }
+  return true;
+}
+
+bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
 {
   ModulesList engines;
   if (!GetAllModules(ship, "Engine/Nuclear", engines))
@@ -26,23 +43,6 @@ bool FindMostPowerfulEngine(ClientShip& ship, Engine& mostPowerfullEngine)
     if (specification.nMaxThrust > nMaxThrust) {
       mostPowerfullEngine.attachToChannel(pTunnel);
     }
-  }
-  return true;
-}
-
-bool GetAllModules(ClientShip &ship, std::string const& sModuleType, ModulesList &modules)
-{
-  uint32_t nTotalSlots;
-  if (!ship.getTotalSlots(nTotalSlots) || !nTotalSlots)
-    return false;
-
-  ModulesList attachedModules;
-  if (!ship.getAttachedModulesList(nTotalSlots, attachedModules))
-    return false;
-
-  for (ModuleInfo const& module : attachedModules) {
-    if (module.sModuleType == sModuleType)
-      modules.push_back(module);
   }
   return true;
 }
