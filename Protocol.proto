@@ -61,6 +61,20 @@ message IEngine
 }
 
 
+message IShip {
+  message GetState {}
+  message GetStateResponse {
+    double weight = 1;
+  }
+
+  oneof choice {
+    GetState         stateRequest = 1;
+
+    GetStateResponse stateResponse = 21;
+  }
+}
+
+
 message INavigation {
 
   message GetPosition {}
@@ -176,8 +190,9 @@ message Message {
     Message           encapsulated     = 2;
     IAccessPanel      accessPanel      = 3;
     ICommutator       commutator       = 4;
-    INavigation       navigation       = 5;
-    IEngine           engine           = 6;
-    ICelestialScanner celestialScanner = 7;
+    IShip             ship             = 5;
+    INavigation       navigation       = 6;
+    IEngine           engine           = 7;
+    ICelestialScanner celestialScanner = 8;
   }
 }

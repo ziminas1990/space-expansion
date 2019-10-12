@@ -51,6 +51,13 @@ bool BaseModule::sendToClient(uint32_t nSessionId, spex::ICommutator const& mess
   return BufferedProtobufTerminal::send(nSessionId, pdu);
 }
 
+bool BaseModule::sendToClient(uint32_t nSessionId, const spex::IShip &message) const
+{
+  spex::Message pdu;
+  pdu.mutable_ship()->CopyFrom(message);
+  return BufferedProtobufTerminal::send(nSessionId, pdu);
+}
+
 bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation const& message) const
 {
   spex::Message pdu;

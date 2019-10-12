@@ -68,6 +68,7 @@ protected:
   void handleMessage(uint32_t nSessionId, spex::Message const& message) override;
 
   virtual void handleCommutatorMessage(uint32_t, spex::ICommutator const&) {}
+  virtual void handleShipMessage(uint32_t, spex::IShip const&) {}
   virtual void handleNavigationMessage(uint32_t, spex::INavigation const&) {}
   virtual void handleEngineMessage(uint32_t, spex::IEngine const&) {}
   virtual void handleCelestialScannerMessage(uint32_t, spex::ICelestialScanner const&) {}
@@ -83,6 +84,7 @@ protected:
     return network::BufferedProtobufTerminal::send(nSessionId, message);
   }
   bool sendToClient(uint32_t nSessionId, spex::ICommutator const& message) const;
+  bool sendToClient(uint32_t nSessionId, spex::IShip const& message) const;
   bool sendToClient(uint32_t nSessionId, spex::INavigation const& message) const;
   bool sendToClient(uint32_t nSessionId, spex::IEngine const& message) const;
 

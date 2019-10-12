@@ -30,8 +30,9 @@ public:
   void detachFromChannel() override;
 
 protected:
-  void handleNavigationMessage(uint32_t nSessionId,
-                               spex::INavigation const& message) override;
+  void handleShipMessage(uint32_t nSessionId, spex::IShip const& message) override;
+  void handleNavigationMessage(
+      uint32_t nSessionId, spex::INavigation const& message) override;
 
 private:
   modules::CommutatorPtr m_pCommutator;

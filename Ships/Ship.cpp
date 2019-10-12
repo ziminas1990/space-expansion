@@ -76,6 +76,22 @@ void Ship::detachFromChannel()
   m_pCommutator->detachFromChannel();
 }
 
+void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
+{
+  switch (message.choice_case()) {
+    case spex::IShip::kStateRequest: {
+      spex::IShip response;
+      spex::IShip_GetStateResponse* pBody = response.mutable_stateresponse();
+      pBody->set_weight(getWeight());
+      sendToClient(nSessionId, response);
+      return;
+    }
+    default: {
+      return;
+    }
+  }
+}
+
 void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const& message)
 {
   switch (message.choice_case()) {
@@ -88,10 +104,10 @@ void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const&
       pBody->set_vx(getVelocity().getX());
       pBody->set_vy(getVelocity().getY());
       sendToClient(nSessionId, navigation);
-      break;
+      return;
     }
     default: {
-      break;
+      return;
     }
   }
 }
