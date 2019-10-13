@@ -117,7 +117,7 @@ TEST_F(EngineControllTests, SetAndGetThrust)
   // Setting new thrust
   geometry::Vector thrust(1, 0.5);
   thrust.setLength(80);
-  ASSERT_TRUE(engine.setThrust(thrust));
+  ASSERT_TRUE(engine.setThrust(thrust, 1000));
 
   // Waiting for some time
   proceedEnviroment(200);
@@ -152,13 +152,13 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
   geometry::Vector startVelocity(10, 5);
   ASSERT_TRUE(ship.getPosition(startPosition, startVelocity));
 
-  // 3. Setting max thrust (100 H)
+  // 3. Setting max thrust (100 H) for 5 sec
+  uint32_t nIntervalSec = 5;
   geometry::Vector thrust(20, -5);
   thrust.setLength(100);
-  ASSERT_TRUE(engine.setThrust(thrust));
+  ASSERT_TRUE(engine.setThrust(thrust, nIntervalSec * 1000));
 
-  // 4. Waiting for 5 sec
-  uint32_t nIntervalSec = 5;
+  // 4. Waiting for 5 sec  
   proceedEnviroment(nIntervalSec * 1000, 100);
 
   // 5. getting current ship's position

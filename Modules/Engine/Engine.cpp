@@ -12,6 +12,17 @@ Engine::Engine(uint32_t maxThrust)
   GlobalContainer<Engine>::registerSelf(this);
 }
 
+void Engine::proceed(uint32_t nIntervalUs)
+{
+  if (m_nTimeLeftUs > nIntervalUs) {
+    m_nTimeLeftUs -= nIntervalUs;
+    return;
+  }
+  getPlatform()->getExternalForce_NoSync(m_nThrustVectorId).toZero();
+  switchToIdleState();
+  m_nTimeLeftUs = 0;
+}
+
 bool Engine::loadState(YAML::Node const& source)
 {
   if (!BaseModule::loadState(source))
@@ -63,11 +74,15 @@ void Engine::setThrust(spex::IEngine::SetThrust const& req)
   uint32_t thrust = req.thrust();
   if (!thrust) {
     thrustVector.toZero();
+    m_nTimeLeftUs = 0;
+    switchToIdleState();
   } else {
     thrustVector.setPosition(req.x(), req.y());
     if (thrust > m_maxThrust)
       thrust = m_maxThrust;
     thrustVector.setLength(thrust);
+    m_nTimeLeftUs = req.duration_ms() * 1000;
+    switchToActiveState();
   }
 }
 

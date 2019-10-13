@@ -76,7 +76,7 @@ void MovingProcedure::proceed(uint32_t nDeltaUs)
 
   if (bestThrust.getLength() > engineSpec.nMaxThrust)
     bestThrust.setLength(engineSpec.nMaxThrust);
-  if (!m_pEngine->setThrust(bestThrust))
+  if (!m_pEngine->setThrust(bestThrust, m_nSyncIntervalUs / 1000))
     failed();
 }
 

@@ -129,7 +129,7 @@ TEST_F(NavigationTests, OnMoving)
   // Setting new thrust and waiting for 3 seconds
   geometry::Vector thrust(-1, -0.5);
   thrust.setLength(100);
-  ASSERT_TRUE(engine.setThrust(thrust));
+  ASSERT_TRUE(engine.setThrust(thrust, 3000));
   proceedEnviroment(3000);
 
   // Now we have non-zero started velocity

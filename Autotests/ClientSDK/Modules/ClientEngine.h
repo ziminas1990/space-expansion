@@ -16,10 +16,9 @@ struct EngineSpecification
 class Engine : public ClientBaseModule
 {
 public:
-
   bool getSpecification(EngineSpecification& specification);
 
-  bool setThrust(geometry::Vector thrust);
+  bool setThrust(geometry::Vector thrust, uint32_t nDurationMs);
   bool getThrust(geometry::Vector& thrust);
 
 };
