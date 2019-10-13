@@ -9,7 +9,7 @@
 
 namespace autotests { namespace client {
 
-class Navigation : public IProceedable
+class Navigation
 {
 public:
   Navigation(ShipPtr pShip)
@@ -18,22 +18,12 @@ public:
 
   bool initialize();
 
-  // overrides from IProceedable
-  void proceed(uint32_t nDeltaUs) override;
-  bool isComplete() const override;
-  bool isSucceed() const { return isComplete() && m_pProcedure->isSucceed(); }
-
-  void moveTo(geometry::Point const& position);
-
-  void interrupt() {
-    if (m_pProcedure)
-      m_pProcedure->interrupt();
-  }
+  AbstractProcedurePtr MakeMoveToProcedure(
+      geometry::Point const& target, uint32_t nSyncIntervalMs);
 
 private:
   ShipPtr   m_pShip;
   EnginePtr m_pEngine;
-  AbstractProcedurePtr m_pProcedure;
 };
 
 }} // namespace autotests::client

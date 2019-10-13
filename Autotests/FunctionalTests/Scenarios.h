@@ -1,7 +1,9 @@
 #pragma once
 
+#include <list>
 #include "FunctionalTestFixture.h"
 #include <Protocol.pb.h>
+#include <Autotests/ClientSDK/Procedures/AbstractProcedure.h>
 
 namespace autotests
 {
@@ -75,12 +77,42 @@ public:
     std::map<std::string, size_t> expectedModules;
   };
 
+
+  class RunProceduresScenario : public BaseScenario
+  {
+    using ProceduresVector = std::vector<client::AbstractProcedurePtr>;
+  public:
+    RunProceduresScenario(FunctionalTestFixture *pEnv);
+
+    RunProceduresScenario& add(client::AbstractProcedurePtr pProcedure);
+    RunProceduresScenario& wait(uint32_t m_nIntervalMs = 50, uint16_t nTimeoutMs = 500);
+
+  protected:
+    void execute() override;
+
+  private:
+    bool isFrontBatchComplete() const;
+    void proceedFrontBatch();
+
+  private:
+    struct ProceduresBatch {
+      ProceduresVector m_procedures;
+      uint32_t m_nIntervalMs = 50;
+      uint16_t m_nTimeoutMs  = 500;
+    };
+
+    struct std::list<ProceduresBatch> m_batches;
+  };
+
+
   // =====================================================================================
   // Easy creation of scenarios objects:
   static LoginScenario Login() { return LoginScenario(m_pEnv); }
 
   static CheckAttachedModulesScenario
   CheckAttachedModules(client::ClientCommutatorPtr pClientCommutator);
+
+  static RunProceduresScenario RunProcedures() { return RunProceduresScenario(m_pEnv); }
 
 private:
   static FunctionalTestFixture* m_pEnv;

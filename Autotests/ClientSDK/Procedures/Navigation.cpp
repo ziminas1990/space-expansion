@@ -90,21 +90,13 @@ bool Navigation::initialize()
   return FindMostPowerfulEngine(*m_pShip, *m_pEngine);
 }
 
-void Navigation::proceed(uint32_t nDeltaUs)
+AbstractProcedurePtr Navigation::MakeMoveToProcedure(
+    geometry::Point const& target, uint32_t nSyncIntervalMs)
 {
-  if (m_pProcedure && !m_pProcedure->isComplete())
-    m_pProcedure->proceed(nDeltaUs);
+  if (!m_pShip || !m_pEngine)
+    return nullptr;
+  return std::make_shared<MovingProcedure>(m_pShip, m_pEngine, target,
+                                           nSyncIntervalMs * 1000);
 }
 
-bool Navigation::isComplete() const
-{
-  return m_pProcedure && m_pProcedure->isComplete();
-}
-
-void Navigation::moveTo(geometry::Point const& position)
-{
-  if (m_pProcedure && !m_pProcedure->isComplete())
-    m_pProcedure->interrupt();
-  m_pProcedure = std::make_shared<MovingProcedure>(m_pShip, m_pEngine, position);
-}
 }}  // namespace autotests::Client

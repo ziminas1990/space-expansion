@@ -5,7 +5,6 @@
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
 #include <Autotests/ClientSDK/Procedures/Navigation.h>
-#include <Utils/WaitingFor.h>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -44,17 +43,6 @@ protected:
     return true;
   }
 
-  bool moveTo(client::Navigation& navigation, geometry::Point const& target)
-  {
-    navigation.moveTo(target);
-    auto fPredicate = [&navigation]() { return navigation.isComplete(); };
-    auto fProceeder = [&navigation, this]() {
-      proceedEnviroment(20);
-      navigation.proceed(20000);
-    };
-    return utils::waitFor(fPredicate, fProceeder, 500) && navigation.isSucceed();
-  }
-
   bool checkPosition(client::ShipPtr pShip, geometry::Point const& target)
   {
     geometry::Point  position;
@@ -83,7 +71,10 @@ TEST_F(NavigationTests, SimpleTest)
   ASSERT_TRUE(navigation.initialize());
 
   geometry::Point target(100, 100);
-  ASSERT_TRUE(moveTo(navigation, target));
+  ASSERT_TRUE(Scenarios::RunProcedures()
+              .add(navigation.MakeMoveToProcedure(target, 100))
+              .wait(20, 500));
+
   ASSERT_TRUE(checkPosition(pShip, target));
 }
 
@@ -112,7 +103,9 @@ TEST_F(NavigationTests, SeveralPoints)
   };
   for (geometry::Point const& target : path)
   {
-    ASSERT_TRUE(moveTo(navigation, target));
+    ASSERT_TRUE(Scenarios::RunProcedures()
+                .add(navigation.MakeMoveToProcedure(target, 100))
+                .wait(20, 500));
     ASSERT_TRUE(checkPosition(pShip, target));
   }
 }
@@ -145,7 +138,9 @@ TEST_F(NavigationTests, OnMoving)
   ASSERT_TRUE(navigation.initialize());
 
   geometry::Point target(-47, 160);
-  ASSERT_TRUE(moveTo(navigation, target));
+  ASSERT_TRUE(Scenarios::RunProcedures()
+              .add(navigation.MakeMoveToProcedure(target, 100))
+              .wait(20, 500));
   ASSERT_TRUE(checkPosition(pShip, target));
 }
 

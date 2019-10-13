@@ -1,5 +1,7 @@
 #include "Scenarios.h"
 
+#include <assert.h>
+#include <Utils/WaitingFor.h>
 #include <gtest/gtest.h>
 
 namespace autotests
@@ -82,6 +84,69 @@ void Scenarios::CheckAttachedModulesScenario::execute()
   }
   ASSERT_TRUE(expectedModules.empty());
 }
+
+//========================================================================================
+// Scenarios::RunProceduresScenario
+//========================================================================================
+
+Scenarios::RunProceduresScenario::RunProceduresScenario(FunctionalTestFixture* pEnv)
+  : BaseScenario(pEnv)
+{
+  m_batches.emplace_back();
+}
+
+Scenarios::RunProceduresScenario&
+Scenarios::RunProceduresScenario::add(client::AbstractProcedurePtr pProcedure)
+{
+  assert(pProcedure != nullptr);
+  m_batches.back().m_procedures.push_back(std::move(pProcedure));
+  return *this;
+}
+
+Scenarios::RunProceduresScenario&
+Scenarios::RunProceduresScenario::wait(uint32_t m_nIntervalMs, uint16_t nTimeoutMs)
+{
+  ProceduresBatch& batch = m_batches.back();
+  batch.m_nIntervalMs    = m_nIntervalMs;
+  batch.m_nTimeoutMs     = nTimeoutMs;
+  m_batches.emplace_back();
+  return *this;
+}
+
+void Scenarios::RunProceduresScenario::execute()
+{
+  auto fPredicate = [this]() { return isFrontBatchComplete(); };
+  auto fProceeder = [this]() { proceedFrontBatch(); };
+
+  while(!m_batches.empty()) {
+    ProceduresBatch& batch = m_batches.front();
+    if (!batch.m_procedures.empty()) {
+      ASSERT_TRUE(utils::waitFor(fPredicate, fProceeder, batch.m_nTimeoutMs));
+    }
+    m_batches.pop_front();
+  }
+}
+
+bool Scenarios::RunProceduresScenario::isFrontBatchComplete() const
+{
+  ProceduresBatch const& batch = m_batches.front();
+  for (client::AbstractProcedurePtr const& pProcedure : batch.m_procedures) {
+    if (!pProcedure->isComplete())
+      return false;
+  }
+  return true;
+}
+
+void Scenarios::RunProceduresScenario::proceedFrontBatch()
+{
+  ProceduresBatch& batch = m_batches.front();
+  m_pEnv->proceedEnviroment(batch.m_nIntervalMs);
+  for (client::AbstractProcedurePtr& pProcedure : batch.m_procedures) {
+    if (!pProcedure->isComplete())
+      pProcedure->proceed(batch.m_nIntervalMs * 1000);
+  }
+}
+
 
 //========================================================================================
 // Scenarios fabric methods
