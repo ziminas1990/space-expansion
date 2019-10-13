@@ -26,6 +26,9 @@ protected:
       "        type:                   CelestialScanner",
       "        max_scanning_radius_km: 100000",
       "        processing_time_us:     10",
+      "      engine: ",
+      "        type:      engine",
+      "        maxThrust: 2000",
       "Players:",
       "  mega_miner:",
       "    password: unabtainable",
@@ -33,6 +36,8 @@ protected:
       "      Zond:",
       "        position: { x: 100000, y: 0}",
       "        velocity: { x: 0,      y: 0}",
+      "        modules:",
+      "          engine: { x: 0, y: 0}",
       "World:",
       "  Asteroids:",
       "    - { position:  { x: 100000, y: 0},",
@@ -80,7 +85,7 @@ TEST_F(CelestialScannerTests, GetSpecification)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(0));
+  scanner.attachToChannel(ship.openTunnel(1));
 
   client::CelestialScannerSpecification specification;
   ASSERT_TRUE(scanner.getSpecification(specification));
@@ -102,7 +107,7 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(0));
+  scanner.attachToChannel(ship.openTunnel(1));
 
   animateWorld();
   std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
@@ -124,7 +129,7 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(0));
+  scanner.attachToChannel(ship.openTunnel(1));
 
   geometry::Point shipPosition;
   ASSERT_TRUE(ship.getPosition(shipPosition));
@@ -158,7 +163,7 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(0));
+  scanner.attachToChannel(ship.openTunnel(1));
 
   animateWorld();
 

@@ -33,7 +33,6 @@ public:
 
   [[noreturn]] void proceed();
 
-  // For autotests only:
   void proceedOnce(uint32_t nIntervalUs);
 
 private:
