@@ -73,6 +73,11 @@ protected:
   client::SyncPipePtr             m_pRootPipe;
   client::ClientAccessPanelPtr    m_pAccessPanel;
   client::ClientCommutatorPtr     m_pRootCommutator;
+
+  struct Statistic {
+    uint32_t nTotalCycles = 0;
+    uint32_t nTotalTimeMs = 0;
+  } m_stat;
 };
 
 } // namespace autotests

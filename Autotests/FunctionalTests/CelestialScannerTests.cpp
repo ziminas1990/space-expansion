@@ -4,6 +4,8 @@
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientCelestialScanner.h>
+#include <Autotests/ClientSDK/Procedures/FindModule.h>
+#include <Autotests/ClientSDK/Procedures/Navigation.h>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -28,7 +30,7 @@ protected:
       "        processing_time_us:     10",
       "      engine: ",
       "        type:      engine",
-      "        maxThrust: 2000",
+      "        maxThrust: 500",
       "Players:",
       "  mega_miner:",
       "    password: unabtainable",
@@ -85,7 +87,7 @@ TEST_F(CelestialScannerTests, GetSpecification)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(1));
+  ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
 
   client::CelestialScannerSpecification specification;
   ASSERT_TRUE(scanner.getSpecification(specification));
@@ -107,7 +109,7 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(1));
+  ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
 
   animateWorld();
   std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
@@ -129,7 +131,7 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(1));
+  ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
 
   geometry::Point shipPosition;
   ASSERT_TRUE(ship.getPosition(shipPosition));
@@ -163,7 +165,7 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
   ship.attachToChannel(pTunnelToShip);
 
   client::CelestialScanner scanner;
-  scanner.attachToChannel(ship.openTunnel(1));
+  ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
 
   animateWorld();
 
@@ -178,6 +180,68 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
     if (nMinimalRadius == 5) {
       EXPECT_EQ(22, asteroids.size());
     }
+  }
+}
+
+TEST_F(CelestialScannerTests, ScanningCloudes)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("mega_miner", "unabtainable")
+        .expectSuccess());
+
+  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
+  ASSERT_TRUE(pTunnelToShip);
+
+  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  pShip->attachToChannel(pTunnelToShip);
+
+  client::CelestialScanner scanner;
+  ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, scanner));
+
+  client::Navigation navigator(pShip);
+  ASSERT_TRUE(navigator.initialize());
+
+  // Moving to (0, 0) and scanning it (nothing should be scanned)
+  {
+    freezeWorld();
+    geometry::Point cloudCenter(0, 0);
+    ASSERT_TRUE(Scenarios::RunProcedures()
+                .add(navigator.MakeMoveToProcedure(cloudCenter, 100))
+                .wait(50, 2000, 25000));
+
+    animateWorld();
+    std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
+    ASSERT_TRUE(scanner.scan(31, 5, asteroids));
+    EXPECT_TRUE(asteroids.empty());
+  }
+
+  // Moving to first cloud and scanning it
+  {
+    freezeWorld();
+    geometry::Point cloudCenter(100000, 0);
+    ASSERT_TRUE(Scenarios::RunProcedures()
+                .add(navigator.MakeMoveToProcedure(cloudCenter, 100))
+                .wait(50, 2000, 25000));
+
+    animateWorld();
+    std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
+    ASSERT_TRUE(scanner.scan(31, 5, asteroids));
+    EXPECT_EQ(11, asteroids.size());
+  }
+
+  // Moving to second cloud and scanning it
+  {
+    freezeWorld();
+    geometry::Point cloudCenter(0, 100000);
+    ASSERT_TRUE(Scenarios::RunProcedures()
+                .add(navigator.MakeMoveToProcedure(cloudCenter, 100))
+                .wait(50, 2000, 25000));
+
+    animateWorld();
+    std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
+    ASSERT_TRUE(scanner.scan(31, 5, asteroids));
+    EXPECT_EQ(11, asteroids.size());
   }
 }
 

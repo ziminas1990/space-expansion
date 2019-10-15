@@ -104,11 +104,13 @@ Scenarios::RunProceduresScenario::add(client::AbstractProcedurePtr pProcedure)
 }
 
 Scenarios::RunProceduresScenario&
-Scenarios::RunProceduresScenario::wait(uint32_t m_nIntervalMs, uint16_t nTimeoutMs)
+Scenarios::RunProceduresScenario::wait(
+    uint32_t nIntervalMs, uint16_t nTimeoutMs, uint32_t nTickUs)
 {
   ProceduresBatch& batch = m_batches.back();
-  batch.m_nIntervalMs    = m_nIntervalMs;
+  batch.m_nIntervalMs    = nIntervalMs;
   batch.m_nTimeoutMs     = nTimeoutMs;
+  batch.m_nTickUs        = nTickUs;
   m_batches.emplace_back();
   return *this;
 }
@@ -120,6 +122,9 @@ void Scenarios::RunProceduresScenario::execute()
 
   while(!m_batches.empty()) {
     ProceduresBatch& batch = m_batches.front();
+    for (client::AbstractProcedurePtr const& pProcedure : batch.m_procedures) {
+      ASSERT_TRUE(pProcedure->run());
+    }
     if (!batch.m_procedures.empty()) {
       ASSERT_TRUE(utils::waitFor(fPredicate, fProceeder, batch.m_nTimeoutMs));
     }
@@ -140,7 +145,7 @@ bool Scenarios::RunProceduresScenario::isFrontBatchComplete() const
 void Scenarios::RunProceduresScenario::proceedFrontBatch()
 {
   ProceduresBatch& batch = m_batches.front();
-  m_pEnv->proceedEnviroment(batch.m_nIntervalMs);
+  m_pEnv->proceedEnviroment(batch.m_nIntervalMs, batch.m_nTickUs);
   for (client::AbstractProcedurePtr& pProcedure : batch.m_procedures) {
     if (!pProcedure->isComplete())
       pProcedure->proceed(batch.m_nIntervalMs * 1000);

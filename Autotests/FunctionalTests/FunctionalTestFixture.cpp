@@ -63,6 +63,8 @@ void FunctionalTestFixture::TearDown()
   m_pRootPipe->detachDownlevel();
   m_pAccessPanel->detachChannel();
   m_pRootCommutator->detachChannel();
+  std::cout << "Cycles = " << m_stat.nTotalCycles << ", time = " <<
+               m_stat.nTotalTimeMs << " ms" << std::endl;
 }
 
 config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
@@ -82,6 +84,7 @@ void FunctionalTestFixture::proceedFreezedWorld()
   do {
     do {
       m_application.proceedOnce(0);
+      ++m_stat.nTotalCycles;
     } while(m_IoService.poll());
     std::this_thread::yield();
   } while(m_IoService.poll());
@@ -94,7 +97,9 @@ void FunctionalTestFixture::proceedEnviroment(uint32_t nMilliseconds, uint32_t n
   while(nRemainUs > nTickUs) {
     m_application.proceedOnce(nTickUs);
     nRemainUs -= nTickUs;
-  };
+    ++m_stat.nTotalCycles;
+  }
+  m_stat.nTotalTimeMs += nMilliseconds;
   m_application.proceedOnce(nRemainUs);
   proceedFreezedWorld();
 }

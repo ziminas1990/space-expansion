@@ -88,6 +88,10 @@ public:
                               : Vector(x * k, y * k);
   }
 
+  double operator*(Vector const& other) {
+    return (x * other.x + y * other.y) / (getLength() * other.getLength());
+  }
+
   Vector operator/(double k) const { return operator*(1/k); }
 
   void normalize()

@@ -85,7 +85,8 @@ public:
     RunProceduresScenario(FunctionalTestFixture *pEnv);
 
     RunProceduresScenario& add(client::AbstractProcedurePtr pProcedure);
-    RunProceduresScenario& wait(uint32_t m_nIntervalMs = 50, uint16_t nTimeoutMs = 500);
+    RunProceduresScenario& wait(uint32_t nIntervalMs = 50, uint16_t nTimeoutMs = 500,
+                                uint32_t nTickUs = 5000);
 
   protected:
     void execute() override;
@@ -99,6 +100,7 @@ public:
       ProceduresVector m_procedures;
       uint32_t m_nIntervalMs = 50;
       uint16_t m_nTimeoutMs  = 500;
+      uint32_t m_nTickUs     = 5000;
     };
 
     struct std::list<ProceduresBatch> m_batches;

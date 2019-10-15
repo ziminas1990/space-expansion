@@ -13,7 +13,8 @@ bool GetAllModules(Ship &ship, std::string const& sModuleType, ModulesList &modu
     return false;
 
   for (ModuleInfo const& module : attachedModules) {
-    if (module.sModuleType == sModuleType)
+    std::string sType = module.sModuleType.substr(0, module.sModuleType.find("/"));
+    if (sType == sModuleType)
       modules.push_back(module);
   }
   return true;
@@ -22,7 +23,7 @@ bool GetAllModules(Ship &ship, std::string const& sModuleType, ModulesList &modu
 bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
 {
   ModulesList engines;
-  if (!GetAllModules(ship, "Engine/Nuclear", engines))
+  if (!GetAllModules(ship, "Engine", engines))
     return false;
   if (engines.empty())
     return false;
@@ -42,6 +43,38 @@ bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
       return false;
     if (specification.nMaxThrust > nMaxThrust) {
       mostPowerfullEngine.attachToChannel(pTunnel);
+    }
+  }
+  return true;
+}
+
+bool FindBestCelestialScanner(Ship &ship, CelestialScanner& bestScanner,
+                              CelestialScannerSpecification *pSpec)
+{
+  ModulesList scanners;
+  if (!GetAllModules(ship, "CelestialScanner", scanners))
+    return false;
+  if (scanners.empty())
+    return false;
+
+  uint32_t nMaxScanningRadiusKm = 0;
+
+  for (ModuleInfo const& moduleInfo : scanners) {
+    TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
+    if (!pTunnel)
+      return false;
+
+    CelestialScanner scanner;
+    scanner.attachToChannel(pTunnel);
+
+    CelestialScannerSpecification specification;
+    if (!scanner.getSpecification(specification))
+      return false;
+    if (specification.m_nMaxScanningRadiusKm > nMaxScanningRadiusKm) {
+      bestScanner.attachToChannel(pTunnel);
+      if (pSpec) {
+        *pSpec = specification;
+      }
     }
   }
   return true;

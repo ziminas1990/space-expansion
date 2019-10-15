@@ -10,6 +10,7 @@ public:
   void attachToChannel(SyncPipePtr pSyncPipe) { m_pSyncPipe = pSyncPipe; }
   void detachChannel() { m_pSyncPipe.reset(); }
   SyncPipePtr getChannel() { return m_pSyncPipe; }
+  bool isAttached() const { return m_pSyncPipe != nullptr; }
 
   // Forwarding interface from SyncPipe
   bool send(spex::Message const& message)

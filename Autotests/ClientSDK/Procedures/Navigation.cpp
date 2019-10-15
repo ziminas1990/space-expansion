@@ -66,7 +66,7 @@ void MovingProcedure::proceed(uint32_t nDeltaUs)
     return;
   }
 
-  double bestSpeed = sqrt(2.0/3 * distance * engineSpec.nMaxThrust / shipState.nWeight);
+  double bestSpeed = sqrt(2 * distance * engineSpec.nMaxThrust / shipState.nWeight);
   geometry::Vector bestVelocity = position.vectorTo(m_target);
   bestVelocity.setLength(bestSpeed);
 
@@ -95,8 +95,10 @@ AbstractProcedurePtr Navigation::MakeMoveToProcedure(
 {
   if (!m_pShip || !m_pEngine)
     return nullptr;
-  return std::make_shared<MovingProcedure>(m_pShip, m_pEngine, target,
-                                           nSyncIntervalMs * 1000);
+  if (!m_pShip->isAttached() || ! m_pEngine->isAttached())
+    return nullptr;
+  return std::make_shared<MovingProcedure>(
+        m_pShip, m_pEngine, target, nSyncIntervalMs * 1000);
 }
 
 }}  // namespace autotests::Client
