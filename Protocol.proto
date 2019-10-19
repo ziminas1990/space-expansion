@@ -135,6 +135,37 @@ message ICelestialScanner {
   
 }
 
+message IAsteroidScanner {
+
+  message GetSpecification {}
+  message Specification {
+    uint32 max_distance    = 1;
+    uint32 scanning_time_k = 2;
+  }
+  
+  message ScanRequest {
+    uint32 asteroid_id = 1;
+  }
+  message ScanResult {
+    uint32 asteroid_id       = 1;
+    double weight            = 2;
+    double metals_percent    = 3;
+    double ice_percent       = 4;
+    double silicates_percent = 5;
+  }
+  message ScanFailed {}
+
+
+  oneof choice {
+    GetSpecification get_specification = 1;
+    ScanRequest      scan_request      = 2;
+    
+    Specification    specification     = 21;
+    ScanResult       scan_result       = 22;
+    ScanFailed       scan_failed       = 23;
+  }
+}
+
 message ICommutator {
 
   message GetTotalSlots {}
@@ -195,5 +226,6 @@ message Message {
     INavigation       navigation       = 6;
     IEngine           engine           = 7;
     ICelestialScanner celestialScanner = 8;
+    IAsteroidScanner  asteroid_scanner = 9;
   }
 }

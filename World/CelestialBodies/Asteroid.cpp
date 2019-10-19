@@ -8,7 +8,7 @@ namespace world {
 
 Asteroid::Asteroid() : newton::PhysicalObject(0, 0)
 {
-  utils::GlobalContainer<Asteroid>::registerSelf(this);
+  AsteroidsContainer::registerSelf(this);
 }
 
 Asteroid::Asteroid(double radius, double weight, AsteroidComposition composition)

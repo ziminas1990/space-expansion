@@ -32,6 +32,10 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       handleCelestialScannerMessage(nSessionId, message.celestialscanner());
       return;
     }
+    case spex::Message::kAsteroidScanner: {
+      handleAsteroidScannerMessage(nSessionId, message.asteroid_scanner());
+      return;
+    }
     case spex::Message::kAccessPanel: {
       // Only AccessPanel is able to handle such massaged, but it is NOT a subclass of
       // this class
@@ -55,7 +59,7 @@ bool BaseModule::sendToClient(uint32_t nSessionId, spex::ICommutator const& mess
   return BufferedProtobufTerminal::send(nSessionId, pdu);
 }
 
-bool BaseModule::sendToClient(uint32_t nSessionId, const spex::IShip &message) const
+bool BaseModule::sendToClient(uint32_t nSessionId, spex::IShip const& message) const
 {
   spex::Message pdu;
   pdu.mutable_ship()->CopyFrom(message);
@@ -69,7 +73,7 @@ bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation const& mess
   return BufferedProtobufTerminal::send(nSessionId, pdu);
 }
 
-bool BaseModule::sendToClient(uint32_t nSessionId, const spex::IEngine &message) const
+bool BaseModule::sendToClient(uint32_t nSessionId, spex::IEngine const& message) const
 {
   spex::Message pdu;
   pdu.mutable_engine()->CopyFrom(message);

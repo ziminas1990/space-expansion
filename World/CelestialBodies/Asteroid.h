@@ -25,9 +25,10 @@ struct AsteroidComposition
   double nIce;
 };
 
-class Asteroid :
-    public newton::PhysicalObject,
-    public utils::GlobalContainer<Asteroid>
+class Asteroid;
+using AsteroidsContainer = utils::GlobalContainer<Asteroid>;
+
+class Asteroid : public newton::PhysicalObject, public AsteroidsContainer
 {
 public:
   Asteroid();
