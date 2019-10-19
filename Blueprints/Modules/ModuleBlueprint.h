@@ -13,7 +13,7 @@ class ModuleBlueprint
 public:
   virtual ~ModuleBlueprint() = default;
 
-  virtual BaseModulePtr      build() const = 0;
+  virtual BaseModulePtr build() const = 0;
 
   // Should a shared_ptr that stores a copy of current object
   virtual ModuleBlueprintPtr wrapToSharedPtr() = 0;

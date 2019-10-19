@@ -17,7 +17,7 @@ class AsteroidScanner :
     public utils::GlobalContainer<AsteroidScanner>
 {
 public:
-  AsteroidScanner(uint32_t nMaxDistance, uint32_t nScanningTimeK);
+  AsteroidScanner(uint32_t nMaxDistance, uint32_t nScanningTimeMs);
 
   void proceed(uint32_t nIntervalUs) override;
 
@@ -31,7 +31,7 @@ private:
   void sendFail(uint32_t nTunnelId);
 private:
   uint32_t m_nMaxDistance;
-  uint32_t m_nScanningTimeK;
+  uint32_t m_nScanningTimeMs;
 
   uint64_t m_nScanningTimeLeftUs = 0;
 

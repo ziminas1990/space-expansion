@@ -11,9 +11,9 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::AsteroidScanner);
 namespace modules
 {
 
-AsteroidScanner::AsteroidScanner(uint32_t nMaxDistance, uint32_t nScanningTimeK)
+AsteroidScanner::AsteroidScanner(uint32_t nMaxDistance, uint32_t nScanningTimeMs)
   : BaseModule("AsteroidScanner"),
-    m_nMaxDistance(nMaxDistance), m_nScanningTimeK(nScanningTimeK)
+    m_nMaxDistance(nMaxDistance), m_nScanningTimeMs(nScanningTimeMs)
 {
   GlobalContainer<AsteroidScanner>::registerSelf(this);
 }
@@ -58,7 +58,7 @@ void AsteroidScanner::handleAsteroidScannerMessage(
       spex::IAsteroidScanner::Specification* pBody =
           response.mutable_asteroid_scanner()->mutable_specification();
       pBody->set_max_distance(m_nMaxDistance);
-      pBody->set_scanning_time_k(m_nScanningTimeK);
+      pBody->set_scanning_time_k(m_nScanningTimeMs);
       sendToClient(nTunnelId, response);
       return;
     }
@@ -81,7 +81,7 @@ void AsteroidScanner::onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId)
   }
 
   double surfaceKm2     = 4 * M_PI * pow(pAsteroid->getRadius() / 1000.0, 2);
-  m_nScanningTimeLeftUs = surfaceKm2 * m_nScanningTimeK * 1000;
+  m_nScanningTimeLeftUs = surfaceKm2 * m_nScanningTimeMs * 1000;
   m_nAsteroidId         = nAsteroidId;
   switchToActiveState();
 }
