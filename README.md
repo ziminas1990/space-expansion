@@ -1,4 +1,13 @@
 # space-expansion-server
+## References
+  * [Youtrack](https://space-expansion.myjetbrains.com/youtrack/issues?q=project:%20space-expansion-server)
+
+## Docs
+  - [API Description (rus)](Doc/API.ru.md)
+
+## What others tell about us
+```А код у тебя чистый, понятный, GJ``` - [Anton SX91](https://github.com/SX91)
+
 ## Building
 This project supports building only with CMake + conan.
 The easiest way to build application is to run at the build directory the following commands:
@@ -24,9 +33,3 @@ conan install $SOURCE_DIR/conanfile.txt --build=missing -s build_type=Debug -s a
 cmake $SOURCE_DIR -Dautotests-mode=ON -Dbuild-debug=ON -Dbuild-32bit=ON
 cmake --build . -- -j4
 ```
-
-## What others tell about us
-```А код у тебя чистый, понятный, GJ``` - [Anton SX91](https://github.com/SX91)
-
-## Docs
-  - [API Description (rus)](Doc/API.ru.md)
