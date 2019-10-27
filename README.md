@@ -1,6 +1,6 @@
 # space-expansion-server
 ## References
-  * [Youtrack](https://space-expansion.myjetbrains.com/youtrack/issues?q=project:%20space-expansion-server)
+  * [space-expansion-server on Youtrack](https://space-expansion.myjetbrains.com/youtrack/issues?q=project:%20space-expansion-server)
 
 ## Docs
   - [API Description (rus)](Doc/API.ru.md)
