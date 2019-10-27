@@ -27,3 +27,6 @@ cmake --build . -- -j4
 
 ## What others tell about us
 ```А код у тебя чистый, понятный, GJ``` - [Anton SX91](https://github.com/SX91)
+
+## Docs
+  - [API Description (rus)](Doc/API.ru.md)
