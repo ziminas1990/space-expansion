@@ -80,8 +80,8 @@ void AsteroidScanner::onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId)
     return;
   }
 
-  double surfaceKm2     = 4 * M_PI * pow(pAsteroid->getRadius() / 1000.0, 2);
-  m_nScanningTimeLeftUs = surfaceKm2 * m_nScanningTimeMs * 1000;
+  double surfaceHectare = 4 * M_PI * pow(pAsteroid->getRadius(), 2) / 10000.0;
+  m_nScanningTimeLeftUs = static_cast<uint64_t>(surfaceHectare * m_nScanningTimeMs * 1000);
   m_nAsteroidId         = nAsteroidId;
   switchToActiveState();
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Blueprints/Modules/ModuleBlueprint.h>
+#include "ModuleBlueprint.h"
 #include <Modules/AsteroidScanner/AsteroidScanner.h>
 
 namespace modules {
@@ -8,9 +8,7 @@ namespace modules {
 class AsteroidScannerBlueprint : public ModuleBlueprint
 {
 public:
-
-  AsteroidScannerBlueprint()
-    : m_nMaxScanningDistance(0), m_nScanningTimeMs(0)
+  AsteroidScannerBlueprint() : m_nMaxScanningDistance(0), m_nScanningTimeMs(0)
   {}
 
   AsteroidScannerBlueprint& setMaxScanningRadiusKm(uint32_t nMaxScanningRadiusKm)

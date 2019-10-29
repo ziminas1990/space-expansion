@@ -1,5 +1,3 @@
-
-
 Здесь будет описан алгоритм добавления нового модуля в проект. Под модулем понимается оборудование, которое устанавливается на корабль. Руководство будет написано на примере модуля AsteroidScanner.
 
 ## Добавление интерфейса модуля в Protocol.proto файл
@@ -189,4 +187,50 @@ ships::Ship const* BaseModule::getPlatform() const;
 Зная это можно написать такую реализацию логики, которая не будет требовать синхронизации потоков. Например, логика AsteroidScanner'а будет выполнять над астероидами только операции чтения, без операций записи. А значит, все модули могут обращаться к астероидам на чтение без какой-либо синхронизации между собой.
 Логику модулей необходимо стремится реализовать таким образом, что бы исключать или сводить к минимуму ситуации, когда один поток может быть заблокирован другим потоком.
 
-### 
+## Создание Blueprint'а для модуля
+> В качестве примера см. файл Blueprints/Modules/AsteroidScanner.h
+
+**Blueprint** (или чертёж) - это наследник класса **modules::ModuleBlueprint**. Единственная задача чертежа - создавать объект модуля с заявленными характеристиками.  
+Чертёж определяет только **характеристики** модуля, например максимальную тягу двигателя, но **НЕ** определяет состояние модуля в момент создания (например, текущую тягу двигателя).
+
+Чтобы реализовать blueprint необходимо:
+  - в директории Blueprint/Modules **добавить .h-файл**, в котором будет определён blueprint, например ```AsteroidScannerBlueprint.h```;
+  - в заголовочном файле в namespace'е modules определить класс ```AsteroidScannerBlueprint```, наследник ```ModuleBlueprint```.
+
+Класс AsteroidScannerBlueprint должен переопределять две функции:
+```cpp
+virtual BaseModulePtr build() const = 0;
+```
+```cpp
+virtual ModuleBlueprintPtr wrapToSharedPtr() = 0;
+```
+
+Функция **build()** отвечает за создание объекта модуля. Функция **wrapToSharedPtr** должна создавать копию blueprint'а, завёрнутую в shared_ptr.  
+Так же класс должен хранить в себе параметры создаваемых объектов и иметь setter'ы для настройки этих параметров. Будет удобно, если setter'ы будут возвращать ссылку ```*this```.
+
+## Регистрация blueprint'а
+Созданный blueprint нужно зарегистрировать в фабрике. Для этого, необходимо добавить **case** в функцию ```BlueprintsFactory::make```. Данный кейс должен считывать из JSON'а параметры модуля и создавать blueprint-объект, создающий модуль с указанными параметрами. Например, так:
+```cpp
+ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
+{
+  utils::YamlReader reader(data);
+  // ...
+  if (sModuleClass == "engine") {
+    // ...
+  } else if (sModuleClass == "AsteroidScanner") {
+    uint32_t nMaxScanningDistance = 0;
+    uint32_t nScanningTimeMs      = 0;
+    bool lIsOk = reader.read("max_scanning_distance", nMaxScanningDistance)
+                       .read("scanning_time_ms",      nScanningTimeMs);
+    assert(lIsOk);
+    if (lIsOk)
+    {
+      return AsteroidScannerBlueprint()
+          .setMaxScanningRadiusKm(nMaxScanningDistance)
+          .setScanningTimeMs(nScanningTimeMs)
+          .wrapToSharedPtr();
+    }
+  }
+  // ...
+}
+```

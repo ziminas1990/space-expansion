@@ -12,21 +12,21 @@ namespace modules
 ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
 {
   utils::YamlReader reader(data);
-  std::string sModuleType;
-  if (!reader.read("type", sModuleType)) {
+  std::string sModuleClass;
+  if (!reader.read("type", sModuleClass)) {
     assert(false);
     return ModuleBlueprintPtr();
   }
 
-  if (sModuleType == "engine") {
+  if (sModuleClass == "engine") {
     uint32_t maxThrust = 0;
     if (!reader.read("maxThrust", maxThrust)) {
       assert(false);
-      return ModuleBlueprintPtr();;
+      return ModuleBlueprintPtr();
     }
     return EngineBlueprint().setMaxThrust(maxThrust).wrapToSharedPtr();
 
-  } else if (sModuleType == "CelestialScanner") {
+  } else if (sModuleClass == "CelestialScanner") {
     uint32_t nMaxScanningRadiusKm = 0;
     uint32_t nProcessingTimeUs    = 0;
     if (!reader.read("max_scanning_radius_km", nMaxScanningRadiusKm)
@@ -39,19 +39,20 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
            .setMaxScanningRadiusKm(nMaxScanningRadiusKm)
            .setProcessingTimeUs(nProcessingTimeUs)
            .wrapToSharedPtr();
-  } else if (sModuleType == "AsteroidScanner") {
+
+  } else if (sModuleClass == "AsteroidScanner") {
     uint32_t nMaxScanningDistance = 0;
     uint32_t nScanningTimeMs      = 0;
-    if (!reader.read("max_scanning_distance", nMaxScanningDistance)
-               .read("scanning_time_ms",      nScanningTimeMs))
+    bool lIsOk = reader.read("max_scanning_distance", nMaxScanningDistance)
+                       .read("scanning_time_ms",      nScanningTimeMs);
+    assert(lIsOk);
+    if (lIsOk)
     {
-      assert(false);
-      return AsteroidScannerBlueprint().wrapToSharedPtr();
+      return AsteroidScannerBlueprint()
+          .setMaxScanningRadiusKm(nMaxScanningDistance)
+          .setScanningTimeMs(nScanningTimeMs)
+          .wrapToSharedPtr();
     }
-    return AsteroidScannerBlueprint()
-        .setMaxScanningRadiusKm(nMaxScanningDistance)
-        .setScanningTimeMs(nScanningTimeMs)
-        .wrapToSharedPtr();
   }
 
   assert(false);
