@@ -59,7 +59,7 @@ void AsteroidScanner::handleAsteroidScannerMessage(
       spex::IAsteroidScanner::Specification* pBody =
           response.mutable_asteroid_scanner()->mutable_specification();
       pBody->set_max_distance(m_nMaxDistance);
-      pBody->set_scanning_time_k(m_nScanningTimeMs);
+      pBody->set_scanning_time_ms(m_nScanningTimeMs);
       sendToClient(nTunnelId, response);
       return;
     }

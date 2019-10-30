@@ -16,7 +16,7 @@ bool AsteroidScanner::getSpecification(AsteroidScannerSpecification &specificati
     return false;
 
   specification.m_nMaxScanningDistance = response.specification().max_distance();
-  specification.m_nProcessingTimeUs    = response.specification().scanning_time_k();
+  specification.m_nProcessingTimeUs    = response.specification().scanning_time_ms();
   return true;
 }
 
