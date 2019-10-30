@@ -81,6 +81,7 @@ bool SystemManager::createAllComponents()
   m_pCommutatorsManager = std::make_shared<modules::CommutatorManager>();
   m_pEnginesManager     = std::make_shared<modules::EngineManager>();
   m_pCelestialScannerManager = std::make_shared<modules::CelestialScannerManager>();
+  m_pAsteroidScannerManager  = std::make_shared<modules::AsteroidScannerManager>();
 
   m_pUdpDispatcher  = std::make_shared<network::UdpDispatcher>(m_IoService);
   m_pLoginChannel   = std::make_shared<network::ProtobufChannel>();
@@ -110,6 +111,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pShipsManager);
   m_pConveyor->addLogicToChain(m_pEnginesManager);
   m_pConveyor->addLogicToChain(m_pCelestialScannerManager);
+  m_pConveyor->addLogicToChain(m_pAsteroidScannerManager);
 
   m_pPlayersStorage->attachToBlueprintsStorage(m_pBlueprints);
   return true;

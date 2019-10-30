@@ -80,4 +80,20 @@ bool FindBestCelestialScanner(Ship &ship, CelestialScanner& bestScanner,
   return true;
 }
 
+bool FindSomeAsteroidScanner(Ship& ship, AsteroidScanner& someScanner)
+{
+  ModulesList scanners;
+  if (!GetAllModules(ship, "AsteroidScanner", scanners))
+    return false;
+  if (scanners.empty())
+    return false;
+
+  ModuleInfo const& moduleInfo = scanners.front();
+  TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
+  if (!pTunnel)
+    return false;
+  someScanner.attachToChannel(pTunnel);
+  return true;
+}
+
 }}  // namespace autotests::client

@@ -89,6 +89,15 @@ bool SyncPipe::wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool SyncPipe::wait(spex::IAsteroidScanner &out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kAsteroidScanner, message, nTimeoutMs))
+    return false;
+  out = std::move(message.asteroid_scanner());
+  return true;
+}
+
 void SyncPipe::onMessageReceived(spex::Message &&message)
 {
   switch(message.choice_case()) {

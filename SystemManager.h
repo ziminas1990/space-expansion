@@ -18,6 +18,7 @@
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Modules/Engine/EnginesManager.h"
 #include "Modules/CelestialScanner/CelestialScannerManager.h"
+#include "Modules/AsteroidScanner/AsteroidScannerManager.h"
 
 class SystemManager
 {
@@ -53,6 +54,7 @@ private:
   modules::CommutatorManagerPtr m_pCommutatorsManager;
   modules::EngineManagerPtr     m_pEnginesManager;
   modules::CelestialScannerManagerPtr m_pCelestialScannerManager;
+  modules::AsteroidScannerManagerPtr  m_pAsteroidScannerManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
   network::ProtobufChannelPtr m_pLoginChannel;
