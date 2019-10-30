@@ -41,6 +41,7 @@ void AsteroidScanner::proceed(uint32_t nIntervalUs)
   pScanResult->set_metals_percent(pAsteroid->getComposition().nMettals);
   pScanResult->set_silicates_percent(pAsteroid->getComposition().nSilicates);
   sendToClient(m_nTunnelId, std::move(response));
+  m_nTunnelId = 0;
   switchToIdleState();
 }
 
@@ -83,6 +84,7 @@ void AsteroidScanner::onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId)
   double surfaceHectare = 4 * M_PI * pow(pAsteroid->getRadius(), 2) / 10000.0;
   m_nScanningTimeLeftUs = static_cast<uint64_t>(surfaceHectare * m_nScanningTimeMs * 1000);
   m_nAsteroidId         = nAsteroidId;
+  m_nTunnelId           = nTunnelId;
   switchToActiveState();
 }
 

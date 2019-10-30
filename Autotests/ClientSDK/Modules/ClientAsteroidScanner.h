@@ -18,6 +18,12 @@ struct AsteroidScannerSpecification
 class AsteroidScanner : public ClientBaseModule
 {
 public:
+  enum Status {
+    eStatusOk,
+    eStatusError,
+    eStatusScanFailed
+  };
+
   struct AsteroidInfo
   {
     uint32_t m_asteroidId;
@@ -29,8 +35,7 @@ public:
 
   bool getSpecification(AsteroidScannerSpecification& specification);
 
-  bool scan(uint32_t nAsteroidId);
-
+  Status scan(uint32_t nAsteroidId, AsteroidInfo* pResult = nullptr);
 };
 
 using AsteroidScannerPtr = std::shared_ptr<AsteroidScanner>;
