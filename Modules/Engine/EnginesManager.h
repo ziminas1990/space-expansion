@@ -6,7 +6,7 @@
 namespace modules
 {
 
-using EngineManager    = CommonModulesManager<Engine, 100000>;
+using EngineManager    = CommonModulesManager<Engine, modules::Cooldown::eEngine>;
 using EngineManagerPtr = std::shared_ptr<EngineManager>;
 
 } // namespace modules
