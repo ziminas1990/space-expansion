@@ -3,6 +3,7 @@
 #include "EngineBlueprint.h"
 #include "CelestialScannerBlueprint.h"
 #include "AsteroidScannerBlueprint.h"
+#include "ResourceContainerBlueprint.h"
 
 #include <Utils/YamlReader.h>
 
@@ -51,6 +52,16 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
       return AsteroidScannerBlueprint()
           .setMaxScanningRadiusKm(nMaxScanningDistance)
           .setScanningTimeMs(nScanningTimeMs)
+          .wrapToSharedPtr();
+    }
+  } else if (sModuleClass == "ResourceContainer") {
+    uint32_t nVolume = 0;
+    bool lIsOk = reader.read("volume", nVolume);
+    assert(lIsOk);
+    if (lIsOk)
+    {
+      return ResourceContainerBlueprint()
+          .setVolume(nVolume)
           .wrapToSharedPtr();
     }
   }
