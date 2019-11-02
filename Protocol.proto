@@ -166,6 +166,67 @@ message IAsteroidScanner {
   }
 }
 
+
+enum ResourceType {
+  RESOURCE_METTALS   = 0;
+  RESOURCE_SILICATES = 1;
+  RESOURCE_ICE       = 2;
+}
+
+message ResourceItem {
+  ResourceType type  = 1;
+  double       amount = 2;
+}
+
+
+message IResourceContainer {
+
+  message GetContent {}
+  message Content {
+    uint32 volume = 1;
+    double used   = 2;
+    repeated ResourceItem resources = 3;
+  }
+  
+  message CreateTransaction {
+    uint32 access_key = 1;
+  }
+  
+  message GetTransaction {
+    uint32 id         = 1;
+    uint32 access_key = 2;
+  }
+  
+  message CloseTransaction {
+    uint32 id         = 1;
+    uint32 access_key = 2;
+  }
+  
+  message Transaction {
+    uint32 id = 1;
+    repeated ResourceItem upload   = 2;
+    repeated ResourceItem download = 3;
+  }
+  
+  message TransactionClosed {
+    uint32 id = 1;
+    repeated ResourceItem resources = 2;
+  }
+  
+  oneof choice {
+    // Requests and command from Client
+    GetContent        get_content        = 1;
+    CreateTransaction create_transaction = 2;
+    GetTransaction    get_transaction    = 3;
+    CloseTransaction  close_transaction  = 4;
+    
+    Content           content            = 21;
+    Transaction       transaction        = 22;
+    TransactionClosed transaction_closed = 23;
+  }
+}
+
+
 message ICommutator {
 
   message GetTotalSlots {}
@@ -219,13 +280,14 @@ message Message {
 
   oneof choice {
     // All possible interfaces are listed here
-    Message           encapsulated     = 2;
-    IAccessPanel      accessPanel      = 3;
-    ICommutator       commutator       = 4;
-    IShip             ship             = 5;
-    INavigation       navigation       = 6;
-    IEngine           engine           = 7;
-    ICelestialScanner celestialScanner = 8;
-    IAsteroidScanner  asteroid_scanner = 9;
+    Message            encapsulated       = 2;
+    IAccessPanel       accessPanel        = 3;
+    ICommutator        commutator         = 4;
+    IShip              ship               = 5;
+    INavigation        navigation         = 6;
+    IEngine            engine             = 7;
+    ICelestialScanner  celestialScanner   = 8;
+    IAsteroidScanner   asteroid_scanner   = 9;
+    IResourceContainer resource_container = 10;
   }
 }

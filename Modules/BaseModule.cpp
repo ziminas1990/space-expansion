@@ -36,6 +36,10 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       handleAsteroidScannerMessage(nSessionId, message.asteroid_scanner());
       return;
     }
+    case spex::Message::kResourceContainer: {
+      handleResourceContainerMessage(nSessionId, message.resource_container());
+      return;
+    }
     case spex::Message::kAccessPanel: {
       // Only AccessPanel is able to handle such massaged, but it is NOT a subclass of
       // this class

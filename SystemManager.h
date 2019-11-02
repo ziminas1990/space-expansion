@@ -19,6 +19,7 @@
 #include "Modules/Engine/EnginesManager.h"
 #include "Modules/CelestialScanner/CelestialScannerManager.h"
 #include "Modules/AsteroidScanner/AsteroidScannerManager.h"
+#include "Modules/ResourceContainer/ResourceContainerManager.h"
 
 class SystemManager
 {
@@ -53,8 +54,9 @@ private:
   ships::ShipsManagerPtr        m_pShipsManager;
   modules::CommutatorManagerPtr m_pCommutatorsManager;
   modules::EngineManagerPtr     m_pEnginesManager;
-  modules::CelestialScannerManagerPtr m_pCelestialScannerManager;
-  modules::AsteroidScannerManagerPtr  m_pAsteroidScannerManager;
+  modules::CelestialScannerManagerPtr  m_pCelestialScannerManager;
+  modules::AsteroidScannerManagerPtr   m_pAsteroidScannerManager;
+  modules::ResourceContainerManagerPtr m_pResourceContainerManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
   network::ProtobufChannelPtr m_pLoginChannel;

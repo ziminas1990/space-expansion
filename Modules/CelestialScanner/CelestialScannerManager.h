@@ -7,7 +7,7 @@ namespace modules
 {
 
 using CelestialScannerManager =
-CommonModulesManager<CelestialScanner, modules::Cooldown::eCelestialScanner>;
+CommonModulesManager<CelestialScanner, Cooldown::eCelestialScanner>;
 using CelestialScannerManagerPtr = std::shared_ptr<CelestialScannerManager>;
 
 } // namespace modules

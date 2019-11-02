@@ -7,7 +7,7 @@ namespace modules
 {
 
 using AsteroidScannerManager    =
-CommonModulesManager<AsteroidScanner, modules::Cooldown::eAsteroidScanner>;
+  CommonModulesManager<AsteroidScanner, Cooldown::eAsteroidScanner>;
 using AsteroidScannerManagerPtr = std::shared_ptr<AsteroidScannerManager>;
 
 } // namespace modules

@@ -12,11 +12,12 @@ namespace modules
 {
 
 enum class Cooldown {
-  eDefault          = 10000,
-  eShip             = 10000,
-  eEngine           = 100000,
-  eAsteroidScanner  = 200000,
-  eCelestialScanner = 500000,
+  eDefault           = 10000,
+  eShip              = 10000,
+  eEngine            = 100000,
+  eAsteroidScanner   = 200000,
+  eCelestialScanner  = 500000,
+  eResourceContainer = 500010,
 };
 
 // Common manager for any subclass of BaseModule class
