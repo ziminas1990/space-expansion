@@ -32,6 +32,7 @@ public:
   bool wait(spex::IEngine &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IAsteroidScanner &out, uint16_t nTimeoutMs = 100);
+  bool wait(spex::IResourceContainer &out, uint16_t nTimeoutMs = 100);
 
   // Expect, that no message will be received in session
   bool expectSilence(uint16_t nTimeoutMs);

@@ -96,4 +96,20 @@ bool FindSomeAsteroidScanner(Ship& ship, AsteroidScanner& someScanner)
   return true;
 }
 
+bool FindResourceContainer(Ship &ship, ResourceContainer &container)
+{
+  ModulesList containers;
+  if (!GetAllModules(ship, "ResourceContainer", containers))
+    return false;
+  if (containers.empty())
+    return false;
+
+  ModuleInfo const& moduleInfo = containers.front();
+  TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
+  if (!pTunnel)
+    return false;
+  container.attachToChannel(pTunnel);
+  return true;
+}
+
 }}  // namespace autotests::client
