@@ -5,7 +5,7 @@
 
 namespace ships {
 
-using ShipsManager    = modules::CommonModulesManager<Ship, 10000>;
+using ShipsManager = modules::CommonModulesManager<Ship, modules::Cooldown::eShip>;
 using ShipsManagerPtr = std::shared_ptr<ShipsManager>;
 
 } // namespace modules

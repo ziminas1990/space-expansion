@@ -11,12 +11,20 @@
 namespace modules
 {
 
+enum class Cooldown {
+  eDefault          = 10000,
+  eShip             = 10000,
+  eEngine           = 100000,
+  eAsteroidScanner  = 200000,
+  eCelestialScanner = 500000,
+};
+
 // Common manager for any subclass of BaseModule class
 // Type ModuleType:
 // 1. should be inherited from BaseModule
 // 2. should be inherited from utils::GlobalContainer<ModuleType>
 
-template <typename ModuleType, size_t nCooldownTimeUs = 10000>
+template <typename ModuleType, Cooldown nCooldown = Cooldown::eDefault>
 class CommonModulesManager : public conveyor::IAbstractLogic
 {
   enum Stages {
@@ -54,7 +62,7 @@ public:
     }
   }
 
-  size_t getCooldownTimeUs() const { return nCooldownTimeUs; }
+  size_t getCooldownTimeUs() const { return static_cast<size_t>(nCooldown) - 1; }
 
 private:
   void handleAllMessages()
