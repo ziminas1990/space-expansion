@@ -181,48 +181,79 @@ message ResourceItem {
 
 message IResourceContainer {
 
+  enum Error {
+    ERROR_INTERNAL          = 0;
+    ERROR_PORT_ALREADY_OPEN = 1;
+    ERROR_PORT_DOESNT_EXIST = 2;
+    ERROR_INVALID_KEY       = 3;
+  }
+
   message GetContent {}
+  
   message Content {
     uint32 volume = 1;
     double used   = 2;
     repeated ResourceItem resources = 3;
   }
   
-  message CreateTransaction {
+  
+  message OpenPort {
     uint32 access_key = 1;
   }
   
-  message GetTransaction {
-    uint32 id         = 1;
+  message PortOpened {
+    uint32 port_id    = 1;
     uint32 access_key = 2;
   }
   
-  message CloseTransaction {
-    uint32 id         = 1;
-    uint32 access_key = 2;
+  message ClosePort {
+    uint32 port_id    = 1;
+  }
+  
+  
+  message Put {
+    uint32 port_id        = 1;
+    uint32 access_key     = 2;
+    ResourceItem resource = 3;
   }
   
   message Transaction {
-    uint32 id = 1;
-    repeated ResourceItem upload   = 2;
-    repeated ResourceItem download = 3;
+    uint32 transaction_id = 1;
+    ResourceItem resource = 3;
+  }
+  
+  message GetTransaction {
+    uint32 transaction_id = 1;
+  }
+  
+  message CloseTransaction {
+    uint32 transaction_id = 1;
   }
   
   message TransactionClosed {
-    uint32 id = 1;
-    repeated ResourceItem resources = 2;
+    uint32 transaction_id = 1;
+    ResourceItem resource = 2;
+  }
+  
+  
+  message OnError {
+    Error code = 1;
   }
   
   oneof choice {
     // Requests and command from Client
-    GetContent        get_content        = 1;
-    CreateTransaction create_transaction = 2;
-    GetTransaction    get_transaction    = 3;
-    CloseTransaction  close_transaction  = 4;
+    GetContent        get_content       = 1;
+    OpenPort          open_port         = 2;
+    ClosePort         close_port        = 3;
+    Put               put               = 4;
+    GetTransaction    get_transaction   = 5;
+    CloseTransaction  close_transaction = 6;
     
     Content           content            = 21;
-    Transaction       transaction        = 22;
-    TransactionClosed transaction_closed = 23;
+    PortOpened        port_opened        = 22;
+    Transaction       transaction        = 23;
+    TransactionClosed transaction_closed = 24;
+    OnError           error              = 25;
   }
 }
 
