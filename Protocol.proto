@@ -182,10 +182,11 @@ message ResourceItem {
 message IResourceContainer {
 
   enum Error {
-    ERROR_INTERNAL          = 0;
-    ERROR_PORT_ALREADY_OPEN = 1;
-    ERROR_PORT_DOESNT_EXIST = 2;
-    ERROR_INVALID_KEY       = 3;
+    ERROR_INTERNAL           = 0;
+    ERROR_PORT_ALREADY_OPEN  = 1;
+    ERROR_PORT_DOESNT_EXIST  = 2;
+    ERROR_PORT_IS_NOT_OPENED = 3;
+    ERROR_INVALID_KEY        = 4;
   }
 
   message GetContent {}
@@ -206,9 +207,8 @@ message IResourceContainer {
     uint32 access_key = 2;
   }
   
-  message ClosePort {
-    uint32 port_id    = 1;
-  }
+  message ClosePort {}
+  message PortClosed {}
   
   
   message Put {
@@ -251,9 +251,10 @@ message IResourceContainer {
     
     Content           content            = 21;
     PortOpened        port_opened        = 22;
-    Transaction       transaction        = 23;
-    TransactionClosed transaction_closed = 24;
-    OnError           error              = 25;
+    PortClosed        port_closed        = 23;
+    Transaction       transaction        = 24;
+    TransactionClosed transaction_closed = 25;
+    OnError           error              = 26;
   }
 }
 

@@ -17,6 +17,7 @@ public:
     eStatusOk,
     eStatusError,
     eStatusPortAlreadyOpen,
+    eStatusPortIsNotOpened,
   };
 
   struct Content {
@@ -33,6 +34,7 @@ public:
   bool getContent(Content& content);
 
   Status openPort(uint32_t nAccessKey, uint32_t& nPortId);
+  Status closePort();
 };
 
 using ResourceContainerPtr = std::shared_ptr<ResourceContainer>;

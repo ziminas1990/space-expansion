@@ -103,4 +103,33 @@ TEST_F(ResourceContainerTests, OpenPort)
             client::ResourceContainer::eStatusPortAlreadyOpen);
 }
 
+TEST_F(ResourceContainerTests, ClosePort)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("merchant", "money")
+        .expectSuccess());
+
+  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
+  ASSERT_TRUE(pTunnelToShip);
+
+  client::Ship ship;
+  ship.attachToChannel(pTunnelToShip);
+
+  client::ResourceContainer container;
+  ASSERT_TRUE(client::FindResourceContainer(ship, container));
+
+  ASSERT_EQ(container.closePort(), client::ResourceContainer::eStatusPortIsNotOpened);
+
+  for (uint32_t i = 0; i < 5; ++i) {
+    uint32_t nAccessKey = i;
+    uint32_t nPortId    = 0;
+    ASSERT_EQ(container.openPort(nAccessKey, nPortId),
+              client::ResourceContainer::eStatusOk);
+    ASSERT_NE(0, nPortId);
+
+    ASSERT_EQ(container.closePort(), client::ResourceContainer::eStatusOk);
+  }
+}
+
 } // namespace autotests

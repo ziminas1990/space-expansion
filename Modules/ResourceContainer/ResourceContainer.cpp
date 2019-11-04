@@ -52,6 +52,10 @@ void ResourceContainer::handleResourceContainerMessage(
       openPort(nTunnelId, message.open_port().access_key());
       return;
     }
+    case spex::IResourceContainer::kClosePort: {
+      closePort(nTunnelId);
+      return;
+    }
     default:
       return;
   }
@@ -121,6 +125,27 @@ void ResourceContainer::openPort(uint32_t nTunnelId, uint32_t nAccessKey)
       response.mutable_resource_container()->mutable_port_opened();
   pBody->set_port_id(nPortId);
   pBody->set_access_key(nAccessKey);
+  sendToClient(nTunnelId, response);
+}
+
+void ResourceContainer::closePort(uint32_t nTunnelId)
+{
+  if (!m_openedPort.isValid()) {
+    sendError(nTunnelId, spex::IResourceContainer::ERROR_PORT_IS_NOT_OPENED);
+    return;
+  }
+
+  {
+    std::lock_guard<std::mutex> guard(m_portsMutex);
+    assert(m_allPorts[m_openedPort.m_nPortId].m_nPortId    == m_openedPort.m_nPortId);
+    assert(m_allPorts[m_openedPort.m_nPortId].m_nAccessKey == m_openedPort.m_nAccessKey);
+    m_allPorts[m_openedPort.m_nPortId] = Port();
+    m_freePortsIds.release(m_openedPort.m_nPortId);
+    m_openedPort = Port();
+  }
+
+  spex::Message response;
+  response.mutable_resource_container()->mutable_port_closed();
   sendToClient(nTunnelId, response);
 }
 

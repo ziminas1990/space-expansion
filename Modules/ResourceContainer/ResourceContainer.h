@@ -29,6 +29,7 @@ private:
   void sendError(uint32_t nTunnelId, spex::IResourceContainer::Error error);
 
   void openPort(uint32_t nTunnelId, uint32_t nAccessKey);
+  void closePort(uint32_t nTunnelId);
 
 private:
   uint32_t m_nVolume;

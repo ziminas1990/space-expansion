@@ -22,6 +22,8 @@ static ResourceContainer::Status convert(spex::IResourceContainer::Error error)
   switch (error) {
     case spex::IResourceContainer::ERROR_PORT_ALREADY_OPEN:
       return ResourceContainer::eStatusPortAlreadyOpen;
+    case spex::IResourceContainer::ERROR_PORT_IS_NOT_OPENED:
+      return ResourceContainer::eStatusPortIsNotOpened;
     default: {
       assert(false);
       return ResourceContainer::eStatusError;
@@ -79,6 +81,27 @@ ResourceContainer::Status ResourceContainer::openPort(
   }
 
   nPortId = response.port_opened().port_id();
+  return eStatusOk;
+}
+
+ResourceContainer::Status ResourceContainer::closePort()
+{
+  spex::Message request;
+  request.mutable_resource_container()->mutable_close_port();
+
+  if (!send(request))
+    return eStatusError;
+
+  spex::IResourceContainer response;
+  if (!wait(response))
+    return eStatusError;
+  if (response.choice_case() == spex::IResourceContainer::kError) {
+    return convert(response.error().code());
+  }
+
+  if (response.choice_case() != spex::IResourceContainer::kPortClosed) {
+    return eStatusError;
+  }
   return eStatusOk;
 }
 
