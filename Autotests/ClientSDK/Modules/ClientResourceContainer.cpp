@@ -17,6 +17,18 @@ static world::Resource::Type convert(spex::ResourceType type)
   }
 }
 
+static ResourceContainer::Status convert(spex::IResourceContainer::Error error)
+{
+  switch (error) {
+    case spex::IResourceContainer::ERROR_PORT_ALREADY_OPEN:
+      return ResourceContainer::eStatusPortAlreadyOpen;
+    default: {
+      assert(false);
+      return ResourceContainer::eStatusError;
+    }
+  }
+}
+
 static bool fillContent(ResourceContainer::Content &content,
                         spex::IResourceContainer::Content const& data)
 {
@@ -44,6 +56,30 @@ bool ResourceContainer::getContent(ResourceContainer::Content &content)
     return false;
 
   return fillContent(content, response.content());
+}
+
+ResourceContainer::Status ResourceContainer::openPort(
+    uint32_t nAccessKey, uint32_t& nPortId)
+{
+  spex::Message request;
+  request.mutable_resource_container()->mutable_open_port()->set_access_key(nAccessKey);
+
+  if (!send(request))
+    return eStatusError;
+
+  spex::IResourceContainer response;
+  if (!wait(response))
+    return eStatusError;
+  if (response.choice_case() == spex::IResourceContainer::kError) {
+    return convert(response.error().code());
+  }
+
+  if (response.choice_case() != spex::IResourceContainer::kPortOpened) {
+    return eStatusError;
+  }
+
+  nPortId = response.port_opened().port_id();
+  return eStatusOk;
 }
 
 

@@ -13,6 +13,11 @@ namespace autotests { namespace client {
 class ResourceContainer : public ClientBaseModule
 {
 public:
+  enum Status {
+    eStatusOk,
+    eStatusError,
+    eStatusPortAlreadyOpen,
+  };
 
   struct Content {
     Content() :
@@ -27,8 +32,10 @@ public:
 
   bool getContent(Content& content);
 
+  Status openPort(uint32_t nAccessKey, uint32_t& nPortId);
 };
 
 using ResourceContainerPtr = std::shared_ptr<ResourceContainer>;
+
 
 }}  // namespace autotests::client
