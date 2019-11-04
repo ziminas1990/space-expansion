@@ -13,7 +13,8 @@ template<typename IntType, IntType nInvalidValue = IntType(-1)>
 class SimplePool
 {
 public:
-  SimplePool(IntType nFirst = 0, IntType nLast = IntType(nInvalidValue - 1))
+  SimplePool(IntType nFirst = IntType(nInvalidValue + 1),
+             IntType nLast = IntType(nInvalidValue - 1))
     : m_nFirst(nFirst), m_nLast(nLast), m_nNext(nFirst)
   {}
 
@@ -46,6 +47,9 @@ public:
     }
   }
 
+  bool    isValid(IntType id) const { return id != nInvalidValue; }
+  IntType getInvalidValue()   const { return nInvalidValue; }
+
 private:
   IntType m_nFirst;
   IntType m_nLast;
@@ -75,6 +79,8 @@ public:
     std::lock_guard<utils::Mutex> guard(m_mutex);
     m_pool.release(element);
   }
+
+  bool isValid(IntType id) const { return id != nInvalidValue; }
 
 private:
   utils::Mutex m_mutex;
