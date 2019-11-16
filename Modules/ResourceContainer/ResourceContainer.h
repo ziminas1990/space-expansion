@@ -44,17 +44,18 @@ private:
     {}
 
     bool isValid() const { return m_nPortId > 0; }
-
-    uint32_t              m_nPortId    = 0;
-    uint32_t              m_nAccessKey = 0;
-    std::vector<uint32_t> m_transactionsId;
+  
+    uint32_t m_nPortId    = 0;
+    uint32_t m_nAccessKey = 0;
   };
+  
 
-  Port m_openedPort;
 
-  static std::mutex m_portsMutex; // shared_mutex?
+  uint32_t m_nOpenedPortId;
+
+  static std::mutex                     m_portsMutex; // shared_mutex?
   static utils::SimplePool<uint32_t, 0> m_freePortsIds;
-  static std::vector<Port> m_allPorts;
+  static std::vector<Port>              m_allPorts;
 };
 
 } // namespace modules
