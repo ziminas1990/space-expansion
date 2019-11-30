@@ -22,7 +22,7 @@ public:
 
   struct Content {
     Content() :
-      m_nVolume(0), m_nUsedSpace(0.0), m_amount(world::Resource::eTotalResources)
+      m_nVolume(0), m_nUsedSpace(0.0), m_amount(world::Resources::eTotalResources)
     {}
 
     uint32_t m_nVolume;

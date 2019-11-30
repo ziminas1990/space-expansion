@@ -71,9 +71,9 @@ TEST_F(ResourceContainerTests, GetContent)
   client::ResourceContainer::Content content;
   ASSERT_TRUE(container.getContent(content));
   EXPECT_EQ(1000, content.m_nVolume);
-  EXPECT_NEAR(100000, content.m_amount[world::Resource::eMettal],   0.1);
-  EXPECT_NEAR(50000,  content.m_amount[world::Resource::eSilicate], 0.1);
-  EXPECT_NEAR(250000, content.m_amount[world::Resource::eIce],      0.1);
+  EXPECT_NEAR(100000, content.m_amount[world::Resources::eMettal],   0.1);
+  EXPECT_NEAR(50000,  content.m_amount[world::Resources::eSilicate], 0.1);
+  EXPECT_NEAR(250000, content.m_amount[world::Resources::eIce],      0.1);
   EXPECT_NEAR(316.6,  content.m_nUsedSpace, 0.1);
 }
 

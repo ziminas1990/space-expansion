@@ -25,7 +25,7 @@ bool SystemManager::initialize(config::IApplicationCfg const& cfg)
 
 bool SystemManager::loadWorldState(YAML::Node const& data)
 {
-  world::Resource::initialize();
+  world::Resources::initialize();
 
   YAML::Node const& blueprintsSection = data["Blueprints"];
   assert(blueprintsSection.IsDefined());

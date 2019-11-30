@@ -4,7 +4,7 @@
 
 namespace world {
 
-struct Resource {
+struct Resources {
   static bool initialize();
 
   enum Type {
@@ -13,7 +13,8 @@ struct Resource {
     eIce,
 
     // total number of resources
-    eTotalResources
+    eTotalResources,
+    eUnknown
   };
 
   static std::vector<double> density;

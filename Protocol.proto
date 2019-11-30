@@ -182,57 +182,31 @@ message ResourceItem {
 message IResourceContainer {
 
   enum Error {
-    ERROR_INTERNAL           = 0;
-    ERROR_PORT_ALREADY_OPEN  = 1;
-    ERROR_PORT_DOESNT_EXIST  = 2;
-    ERROR_PORT_IS_NOT_OPENED = 3;
-    ERROR_INVALID_KEY        = 4;
+    ERROR_INTERNAL             = 0;
+    ERROR_PORT_ALREADY_OPEN    = 1;
+    ERROR_PORT_DOESNT_EXIST    = 2;
+    ERROR_PORT_IS_NOT_OPENED   = 3;
+    ERROR_PORT_HAS_BEEN_CLOSED = 4;
+    ERROR_INVALID_KEY          = 5;
+    ERROR_TOO_FAR              = 6;
+    ERROR_TRANSFER_IN_PROGRESS = 7;
+    ERROR_NOT_ENOUGH_RESOURCES = 8;
   }
 
-  message GetContent {}
+  message OpenPort {
+    uint32 access_key = 1;
+  }
   
   message Content {
     uint32 volume = 1;
     double used   = 2;
     repeated ResourceItem resources = 3;
   }
-  
-  
-  message OpenPort {
-    uint32 access_key = 1;
-  }
-  
-  message PortOpened {
-    uint32 port_id    = 1;
-    uint32 access_key = 2;
-  }
-  
-  message ClosePort {}
-  message PortClosed {}
-  
-  
-  message Put {
+
+  message Transfer {
     uint32 port_id        = 1;
     uint32 access_key     = 2;
     ResourceItem resource = 3;
-  }
-  
-  message Transaction {
-    uint32 transaction_id = 1;
-    ResourceItem resource = 3;
-  }
-  
-  message GetTransaction {
-    uint32 transaction_id = 1;
-  }
-  
-  message CloseTransaction {
-    uint32 transaction_id = 1;
-  }
-  
-  message TransactionClosed {
-    uint32 transaction_id = 1;
-    ResourceItem resource = 2;
   }
   
   
@@ -242,19 +216,18 @@ message IResourceContainer {
   
   oneof choice {
     // Requests and command from Client
-    GetContent        get_content       = 1;
-    OpenPort          open_port         = 2;
-    ClosePort         close_port        = 3;
-    Put               put               = 4;
-    GetTransaction    get_transaction   = 5;
-    CloseTransaction  close_transaction = 6;
+    bool           get_content       = 1;
+    OpenPort       open_port         = 2;
+    bool           close_port        = 3;
+    Transfer       transfer          = 4;
     
-    Content           content            = 21;
-    PortOpened        port_opened        = 22;
-    PortClosed        port_closed        = 23;
-    Transaction       transaction        = 24;
-    TransactionClosed transaction_closed = 25;
-    OnError           error              = 26;
+    Content        content            = 21;
+    uint32         port_opened        = 22;
+    bool           port_closed        = 23;
+    Error          transfer_failed    = 24;
+    ResourceItem   transfer_report    = 25;
+    bool           transfer_complete  = 26;
+    Error          on_error           = 27;
   }
 }
 

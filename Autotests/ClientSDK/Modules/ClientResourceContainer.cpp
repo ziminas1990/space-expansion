@@ -2,18 +2,18 @@
 
 namespace autotests { namespace client {
 
-static world::Resource::Type convert(spex::ResourceType type)
+static world::Resources::Type convert(spex::ResourceType type)
 {
   switch (type) {
     case spex::ResourceType::RESOURCE_METTALS:
-      return world::Resource::eMettal;
+      return world::Resources::eMettal;
     case spex::ResourceType::RESOURCE_SILICATES:
-      return world::Resource::eSilicate;
+      return world::Resources::eSilicate;
     case spex::ResourceType::RESOURCE_ICE:
-      return world::Resource::eIce;
+      return world::Resources::eIce;
     default:
       assert(false);
-      return world::Resource::eMettal;  // ?
+      return world::Resources::eMettal;  // ?
   }
 }
 
@@ -38,7 +38,7 @@ static bool fillContent(ResourceContainer::Content &content,
   content.m_nUsedSpace = data.used();
 
   for (spex::ResourceItem const& item : data.resources()) {
-    world::Resource::Type eType = convert(item.type());
+    world::Resources::Type eType = convert(item.type());
     content.m_amount[eType] = item.amount();
   }
   return true;
@@ -47,7 +47,7 @@ static bool fillContent(ResourceContainer::Content &content,
 bool ResourceContainer::getContent(ResourceContainer::Content &content)
 {
   spex::Message request;
-  request.mutable_resource_container()->mutable_get_content();
+  request.mutable_resource_container()->set_get_content(true);
   if (!send(request))
     return false;
 
@@ -72,22 +72,22 @@ ResourceContainer::Status ResourceContainer::openPort(
   spex::IResourceContainer response;
   if (!wait(response))
     return eStatusError;
-  if (response.choice_case() == spex::IResourceContainer::kError) {
-    return convert(response.error().code());
+  if (response.choice_case() == spex::IResourceContainer::kOnError) {
+    return convert(response.on_error());
   }
 
   if (response.choice_case() != spex::IResourceContainer::kPortOpened) {
     return eStatusError;
   }
 
-  nPortId = response.port_opened().port_id();
+  nPortId = response.port_opened();
   return eStatusOk;
 }
 
 ResourceContainer::Status ResourceContainer::closePort()
 {
   spex::Message request;
-  request.mutable_resource_container()->mutable_close_port();
+  request.mutable_resource_container()->set_close_port(true);
 
   if (!send(request))
     return eStatusError;
@@ -95,8 +95,8 @@ ResourceContainer::Status ResourceContainer::closePort()
   spex::IResourceContainer response;
   if (!wait(response))
     return eStatusError;
-  if (response.choice_case() == spex::IResourceContainer::kError) {
-    return convert(response.error().code());
+  if (response.choice_case() == spex::IResourceContainer::kOnError) {
+    return convert(response.on_error());
   }
 
   if (response.choice_case() != spex::IResourceContainer::kPortClosed) {
