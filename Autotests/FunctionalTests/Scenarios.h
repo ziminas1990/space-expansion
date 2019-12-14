@@ -67,14 +67,14 @@ public:
                                  FunctionalTestFixture* pEnv);
 
     CheckAttachedModulesScenario&
-    hasModule(std::string const& sType, size_t nCount = 1);
+    hasModule(std::string const& sType, std::string const& name);
 
   protected:
     void execute() override;
 
   private:
     client::ClientCommutatorPtr pCommutator;
-    std::map<std::string, size_t> expectedModules;
+    std::set<std::pair<std::string, std::string>> expectedModules;
   };
 
 

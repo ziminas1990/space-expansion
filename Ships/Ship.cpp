@@ -29,11 +29,6 @@ bool Ship::loadState(YAML::Node const& source)
         source, PhysicalObject::LoadMask().loadPosition().loadVelocity()))
     return false;
 
-  utils::YamlReader reader(source);
-  std::string sName;
-  reader.read("name", sName);
-  changeModuleName(std::move(sName));
-
   // Loading state of modules
   for (auto const& kv : source["modules"]) {
     std::string const& sModuleName = kv.first.as<std::string>();

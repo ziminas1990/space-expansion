@@ -35,7 +35,7 @@ protected:
       "  mega_miner:",
       "    password: unabtainable",
       "    ships:",
-      "      Zond:",
+      "      'Zond/Zorkiy Glaz':",
       "        position: { x: 100000, y: 0}",
       "        velocity: { x: 0,      y: 0}",
       "        modules:",

@@ -11,6 +11,7 @@ struct ModuleInfo
 {
   uint32_t    nSlotId;
   std::string sModuleType;
+  std::string sModuleName;
 };
 
 using ModulesList = std::vector<ModuleInfo>;

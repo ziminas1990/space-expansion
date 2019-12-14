@@ -34,7 +34,8 @@ bool ClientCommutator::getAttachedModulesList(
       return false;
     attachedModules.push_back(
           ModuleInfo({response.moduleinfo().nslotid(),
-                      response.moduleinfo().smoduletype()}));
+                      response.moduleinfo().smoduletype(),
+                      response.moduleinfo().smodulename()}));
   }
   return attachedModules.size() == nTotal;
 }

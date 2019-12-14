@@ -1,5 +1,6 @@
 #include "Player.h"
 #include <Utils/YamlReader.h>
+#include <Utils/StringUtils.h>
 #include <yaml-cpp/yaml.h>
 
 #include <Blueprints/Ships/ShipBlueprint.h>
@@ -9,9 +10,7 @@ namespace world
 
 Player::Player(std::string sLogin)
   : m_sLogin(std::move(sLogin)), m_pEntryPoint(std::make_shared<modules::Commutator>())
-{
-
-}
+{}
 
 Player::~Player()
 {
@@ -46,12 +45,15 @@ bool Player::loadState(YAML::Node const& data,
   }
 
   for (auto const& kv : shipsState) {
-    std::string const& sShipType = kv.first.as<std::string>();
+    std::string sShipType;
+    std::string sShipName;
+    utils::StringUtils::split('/', kv.first.as<std::string>(), sShipType, sShipName);
+
     ships::ShipBlueprintConstPtr pShipBlueprint = pBlueprints->getBlueprint(sShipType);
     assert(pShipBlueprint);
     if (!pShipBlueprint)
       return false;
-    ships::ShipPtr pShip = pShipBlueprint->build();
+    ships::ShipPtr pShip = pShipBlueprint->build(std::move(sShipName));
     assert(pShip);
     if (!pShip)
       return false;

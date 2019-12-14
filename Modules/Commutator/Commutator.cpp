@@ -165,6 +165,7 @@ void Commutator::getAllModulesInfo(uint32_t nSessionId) const
     spex::ICommutator message;
     message.mutable_moduleinfo()->set_nslotid(nSlotId);
     message.mutable_moduleinfo()->set_smoduletype(m_Slots[nSlotId]->getModuleType());
+    message.mutable_moduleinfo()->set_smodulename(m_Slots[nSlotId]->getModuleName());
     sendToClient(nSessionId, std::move(message));
   }
 }

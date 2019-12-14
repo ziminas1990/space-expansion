@@ -33,7 +33,7 @@ protected:
       "  merchant:",
       "    password: money",
       "    ships:",
-      "      Freighter:",
+      "      Freighter/Begemot:",
       "        position: { x: 0, y: 0}",
       "        velocity: { x: 0, y: 0}",
       "        modules:",

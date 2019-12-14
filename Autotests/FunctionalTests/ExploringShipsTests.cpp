@@ -33,19 +33,19 @@ protected:
       "  admin:",
       "    password: admin",
       "    ships:",
-      "      CommandCenter:",
+      "      CommandCenter/Head:",
       "        position: { x: 0, y: 0}",
       "        velocity: { x: 0, y: 0}",
-      "      Corvet:",
+      "      Corvet/Raven:",
       "        position: { x: 15, y: 15}",
       "        velocity: { x: 0,  y: 0}",
-      "      Corvet:",
+      "      Corvet/Caracal:",
       "        position: { x: 100, y: 100}",
       "        velocity: { x: 10,  y: 10}",
-      "      Miner:",
+      "      'Miner/Bogatstvo Narodov':",
       "        position: { x: -50, y: -90}",
       "        velocity: { x: 5,   y: -5}",
-      "      Zond:",
+      "      'Zond/Sokol':",
       "        position: { x: 32, y: -78}",
       "        velocity: { x: -1, y: 4}"
     };
@@ -81,10 +81,11 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsTypes)
   for(size_t i = 0; i < 200; ++i) {
     ASSERT_TRUE(
           Scenarios::CheckAttachedModules(m_pRootCommutator)
-          .hasModule("Ship/CommandCenter", 1)
-          .hasModule("Ship/Miner", 1)
-          .hasModule("Ship/Zond", 1)
-          .hasModule("Ship/Corvet", 2)) << "on oteration #" << i;
+          .hasModule("Ship/CommandCenter", "Head")
+          .hasModule("Ship/Miner",  "Bogatstvo Narodov")
+          .hasModule("Ship/Zond",   "Sokol")
+          .hasModule("Ship/Corvet", "Raven")
+          .hasModule("Ship/Corvet", "Caracal")) << "on oteration #" << i;
   }
 }
 

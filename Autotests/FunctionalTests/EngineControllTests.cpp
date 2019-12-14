@@ -33,7 +33,7 @@ protected:
       "  test:",
       "    password: test",
       "    ships:",
-      "      Cubesat:",
+      "      'Cubesat/Experimental Cube':",
       "        position: { x: 100, y: 15}",
       "        velocity: { x: 10,  y: 5}",
       "        modules:",

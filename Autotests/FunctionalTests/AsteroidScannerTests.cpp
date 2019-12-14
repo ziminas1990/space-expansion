@@ -40,7 +40,7 @@ protected:
       "  mega_miner:",
       "    password: unabtainable",
       "    ships:",
-      "      Miner:",
+      "      'Miner/Bogatstvo Narodov':",
       "        position: { x: 0, y: 0}",
       "        velocity: { x: 0, y: 0}",
       "        modules:",

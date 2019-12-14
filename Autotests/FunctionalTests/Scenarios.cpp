@@ -58,18 +58,16 @@ Scenarios::CheckAttachedModulesScenario::CheckAttachedModulesScenario(
 {}
 
 Scenarios::CheckAttachedModulesScenario&
-Scenarios::CheckAttachedModulesScenario::hasModule(
-    std::string const& sType, size_t nCount)
+Scenarios::CheckAttachedModulesScenario::hasModule(std::string const& sType,
+                                                   std::string const& sName)
 {
-  expectedModules[sType] = nCount;
+  expectedModules.insert(std::make_pair(sType, sName));
   return *this;
 }
 
 void Scenarios::CheckAttachedModulesScenario::execute()
 {
-  uint32_t nExpectedTotal = 0;
-  for (auto const& typeAndCount : expectedModules)
-    nExpectedTotal += typeAndCount.second;
+  uint32_t nExpectedTotal = static_cast<uint32_t>(expectedModules.size());
 
   client::ModulesList attachedModules;
   ASSERT_TRUE(pCommutator->getAttachedModulesList(nExpectedTotal, attachedModules))
@@ -77,10 +75,11 @@ void Scenarios::CheckAttachedModulesScenario::execute()
 
   for (client::ModuleInfo const& module : attachedModules)
   {
-    ASSERT_NE(expectedModules.end(), expectedModules.find(module.sModuleType))
-        << "Unexpected module with type " << module.sModuleType;
-    if (0 == --expectedModules[module.sModuleType])
-      expectedModules.erase(module.sModuleType);
+    auto typeAndName = std::make_pair(module.sModuleType, module.sModuleName);
+
+    ASSERT_NE(expectedModules.end(), expectedModules.find(typeAndName))
+        << "Unexpected module " << module.sModuleType << "/" << module.sModuleName;
+    expectedModules.erase(typeAndName);
   }
   ASSERT_TRUE(expectedModules.empty());
 }
