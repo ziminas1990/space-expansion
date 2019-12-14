@@ -12,7 +12,7 @@ namespace modules
 {
 
 AsteroidScanner::AsteroidScanner(uint32_t nMaxDistance, uint32_t nScanningTimeMs)
-  : BaseModule("AsteroidScanner"),
+  : BaseModule("AsteroidScanner", std::string()),
     m_nMaxDistance(nMaxDistance), m_nScanningTimeMs(nScanningTimeMs)
 {
   GlobalContainer<AsteroidScanner>::registerSelf(this);

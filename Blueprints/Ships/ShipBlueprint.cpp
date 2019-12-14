@@ -41,13 +41,15 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
   return pBlueprint;
 }
 
-ShipPtr ShipBlueprint::build() const
+ShipPtr ShipBlueprint::build(std::string shipName) const
 {
-  ShipPtr pShip = std::make_shared<Ship>(m_sType, m_weight, m_radius);
+  ShipPtr pShip = std::make_shared<Ship>(m_sType, std::move(shipName),
+                                         m_weight, m_radius);
   for (auto const& kv : m_modules)
   {
     modules::BaseModulePtr pModule = kv.second->build();
-    pShip->installModule(kv.first, pModule);
+    pModule->changeModuleName(kv.first);
+    pShip->installModule(pModule);
   }
   return pShip;
 }

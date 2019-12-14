@@ -1,14 +1,15 @@
 #include "Ship.h"
 
 #include <yaml-cpp/yaml.h>
+#include <Utils/YamlReader.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 
 namespace ships
 {
 
-Ship::Ship(std::string const& sShipType, double weight, double radius)
-  : BaseModule(std::string("Ship/") + sShipType),
+Ship::Ship(std::string const& sShipType, std::string sName, double weight, double radius)
+  : BaseModule(std::string("Ship/") + sShipType, std::move(sName)),
     newton::PhysicalObject(weight, radius),
     m_pCommutator(std::make_shared<modules::Commutator>())
 {
@@ -28,6 +29,11 @@ bool Ship::loadState(YAML::Node const& source)
         source, PhysicalObject::LoadMask().loadPosition().loadVelocity()))
     return false;
 
+  utils::YamlReader reader(source);
+  std::string sName;
+  reader.read("name", sName);
+  changeModuleName(std::move(sName));
+
   // Loading state of modules
   for (auto const& kv : source["modules"]) {
     std::string const& sModuleName = kv.first.as<std::string>();
@@ -42,11 +48,11 @@ bool Ship::loadState(YAML::Node const& source)
   return true;
 }
 
-bool Ship::installModule(std::string sName, modules::BaseModulePtr pModule)
+bool Ship::installModule(modules::BaseModulePtr pModule)
 {
-  if (m_Modules.find(sName) != m_Modules.end())
+  if (m_Modules.find(pModule->getModuleName()) != m_Modules.end())
     return false;
-  m_Modules.insert(std::make_pair(std::move(sName), pModule));
+  m_Modules.insert(std::make_pair(pModule->getModuleName(), pModule));
   m_pCommutator->attachModule(pModule);
   pModule->attachToChannel(m_pCommutator);
   pModule->installOn(this);

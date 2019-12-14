@@ -15,7 +15,7 @@ class MockedBaseModule :
 {
 public:
   MockedBaseModule(std::string&& sModuleType = "MockedBaseModule")
-    : modules::BaseModule(std::move(sModuleType))
+    : modules::BaseModule(std::move(sModuleType), std::string())
   {}
 
   // We should call only ProtobufSyncPipe implementation of this functions

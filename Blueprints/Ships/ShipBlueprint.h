@@ -20,7 +20,7 @@ public:
 
   virtual ~ShipBlueprint() = default;
 
-  virtual ShipPtr build() const;
+  virtual ShipPtr build(std::string shipName = std::string()) const;
 
   virtual ShipBlueprintPtr wrapToSharedPtr()
   {

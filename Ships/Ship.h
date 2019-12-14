@@ -17,12 +17,12 @@ class Ship :
     public utils::GlobalContainer<Ship>
 {
 public:
-  Ship(std::string const& sShipType, double weight, double radius);
+  Ship(std::string const& sShipType, std::string sName, double weight, double radius);
   ~Ship() override;
 
   bool loadState(YAML::Node const& source) override;
 
-  bool installModule(std::string sName, modules::BaseModulePtr pModule);
+  bool installModule(modules::BaseModulePtr pModule);
 
   // overrides from IProtobufTerminal interface
   void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;

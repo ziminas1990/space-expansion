@@ -31,15 +31,18 @@ private:
   };
 
 public:
-  BaseModule(std::string&& sModuleType)
-    : m_sModuleType(std::move(sModuleType)), m_eStatus(Status::eOnline),
-      m_eState(State::eIdle)
+  BaseModule(std::string sModuleType, std::string moduleName)
+    : m_sModuleType(std::move(sModuleType)), m_sModuleName(std::move(moduleName)),
+      m_eStatus(Status::eOnline), m_eState(State::eIdle)
   {}
 
   virtual bool loadState(YAML::Node const& /*source*/) { return true; }
   virtual void proceed(uint32_t /*nIntervalUs*/) { switchToIdleState(); }
 
   std::string const& getModuleType() const { return m_sModuleType; }
+  std::string const& getModuleName() const { return m_sModuleName; }
+
+  void changeModuleName(std::string sName) { m_sModuleName = std::move(sName); }
 
   void putOffline()         { m_eStatus = Status::eOffline; }
   void putOnline()          { m_eStatus = Status::eOnline; }
@@ -99,6 +102,7 @@ protected:
 
 private:
   std::string  m_sModuleType;
+  std::string  m_sModuleName;
   Status       m_eStatus;
   State        m_eState;
   ships::Ship* m_pPlatform = nullptr;

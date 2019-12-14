@@ -6,7 +6,7 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
 namespace modules
 {
 
-Commutator::Commutator() : BaseModule("Commutator")
+Commutator::Commutator() : BaseModule("Commutator", std::string())
 {
   GlobalContainer<Commutator>::registerSelf(this);
 }
@@ -151,6 +151,7 @@ void Commutator::getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const
     message.mutable_moduleinfo()->set_smoduletype("empty");
   } else {
     message.mutable_moduleinfo()->set_smoduletype(m_Slots[nSlotId]->getModuleType());
+    message.mutable_moduleinfo()->set_smodulename(m_Slots[nSlotId]->getModuleName());
   }
   sendToClient(nSessionId, std::move(message));
 }

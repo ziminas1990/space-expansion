@@ -246,6 +246,7 @@ message ICommutator {
   message ModuleInfo {
     uint32 nSlotId     = 1;
     string sModuleType = 2;
+    string sModuleName = 3;
   }
 
   message OpenTunnel {
