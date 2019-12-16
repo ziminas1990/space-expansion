@@ -44,7 +44,7 @@ private:
 
 private:
   config::ApplicationCfg      m_configuration;
-  conveyor::Conveyor*         m_pConveyor;
+  conveyor::Conveyor*         m_pConveyor = nullptr;
   boost::asio::io_service     m_IoService;
 
   blueprints::BlueprintsStoragePtr m_pBlueprints;

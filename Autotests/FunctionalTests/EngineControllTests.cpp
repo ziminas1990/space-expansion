@@ -33,7 +33,7 @@ protected:
       "  test:",
       "    password: test",
       "    ships:",
-      "      'Cubesat/Experimental Cube':",
+      "      'Cubesat/Small Cube':",
       "        position: { x: 100, y: 15}",
       "        velocity: { x: 10,  y: 5}",
       "        modules:",
@@ -56,11 +56,8 @@ TEST_F(EngineControllTests, OpenTunnelToEngine)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   for (size_t nSlot = 0; nSlot < 2; ++nSlot) {
     client::TunnelPtr pTunnelToEngine = ship.openTunnel(0);
@@ -75,11 +72,8 @@ TEST_F(EngineControllTests, GetSpecification)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   client::Engine engine;
   client::EngineSpecification specification;
@@ -105,11 +99,8 @@ TEST_F(EngineControllTests, SetAndGetThrust)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   client::Engine engine;
   engine.attachToChannel(ship.openTunnel(0));
@@ -138,11 +129,8 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   client::Engine engine;
   ASSERT_TRUE(client::FindMostPowerfulEngine(ship, engine));

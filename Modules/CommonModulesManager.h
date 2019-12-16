@@ -11,6 +11,7 @@
 namespace modules
 {
 
+#ifndef AUTOTESTS_MODE
 enum class Cooldown {
   eDefault           = 10000,
   eShip              = 10000,
@@ -19,6 +20,18 @@ enum class Cooldown {
   eCelestialScanner  = 500000,
   eResourceContainer = 500010,
 };
+#else
+// In autotests mode we can't afford to let logics to sleep for unpredictable period
+// of time
+enum class Cooldown {
+  eDefault           = 0,
+  eShip              = 0,
+  eEngine            = 0,
+  eAsteroidScanner   = 0,
+  eCelestialScanner  = 0,
+  eResourceContainer = 500010,
+};
+#endif
 
 // Common manager for any subclass of BaseModule class
 // Type ModuleType:
@@ -63,7 +76,7 @@ public:
     }
   }
 
-  size_t getCooldownTimeUs() const { return static_cast<size_t>(nCooldown) - 1; }
+  size_t getCooldownTimeUs() const { return static_cast<size_t>(nCooldown); }
 
 private:
   void handleAllMessages()

@@ -87,6 +87,9 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
 {
   const double weightPerSecond = 2000;
 
+  if (!nIntervalUs)
+    return;
+
   if (!m_activeTransfer.isValid()) {
     switchToIdleState();
     return;
@@ -105,9 +108,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   ResourceContainer* pReceiver =
       GlobalContainer<ResourceContainer>::Instance(port.m_nContainerId);
 
-  double distanceToReceiver =
-      getPlatform()->getPosition().distance(
-        pReceiver->getPlatform()->getPosition());
+  double distanceToReceiver = getPlatform()->getDistanceTo(pReceiver->getPlatform());
   if (distanceToReceiver > 200.0) {
     onTransferFailed(spex::IResourceContainer::ERROR_TOO_FAR);
     switchToIdleState();
@@ -119,8 +120,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   if (transferedAmount > m_activeTransfer.m_nLeft)
     transferedAmount = m_activeTransfer.m_nLeft;
 
-  m_activeTransfer.m_nReserved =
-      m_activeTransfer.m_nReserved +
+  m_activeTransfer.m_nReserved +=
       consumeResource(m_activeTransfer.m_eResourceType,
                       transferedAmount - m_activeTransfer.m_nReserved);
 
@@ -147,7 +147,7 @@ double ResourceContainer::putResource(world::Resources::Type type, double amount
   double freeVolume = m_nVolume - m_nUsedSpace;
   if (freeVolume < transfferedVolume) {
     transfferedVolume = freeVolume;
-    amount = freeVolume * world::Resources::density[type];
+    amount            = freeVolume * world::Resources::density[type];
   }
 
   m_amount[type] += amount;
@@ -374,6 +374,5 @@ double ResourceContainer::consumeResource(world::Resources::Type type, double am
     m_amount[type] = 0;
   return amount;
 }
-
 
 } // namespace modules

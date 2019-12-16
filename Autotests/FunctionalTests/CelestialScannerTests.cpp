@@ -80,11 +80,8 @@ TEST_F(CelestialScannerTests, GetSpecification)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -102,11 +99,8 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -124,11 +118,8 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -158,11 +149,8 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -190,11 +178,8 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::ShipPtr pShip = std::make_shared<client::Ship>();
-  pShip->attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", *pShip));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, scanner));

@@ -40,7 +40,7 @@ protected:
       "  mega_miner:",
       "    password: unabtainable",
       "    ships:",
-      "      'Miner/Bogatstvo Narodov':",
+      "      'Miner/Miner One':",
       "        position: { x: 0, y: 0}",
       "        velocity: { x: 0, y: 0}",
       "        modules:",
@@ -75,11 +75,8 @@ TEST_F(AsteroidScannerTests, GetSpecification)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidScanner scanner;
   ASSERT_TRUE(client::FindSomeAsteroidScanner(ship, scanner));
@@ -97,11 +94,8 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::ShipPtr pShip = std::make_shared<client::Ship>();
-  pShip->attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", *pShip));
 
   client::CelestialScanner celestialScanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, celestialScanner));
@@ -163,11 +157,8 @@ TEST_F(AsteroidScannerTests, FailedToScanTest)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::ShipPtr pShip = std::make_shared<client::Ship>();
-  pShip->attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", *pShip));
 
   client::CelestialScanner celestialScanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, celestialScanner));

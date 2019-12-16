@@ -106,7 +106,6 @@ public:
     struct std::list<ProceduresBatch> m_batches;
   };
 
-
   // =====================================================================================
   // Easy creation of scenarios objects:
   static LoginScenario Login() { return LoginScenario(m_pEnv); }

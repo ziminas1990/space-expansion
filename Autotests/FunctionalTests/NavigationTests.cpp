@@ -5,6 +5,7 @@
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
 #include <Autotests/ClientSDK/Procedures/Navigation.h>
+#include <Autotests/ClientSDK/Procedures/FindModule.h>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -61,11 +62,8 @@ TEST_F(NavigationTests, SimpleTest)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::ShipPtr pShip = std::make_shared<client::Ship>();
-  pShip->attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   client::Navigation navigation(pShip);
   ASSERT_TRUE(navigation.initialize());
@@ -85,11 +83,8 @@ TEST_F(NavigationTests, SeveralPoints)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::ShipPtr pShip = std::make_shared<client::Ship>();
-  pShip->attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   client::Navigation navigation(pShip);
   ASSERT_TRUE(navigation.initialize());
@@ -117,11 +112,8 @@ TEST_F(NavigationTests, OnMoving)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::ShipPtr pShip = std::make_shared<client::Ship>();
-  pShip->attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   client::Engine engine;
   engine.attachToChannel(pShip->openTunnel(0));

@@ -8,6 +8,9 @@
 
 namespace autotests { namespace client {
 
+bool attachToShip(ClientCommutatorPtr pRootCommutator, std::string const& sShipName,
+                  Ship& ship);
+
 bool GetAllModules(Ship& ship, std::string const& sModuleType,
                    ModulesList& modules);
 
@@ -15,6 +18,7 @@ bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine);
 bool FindBestCelestialScanner(Ship &ship, CelestialScanner& bestScanner,
                               CelestialScannerSpecification* pSpec = nullptr);
 bool FindSomeAsteroidScanner(Ship& ship, AsteroidScanner& someScanner);
-bool FindResourceContainer(Ship& ship, ResourceContainer& container);
+bool FindResourceContainer(Ship& ship, ResourceContainer& container,
+                           std::string const& sName = std::string());
 
 }}  // namespace autotests::client

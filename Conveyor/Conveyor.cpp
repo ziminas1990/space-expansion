@@ -49,12 +49,8 @@ void Conveyor::proceed(uint32_t nIntervalUs)
   m_State.pSelectedLogic  = nullptr;
   for(LogicContext& context : m_LogicChain)
   {
-    // In autotests mode we can't afford to let logics to sleep for unpredictable period
-    // of time
-#ifndef AUTOTESTS_MODE
     if (m_State.nCurrentTimeUs < context.m_nDoNotDisturbUntil)
       continue;
-#endif
 
     // prepharing state for proceeding selected logic
     IAbstractLogic* pLogic  = context.m_pLogic.get();
@@ -69,7 +65,7 @@ void Conveyor::proceed(uint32_t nIntervalUs)
         continue;
       m_State.nStageId = nStageId;
       m_Barrier.wait();
-      pLogic->proceedStage(nStageId, nIntervalUs);
+      pLogic->proceedStage(nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs));
       m_Barrier.wait();
     }
     context.m_nDoNotDisturbUntil += pLogic->getCooldownTimeUs();
@@ -83,7 +79,7 @@ void Conveyor::joinAsSlave()
   while (gContinueSlave) {
     m_Barrier.wait();
     m_State.pSelectedLogic->proceedStage(
-          m_State.nStageId, uint32_t(m_State.nLastIntervalUs));
+          m_State.nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs));
     m_Barrier.wait();
   }
 }

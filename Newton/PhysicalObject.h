@@ -53,6 +53,8 @@ public:
     m_weight = weight < m_minimalWeight ? m_minimalWeight : weight;
   }
 
+  double getDistanceTo(PhysicalObject const* other);
+
   // New external force will be created for object and will affect it forever!
   // There is NO WAY to remove created external force, so:
   // 1. The less forces you create, the better perfomance;

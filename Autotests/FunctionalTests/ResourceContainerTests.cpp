@@ -29,20 +29,34 @@ protected:
       "      engine: ",
       "        type:      engine",
       "        maxThrust: 5000000",
+      "  Station:",
+      "    radius: 1000",
+      "    weight: 10000000",
+      "    modules:",
+      "      cargo:",
+      "        type:   ResourceContainer",
+      "        volume: 100000",
       "Players:",
       "  merchant:",
       "    password: money",
       "    ships:",
-      "      Freighter/Begemot:",
+      "      'Freighter/Freighter One' :",
+      "        position: { x: 1100, y: 200}",
+      "        velocity: { x: 0,  y: 0 }",
+      "        modules:",
+      "          engine: { x: 0, y: 0}",
+      "          cargo:",
+      "            mettals:   100000",
+      "            silicates: 50000",
+      "            ice:       250000",
+      "      'Station/Earth Hub' :",
       "        position: { x: 0, y: 0}",
       "        velocity: { x: 0, y: 0}",
       "        modules:",
-      "          engine: { x: 0, y: 0}",
-      "          cargo:  {",
-      "            mettals:   100000,",
-      "            silicates: 50000,",
-      "            ice:       250000",
-      "          }"
+      "          cargo:",
+      "            mettals:   1000000",
+      "            silicates: 1000000",
+      "            ice:       1000000",
     };
     std::stringstream ss;
     for (std::string const& line : data)
@@ -54,16 +68,15 @@ protected:
 
 TEST_F(ResourceContainerTests, GetContent)
 {
+  animateWorld();
+
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
   ASSERT_TRUE(client::FindResourceContainer(ship, container));
@@ -79,16 +92,15 @@ TEST_F(ResourceContainerTests, GetContent)
 
 TEST_F(ResourceContainerTests, OpenPort)
 {
+  animateWorld();
+
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
   ASSERT_TRUE(client::FindResourceContainer(ship, container));
@@ -100,26 +112,25 @@ TEST_F(ResourceContainerTests, OpenPort)
   ASSERT_NE(0, nPortId);
 
   ASSERT_EQ(container.openPort(42, nPortId),
-            client::ResourceContainer::eStatusPortAlreadyOpen);
+            client::ResourceContainer::ePortAlreadyOpen);
 }
 
 TEST_F(ResourceContainerTests, ClosePort)
 {
+  animateWorld();
+
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::TunnelPtr pTunnelToShip = m_pRootCommutator->openTunnel(0);
-  ASSERT_TRUE(pTunnelToShip);
-
   client::Ship ship;
-  ship.attachToChannel(pTunnelToShip);
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
   ASSERT_TRUE(client::FindResourceContainer(ship, container));
 
-  ASSERT_EQ(container.closePort(), client::ResourceContainer::eStatusPortIsNotOpened);
+  ASSERT_EQ(container.closePort(), client::ResourceContainer::ePortIsNotOpened);
 
   for (uint32_t i = 0; i < 5; ++i) {
     uint32_t nAccessKey = i;
@@ -130,6 +141,70 @@ TEST_F(ResourceContainerTests, ClosePort)
 
     ASSERT_EQ(container.closePort(), client::ResourceContainer::eStatusOk);
   }
+}
+
+
+TEST_F(ResourceContainerTests, TransferSuccessCase)
+{
+  animateWorld();
+
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("merchant", "money")
+        .expectSuccess());
+
+  client::Ship freighter;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
+
+  client::Ship station;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
+
+  client::ResourceContainer          stationsContainer;
+  client::ResourceContainer::Content stationContent;
+  ASSERT_TRUE(client::FindResourceContainer(station, stationsContainer, "cargo"));
+  ASSERT_TRUE(stationsContainer.getContent(stationContent));
+
+  client::ResourceContainer          freighterContainer;
+  client::ResourceContainer::Content freigherContent;
+  ASSERT_TRUE(client::FindResourceContainer(freighter, freighterContainer, "cargo"));
+  ASSERT_TRUE(freighterContainer.getContent(freigherContent));
+
+  uint32_t nAccessKey = 43728;
+  uint32_t nPort      = 0;
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            stationsContainer.openPort(nAccessKey, nPort));
+
+  // transporting all mettals
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            freighterContainer.transfer(
+              nPort, nAccessKey, world::Resources::eMettal, freigherContent.mettals()));
+
+  stationContent.addMettals(freigherContent.mettals());
+  freigherContent.setMettals(0);
+  ASSERT_TRUE(freighterContainer.checkContent(freigherContent));
+  ASSERT_TRUE(stationsContainer.checkContent(stationContent));
+
+  // transporting silicates (partially)
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            freighterContainer.transfer(
+              nPort, nAccessKey, world::Resources::eSilicate,
+              freigherContent.silicates() / 2));
+
+  stationContent.addSilicates(freigherContent.silicates() / 2);
+  freigherContent.setSilicates(freigherContent.silicates() / 2);
+  ASSERT_TRUE(freighterContainer.checkContent(freigherContent));
+  ASSERT_TRUE(stationsContainer.checkContent(stationContent));
+
+  // transporting all ice
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            freighterContainer.transfer(
+              nPort, nAccessKey, world::Resources::eIce,
+              freigherContent.ice()));
+
+  stationContent.addIce(freigherContent.ice());
+  freigherContent.setIce(0);
+  ASSERT_TRUE(freighterContainer.checkContent(freigherContent));
+  ASSERT_TRUE(stationsContainer.checkContent(stationContent));
 }
 
 } // namespace autotests

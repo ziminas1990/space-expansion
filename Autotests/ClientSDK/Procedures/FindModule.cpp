@@ -4,7 +4,7 @@ namespace autotests { namespace client {
 
 bool GetAllModules(Ship &ship, std::string const& sModuleType, ModulesList &modules)
 {
-  uint32_t nTotalSlots;
+  uint32_t nTotalSlots = 0;
   if (!ship.getTotalSlots(nTotalSlots) || !nTotalSlots)
     return false;
 
@@ -96,7 +96,8 @@ bool FindSomeAsteroidScanner(Ship& ship, AsteroidScanner& someScanner)
   return true;
 }
 
-bool FindResourceContainer(Ship &ship, ResourceContainer &container)
+bool FindResourceContainer(Ship &ship, ResourceContainer &container,
+                           std::string const& sName)
 {
   ModulesList containers;
   if (!GetAllModules(ship, "ResourceContainer", containers))
@@ -104,12 +105,36 @@ bool FindResourceContainer(Ship &ship, ResourceContainer &container)
   if (containers.empty())
     return false;
 
-  ModuleInfo const& moduleInfo = containers.front();
-  TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
-  if (!pTunnel)
+  for (ModuleInfo const& moduleInfo : containers) {
+    if (!sName.empty() && moduleInfo.sModuleName != sName)
+      continue;
+
+    TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
+    container.attachToChannel(pTunnel);
+    return pTunnel != nullptr;
+  }
+  return false;
+}
+
+bool attachToShip(ClientCommutatorPtr pRootCommutator, std::string const& sShipName,
+                  Ship &ship)
+{
+  uint32_t nTotalShips;
+  if (!pRootCommutator->getTotalSlots(nTotalShips) || !nTotalShips)
     return false;
-  container.attachToChannel(pTunnel);
-  return true;
+
+  ModulesList ships;
+  if (!pRootCommutator->getAttachedModulesList(nTotalShips, ships))
+    return false;
+
+  for (ModuleInfo& shipInfo : ships) {
+    if (shipInfo.sModuleName == sShipName) {
+      client::TunnelPtr pTunnelToShip = pRootCommutator->openTunnel(shipInfo.nSlotId);
+      ship.attachToChannel(pTunnelToShip);
+      return pTunnelToShip != nullptr;
+    }
+  }
+  return false;
 }
 
 }}  // namespace autotests::client

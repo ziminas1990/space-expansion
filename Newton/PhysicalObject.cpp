@@ -46,6 +46,14 @@ void PhysicalObject::changeWeight(double delta)
     m_weight = m_minimalWeight;
 }
 
+double PhysicalObject::getDistanceTo(PhysicalObject const* other)
+{
+  double distance = m_position.distance(other->m_position);
+  distance -= std::min(distance, m_radius);
+  distance -= std::min(distance, other->m_radius);
+  return distance;
+}
+
 size_t PhysicalObject::createExternalForce()
 {
   std::lock_guard<utils::Spinlock> guard(m_spinlock);

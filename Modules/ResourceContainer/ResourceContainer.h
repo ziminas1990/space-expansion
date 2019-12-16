@@ -104,6 +104,7 @@ private:
 
   uint32_t m_nOpenedPortId;
   Transfer m_activeTransfer;
+  uint32_t m_nProceededTime;
 
   static std::mutex                     m_portsMutex; // shared_mutex?
   static utils::SimplePool<uint32_t, 0> m_freePortsIds;

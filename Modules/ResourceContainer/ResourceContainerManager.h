@@ -4,7 +4,7 @@
 namespace modules {
 
 using ResourceContainerManager =
-  CommonModulesManager<ResourceContainer, Cooldown::eAsteroidScanner>;
+  CommonModulesManager<ResourceContainer, Cooldown::eResourceContainer>;
 using ResourceContainerManagerPtr = std::shared_ptr<ResourceContainerManager>;
 
 } // namespace modules

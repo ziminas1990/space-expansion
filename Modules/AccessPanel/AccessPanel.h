@@ -33,9 +33,17 @@ public:
 
   // from IAbstractLogic interface
   uint16_t getStagesCount() override { return 1; }
-  bool prephareStage(uint16_t nStageId) override;
-  void proceedStage(uint16_t, uint32_t) override {}
-  size_t getCooldownTimeUs() const override { return 100000; }
+  bool     prephareStage(uint16_t nStageId) override;
+  void     proceedStage(uint16_t, uint32_t) override {}
+  size_t   getCooldownTimeUs() const override {
+#ifndef AUTOTESTS_MODE
+    return 100000;
+#else
+    // In autotests mode we can't afford to let logics to sleep for unpredictable period
+    // of time
+    return 0;
+#endif
+  }
 
 protected:
   // overrides from BufferedTerminal interface
