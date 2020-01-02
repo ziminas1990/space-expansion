@@ -112,5 +112,6 @@ private:
   static std::vector<Port>              m_allPorts;
 };
 
+using ResourceContainerPtr = std::shared_ptr<ResourceContainer>;
 
 } // namespace modules

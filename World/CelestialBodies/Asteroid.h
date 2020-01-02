@@ -3,26 +3,25 @@
 #include <memory>
 #include <Utils/GlobalContainer.h>
 #include <Newton/PhysicalObject.h>
-
+#include <Utils/Spinlock.h>
 #include <Utils/YamlForwardDeclarations.h>
+#include <World/Resources.h>
 
 namespace world {
 
 struct AsteroidComposition
 {
-  AsteroidComposition(double nSilicates, double nMettals, double nIce)
-    : nSilicates(nSilicates), nMettals(nMettals), nIce(nIce)
-  {
-    normalize();
-  }
+  AsteroidComposition(double nSilicates, double nMettals, double nIce);
   AsteroidComposition() : AsteroidComposition(1, 1, 1)
   {}
 
+  double silicates_percent() const { return resources[Resources::Type::eSilicate]; }
+  double mettals_percent()   const { return resources[Resources::Type::eMettal]; }
+  double ice_percent()       const { return resources[Resources::Type::eIce]; }
+
   void normalize();
 
-  double nSilicates;
-  double nMettals;
-  double nIce;
+  double resources[Resources::Type::eTotalResources];
 };
 
 class Asteroid;
@@ -42,11 +41,14 @@ public:
     return utils::GlobalContainer<Asteroid>::getInstanceId();
   }
 
+  double extract(Resources::Type eType, double amount);
+
 private:
   AsteroidComposition m_composition;
 
+  utils::Spinlock m_spinlock;
 };
 
 using AsteroidUptr = std::unique_ptr<Asteroid>;
 
-} // namespace celestial
+} // namespace world

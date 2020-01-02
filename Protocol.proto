@@ -232,6 +232,42 @@ message IResourceContainer {
 }
 
 
+message IAsteroidMiner {
+
+  enum Status {
+    SUCCESS               = 0;
+    INTERNAL_ERROR        = 1;
+    ASTEROID_DOESNT_EXIST = 2;
+    MINER_IS_BUSY         = 5;
+    ASTEROID_TOO_FAR      = 3;
+    NO_SPACE_AVALIABLE    = 4;
+  }
+
+  message Specification {
+    double max_distance  = 1;
+    uint32 cycle_time_ms = 2;
+  }
+
+  message MiningTask {
+    uint32       asteroid_id = 1;
+    ResourceType resource    = 2;
+  }
+
+  oneof choice {
+    bool          get_specification = 1;
+    MiningTask    start_mining      = 2;
+    bool          stop_mining       = 3;
+
+    Specification specification       = 21;
+    Status        start_mining_status = 22;
+    ResourceItem  mining_report       = 23;
+    Status        stop_mining_status  = 24;
+    Status        on_error            = 25;
+  }
+
+}
+
+
 message ICommutator {
 
   message GetTotalSlots {}
@@ -295,5 +331,6 @@ message Message {
     ICelestialScanner  celestialScanner   = 8;
     IAsteroidScanner   asteroid_scanner   = 9;
     IResourceContainer resource_container = 10;
+    IAsteroidMiner     asteroid_miner     = 11;
   }
 }
