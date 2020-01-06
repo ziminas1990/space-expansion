@@ -50,7 +50,6 @@ private:
   uint32_t m_nMaxDistance;
   uint32_t m_nCycleTimeMs;
   uint32_t m_nYeildPerCycle;
-  State    m_eState;
 
   ResourceContainerPtr   m_pContainer;
   uint32_t               m_nAsteroidId;

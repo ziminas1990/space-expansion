@@ -4,6 +4,7 @@
 #include "CelestialScannerBlueprint.h"
 #include "AsteroidScannerBlueprint.h"
 #include "ResourceContainerBlueprint.h"
+#include "AsteroidMinerBlueprint.h"
 
 #include <Utils/YamlReader.h>
 
@@ -54,6 +55,7 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
           .setScanningTimeMs(nScanningTimeMs)
           .wrapToSharedPtr();
     }
+
   } else if (sModuleClass == "ResourceContainer") {
     uint32_t nVolume = 0;
     bool lIsOk = reader.read("volume", nVolume);
@@ -62,6 +64,22 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
     {
       return ResourceContainerBlueprint()
           .setVolume(nVolume)
+          .wrapToSharedPtr();
+    }
+
+  } else if (sModuleClass == "AsteroidMiner") {
+    uint32_t nDistance      = 0;
+    uint32_t nCycleTimeMs   = 0;
+    uint32_t nYieldPerCycle = 0;
+    bool lIsOk = reader.read("max_distance",    nDistance)
+                       .read("cycle_time_ms",   nCycleTimeMs)
+                       .read("yield_per_cycle", nYieldPerCycle);
+    assert(lIsOk);
+    if (lIsOk) {
+      return AsteroidMinerBlueprint()
+          .setMaxDistance(nDistance)
+          .setCycleTimeMs(nCycleTimeMs)
+          .setYielPerSecond(nYieldPerCycle)
           .wrapToSharedPtr();
     }
   }
