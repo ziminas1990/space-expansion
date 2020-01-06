@@ -20,6 +20,7 @@
 #include "Modules/CelestialScanner/CelestialScannerManager.h"
 #include "Modules/AsteroidScanner/AsteroidScannerManager.h"
 #include "Modules/ResourceContainer/ResourceContainerManager.h"
+#include "Modules/AsteroidMiner/AsteroidMinerManager.h"
 
 class SystemManager
 {
@@ -57,6 +58,7 @@ private:
   modules::CelestialScannerManagerPtr  m_pCelestialScannerManager;
   modules::AsteroidScannerManagerPtr   m_pAsteroidScannerManager;
   modules::ResourceContainerManagerPtr m_pResourceContainerManager;
+  modules::AsteroidMinerManagerPtr     m_pAsteroidMinerManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
   network::ProtobufChannelPtr m_pLoginChannel;

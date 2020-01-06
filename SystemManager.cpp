@@ -86,6 +86,7 @@ bool SystemManager::createAllComponents()
   m_pCelestialScannerManager  = std::make_shared<modules::CelestialScannerManager>();
   m_pAsteroidScannerManager   = std::make_shared<modules::AsteroidScannerManager>();
   m_pResourceContainerManager = std::make_shared<modules::ResourceContainerManager>();
+  m_pAsteroidMinerManager     = std::make_shared<modules::AsteroidMinerManager>();
 
   m_pUdpDispatcher  = std::make_shared<network::UdpDispatcher>(m_IoService);
   m_pLoginChannel   = std::make_shared<network::ProtobufChannel>();
@@ -101,8 +102,8 @@ bool SystemManager::configureComponents()
 
 bool SystemManager::linkComponents()
 {
-  m_pUdpDispatcher->createUdpConnection(
-        m_pLoginChannel, m_configuration.getLoginUdpPort());
+  m_pUdpDispatcher->createUdpConnection(m_pLoginChannel,
+                                        m_configuration.getLoginUdpPort());
   m_pLoginChannel->attachToTerminal(m_pAccessPanel);
   m_pAccessPanel->attachToChannel(m_pLoginChannel);
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
@@ -117,6 +118,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pCelestialScannerManager);
   m_pConveyor->addLogicToChain(m_pAsteroidScannerManager);
   m_pConveyor->addLogicToChain(m_pResourceContainerManager);
+  m_pConveyor->addLogicToChain(m_pAsteroidMinerManager);
 
   m_pPlayersStorage->attachToBlueprintsStorage(m_pBlueprints);
   return true;

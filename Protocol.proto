@@ -168,9 +168,10 @@ message IAsteroidScanner {
 
 
 enum ResourceType {
-  RESOURCE_METTALS   = 0;
-  RESOURCE_SILICATES = 1;
-  RESOURCE_ICE       = 2;
+  RESOURCE_UNKNOWN   = 0;
+  RESOURCE_METTALS   = 1;
+  RESOURCE_SILICATES = 2;
+  RESOURCE_ICE       = 3;
 }
 
 message ResourceItem {
@@ -238,14 +239,16 @@ message IAsteroidMiner {
     SUCCESS               = 0;
     INTERNAL_ERROR        = 1;
     ASTEROID_DOESNT_EXIST = 2;
-    MINER_IS_BUSY         = 5;
-    ASTEROID_TOO_FAR      = 3;
-    NO_SPACE_AVALIABLE    = 4;
+    MINER_IS_BUSY         = 3;
+    MINER_IS_IDLE         = 4;
+    ASTEROID_TOO_FAR      = 5;
+    NO_SPACE_AVALIABLE    = 6;
   }
 
   message Specification {
-    double max_distance  = 1;
-    uint32 cycle_time_ms = 2;
+    double max_distance    = 1;
+    uint32 cycle_time_ms   = 2;
+    uint32 yeild_pre_cycle = 3;
   }
 
   message MiningTask {
@@ -254,7 +257,7 @@ message IAsteroidMiner {
   }
 
   oneof choice {
-    bool          get_specification = 1;
+    bool          specification_req = 1;
     MiningTask    start_mining      = 2;
     bool          stop_mining       = 3;
 

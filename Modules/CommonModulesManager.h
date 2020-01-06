@@ -16,9 +16,10 @@ enum class Cooldown {
   eDefault           = 10000,
   eShip              = 10000,
   eEngine            = 100000,
-  eAsteroidScanner   = 200000,
+  eAsteroidMiner     = 250000,
+  eAsteroidScanner   = 300000,
   eCelestialScanner  = 500000,
-  eResourceContainer = 500010,
+  eResourceContainer = 501000,
 };
 #else
 // In autotests mode we can't afford to let logics to sleep for unpredictable period
@@ -28,6 +29,7 @@ enum class Cooldown {
   eShip              = 0,
   eEngine            = 0,
   eAsteroidScanner   = 0,
+  eAsteroidMiner     = 0,
   eCelestialScanner  = 0,
   eResourceContainer = 500010,
 };

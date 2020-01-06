@@ -1,13 +1,13 @@
 #pragma once
 
-#include "AsteroidScanner.h"
+#include "AsteroidMiner.h"
 #include <Modules/CommonModulesManager.h>
 
 namespace modules
 {
 
-using AsteroidScannerManager    =
-  CommonModulesManager<AsteroidScanner, Cooldown::eAsteroidScanner>;
-using AsteroidScannerManagerPtr = std::shared_ptr<AsteroidScannerManager>;
+using AsteroidMinerManager    =
+  CommonModulesManager<AsteroidMiner, Cooldown::eAsteroidScanner>;
+using AsteroidMinerManagerPtr = std::shared_ptr<AsteroidMinerManager>;
 
 } // namespace modules

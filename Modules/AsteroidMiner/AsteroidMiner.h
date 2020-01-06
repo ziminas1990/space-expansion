@@ -24,7 +24,7 @@ class AsteroidMiner :
   };
 
 public:
-  AsteroidMiner(uint32_t nMaxDistance, uint32_t nCycleTimeMs);
+  AsteroidMiner(uint32_t nMaxDistance, uint32_t nCycleTimeMs, uint32_t nYieldPerCycle);
 
   void attachToResourceContainer(ResourceContainerPtr pContainer);
 
@@ -33,23 +33,29 @@ public:
 private:
   void handleAsteroidMinerMessage(
       uint32_t nTunnelId, spex::IAsteroidMiner const& message) override;
+  void yiedlAsteroidAndSendReport(world::Asteroid* pAsteroid);
 
   void startMiningRequest(uint32_t nTunnelId,
                           spex::IAsteroidMiner::MiningTask const& task);
+  void stopMiningRequest(uint32_t nTunnelId);
   void onSpecificationRequest(uint32_t nTunnelId);
 
   world::Asteroid* getAsteroid(uint32_t nAsteroidId);
   bool isInRange(world::Asteroid* pAsteroid) const;
 
   void sendStartMiningStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
+  void sendStopMiningStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
+  void sendError(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
 private:
   uint32_t m_nMaxDistance;
   uint32_t m_nCycleTimeMs;
+  uint32_t m_nYeildPerCycle;
   State    m_eState;
 
   ResourceContainerPtr   m_pContainer;
   uint32_t               m_nAsteroidId;
-  uint64_t               m_nCycleLeftUs;
+  uint64_t               m_nCycleProgressUs;
+  uint32_t               m_nTunnelId;
   world::Resources::Type m_eResourceType;
 };
 
