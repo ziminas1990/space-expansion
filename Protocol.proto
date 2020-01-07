@@ -246,7 +246,7 @@ message IAsteroidMiner {
   }
 
   message Specification {
-    double max_distance    = 1;
+    uint32 max_distance    = 1;
     uint32 cycle_time_ms   = 2;
     uint32 yeild_pre_cycle = 3;
   }

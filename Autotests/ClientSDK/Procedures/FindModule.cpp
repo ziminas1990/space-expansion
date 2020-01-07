@@ -137,4 +137,23 @@ bool attachToShip(ClientCommutatorPtr pRootCommutator, std::string const& sShipN
   return false;
 }
 
+bool FindAsteroidMiner(Ship &ship, AsteroidMiner& miner, const std::string &sName)
+{
+  ModulesList containers;
+  if (!GetAllModules(ship, "AsteroidMiner", containers))
+    return false;
+  if (containers.empty())
+    return false;
+
+  for (ModuleInfo const& moduleInfo : containers) {
+    if (!sName.empty() && moduleInfo.sModuleName != sName)
+      continue;
+
+    TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
+    miner.attachToChannel(pTunnel);
+    return pTunnel != nullptr;
+  }
+  return false;
+}
+
 }}  // namespace autotests::client

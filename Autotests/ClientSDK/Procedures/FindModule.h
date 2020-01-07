@@ -5,6 +5,7 @@
 #include <Autotests/ClientSDK/Modules/ClientCelestialScanner.h>
 #include <Autotests/ClientSDK/Modules/ClientAsteroidScanner.h>
 #include <Autotests/ClientSDK/Modules/ClientResourceContainer.h>
+#include <Autotests/ClientSDK/Modules/ClientAsteroidMiner.h>
 
 namespace autotests { namespace client {
 
@@ -20,5 +21,7 @@ bool FindBestCelestialScanner(Ship &ship, CelestialScanner& bestScanner,
 bool FindSomeAsteroidScanner(Ship& ship, AsteroidScanner& someScanner);
 bool FindResourceContainer(Ship& ship, ResourceContainer& container,
                            std::string const& sName = std::string());
+bool FindAsteroidMiner(Ship& ship, AsteroidMiner& miner,
+                       std::string const& sName = std::string());
 
 }}  // namespace autotests::client
