@@ -7,7 +7,7 @@
   - **yield_per_cycle** - масса вещества астероида (в килограммах), которая обрабатывается в течении одного цикла.
 
 ## Описание интерфейса IAsteroidMiner
-Все модули класса "AsteroidMiner" реализуют интерфейс **IAsteroidScanner**:
+Все модули класса "AsteroidMiner" реализуют интерфейс **IAsteroidMiner**:
 ```protobuf
 message IAsteroidMiner {
 
