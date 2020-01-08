@@ -64,6 +64,22 @@ AsteroidMiner::Status AsteroidMiner::startMining(
   return convert(response.start_mining_status());
 }
 
+AsteroidMiner::Status AsteroidMiner::stopMining()
+{
+  spex::Message message;
+  message.mutable_asteroid_miner()->set_stop_mining(true);
+  if (!send(message))
+    return eTransportError;
+
+  spex::IAsteroidMiner response;
+  if (!wait(response))
+    return eTimeout;
+  if (response.choice_case() != spex::IAsteroidMiner::kStopMiningStatus)
+    return eUnexpectedMessage;
+
+  return convert(response.stop_mining_status());
+}
+
 bool AsteroidMiner::waitMiningReport(double& nAmount, uint16_t nTimeout)
 {
   spex::IAsteroidMiner response;
@@ -74,6 +90,17 @@ bool AsteroidMiner::waitMiningReport(double& nAmount, uint16_t nTimeout)
 
   nAmount = response.mining_report().amount();
   return true;
+}
+
+bool AsteroidMiner::waitError(AsteroidMiner::Status eExpectedStatus)
+{
+  spex::IAsteroidMiner response;
+  if (!wait(response))
+    return false;
+  if (response.choice_case() != spex::IAsteroidMiner::kOnError)
+    return false;
+
+  return convert(response.on_error()) == eExpectedStatus;
 }
 
 }}  // namespace aytitests::client

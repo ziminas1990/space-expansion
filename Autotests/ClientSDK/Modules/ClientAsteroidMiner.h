@@ -33,8 +33,10 @@ public:
   bool getSpecification(AsteroidMinerSpecification& specification);
 
   Status startMining(uint32_t nAsteroidId, world::Resources::Type eResourceType);
+  Status stopMining();
 
   bool waitMiningReport(double& nAmount, uint16_t nTimeout = 500);
+  bool waitError(Status eExpectedStatus);
 
 };
 
