@@ -24,7 +24,8 @@ class AsteroidMiner :
   };
 
 public:
-  AsteroidMiner(uint32_t nMaxDistance, uint32_t nCycleTimeMs, uint32_t nYieldPerCycle);
+  AsteroidMiner(uint32_t nMaxDistance, uint32_t nCycleTimeMs, uint32_t nYieldPerCycle,
+                std::string sContainerName);
 
   void attachToResourceContainer(ResourceContainerPtr pContainer);
 
@@ -47,9 +48,10 @@ private:
   void sendStopMiningStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
   void sendError(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
 private:
-  uint32_t m_nMaxDistance;
-  uint32_t m_nCycleTimeMs;
-  uint32_t m_nYeildPerCycle;
+  uint32_t    m_nMaxDistance;
+  uint32_t    m_nCycleTimeMs;
+  uint32_t    m_nYeildPerCycle;
+  std::string m_sContainerName;
 
   ResourceContainerPtr   m_pContainer;
   uint32_t               m_nAsteroidId;

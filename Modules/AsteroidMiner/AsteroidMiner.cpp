@@ -3,6 +3,7 @@
 #include <Ships/Ship.h>
 #include <World/CelestialBodies/Asteroid.h>
 #include <Utils/YamlReader.h>
+#include <Utils/ProtocolEnumsConverter.h>
 
 #include <assert.h>
 #include <math.h>
@@ -12,49 +13,12 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::AsteroidMiner);
 namespace modules
 {
 
-static world::Resources::Type convert(spex::ResourceType eType)
-{
-  switch (eType) {
-    case spex::ResourceType::RESOURCE_ICE:
-      return world::Resources::eIce;
-    case spex::ResourceType::RESOURCE_METTALS:
-      return world::Resources::eMettal;
-    case spex::ResourceType::RESOURCE_SILICATES:
-      return world::Resources::eSilicate;
-    case spex::ResourceType::RESOURCE_UNKNOWN:
-    case spex::ResourceType::ResourceType_INT_MAX_SENTINEL_DO_NOT_USE_:
-    case spex::ResourceType::ResourceType_INT_MIN_SENTINEL_DO_NOT_USE_: {
-      // to avoid warning
-      assert(nullptr == "Unexpected resource type!");
-    }
-  }
-  return world::Resources::eUnknown;
-}
-
-static spex::ResourceType convert(world::Resources::Type eType)
-{
-  switch (eType) {
-    case world::Resources::eIce:
-      return spex::ResourceType::RESOURCE_ICE;
-    case world::Resources::eMettal:
-      return spex::ResourceType::RESOURCE_METTALS;
-    case world::Resources::eSilicate:
-      return spex::ResourceType::RESOURCE_SILICATES;
-    case world::Resources::eTotalResources:
-    case world::Resources::eUnknown: {
-      // to avoid warning
-      assert(nullptr == "Unexpected resource type!");
-    }
-  }
-  return spex::ResourceType::RESOURCE_UNKNOWN;
-}
-
-
 AsteroidMiner::AsteroidMiner(uint32_t nMaxDistance, uint32_t nCycleTimeMs,
-                             uint32_t nYieldPerCycle)
+                             uint32_t nYieldPerCycle, std::string sContainerName)
   : BaseModule("AsteroidMiner", std::string()),
     m_nMaxDistance(nMaxDistance), m_nCycleTimeMs(nCycleTimeMs),
-    m_nYeildPerCycle(nYieldPerCycle), m_nCycleProgressUs(0), m_nTunnelId(0)
+    m_nYeildPerCycle(nYieldPerCycle), m_sContainerName(std::move(sContainerName)),
+    m_nCycleProgressUs(0), m_nTunnelId(0)
 {
   GlobalContainer<AsteroidMiner>::registerSelf(this);
 }
@@ -66,6 +30,8 @@ void AsteroidMiner::attachToResourceContainer(ResourceContainerPtr pContainer)
 
 void AsteroidMiner::proceed(uint32_t nIntervalUs)
 {
+  getPlatform();
+
   world::Asteroid* pAsteroid = getAsteroid(m_nAsteroidId);
   if (!pAsteroid) {
     sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::ASTEROID_DOESNT_EXIST);
@@ -94,7 +60,7 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
   spex::ResourceItem* pItem = pResponse->mutable_mining_report();
-  pItem->set_type(convert(m_eResourceType));
+  pItem->set_type(utils::convert(m_eResourceType));
   pItem->set_amount(put);
   sendToClient(m_nTunnelId, message);
 
@@ -130,6 +96,13 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
     return;
   }
 
+  BaseModulePtr pModule = getPlatform()->getModuleByName(m_sContainerName);
+  m_pContainer = std::dynamic_pointer_cast<ResourceContainer>(pModule);
+  if (!m_pContainer) {
+    sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::INTERNAL_ERROR);
+    return;
+  }
+
   world::Asteroid* pAsteroid = getAsteroid(task.asteroid_id());
   if (!pAsteroid) {
     sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::ASTEROID_DOESNT_EXIST);
@@ -142,8 +115,9 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
   }
 
   m_nAsteroidId   = task.asteroid_id();
-  m_eResourceType = convert(task.resource());
-  onActivated();
+  m_eResourceType = utils::convert(task.resource());
+  switchToActiveState();
+  sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
 }
 
 void AsteroidMiner::stopMiningRequest(uint32_t nTunnelId)
@@ -153,7 +127,7 @@ void AsteroidMiner::stopMiningRequest(uint32_t nTunnelId)
     return;
   }
   sendStopMiningStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
-  onDeactivated();
+  switchToIdleState();
 }
 
 void AsteroidMiner::onSpecificationRequest(uint32_t nTunnelId)
@@ -186,7 +160,7 @@ void AsteroidMiner::sendStartMiningStatus(uint32_t nTunnelId,
 {
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
-  pResponse->set_stop_mining_status(status);
+  pResponse->set_start_mining_status(status);
   sendToClient(nTunnelId, message);
 }
 

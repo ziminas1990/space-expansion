@@ -29,6 +29,8 @@ public:
   void attachToChannel(network::IProtobufChannelPtr pChannel) override;
   void detachFromChannel() override;
 
+  modules::BaseModulePtr getModuleByName(std::string const& sName) const;
+
 protected:
   void handleShipMessage(uint32_t nSessionId, spex::IShip const& message) override;
   void handleNavigationMessage(

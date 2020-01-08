@@ -7,7 +7,7 @@ namespace modules
 {
 
 using AsteroidMinerManager    =
-  CommonModulesManager<AsteroidMiner, Cooldown::eAsteroidScanner>;
+  CommonModulesManager<AsteroidMiner, Cooldown::eAsteroidMiner>;
 using AsteroidMinerManagerPtr = std::shared_ptr<AsteroidMinerManager>;
 
 } // namespace modules

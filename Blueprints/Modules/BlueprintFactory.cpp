@@ -68,18 +68,21 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
     }
 
   } else if (sModuleClass == "AsteroidMiner") {
-    uint32_t nDistance      = 0;
-    uint32_t nCycleTimeMs   = 0;
-    uint32_t nYieldPerCycle = 0;
+    uint32_t    nDistance      = 0;
+    uint32_t    nCycleTimeMs   = 0;
+    uint32_t    nYieldPerCycle = 0;
+    std::string sContainerName;
     bool lIsOk = reader.read("max_distance",    nDistance)
                        .read("cycle_time_ms",   nCycleTimeMs)
-                       .read("yield_per_cycle", nYieldPerCycle);
+                       .read("yield_per_cycle", nYieldPerCycle)
+                       .read("container",       sContainerName);
     assert(lIsOk);
     if (lIsOk) {
       return AsteroidMinerBlueprint()
           .setMaxDistance(nDistance)
           .setCycleTimeMs(nCycleTimeMs)
           .setYielPerSecond(nYieldPerCycle)
+          .setContainer(sContainerName)
           .wrapToSharedPtr();
     }
   }

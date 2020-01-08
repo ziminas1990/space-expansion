@@ -77,6 +77,12 @@ void Ship::detachFromChannel()
   m_pCommutator->detachFromChannel();
 }
 
+modules::BaseModulePtr Ship::getModuleByName(std::string const& sName) const
+{
+  std::map<std::string, modules::BaseModulePtr>::const_iterator I = m_Modules.find(sName);
+  return I != m_Modules.end() ? I->second : modules::BaseModulePtr();
+}
+
 void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
 {
   switch (message.choice_case()) {
