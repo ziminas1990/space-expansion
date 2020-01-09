@@ -15,6 +15,10 @@ public:
     : m_nBegin(other.begin()), m_nEnd(other.end())
   {}
 
+  bool isValid() const {
+    return m_nBegin && m_nEnd && m_nEnd > m_nBegin;
+  }
+
   PortsPoolCfg& setBegin(uint16_t nBegin);
   PortsPoolCfg& setEnd(uint16_t nEnd);
 
@@ -33,6 +37,10 @@ class ApplicationCfg : public IApplicationCfg
 public:
   ApplicationCfg();
   ApplicationCfg(IApplicationCfg const& other);
+
+  bool isValid() const {
+    return m_nTotalThreads && m_nLoginUdpPort && m_portsPool.isValid();
+  }
 
   ApplicationCfg& setTotalThreads(uint16_t nTotalThreads);
   ApplicationCfg& setLoginUdpPort(uint16_t nLoginUdpPort);

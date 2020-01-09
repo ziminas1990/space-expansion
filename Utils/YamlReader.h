@@ -24,6 +24,7 @@ public:
 
   // Built-in types:
   // TODO: replace with template?
+  YamlReader& read(char const* pName, uint16_t& value);
   YamlReader& read(char const* pName, uint32_t& value);
   YamlReader& read(char const* pName, double& value);
   YamlReader& read(char const* pName, std::string& sValue);
