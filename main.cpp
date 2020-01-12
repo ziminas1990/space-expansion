@@ -22,10 +22,10 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  YAML::Node rootNode = YAML::Load(cfgStream);
+  YAML::Node cfg = YAML::Load(cfgStream);
 
   config::ApplicationCfg applicationCfg =
-      config::ApplicationCfgReader::read(rootNode["application"]);
+      config::ApplicationCfgReader::read(cfg["application"]);
 
   if (!applicationCfg.isValid()) {
     std::cerr << "FAILED to read application configuration!" << std::endl;
@@ -38,11 +38,18 @@ int main(int argc, char* argv[])
     return 1;
   }
 
+  if (!app.loadWorldState(cfg)) {
+    std::cerr << "FAILED to load world state" << std::endl;
+    return 1;
+  }
+
   if (!app.start()) {
     std::cerr << "FAILED to start application!" << std::endl;
+    return 1;
   }
 
   app.proceed();
+  return 0;
 }
 
 #else

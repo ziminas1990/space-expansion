@@ -2,9 +2,10 @@
 
 namespace network {
 
-UdpDispatcher::UdpDispatcher(boost::asio::io_service& ioContext)
+UdpDispatcher::UdpDispatcher(boost::asio::io_service& ioContext,
+                             uint16_t nPoolBegin, uint16_t nPoolEnd)
   : m_IOContext(ioContext),
-    m_portsPool(36000, 36001)
+    m_portsPool(nPoolBegin, nPoolEnd)
 {}
 
 UdpSocketPtr UdpDispatcher::createUdpConnection(

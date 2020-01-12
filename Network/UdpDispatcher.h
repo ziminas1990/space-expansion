@@ -18,7 +18,8 @@ using TcpEndPoint = boost::asio::ip::tcp::endpoint;
 class UdpDispatcher : public conveyor::IAbstractLogic
 { 
 public:
-  UdpDispatcher(boost::asio::io_service& ioContext);
+  UdpDispatcher(boost::asio::io_service& ioContext,
+                uint16_t nPoolBegin, uint16_t nPoolEnd);
 
   UdpSocketPtr createUdpConnection(BufferedTerminalPtr pTerminal,
                                    uint16_t nLocalPort = 0);

@@ -15,7 +15,7 @@ SystemManager::~SystemManager()
   delete m_pConveyor;
 }
 
-bool SystemManager::initialize(config::IApplicationCfg const& cfg)
+bool SystemManager::initialize(const config::IApplicationCfg &cfg)
 {
   m_configuration = cfg;
   return createAllComponents()
@@ -88,7 +88,11 @@ bool SystemManager::createAllComponents()
   m_pResourceContainerManager = std::make_shared<modules::ResourceContainerManager>();
   m_pAsteroidMinerManager     = std::make_shared<modules::AsteroidMinerManager>();
 
-  m_pUdpDispatcher  = std::make_shared<network::UdpDispatcher>(m_IoService);
+  m_pUdpDispatcher  =
+      std::make_shared<network::UdpDispatcher>(
+        m_IoService,
+        m_configuration.getPortsPoolcfg().begin(),
+        m_configuration.getPortsPoolcfg().end());
   m_pLoginChannel   = std::make_shared<network::ProtobufChannel>();
   m_pAccessPanel    = std::make_shared<modules::AccessPanel>();
   m_pPlayersStorage = std::make_shared<world::PlayersStorage>();

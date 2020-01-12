@@ -22,6 +22,7 @@ UdpSocket::~UdpSocket()
 
 void UdpSocket::addRemote(udp::endpoint const& remote)
 {
+  std::cout << "Remote: " << remote << std::endl;
   m_WhiteList.insert(remote);
   if (m_WhiteList.size() == 1) {
     // Closing all existing sessions expect one with specified remote
