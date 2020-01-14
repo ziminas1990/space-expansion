@@ -260,22 +260,15 @@ void ResourceContainer::sendTransferReport(
   sendToClient(nTunnelId, message);
 }
 
-void ResourceContainer::sendTransferFinished(
-    uint32_t nTunnelId, spex::IResourceContainer::Status status)
-{
-  spex::Message message;
-  message.mutable_resource_container()->set_transfer_finished(status);
-  sendToClient(nTunnelId, message);
-}
-
-
 void ResourceContainer::terminateActiveTransfer(spex::IResourceContainer::Status status)
 {
   if (m_activeTransfer.m_nReserved > 0) {
     // If container is full already, reserved resources will be lost!
     putResource(m_activeTransfer.m_eResourceType, m_activeTransfer.m_nReserved);
   }
-  sendTransferFinished(m_activeTransfer.m_nTunnelId, status);
+  spex::Message message;
+  message.mutable_resource_container()->set_transfer_finished(status);
+  sendToClient(m_activeTransfer.m_nTunnelId, message);
   m_activeTransfer = Transfer();
 }
 

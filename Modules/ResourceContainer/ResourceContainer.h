@@ -40,7 +40,6 @@ private:
   void sendContent(uint32_t nTunnelId);
   void sendTransferStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);
   void sendTransferReport(uint32_t nTunnelId, world::Resources::Type type, double amount);
-  void sendTransferFinished(uint32_t nTunnelId, spex::IResourceContainer::Status status);
 
   void terminateActiveTransfer(spex::IResourceContainer::Status status);
 
