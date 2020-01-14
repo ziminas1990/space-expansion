@@ -182,16 +182,17 @@ message ResourceItem {
 
 message IResourceContainer {
 
-  enum Error {
-    ERROR_INTERNAL             = 0;
-    ERROR_PORT_ALREADY_OPEN    = 1;
-    ERROR_PORT_DOESNT_EXIST    = 2;
-    ERROR_PORT_IS_NOT_OPENED   = 3;
-    ERROR_PORT_HAS_BEEN_CLOSED = 4;
-    ERROR_INVALID_KEY          = 5;
-    ERROR_TOO_FAR              = 6;
-    ERROR_TRANSFER_IN_PROGRESS = 7;
-    ERROR_NOT_ENOUGH_RESOURCES = 8;
+  enum Status {
+    SUCCESS              = 0;
+    INTERNAL_ERROR       = 1;
+    PORT_ALREADY_OPEN    = 2;
+    PORT_DOESNT_EXIST    = 3;
+    PORT_IS_NOT_OPENED   = 4;
+    PORT_HAS_BEEN_CLOSED = 5;
+    INVALID_ACCESS_KEY   = 6;
+    PORT_TOO_FAR         = 7;
+    TRANSFER_IN_PROGRESS = 8;
+    NOT_ENOUGH_RESOURCES = 9;
   }
 
   message OpenPort {
@@ -210,25 +211,20 @@ message IResourceContainer {
     ResourceItem resource = 3;
   }
   
-  
-  message OnError {
-    Error code = 1;
-  }
-  
   oneof choice {
     // Requests and command from Client
-    bool           get_content       = 1;
+    bool           content_req       = 1;
     OpenPort       open_port         = 2;
     bool           close_port        = 3;
     Transfer       transfer          = 4;
     
     Content        content            = 21;
     uint32         port_opened        = 22;
-    bool           port_closed        = 23;
-    Error          transfer_failed    = 24;
-    ResourceItem   transfer_report    = 25;
-    bool           transfer_complete  = 26;
-    Error          on_error           = 27;
+    Status         open_port_failed   = 23;
+    Status         close_port_status  = 24;
+    Status         transfer_status    = 25;
+    ResourceItem   transfer_report    = 26;
+    Status         transfer_finished  = 27;
   }
 }
 

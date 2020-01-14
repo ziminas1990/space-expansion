@@ -99,7 +99,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   Port& port = m_allPorts[m_activeTransfer.m_nPortId];
 
   if (!port.isValid() || m_activeTransfer.m_nPortSecretKey != port.m_nSecretKey) {
-    onTransferFailed(spex::IResourceContainer::ERROR_PORT_HAS_BEEN_CLOSED);
+    terminateActiveTransfer(spex::IResourceContainer::PORT_HAS_BEEN_CLOSED);
     switchToIdleState();
     return;
   }
@@ -110,7 +110,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
 
   double distanceToReceiver = getPlatform()->getDistanceTo(pReceiver->getPlatform());
   if (distanceToReceiver > 200.0) {
-    onTransferFailed(spex::IResourceContainer::ERROR_TOO_FAR);
+    terminateActiveTransfer(spex::IResourceContainer::PORT_TOO_FAR);
     switchToIdleState();
     return;
   }
@@ -134,7 +134,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
 
   m_activeTransfer.m_nLeft -= actuallyTransfered;
   if (utils::AlmostEqual(m_activeTransfer.m_nLeft, 0)) {
-    terminateActiveTransfer();
+    terminateActiveTransfer(spex::IResourceContainer::SUCCESS);
     switchToIdleState();
   }
 }
@@ -176,7 +176,7 @@ void ResourceContainer::handleResourceContainerMessage(
     uint32_t nTunnelId, spex::IResourceContainer const & message)
 {
   switch(message.choice_case()) {
-    case spex::IResourceContainer::kGetContent: {
+    case spex::IResourceContainer::kContentReq: {
       sendContent(nTunnelId);
       return;
     }
@@ -195,6 +195,22 @@ void ResourceContainer::handleResourceContainerMessage(
     default:
       return;
   }
+}
+
+void ResourceContainer::sendOpenPortFailed(
+    uint32_t nTunnelId, spex::IResourceContainer::Status reason)
+{
+  spex::Message response;
+  response.mutable_resource_container()->set_open_port_failed(reason);
+  sendToClient(nTunnelId, response);
+}
+
+void ResourceContainer::sendClosePortStatus(
+    uint32_t nTunnelId, spex::IResourceContainer::Status status)
+{
+  spex::Message response;
+  response.mutable_resource_container()->set_close_port_status(status);
+  sendToClient(nTunnelId, response);
 }
 
 void ResourceContainer::sendContent(uint32_t nTunnelId)
@@ -224,13 +240,14 @@ void ResourceContainer::sendContent(uint32_t nTunnelId)
   sendToClient(nTunnelId, response);
 }
 
-void ResourceContainer::sendError(uint32_t nTunnelId,
-                                  spex::IResourceContainer::Error error)
+void ResourceContainer::sendTransferStatus(
+    uint32_t nTunnelId, spex::IResourceContainer::Status status)
 {
   spex::Message response;
-  response.mutable_resource_container()->set_on_error(error);
+  response.mutable_resource_container()->set_transfer_status(status);
   sendToClient(nTunnelId, response);
 }
+
 
 void ResourceContainer::sendTransferReport(
     uint32_t nTunnelId, world::Resources::Type type, double amount)
@@ -243,36 +260,22 @@ void ResourceContainer::sendTransferReport(
   sendToClient(nTunnelId, message);
 }
 
-void ResourceContainer::sendTransferComplete(uint32_t nTunnelId)
+void ResourceContainer::sendTransferFinished(
+    uint32_t nTunnelId, spex::IResourceContainer::Status status)
 {
   spex::Message message;
-  message.mutable_resource_container()->set_transfer_complete(true);
+  message.mutable_resource_container()->set_transfer_finished(status);
   sendToClient(nTunnelId, message);
 }
 
-void ResourceContainer::sendTransferFailed(
-    uint32_t nTunnelId, spex::IResourceContainer::Error reason)
-{
-  spex::Message message;
-  message.mutable_resource_container()->set_transfer_failed(reason);
-  sendToClient(nTunnelId, message);
-}
 
-void ResourceContainer::onTransferFailed(spex::IResourceContainer::Error reason)
-{
-  sendTransferFailed(m_activeTransfer.m_nTunnelId, reason);
-  terminateActiveTransfer(false);
-}
-
-void ResourceContainer::terminateActiveTransfer(bool sendCompleteInd)
+void ResourceContainer::terminateActiveTransfer(spex::IResourceContainer::Status status)
 {
   if (m_activeTransfer.m_nReserved > 0) {
     // If container is full already, reserved resources will be lost!
     putResource(m_activeTransfer.m_eResourceType, m_activeTransfer.m_nReserved);
   }
-  if (sendCompleteInd) {
-    sendTransferComplete(m_activeTransfer.m_nTunnelId);
-  }
+  sendTransferFinished(m_activeTransfer.m_nTunnelId, status);
   m_activeTransfer = Transfer();
 }
 
@@ -280,7 +283,7 @@ void ResourceContainer::openPort(uint32_t nTunnelId, uint32_t nAccessKey)
 {
   if (m_nOpenedPortId != m_freePortsIds.getInvalidValue()) {
     m_nOpenedPortId = m_freePortsIds.getInvalidValue();
-    sendError(nTunnelId, spex::IResourceContainer::ERROR_PORT_ALREADY_OPEN);
+    sendOpenPortFailed(nTunnelId, spex::IResourceContainer::PORT_ALREADY_OPEN);
     return;
   }
 
@@ -288,7 +291,7 @@ void ResourceContainer::openPort(uint32_t nTunnelId, uint32_t nAccessKey)
     std::lock_guard<std::mutex> guard(m_portsMutex);
     m_nOpenedPortId = m_freePortsIds.getNext();
     if (!m_freePortsIds.isValid(m_nOpenedPortId)) {
-      sendError(nTunnelId, spex::IResourceContainer::ERROR_INTERNAL);
+      sendOpenPortFailed(nTunnelId, spex::IResourceContainer::INTERNAL_ERROR);
       return;
     }
 
@@ -311,7 +314,7 @@ void ResourceContainer::openPort(uint32_t nTunnelId, uint32_t nAccessKey)
 void ResourceContainer::closePort(uint32_t nTunnelId)
 {
   if (m_nOpenedPortId == m_freePortsIds.getInvalidValue()) {
-    sendError(nTunnelId, spex::IResourceContainer::ERROR_PORT_IS_NOT_OPENED);
+    sendClosePortStatus(nTunnelId, spex::IResourceContainer::PORT_IS_NOT_OPENED);
     return;
   }
 
@@ -322,16 +325,14 @@ void ResourceContainer::closePort(uint32_t nTunnelId)
     m_nOpenedPortId = m_freePortsIds.getInvalidValue();
   }
 
-  spex::Message response;
-  response.mutable_resource_container()->set_port_closed(true);
-  sendToClient(nTunnelId, response);
+  sendClosePortStatus(nTunnelId, spex::IResourceContainer::SUCCESS);
 }
 
-void ResourceContainer::transfer(uint32_t nTunnelId,
-                                 spex::IResourceContainer::Transfer const& req)
+void ResourceContainer::transfer(
+    uint32_t nTunnelId, spex::IResourceContainer::Transfer const& req)
 {
   if (m_activeTransfer.isValid()) {
-    sendError(nTunnelId, spex::IResourceContainer::ERROR_TRANSFER_IN_PROGRESS);
+    sendTransferStatus(nTunnelId, spex::IResourceContainer::TRANSFER_IN_PROGRESS);
     return;
   }
 
@@ -340,17 +341,17 @@ void ResourceContainer::transfer(uint32_t nTunnelId,
 
     if (req.port_id() == m_freePortsIds.getInvalidValue() ||
         req.port_id() >= m_allPorts.size()) {
-      sendError(nTunnelId, spex::IResourceContainer::ERROR_PORT_IS_NOT_OPENED);
+      sendTransferStatus(nTunnelId, spex::IResourceContainer::PORT_IS_NOT_OPENED);
       return;
     }
 
     Port& port = m_allPorts[req.port_id()];
     if (!port.isValid()) {
-      sendError(nTunnelId, spex::IResourceContainer::ERROR_PORT_IS_NOT_OPENED);
+      sendTransferStatus(nTunnelId, spex::IResourceContainer::PORT_IS_NOT_OPENED);
       return;
     }
     if (port.m_nAccessKey != req.access_key()) {
-      sendError(nTunnelId, spex::IResourceContainer::ERROR_INVALID_KEY);
+      sendTransferStatus(nTunnelId, spex::IResourceContainer::INVALID_ACCESS_KEY);
       return;
     }
 
@@ -359,6 +360,7 @@ void ResourceContainer::transfer(uint32_t nTunnelId,
                  convert(req.resource().type()), req.resource().amount());
   }
 
+  sendTransferStatus(nTunnelId, spex::IResourceContainer::SUCCESS);
   switchToActiveState();
 }
 

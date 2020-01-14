@@ -60,8 +60,9 @@ public:
 
   Status openPort(uint32_t nAccessKey, uint32_t& nPortId);
   Status closePort();
-  Status transfer(uint32_t nPortId, uint32_t nAccessKey,
-                  world::Resources::Type type, double amount);
+  Status transferRequest(uint32_t nPortId, uint32_t nAccessKey,
+                         world::Resources::Type type, double amount);
+  Status waitTransfer(world::Resources::Type type, double amount);
 
   bool checkContent(Content const& expected);
 };

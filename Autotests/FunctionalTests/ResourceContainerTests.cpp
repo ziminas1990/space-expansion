@@ -176,8 +176,11 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
 
   // transporting all mettals
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
-            freighterContainer.transfer(
+            freighterContainer.transferRequest(
               nPort, nAccessKey, world::Resources::eMettal, freigherContent.mettals()));
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            freighterContainer.waitTransfer(
+              world::Resources::eMettal, freigherContent.mettals()));
 
   stationContent.addMettals(freigherContent.mettals());
   freigherContent.setMettals(0);
@@ -186,9 +189,12 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
 
   // transporting silicates (partially)
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
-            freighterContainer.transfer(
+            freighterContainer.transferRequest(
               nPort, nAccessKey, world::Resources::eSilicate,
               freigherContent.silicates() / 2));
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            freighterContainer.waitTransfer(
+              world::Resources::eSilicate, freigherContent.silicates() / 2));
 
   stationContent.addSilicates(freigherContent.silicates() / 2);
   freigherContent.setSilicates(freigherContent.silicates() / 2);
@@ -197,9 +203,12 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
 
   // transporting all ice
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
-            freighterContainer.transfer(
+            freighterContainer.transferRequest(
               nPort, nAccessKey, world::Resources::eIce,
               freigherContent.ice()));
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            freighterContainer.waitTransfer(
+              world::Resources::eIce, freigherContent.ice()));
 
   stationContent.addIce(freigherContent.ice());
   freigherContent.setIce(0);

@@ -1,56 +1,29 @@
 #include "ClientResourceContainer.h"
+#include <Utils/ProtocolEnumsConverter.h>
 
 namespace autotests { namespace client {
 
-static world::Resources::Type convert(spex::ResourceType type)
+static ResourceContainer::Status convert(spex::IResourceContainer::Status status)
 {
-  switch (type) {
-    case spex::ResourceType::RESOURCE_METTALS:
-      return world::Resources::eMettal;
-    case spex::ResourceType::RESOURCE_SILICATES:
-      return world::Resources::eSilicate;
-    case spex::ResourceType::RESOURCE_ICE:
-      return world::Resources::eIce;
-    default:
-      assert(false);
-      return world::Resources::eMettal;  // ?
-  }
-}
-
-static spex::ResourceType convert(world::Resources::Type type)
-{
-  switch (type) {
-    case world::Resources::eMettal:
-      return spex::ResourceType::RESOURCE_METTALS;
-    case world::Resources::eSilicate:
-      return spex::ResourceType::RESOURCE_SILICATES;
-    case world::Resources::eIce:
-      return spex::ResourceType::RESOURCE_ICE;
-    default:
-      assert(false);
-      return spex::ResourceType::RESOURCE_METTALS;  // ?
-  }
-}
-
-static ResourceContainer::Status convert(spex::IResourceContainer::Error error)
-{
-  switch (error) {
-    case spex::IResourceContainer::ERROR_PORT_ALREADY_OPEN:
+  switch (status) {
+    case spex::IResourceContainer::SUCCESS:
+      return ResourceContainer::eStatusOk;
+    case spex::IResourceContainer::PORT_ALREADY_OPEN:
       return ResourceContainer::ePortAlreadyOpen;
-    case spex::IResourceContainer::ERROR_PORT_DOESNT_EXIST:
-    case spex::IResourceContainer::ERROR_PORT_IS_NOT_OPENED:
+    case spex::IResourceContainer::PORT_DOESNT_EXIST:
+    case spex::IResourceContainer::PORT_IS_NOT_OPENED:
       return ResourceContainer::ePortIsNotOpened;
-    case spex::IResourceContainer::ERROR_PORT_HAS_BEEN_CLOSED:
+    case spex::IResourceContainer::PORT_HAS_BEEN_CLOSED:
       return ResourceContainer::ePortHasBeenClosed;
-    case spex::IResourceContainer::ERROR_INVALID_KEY:
+    case spex::IResourceContainer::INVALID_ACCESS_KEY:
       return ResourceContainer::eInvalidAccessKey;
-    case spex::IResourceContainer::ERROR_TOO_FAR:
+    case spex::IResourceContainer::PORT_TOO_FAR:
       return ResourceContainer::eTransferTooFar;
-    case spex::IResourceContainer::ERROR_TRANSFER_IN_PROGRESS:
+    case spex::IResourceContainer::TRANSFER_IN_PROGRESS:
       return ResourceContainer::eTransferInProgress;
-    case spex::IResourceContainer::ERROR_NOT_ENOUGH_RESOURCES:
+    case spex::IResourceContainer::NOT_ENOUGH_RESOURCES:
       return ResourceContainer::eNotEnoughResources;
-    case spex::IResourceContainer::ERROR_INTERNAL:
+    case spex::IResourceContainer::INTERNAL_ERROR:
     default: {
       assert(false);
       return ResourceContainer::eStatusError;
@@ -65,7 +38,7 @@ static bool fillContent(ResourceContainer::Content &content,
   content.m_nUsedSpace = data.used();
 
   for (spex::ResourceItem const& item : data.resources()) {
-    world::Resources::Type eType = convert(item.type());
+    world::Resources::Type eType = utils::convert(item.type());
     content.m_amount[eType] = item.amount();
   }
   return true;
@@ -84,7 +57,7 @@ ResourceContainer::Content& ResourceContainer::Content::set(
 bool ResourceContainer::getContent(ResourceContainer::Content &content)
 {
   spex::Message request;
-  request.mutable_resource_container()->set_get_content(true);
+  request.mutable_resource_container()->set_content_req(true);
   if (!send(request))
     return false;
 
@@ -109,8 +82,9 @@ ResourceContainer::Status ResourceContainer::openPort(
   spex::IResourceContainer response;
   if (!wait(response))
     return eStatusError;
-  if (response.choice_case() == spex::IResourceContainer::kOnError) {
-    return convert(response.on_error());
+
+  if (response.choice_case() == spex::IResourceContainer::kOpenPortFailed) {
+    return convert(response.open_port_failed());
   }
 
   if (response.choice_case() != spex::IResourceContainer::kPortOpened) {
@@ -132,17 +106,13 @@ ResourceContainer::Status ResourceContainer::closePort()
   spex::IResourceContainer response;
   if (!wait(response))
     return eStatusError;
-  if (response.choice_case() == spex::IResourceContainer::kOnError) {
-    return convert(response.on_error());
-  }
-
-  if (response.choice_case() != spex::IResourceContainer::kPortClosed) {
+  if (response.choice_case() != spex::IResourceContainer::kClosePortStatus) {
     return eStatusError;
   }
-  return eStatusOk;
+  return convert(response.close_port_status());
 }
 
-ResourceContainer::Status ResourceContainer::transfer(
+ResourceContainer::Status ResourceContainer::transferRequest(
     uint32_t nPortId, uint32_t nAccessKey, world::Resources::Type type, double amount)
 {
   spex::Message message;
@@ -151,12 +121,27 @@ ResourceContainer::Status ResourceContainer::transfer(
 
   pRequest->set_port_id(nPortId);
   pRequest->set_access_key(nAccessKey);
-  pRequest->mutable_resource()->set_type(convert(type));
+  pRequest->mutable_resource()->set_type(utils::convert(type));
   pRequest->mutable_resource()->set_amount(amount);
 
   if (!send(message))
     return eStatusError;
 
+  spex::IResourceContainer response;
+  if (!wait(response)) {
+    return eStatusError;
+  }
+
+  if (response.choice_case() != spex::IResourceContainer::kTransferStatus) {
+    return eStatusError;
+  }
+
+  return convert(response.transfer_status());
+}
+
+ResourceContainer::Status ResourceContainer::waitTransfer(
+    world::Resources::Type type, double amount)
+{
   while (true) {
     spex::IResourceContainer response;
     if (!wait(response)) {
@@ -164,26 +149,22 @@ ResourceContainer::Status ResourceContainer::transfer(
     }
 
     switch (response.choice_case()) {
-      case spex::IResourceContainer::kOnError: {
-        return convert(response.on_error());
-      }
       case spex::IResourceContainer::kTransferReport: {
-        if (convert(response.transfer_report().type()) != type) {
+        if (utils::convert(response.transfer_report().type()) != type) {
           return eTransferGotInvalidReport;
         }
         amount -= response.transfer_report().amount();
         break;
       }
-      case spex::IResourceContainer::kTransferFailed: {
-        return convert(response.transfer_failed());
-      }
-      case spex::IResourceContainer::kTransferComplete: {
+      case spex::IResourceContainer::kTransferFinished: {
         if (std::abs(amount) > 0.001) {
           return eTransferIncomplete;
         }
-        return eStatusOk;
+        return convert(response.transfer_finished());
       }
       default:
+        // Got unexpected response
+        assert(false);
         return eStatusError;
     }
   }

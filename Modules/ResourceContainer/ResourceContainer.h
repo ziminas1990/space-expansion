@@ -35,14 +35,14 @@ private:
 
   uint32_t selfId() const { return GlobalContainer<ResourceContainer>::getInstanceId(); }
 
+  void sendOpenPortFailed(uint32_t nTunnelId, spex::IResourceContainer::Status reason);
+  void sendClosePortStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);
   void sendContent(uint32_t nTunnelId);
-  void sendError(uint32_t nTunnelId, spex::IResourceContainer::Error error);
+  void sendTransferStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);
   void sendTransferReport(uint32_t nTunnelId, world::Resources::Type type, double amount);
-  void sendTransferComplete(uint32_t nTunnelId);
-  void sendTransferFailed(uint32_t nTunnelId, spex::IResourceContainer::Error reason);
+  void sendTransferFinished(uint32_t nTunnelId, spex::IResourceContainer::Status status);
 
-  void onTransferFailed(spex::IResourceContainer::Error reason);
-  void terminateActiveTransfer(bool sendCompleteInd = true);
+  void terminateActiveTransfer(spex::IResourceContainer::Status status);
 
   void openPort(uint32_t nTunnelId, uint32_t nAccessKey);
   void closePort(uint32_t nTunnelId);
