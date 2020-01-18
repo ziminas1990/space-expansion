@@ -8,22 +8,24 @@
 #include <Utils/Mutex.h>
 #include <Network/ProtobufChannel.h>
 #include <Modules/Commutator/Commutator.h>
-#include <Blueprints/BlueprintsStorage.h>
+#include "Blueprints/Modules/BlueprintsLibrary.h"
+#include "Blueprints/Ships/ShipBlueprintsLibrary.h"
+
 #include <Utils/YamlForwardDeclarations.h>
+
 
 namespace world {
 
 class PlayersStorage
 {
 public:
-  void attachToBlueprintsStorage(blueprints::BlueprintsStoragePtr pStorage);
-  bool loadState(YAML::Node const& data);
+  bool loadState(YAML::Node const& data,
+                 modules::BlueprintsLibrary   const& avaliableModulesBlueprints,
+                 ships::ShipBlueprintsLibrary const& shipsBlueprints);
 
   PlayerPtr getPlayer(std::string const& sLogin) const;
 
 private:
-  blueprints::BlueprintsStoragePtr m_pBlueprintsStorage;
-
   std::map<std::string, PlayerPtr> m_players;
 
   mutable utils::Mutex m_Mutex;

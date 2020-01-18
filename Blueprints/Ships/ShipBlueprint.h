@@ -3,7 +3,8 @@
 #include <memory>
 #include <map>
 #include <Ships/Ship.h>
-#include <Blueprints/Modules/ModuleBlueprint.h>
+#include <Blueprints/Modules/BlueprintName.h>
+#include <Blueprints/Modules/BlueprintsLibrary.h>
 
 #include <Utils/YamlForwardDeclarations.h>
 
@@ -20,7 +21,8 @@ public:
 
   virtual ~ShipBlueprint() = default;
 
-  virtual ShipPtr build(std::string shipName = std::string()) const;
+  virtual ShipPtr build(std::string shipName,
+                        modules::BlueprintsLibrary const& modules) const;
 
   virtual ShipBlueprintPtr wrapToSharedPtr()
   {
@@ -30,14 +32,14 @@ public:
   ShipBlueprint& setWeightAndRadius(double weight, double radius);
   ShipBlueprint& setShipType(std::string sShipType);
   ShipBlueprint& addModule(std::string sModuleName,
-                           modules::ModuleBlueprintPtr pModuleBlueprint);
+                           modules::BlueprintName sBlueprintName);
 
 private:
   std::string m_sType  = "unknown";
-  double      m_weight = 1;
+  double      m_weight = 1000;
   double      m_radius = 1;
 
-  std::map<std::string, modules::ModuleBlueprintPtr> m_modules;
+  std::map<std::string, modules::BlueprintName> m_modules;
 };
 
 } // namespace ships

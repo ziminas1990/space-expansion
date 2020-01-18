@@ -32,13 +32,24 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
   if (!blueprintsSection.IsDefined())
     return false;
 
-  if (!m_pBlueprints->loadBlueprints(blueprintsSection)) {
-    assert(false);
-    return false;
+  {
+    YAML::Node const& modulesBlueprintsSection = blueprintsSection["Modules"];
+    if (!m_modulesBlueprints.loadBlueprints(modulesBlueprintsSection)) {
+      assert("Fail to load modules blueprints section!" == nullptr);
+      return false;
+    }
+  }
+  {
+    YAML::Node const& shipsBlueprintsSection = blueprintsSection["Ships"];
+    if (!m_shipsBlueprints.loadBlueprints(shipsBlueprintsSection)) {
+      assert("Fail to load ships blueprints section!" == nullptr);
+      return false;
+    }
   }
 
   YAML::Node const& playersState = data["Players"];
-  if (!m_pPlayersStorage->loadState(playersState)) {
+  if (!m_pPlayersStorage->loadState(
+        playersState, m_modulesBlueprints, m_shipsBlueprints)) {
     assert(false);
     return false;
   }
@@ -76,8 +87,6 @@ void SystemManager::proceed()
 bool SystemManager::createAllComponents()
 {
   m_pConveyor = new conveyor::Conveyor(m_configuration.getTotalThreads());
-
-  m_pBlueprints = std::make_shared<blueprints::BlueprintsStorage>();
 
   m_pNewtonEngine       = std::make_shared<newton::NewtonEngine>();
   m_pShipsManager       = std::make_shared<ships::ShipsManager>();
@@ -124,6 +133,5 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pResourceContainerManager);
   m_pConveyor->addLogicToChain(m_pAsteroidMinerManager);
 
-  m_pPlayersStorage->attachToBlueprintsStorage(m_pBlueprints);
   return true;
 }

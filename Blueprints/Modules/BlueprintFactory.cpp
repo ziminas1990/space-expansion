@@ -11,16 +11,12 @@
 namespace modules
 {
 
-ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
+ModuleBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
+                                           YAML::Node const& data)
 {
   utils::YamlReader reader(data);
-  std::string sModuleClass;
-  if (!reader.read("type", sModuleClass)) {
-    assert(false);
-    return ModuleBlueprintPtr();
-  }
 
-  if (sModuleClass == "engine") {
+  if (sModuleType == "Engine") {
     uint32_t maxThrust = 0;
     if (!reader.read("maxThrust", maxThrust)) {
       assert(false);
@@ -28,7 +24,7 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
     }
     return EngineBlueprint().setMaxThrust(maxThrust).wrapToSharedPtr();
 
-  } else if (sModuleClass == "CelestialScanner") {
+  } else if (sModuleType == "CelestialScanner") {
     uint32_t nMaxScanningRadiusKm = 0;
     uint32_t nProcessingTimeUs    = 0;
     if (!reader.read("max_scanning_radius_km", nMaxScanningRadiusKm)
@@ -42,7 +38,7 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
            .setProcessingTimeUs(nProcessingTimeUs)
            .wrapToSharedPtr();
 
-  } else if (sModuleClass == "AsteroidScanner") {
+  } else if (sModuleType == "AsteroidScanner") {
     uint32_t nMaxScanningDistance = 0;
     uint32_t nScanningTimeMs      = 0;
     bool lIsOk = reader.read("max_scanning_distance", nMaxScanningDistance)
@@ -56,7 +52,7 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
           .wrapToSharedPtr();
     }
 
-  } else if (sModuleClass == "ResourceContainer") {
+  } else if (sModuleType == "ResourceContainer") {
     uint32_t nVolume = 0;
     bool lIsOk = reader.read("volume", nVolume);
     assert(lIsOk);
@@ -67,7 +63,7 @@ ModuleBlueprintPtr BlueprintsFactory::make(YAML::Node const &data)
           .wrapToSharedPtr();
     }
 
-  } else if (sModuleClass == "AsteroidMiner") {
+  } else if (sModuleType == "AsteroidMiner") {
     uint32_t    nDistance      = 0;
     uint32_t    nCycleTimeMs   = 0;
     uint32_t    nYieldPerCycle = 0;

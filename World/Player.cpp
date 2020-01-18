@@ -8,8 +8,12 @@
 namespace world
 {
 
-Player::Player(std::string sLogin)
-  : m_sLogin(std::move(sLogin)), m_pEntryPoint(std::make_shared<modules::Commutator>())
+Player::Player(std::string sLogin,
+               modules::BlueprintsLibrary avaliableModulesBlueprints,
+               ships::ShipBlueprintsLibrary shipsBlueprints)
+  : m_sLogin(std::move(sLogin)), m_pEntryPoint(std::make_shared<modules::Commutator>()),
+    m_modulesBlueprints(std::move(avaliableModulesBlueprints)),
+    m_shipsBlueprints(std::move(shipsBlueprints))
 {}
 
 Player::~Player()
@@ -30,8 +34,7 @@ void Player::attachToChannel(network::ProtobufChannelPtr pChannel)
   m_pChannel->attachToTerminal(m_pEntryPoint);
 }
 
-bool Player::loadState(YAML::Node const& data,
-                       blueprints::BlueprintsStoragePtr pBlueprints)
+bool Player::loadState(YAML::Node const& data)
 {
   if (!utils::YamlReader(data).read("password", m_sPassword)) {
     assert(false);
@@ -45,15 +48,14 @@ bool Player::loadState(YAML::Node const& data,
   }
 
   for (auto const& kv : shipsState) {
-    std::string sShipType;
-    std::string sShipName;
-    utils::StringUtils::split('/', kv.first.as<std::string>(), sShipType, sShipName);
+    std::string sShipName = kv.first.as<std::string>();
 
-    ships::ShipBlueprintConstPtr pShipBlueprint = pBlueprints->getBlueprint(sShipType);
+    ships::ShipBlueprintPtr pShipBlueprint = m_shipsBlueprints.getBlueprint(sShipName);
     assert(pShipBlueprint);
     if (!pShipBlueprint)
       return false;
-    ships::ShipPtr pShip = pShipBlueprint->build(std::move(sShipName));
+    ships::ShipPtr pShip = pShipBlueprint->build(std::move(sShipName),
+                                                 m_modulesBlueprints);
     assert(pShip);
     if (!pShip)
       return false;
