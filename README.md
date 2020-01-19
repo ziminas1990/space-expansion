@@ -8,6 +8,7 @@
 
 ## What others tell about us
 ```А код у тебя чистый, понятный, GJ``` - [Anton SX91](https://github.com/SX91)
+```Шооооок!``` - [Alena Evstafeeva](https://github.com/evstafeeva)
 
 ## Building
 This project supports building only with CMake + conan.
