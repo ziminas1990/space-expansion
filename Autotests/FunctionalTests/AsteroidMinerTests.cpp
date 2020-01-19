@@ -55,7 +55,7 @@ protected:
       "World:",
       "  Asteroids:",
       "    - { position:  { x: 100, y: 100},",
-      "        velocity:  { x: 0,    y: 0},",
+      "        velocity:  { x: 0,   y: 0},",
       "        radius:     10,",
       "        silicates:  5,",
       "        mettals:    3,",
