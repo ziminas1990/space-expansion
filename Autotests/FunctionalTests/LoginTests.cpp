@@ -15,9 +15,10 @@ protected:
   bool initialWorldState(YAML::Node& state) {
     std::string data[] = {
       "Blueprints:",
-      "  CommandCenter:",
-      "    weight : 4000000",
-      "    radius : 800",
+      "  Ships:",
+      "    CommandCenter:",
+      "      weight : 4000000",
+      "      radius : 800",
       "Players:",
       "  admin:",
       "    password: admin",

@@ -2,14 +2,13 @@
 
 #include <yaml-cpp/yaml.h>
 #include <Utils/YamlReader.h>
+#include <Utils/StringUtils.h>
 #include <Blueprints/Modules/EngineBlueprint.h>
-#include <Blueprints/Modules/BlueprintFactory.h>
 
 namespace ships {
 
-ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
+ShipBlueprintPtr ShipBlueprint::make(std::string sShipType, YAML::Node const& data)
 {
-  std::string sShipType;
   double      shipWeight;
   double      shipRadius;
 
@@ -21,7 +20,7 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
   }
 
   ShipBlueprintPtr pBlueprint = std::make_shared<ShipBlueprint>();
-  pBlueprint->setShipType(sShipType);
+  pBlueprint->setShipType(std::move(sShipType));
   pBlueprint->setWeightAndRadius(shipWeight, shipRadius);
 
   for (auto const& kv : data["modules"]) {
@@ -31,23 +30,34 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
       assert(false);
       return ShipBlueprintPtr();
     }
-    modules::ModuleBlueprintPtr pModuleBlueprint =
-        modules::BlueprintsFactory::make(kv.second);
-    assert(pModuleBlueprint);
-    if (!pModuleBlueprint)
-      return ShipBlueprintPtr();
-    pBlueprint->addModule(std::move(sModuleName), std::move(pModuleBlueprint));
+
+    std::string const& sBlueprintName = kv.second.as<std::string>();
+    std::string sModuleClass;
+    std::string sModuleType;
+    utils::StringUtils::split('/', sBlueprintName, sModuleClass, sModuleType);
+    assert(!sModuleClass.empty() && !sModuleType.empty());
+    pBlueprint->m_modules.insert(
+          std::make_pair(
+            std::move(sModuleName),
+            modules::BlueprintName(std::move(sModuleClass), std::move(sModuleType))));
   }
   return pBlueprint;
 }
 
-ShipPtr ShipBlueprint::build(std::string shipName) const
+ShipPtr ShipBlueprint::build(std::string shipName,
+                             modules::BlueprintsLibrary const& modules) const
 {
   ShipPtr pShip = std::make_shared<Ship>(m_sType, std::move(shipName),
                                          m_weight, m_radius);
   for (auto const& kv : m_modules)
   {
-    modules::BaseModulePtr pModule = kv.second->build();
+    modules::ModuleBlueprintPtr pBlueprint = modules.getBlueprint(kv.second);
+    assert(pBlueprint);
+    if (!pBlueprint) {
+      return ShipPtr();
+    }
+
+    modules::BaseModulePtr pModule = pBlueprint->build();
     pModule->changeModuleName(kv.first);
     pShip->installModule(pModule);
   }
@@ -68,11 +78,11 @@ ShipBlueprint& ShipBlueprint::setShipType(std::string sShipType)
 }
 
 ShipBlueprint& ShipBlueprint::addModule(
-    std::string sModuleName, modules::ModuleBlueprintPtr pModuleBlueprint)
+    std::string sModuleName, modules::BlueprintName sBlueprintName)
 {
   if (m_modules.find(sModuleName) != m_modules.end())
     return *this;
-  m_modules.insert(std::make_pair(std::move(sModuleName), std::move(pModuleBlueprint)));
+  m_modules.insert(std::make_pair(std::move(sModuleName), std::move(sBlueprintName)));
   return *this;
 }
 

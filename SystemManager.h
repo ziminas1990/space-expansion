@@ -11,7 +11,8 @@
 #include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
 #include <World/World.h>
-#include "Blueprints/BlueprintsStorage.h"
+#include "Blueprints/Modules/BlueprintsLibrary.h"
+#include "Blueprints/Ships/ShipBlueprintsLibrary.h"
 
 #include "Newton/NewtonEngine.h"
 #include "Ships/ShipsManager.h"
@@ -44,11 +45,16 @@ private:
   bool linkComponents();
 
 private:
-  config::ApplicationCfg      m_configuration;
-  conveyor::Conveyor*         m_pConveyor = nullptr;
-  boost::asio::io_service     m_IoService;
+  config::ApplicationCfg       m_configuration;
+  conveyor::Conveyor*          m_pConveyor = nullptr;
+  boost::asio::io_service      m_IoService;
 
-  blueprints::BlueprintsStoragePtr m_pBlueprints;
+  modules::BlueprintsLibrary   m_modulesBlueprints;
+    // Blueprints of modules, that a avaliable for all players right from the start of
+    // the game
+  ships::ShipBlueprintsLibrary m_shipsBlueprints;
+    // Blueprints of ships, that a avaliable for all players  right from the start of the
+    // game
 
   // Managers for all logics
   newton::NewtonEnginePtr       m_pNewtonEngine;

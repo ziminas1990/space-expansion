@@ -7,6 +7,8 @@
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/Ship.h>
 #include <Blueprints/BlueprintsStorage.h>
+#include <Blueprints/Modules/BlueprintsLibrary.h>
+#include <Blueprints/Ships/ShipBlueprintsLibrary.h>
 
 namespace world
 {
@@ -14,10 +16,12 @@ namespace world
 class Player
 {
 public:
-  Player(std::string sLogin);
+  Player(std::string                  sLogin,
+         modules::BlueprintsLibrary   avaliableModulesBlueprints,
+         ships::ShipBlueprintsLibrary shipsBlueprints);
   ~Player();
 
-  bool loadState(YAML::Node const& data, blueprints::BlueprintsStoragePtr pBlueprints);
+  bool loadState(YAML::Node const& data);
 
   void attachToChannel(network::ProtobufChannelPtr pChannel);
 
@@ -30,6 +34,15 @@ private:
 
   network::ProtobufChannelPtr   m_pChannel;
   modules::CommutatorPtr        m_pEntryPoint;
+
+  modules::BlueprintsLibrary    m_modulesBlueprints;
+    // Every player has it's own set of blueprint, that can be improoved during the game
+    // At the start, all players have the same blueprints library
+
+  ships::ShipBlueprintsLibrary  m_shipsBlueprints;
+    // Every player has it's own set of ship's blueprints, that player can build.
+    // At the start, all players have the same set of ship's blueprints
+
   std::vector<ships::ShipPtr>   m_ships;
 };
 

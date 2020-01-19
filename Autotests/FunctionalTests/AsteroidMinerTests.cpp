@@ -22,22 +22,27 @@ protected:
   bool initialWorldState(YAML::Node& state) {
     std::string data[] = {
       "Blueprints:",
-      "  Miner:",
-      "    radius: 100",
-      "    weight: 100000",
-      "    modules:",
-      "      miner:",
-      "        type:             AsteroidMiner",
+      "  Modules:",
+      "    AsteroidMiner:",
+      "      ancient-nordic-miner:",
       "        max_distance:     2000",
       "        cycle_time_ms:    1000",
       "        yield_per_cycle:  1000",
       "        container:        cargo",
-      "      engine:",
-      "        type:      engine",
+      "    Engine:",
+      "      ancient-nordic-engine:",
       "        maxThrust: 50000",
-      "      cargo:",
-      "        type:   ResourceContainer",
+      "    ResourceContainer:",
+      "      ancient-nordic-cargo:",
       "        volume: 10",
+      "  Ships:",
+      "    Miner:",
+      "      radius: 100",
+      "      weight: 100000",
+      "      modules:",
+      "        miner:  AsteroidMiner/ancient-nordic-miner",
+      "        engine: Engine/ancient-nordic-engine",
+      "        cargo:  ResourceContainer/ancient-nordic-cargo",
       "Players:",
       "  mega_miner:",
       "    password: unabtainable",
@@ -154,7 +159,6 @@ TEST_F(AsteroidMinerTests, StopMining)
   // No more reports are expected
   ASSERT_FALSE(miner.waitMiningReport(nAmount, (avgReportTime + 5) * 2));
 }
-
 
 TEST_F(AsteroidMinerTests, MiningVariousResources)
 {

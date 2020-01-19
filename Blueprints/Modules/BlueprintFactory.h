@@ -9,7 +9,7 @@ namespace modules
 class BlueprintsFactory
 {
 public:
-  static ModuleBlueprintPtr make(YAML::Node const& data);
+  static ModuleBlueprintPtr make(std::string const& sModuleType, YAML::Node const& data);
 };
 
 } // namespace modules
