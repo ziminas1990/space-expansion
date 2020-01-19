@@ -48,9 +48,13 @@ bool Player::loadState(YAML::Node const& data)
   }
 
   for (auto const& kv : shipsState) {
-    std::string sShipName = kv.first.as<std::string>();
+    std::string sShipTypeAndName = kv.first.as<std::string>();
+    std::string sShipName;
+    std::string sShipType;
+    utils::StringUtils::split('/', sShipTypeAndName, sShipType, sShipName);
+    assert(!sShipName.empty() && !sShipType.empty());
 
-    ships::ShipBlueprintPtr pShipBlueprint = m_shipsBlueprints.getBlueprint(sShipName);
+    ships::ShipBlueprintPtr pShipBlueprint = m_shipsBlueprints.getBlueprint(sShipType);
     assert(pShipBlueprint);
     if (!pShipBlueprint)
       return false;

@@ -9,7 +9,7 @@ bool ShipBlueprintsLibrary::loadBlueprints(YAML::Node const& shipsSection)
   for(auto const& shipInfo : shipsSection) {
     std::string const& sShipClassName = shipInfo.first.as<std::string>();
 
-    ShipBlueprintPtr pBlueprint = ShipBlueprint::make(shipInfo.second);
+    ShipBlueprintPtr pBlueprint = ShipBlueprint::make(sShipClassName, shipInfo.second);
     assert(pBlueprint != nullptr);
     if (!pBlueprint) {
       return false;

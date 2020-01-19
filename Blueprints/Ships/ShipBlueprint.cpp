@@ -7,9 +7,8 @@
 
 namespace ships {
 
-ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
+ShipBlueprintPtr ShipBlueprint::make(std::string sShipType, YAML::Node const& data)
 {
-  std::string sShipType;
   double      shipWeight;
   double      shipRadius;
 
@@ -21,7 +20,7 @@ ShipBlueprintPtr ShipBlueprint::make(YAML::Node const& data)
   }
 
   ShipBlueprintPtr pBlueprint = std::make_shared<ShipBlueprint>();
-  pBlueprint->setShipType(sShipType);
+  pBlueprint->setShipType(std::move(sShipType));
   pBlueprint->setWeightAndRadius(shipWeight, shipRadius);
 
   for (auto const& kv : data["modules"]) {

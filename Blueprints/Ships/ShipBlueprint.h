@@ -17,7 +17,7 @@ using ShipBlueprintConstPtr = std::shared_ptr<ShipBlueprint const>;
 class ShipBlueprint
 {
 public:
-  static ShipBlueprintPtr make(YAML::Node const& data);
+  static ShipBlueprintPtr make(std::string sShipType, YAML::Node const& data);
 
   virtual ~ShipBlueprint() = default;
 
