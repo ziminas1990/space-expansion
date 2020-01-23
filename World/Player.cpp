@@ -11,10 +11,16 @@ namespace world
 Player::Player(std::string sLogin,
                modules::BlueprintsLibrary avaliableModulesBlueprints,
                ships::ShipBlueprintsLibrary shipsBlueprints)
-  : m_sLogin(std::move(sLogin)), m_pEntryPoint(std::make_shared<modules::Commutator>()),
+  : m_sLogin(std::move(sLogin)),
+    m_pEntryPoint(std::make_shared<modules::Commutator>()),
+    m_pBlueprintsExplorer(std::make_shared<modules::BlueprintsStorage>()),
     m_modulesBlueprints(std::move(avaliableModulesBlueprints)),
     m_shipsBlueprints(std::move(shipsBlueprints))
-{}
+{
+  m_pBlueprintsExplorer->attachToLibraries(&m_modulesBlueprints, &m_shipsBlueprints);
+  m_pBlueprintsExplorer->attachToChannel(m_pEntryPoint);
+  m_pEntryPoint->attachModule(m_pBlueprintsExplorer);
+}
 
 Player::~Player()
 {
@@ -43,8 +49,8 @@ bool Player::loadState(YAML::Node const& data)
 
   YAML::Node const& shipsState = data["ships"];
   if (!shipsState.IsDefined()) {
-    assert(false);
-    return false;
+    // Player has no ships (looooser!)
+    return true;
   }
 
   for (auto const& kv : shipsState) {

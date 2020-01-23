@@ -267,6 +267,59 @@ message IAsteroidMiner {
 }
 
 
+message IBlueprintsLibrary {
+
+  enum Status {
+    SUCCESS             = 0;
+    INTERNAL_ERROR      = 1;
+    BLUEPRINT_NOT_FOUND = 2;
+  }
+
+  message Property {
+    string parameter = 1;
+    string value     = 2;
+  }
+
+  message ProductionCost {
+    repeated ResourceItem resources = 1;
+    uint32   time_sec = 2;
+  }
+  
+  message ModuleBlueprint {
+    string            name            = 1;
+    repeated Property properties      = 2;
+    ProductionCost    production_cost = 3;
+  }
+  
+  message ShipBlueprint {
+    string            name            = 1;
+    repeated Property properties      = 2;
+    ProductionCost    production_cost = 3;
+    repeated string   modules         = 4;
+  }
+  
+  message NamesList {
+    uint32          left  = 1;
+    repeated string names = 2;
+  }
+  
+  
+  oneof choice {
+    string modules_list_req     = 1;
+    string module_blueprint_req = 2;
+    bool   ship_list_req        = 3;
+    string ship_blueprint_req   = 4;
+    
+    NamesList       modules_list          = 20;
+    ModuleBlueprint module_blueprint      = 21;
+    Status          module_blueprint_fail = 22;
+    NamesList       ship_list             = 23;
+    ShipBlueprint   ship_blueprint        = 24;
+    Status          ship_blueprint_fail   = 25;
+  }
+}
+
+
 message ICommutator {
 
   message GetTotalSlots {}
@@ -331,5 +384,6 @@ message Message {
     IAsteroidScanner   asteroid_scanner   = 9;
     IResourceContainer resource_container = 10;
     IAsteroidMiner     asteroid_miner     = 11;
+    IBlueprintsLibrary blueprints_library = 12;
   }
 }

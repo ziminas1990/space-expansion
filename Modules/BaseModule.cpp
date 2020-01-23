@@ -44,6 +44,10 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       handleResourceContainerMessage(nSessionId, message.resource_container());
       return;
     }
+    case spex::Message::kBlueprintsLibrary: {
+      handleBlueprintsStorageMessage(nSessionId, message.blueprints_library());
+      return;
+    }
     case spex::Message::kAccessPanel: {
       // Only AccessPanel is able to handle such massaged, but it is NOT a subclass of
       // this class

@@ -21,9 +21,17 @@ public:
         : m_sModuleType < other.m_sModuleType;
   }
 
+  std::string const& toString() const {
+    if (m_sFullName.empty()) {
+      m_sFullName = m_sModuleClass + "/" + m_sModuleType;
+    }
+    return m_sFullName;
+  }
+
 private:
-  std::string m_sModuleClass;
-  std::string m_sModuleType;
+  std::string         m_sModuleClass;
+  std::string         m_sModuleType;
+  mutable std::string m_sFullName;
 };
 
 } // namespace modules

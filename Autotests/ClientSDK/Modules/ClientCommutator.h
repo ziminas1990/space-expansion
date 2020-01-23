@@ -20,7 +20,7 @@ class ClientCommutator : public ClientBaseModule
 {
 public:
   bool getTotalSlots(uint32_t &nTotalSlots);
-  bool getAttachedModulesList(uint32_t nTotal, ModulesList& attachedModules);
+  bool getAttachedModulesList(ModulesList& attachedModules);
 
   TunnelPtr openTunnel(uint32_t nSlotId);
 

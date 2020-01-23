@@ -2,14 +2,29 @@
 
 namespace autotests { namespace client {
 
-bool GetAllModules(Ship &ship, std::string const& sModuleType, ModulesList &modules)
+bool attachToShip(ClientCommutatorPtr pRootCommutator, std::string const& sShipName,
+                  Ship &ship)
 {
-  uint32_t nTotalSlots = 0;
-  if (!ship.getTotalSlots(nTotalSlots) || !nTotalSlots)
+  ModulesList ships;
+  if (!pRootCommutator->getAttachedModulesList(ships))
     return false;
 
+  for (ModuleInfo& shipInfo : ships) {
+    if (shipInfo.sModuleName == sShipName) {
+      client::TunnelPtr pTunnelToShip = pRootCommutator->openTunnel(shipInfo.nSlotId);
+      ship.attachToChannel(pTunnelToShip);
+      return pTunnelToShip != nullptr;
+    }
+  }
+  return false;
+}
+
+bool GetAllModules(ClientCommutator& commutator,
+                   std::string const& sModuleType,
+                   ModulesList &modules)
+{
   ModulesList attachedModules;
-  if (!ship.getAttachedModulesList(nTotalSlots, attachedModules))
+  if (!commutator.getAttachedModulesList(attachedModules))
     return false;
 
   for (ModuleInfo const& module : attachedModules) {
@@ -18,6 +33,29 @@ bool GetAllModules(Ship &ship, std::string const& sModuleType, ModulesList &modu
       modules.push_back(module);
   }
   return true;
+}
+
+
+bool FindModule(ClientCommutator&  commutator,
+                std::string const& sModuleClass,
+                ClientBaseModule&  module,
+                std::string const& sName)
+{
+  ModulesList containers;
+  if (!GetAllModules(commutator, sModuleClass, containers))
+    return false;
+  if (containers.empty())
+    return false;
+
+  for (ModuleInfo const& moduleInfo : containers) {
+    if (!sName.empty() && moduleInfo.sModuleName != sName)
+      continue;
+
+    TunnelPtr pTunnel = commutator.openTunnel(moduleInfo.nSlotId);
+    module.attachToChannel(pTunnel);
+    return pTunnel != nullptr;
+  }
+  return false;
 }
 
 bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
@@ -80,80 +118,27 @@ bool FindBestCelestialScanner(Ship &ship, CelestialScanner& bestScanner,
   return true;
 }
 
-bool FindSomeAsteroidScanner(Ship& ship, AsteroidScanner& someScanner)
+bool FindAsteroidScanner(Ship& ship, AsteroidScanner& scanner, std::string const& sName)
 {
-  ModulesList scanners;
-  if (!GetAllModules(ship, "AsteroidScanner", scanners))
-    return false;
-  if (scanners.empty())
-    return false;
-
-  ModuleInfo const& moduleInfo = scanners.front();
-  TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
-  if (!pTunnel)
-    return false;
-  someScanner.attachToChannel(pTunnel);
-  return true;
+  return FindModule(ship, "AsteroidScanner", scanner, sName);
 }
 
 bool FindResourceContainer(Ship &ship, ResourceContainer &container,
                            std::string const& sName)
 {
-  ModulesList containers;
-  if (!GetAllModules(ship, "ResourceContainer", containers))
-    return false;
-  if (containers.empty())
-    return false;
-
-  for (ModuleInfo const& moduleInfo : containers) {
-    if (!sName.empty() && moduleInfo.sModuleName != sName)
-      continue;
-
-    TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
-    container.attachToChannel(pTunnel);
-    return pTunnel != nullptr;
-  }
-  return false;
+  return FindModule(ship, "ResourceContainer", container, sName);
 }
 
-bool attachToShip(ClientCommutatorPtr pRootCommutator, std::string const& sShipName,
-                  Ship &ship)
+bool FindAsteroidMiner(Ship &ship, AsteroidMiner& miner, std::string const& sName)
 {
-  uint32_t nTotalShips;
-  if (!pRootCommutator->getTotalSlots(nTotalShips) || !nTotalShips)
-    return false;
-
-  ModulesList ships;
-  if (!pRootCommutator->getAttachedModulesList(nTotalShips, ships))
-    return false;
-
-  for (ModuleInfo& shipInfo : ships) {
-    if (shipInfo.sModuleName == sShipName) {
-      client::TunnelPtr pTunnelToShip = pRootCommutator->openTunnel(shipInfo.nSlotId);
-      ship.attachToChannel(pTunnelToShip);
-      return pTunnelToShip != nullptr;
-    }
-  }
-  return false;
+  return FindModule(ship, "AsteroidMiner", miner, sName);
 }
 
-bool FindAsteroidMiner(Ship &ship, AsteroidMiner& miner, const std::string &sName)
+bool FindBlueprintStorage(ClientCommutator& commutator, BlueprintsStorage& storage,
+                          std::string const& sName)
 {
-  ModulesList containers;
-  if (!GetAllModules(ship, "AsteroidMiner", containers))
-    return false;
-  if (containers.empty())
-    return false;
-
-  for (ModuleInfo const& moduleInfo : containers) {
-    if (!sName.empty() && moduleInfo.sModuleName != sName)
-      continue;
-
-    TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
-    miner.attachToChannel(pTunnel);
-    return pTunnel != nullptr;
-  }
-  return false;
+  return FindModule(commutator, "BlueprintsLibrary", storage, sName);
 }
+
 
 }}  // namespace autotests::client

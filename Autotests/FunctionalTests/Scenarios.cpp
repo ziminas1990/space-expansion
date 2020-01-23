@@ -67,19 +67,15 @@ Scenarios::CheckAttachedModulesScenario::hasModule(std::string const& sType,
 
 void Scenarios::CheckAttachedModulesScenario::execute()
 {
-  uint32_t nExpectedTotal = static_cast<uint32_t>(expectedModules.size());
-
   client::ModulesList attachedModules;
-  ASSERT_TRUE(pCommutator->getAttachedModulesList(nExpectedTotal, attachedModules))
+  ASSERT_TRUE(pCommutator->getAttachedModulesList(attachedModules))
       << "Can't get attached modules list from commutator!";
 
   for (client::ModuleInfo const& module : attachedModules)
   {
-    auto typeAndName = std::make_pair(module.sModuleType, module.sModuleName);
-
-    ASSERT_NE(expectedModules.end(), expectedModules.find(typeAndName))
-        << "Unexpected module " << module.sModuleType << "/" << module.sModuleName;
-    expectedModules.erase(typeAndName);
+    auto I = expectedModules.find(std::make_pair(module.sModuleType, module.sModuleName));
+    if (I != expectedModules.end())
+      expectedModules.erase(I);
   }
   ASSERT_TRUE(expectedModules.empty());
 }

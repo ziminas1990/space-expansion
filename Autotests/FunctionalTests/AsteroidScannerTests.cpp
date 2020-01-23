@@ -84,7 +84,7 @@ TEST_F(AsteroidScannerTests, GetSpecification)
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidScanner scanner;
-  ASSERT_TRUE(client::FindSomeAsteroidScanner(ship, scanner));
+  ASSERT_TRUE(client::FindAsteroidScanner(ship, scanner));
 
   client::AsteroidScannerSpecification specification;
   ASSERT_TRUE(scanner.getSpecification(specification));
@@ -106,7 +106,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, celestialScanner));
 
   client::AsteroidScanner asteroidScanner;
-  ASSERT_TRUE(client::FindSomeAsteroidScanner(*pShip, asteroidScanner));
+  ASSERT_TRUE(client::FindAsteroidScanner(*pShip, asteroidScanner));
 
   client::Navigation navigator(pShip);
   ASSERT_TRUE(navigator.initialize());
@@ -169,7 +169,7 @@ TEST_F(AsteroidScannerTests, FailedToScanTest)
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, celestialScanner));
 
   client::AsteroidScanner asteroidScanner;
-  ASSERT_TRUE(client::FindSomeAsteroidScanner(*pShip, asteroidScanner));
+  ASSERT_TRUE(client::FindAsteroidScanner(*pShip, asteroidScanner));
 
 
   // Trying to scan asteroids, that are far away

@@ -116,6 +116,15 @@ bool SyncPipe::wait(spex::IAsteroidMiner &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool SyncPipe::wait(spex::IBlueprintsLibrary &out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kBlueprintsLibrary, message, nTimeoutMs))
+    return false;
+  out = std::move(message.blueprints_library());
+  return true;
+}
+
 void SyncPipe::onMessageReceived(spex::Message &&message)
 {
   switch(message.choice_case()) {

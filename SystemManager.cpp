@@ -88,14 +88,15 @@ bool SystemManager::createAllComponents()
 {
   m_pConveyor = new conveyor::Conveyor(m_configuration.getTotalThreads());
 
-  m_pNewtonEngine       = std::make_shared<newton::NewtonEngine>();
-  m_pShipsManager       = std::make_shared<ships::ShipsManager>();
-  m_pCommutatorsManager = std::make_shared<modules::CommutatorManager>();
-  m_pEnginesManager     = std::make_shared<modules::EngineManager>();
+  m_pNewtonEngine             = std::make_shared<newton::NewtonEngine>();
+  m_pShipsManager             = std::make_shared<ships::ShipsManager>();
+  m_pCommutatorsManager       = std::make_shared<modules::CommutatorManager>();
+  m_pEnginesManager           = std::make_shared<modules::EngineManager>();
   m_pCelestialScannerManager  = std::make_shared<modules::CelestialScannerManager>();
   m_pAsteroidScannerManager   = std::make_shared<modules::AsteroidScannerManager>();
   m_pResourceContainerManager = std::make_shared<modules::ResourceContainerManager>();
   m_pAsteroidMinerManager     = std::make_shared<modules::AsteroidMinerManager>();
+  m_pBlueprintsStorageManager = std::make_shared<modules::BlueprintsStorageManager>();
 
   m_pUdpDispatcher  =
       std::make_shared<network::UdpDispatcher>(
@@ -132,6 +133,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pAsteroidScannerManager);
   m_pConveyor->addLogicToChain(m_pResourceContainerManager);
   m_pConveyor->addLogicToChain(m_pAsteroidMinerManager);
+  m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
 
   return true;
 }

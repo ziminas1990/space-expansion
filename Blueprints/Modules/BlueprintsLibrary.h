@@ -18,6 +18,8 @@ public:
 
   ModuleBlueprintPtr getBlueprint(BlueprintName const& name) const;
 
+  void iterate(std::function<bool(const BlueprintName &)> const& viewer) const;
+
 private:
   std::map<BlueprintName, ModuleBlueprintPtr> m_blueprints;
 };

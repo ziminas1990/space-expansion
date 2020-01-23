@@ -32,4 +32,13 @@ ModuleBlueprintPtr BlueprintsLibrary::getBlueprint(BlueprintName const& name) co
   return I != m_blueprints.end() ? I->second : ModuleBlueprintPtr();
 }
 
+void BlueprintsLibrary::iterate(
+    std::function<bool(BlueprintName const&)> const& viewer) const
+{
+  for(auto const& kv : m_blueprints) {
+    if (!viewer(kv.first))
+      return;
+  }
+}
+
 } // namespace modules

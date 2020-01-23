@@ -6,7 +6,7 @@
 #include <Network/ProtobufChannel.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/Ship.h>
-#include <Blueprints/BlueprintsStorage.h>
+#include <Modules/BlueprintsStorage/BlueprintsStorage.h>
 #include <Blueprints/Modules/BlueprintsLibrary.h>
 #include <Blueprints/Ships/ShipBlueprintsLibrary.h>
 
@@ -34,6 +34,7 @@ private:
 
   network::ProtobufChannelPtr   m_pChannel;
   modules::CommutatorPtr        m_pEntryPoint;
+  modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
 
   modules::BlueprintsLibrary    m_modulesBlueprints;
     // Every player has it's own set of blueprint, that can be improoved during the game

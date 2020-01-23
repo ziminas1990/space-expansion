@@ -18,9 +18,12 @@ bool ClientCommutator::getTotalSlots(uint32_t& nTotalSlots)
   return true;
 }
 
-bool ClientCommutator::getAttachedModulesList(uint32_t     nTotal,
-                                              ModulesList& attachedModules)
+bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
 {
+  uint32_t nTotal = 0;
+  if (!getTotalSlots(nTotal))
+    return false;
+
   spex::Message request;
   request.mutable_commutator()->mutable_getallmodulesinfo();
   if (!send(request))
