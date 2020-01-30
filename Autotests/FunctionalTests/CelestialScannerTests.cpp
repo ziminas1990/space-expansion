@@ -27,7 +27,7 @@ protected:
       "        processing_time_us:     10",
       "    Engine:",
       "      ancient-nordic-engine:",
-      "        maxThrust: 500",
+      "        max_thrust: 500",
       "  Ships:",
       "    Ancient-Nordic-Zond:",
       "      radius: 0.1",

@@ -49,6 +49,7 @@ struct Point
   Point operator+(Vector const& v) const { return Point(x + v.getX(), y + v.getY()); }
 
   bool load(YAML::Node const& node);
+  void dump(YAML::Node& out) const;
 
   double x;
   double y;

@@ -2,6 +2,8 @@
 
 #include "ModuleBlueprint.h"
 #include <Modules/ResourceContainer/ResourceContainer.h>
+#include <Utils/YamlDumper.h>
+#include <Utils/YamlReader.h>
 
 namespace modules {
 
@@ -11,20 +13,19 @@ public:
   ResourceContainerBlueprint() : m_nVolume(0)
   {}
 
-  ResourceContainerBlueprint& setVolume(uint32_t nVolume)
-  {
-    m_nVolume = nVolume;
-    return *this;
-  }
-
   BaseModulePtr build() const override
   {
     return std::make_shared<ResourceContainer>(m_nVolume);
   }
 
-  ModuleBlueprintPtr wrapToSharedPtr() override
+  bool load(YAML::Node const& data) override
   {
-    return std::make_shared<ResourceContainerBlueprint>(std::move(*this));
+    return utils::YamlReader(data).read("volume", m_nVolume);
+  }
+
+  void dump(YAML::Node& out) const override
+  {
+    utils::YamlDumper(out).add("volume", m_nVolume);
   }
 
 private:

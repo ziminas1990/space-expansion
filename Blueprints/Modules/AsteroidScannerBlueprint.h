@@ -2,6 +2,8 @@
 
 #include "ModuleBlueprint.h"
 #include <Modules/AsteroidScanner/AsteroidScanner.h>
+#include <Utils/YamlReader.h>
+#include <Utils/YamlDumper.h>
 
 namespace modules {
 
@@ -11,26 +13,23 @@ public:
   AsteroidScannerBlueprint() : m_nMaxScanningDistance(0), m_nScanningTimeMs(0)
   {}
 
-  AsteroidScannerBlueprint& setMaxScanningRadiusKm(uint32_t nMaxScanningRadiusKm)
-  {
-    m_nMaxScanningDistance = nMaxScanningRadiusKm;
-    return *this;
-  }
-
-  AsteroidScannerBlueprint& setScanningTimeMs(uint32_t nScanningTimeMs)
-  {
-    m_nScanningTimeMs = nScanningTimeMs;
-    return *this;
-  }
-
   BaseModulePtr build() const override
   {
     return std::make_shared<AsteroidScanner>(m_nMaxScanningDistance, m_nScanningTimeMs);
   }
 
-  ModuleBlueprintPtr wrapToSharedPtr() override
+  bool load(YAML::Node const& data) override
   {
-    return std::make_shared<AsteroidScannerBlueprint>(std::move(*this));
+    return utils::YamlReader(data)
+        .read("max_scanning_distance", m_nMaxScanningDistance)
+        .read("scanning_time_ms",      m_nScanningTimeMs);
+  }
+
+  void dump(YAML::Node& out) const override
+  {
+    utils::YamlDumper(out)
+        .add("max_scanning_distance", m_nMaxScanningDistance)
+        .add("scanning_time_ms",      m_nScanningTimeMs);
   }
 
 private:

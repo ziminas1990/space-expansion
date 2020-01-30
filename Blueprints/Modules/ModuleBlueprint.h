@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <Modules/BaseModule.h>
+#include <Utils/YamlForwardDeclarations.h>
 
 namespace modules {
 
@@ -15,8 +16,9 @@ public:
 
   virtual BaseModulePtr build() const = 0;
 
-  // Should a shared_ptr that stores a copy of current object
-  virtual ModuleBlueprintPtr wrapToSharedPtr() = 0;
+  virtual bool load(YAML::Node const& data) = 0;
+  virtual void dump(YAML::Node& out) const = 0;
+
 };
 
 } // namespace modules

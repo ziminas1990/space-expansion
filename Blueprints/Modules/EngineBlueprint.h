@@ -2,6 +2,8 @@
 
 #include <Blueprints/Modules/ModuleBlueprint.h>
 #include <Modules/Engine/Engine.h>
+#include <Utils/YamlDumper.h>
+#include <Utils/YamlReader.h>
 
 namespace modules {
 
@@ -17,14 +19,21 @@ public:
     return *this;
   }
 
+  bool load(YAML::Node const& data) override
+  {
+    return utils::YamlReader(data)
+        .read("max_thrust", m_nMaxThrust);
+  }
+
+  void dump(YAML::Node& out) const override
+  {
+    utils::YamlDumper(out)
+            .add("max_thrust", m_nMaxThrust);
+  }
+
   BaseModulePtr build() const override
   {
     return std::make_shared<Engine>(m_nMaxThrust);
-  }
-
-  ModuleBlueprintPtr wrapToSharedPtr() override
-  {
-    return std::make_shared<EngineBlueprint>(std::move(*this));
   }
 
 private:

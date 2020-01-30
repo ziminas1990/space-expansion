@@ -29,6 +29,7 @@ public:
   }
 
   bool load(YAML::Node const& node);
+  void dump(YAML::Node& out) const;
 
   double getX() const { return x; }
   double getY() const { return y; }

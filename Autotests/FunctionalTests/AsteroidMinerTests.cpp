@@ -31,7 +31,7 @@ protected:
       "        container:        cargo",
       "    Engine:",
       "      ancient-nordic-engine:",
-      "        maxThrust: 50000",
+      "        max_thrust: 50000",
       "    ResourceContainer:",
       "      ancient-nordic-cargo:",
       "        volume: 10",

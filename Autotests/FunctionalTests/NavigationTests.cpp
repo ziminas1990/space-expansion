@@ -23,7 +23,7 @@ protected:
       "  Modules:",
       "    Engine:",
       "      tiny-engine:",
-      "        maxThrust: 200",
+      "        max_thrust: 200",
       "  Ships:",
       "    Cubesat:",
       "      radius:  0.1",

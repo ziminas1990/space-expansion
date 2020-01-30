@@ -32,7 +32,7 @@ protected:
       "        scanning_time_ms:       100",
       "    Engine:",
       "      ancient-nordic-engine:",
-      "        maxThrust: 500",
+      "        max_thrust: 500",
       "  Ships:",
       "    Ancient-Nordic-Miner:",
       "      radius: 0.1",

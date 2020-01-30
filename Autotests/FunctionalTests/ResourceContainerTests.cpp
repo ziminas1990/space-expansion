@@ -27,7 +27,7 @@ protected:
       "        volume: 100000",
       "    Engine:",
       "      huge-engine:",
-      "        maxThrust: 5000000",
+      "        max_thrust: 5000000",
       "  Ships:",
       "    Freighter:",
       "      radius: 100",
