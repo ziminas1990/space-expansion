@@ -288,14 +288,12 @@ message IBlueprintsLibrary {
   message ModuleBlueprint {
     string            name            = 1;
     repeated Property properties      = 2;
-    ProductionCost    production_cost = 3;
   }
   
   message ShipBlueprint {
     string            name            = 1;
     repeated Property properties      = 2;
-    ProductionCost    production_cost = 3;
-    repeated string   modules         = 4;
+    repeated string   modules         = 3;
   }
   
   message NamesList {

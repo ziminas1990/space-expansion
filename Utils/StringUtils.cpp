@@ -10,6 +10,7 @@ void StringUtils::split(char separator, std::string const& source,
   size_t nSeparatorIdx = source.find(separator);
   if (nSeparatorIdx == std::string::npos) {
     left = source;
+    right.clear();
   } else {
     left  = source.substr(0, nSeparatorIdx);
     right = source.substr(nSeparatorIdx + 1);

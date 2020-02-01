@@ -27,7 +27,10 @@ protected:
       spex::IBlueprintsLibrary const& message) override;
 
   void onModulesListReq(uint32_t nSessionId, std::string const& sFilter) const;
+  void onModuleBlueprintReq(uint32_t nSessionId, std::string const& sName) const;
 
+  bool sendModuleBlueprintFail(uint32_t nSessionId,
+                               spex::IBlueprintsLibrary::Status error) const;
 private:
   BlueprintsLibrary            const* m_pModulesBlueprints;
   ships::ShipBlueprintsLibrary const* m_pShipsBlueprints;

@@ -13,12 +13,6 @@ public:
 
   EngineBlueprint() : m_nMaxThrust(0) {}
 
-  EngineBlueprint& setMaxThrust(uint32_t nMaxThrust)
-  {
-    m_nMaxThrust = nMaxThrust;
-    return *this;
-  }
-
   bool load(YAML::Node const& data) override
   {
     return utils::YamlReader(data)

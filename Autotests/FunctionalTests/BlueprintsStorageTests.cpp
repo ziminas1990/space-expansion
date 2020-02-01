@@ -155,4 +155,99 @@ TEST_F(BlueprintStorageTests, GetSomeModules)
   ASSERT_TRUE(expected.empty());
 }
 
+TEST_F(BlueprintStorageTests, GetNonExistingModuleBlueprint)
+{
+  animateWorld();
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("James", "Bond")
+        .expectSuccess());
+
+  client::BlueprintsStorage storage;
+  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+
+  client::Blueprint blueprint;
+  ASSERT_EQ(client::BlueprintsStorage::eBlueprintNotFound,
+            storage.getBlueprint(client::BlueprintName("abyrvalg"), blueprint));
+
+  ASSERT_EQ(client::BlueprintsStorage::eBlueprintNotFound,
+            storage.getBlueprint(client::BlueprintName("abyrvalg/sharikov"), blueprint));
+}
+
+TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
+{
+  animateWorld();
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("James", "Bond")
+        .expectSuccess());
+
+  client::BlueprintsStorage storage;
+  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+
+  {
+    client::Blueprint blueprint;
+    ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+              storage.getBlueprint(
+                client::BlueprintName("CelestialScanner/huge-scanner"),
+                blueprint));
+    EXPECT_EQ("CelestialScanner/huge-scanner", blueprint.m_sName);
+    EXPECT_EQ("20000000", blueprint.m_properties["max_scanning_radius_km"]);
+    EXPECT_EQ("40",       blueprint.m_properties["processing_time_us"]);
+  }
+
+  {
+    client::Blueprint blueprint;
+    ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+              storage.getBlueprint(
+                client::BlueprintName("AsteroidScanner/tiny-scanner"),
+                blueprint));
+    EXPECT_EQ("AsteroidScanner/tiny-scanner", blueprint.m_sName);
+    EXPECT_EQ("10000", blueprint.m_properties["max_scanning_distance"]);
+    EXPECT_EQ("100",   blueprint.m_properties["scanning_time_ms"]);
+  }
+
+  {
+    client::Blueprint blueprint;
+    ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+              storage.getBlueprint(
+                client::BlueprintName("Engine/civilian-engine"),
+                blueprint));
+    EXPECT_EQ("Engine/civilian-engine", blueprint.m_sName);
+    EXPECT_EQ("500000", blueprint.m_properties["max_thrust"]);
+  }
+
+  {
+    client::Blueprint blueprint;
+    ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+              storage.getBlueprint(
+                client::BlueprintName("ResourceContainer/titanic-cargo"),
+                blueprint));
+    EXPECT_EQ("ResourceContainer/titanic-cargo", blueprint.m_sName);
+    EXPECT_EQ("1000", blueprint.m_properties["volume"]);
+  }
+}
+
+TEST_F(BlueprintStorageTests, GetAllModulesBlueprints)
+{
+  animateWorld();
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("James", "Bond")
+        .expectSuccess());
+
+  client::BlueprintsStorage storage;
+  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+
+  std::vector<client::BlueprintName> modulesBlueprintsNames;
+  ASSERT_TRUE(storage.getModulesBlueprintsNames("", modulesBlueprintsNames));
+
+  for (client::BlueprintName const& name : modulesBlueprintsNames) {
+    client::Blueprint blueprint;
+    ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+              storage.getBlueprint(name, blueprint));
+    EXPECT_EQ(name.getFullName(), blueprint.m_sName);
+  }
+}
+
 } // namespace autotests
