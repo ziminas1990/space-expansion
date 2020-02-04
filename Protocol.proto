@@ -276,8 +276,9 @@ message IBlueprintsLibrary {
   }
 
   message Property {
-    string parameter = 1;
-    string value     = 2;
+    string            name   = 1;
+    string            value  = 2;
+    repeated Property nested = 3;
   }
 
   message ProductionCost {

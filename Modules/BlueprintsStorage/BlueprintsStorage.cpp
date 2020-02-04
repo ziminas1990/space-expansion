@@ -97,7 +97,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
   pBlueprint->dump(specification);
   for (auto const& parameter: specification) {
     spex::IBlueprintsLibrary::Property* pProperty = pBody->add_properties();
-    pProperty->set_parameter(parameter.first.as<std::string>());
+    pProperty->set_name(parameter.first.as<std::string>());
     pProperty->set_value(parameter.second.as<std::string>());
   }
 

@@ -77,7 +77,7 @@ BlueprintsStorage::Status BlueprintsStorage::getBlueprint(
   spex::IBlueprintsLibrary::ModuleBlueprint const& body = response.module_blueprint();
   out.m_sName = body.name();
   for (spex::IBlueprintsLibrary::Property const& property : body.properties()) {
-    out.m_properties[property.parameter()] = property.value();
+    out.m_properties[property.name()] = property.value();
   }
 
   return eSuccess;
