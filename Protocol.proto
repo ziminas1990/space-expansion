@@ -4,6 +4,42 @@ option cc_enable_arenas = true;
 
 package spex;
 
+//=============================================================================
+// Common types
+
+enum ResourceType {
+  RESOURCE_UNKNOWN   = 0;
+  RESOURCE_METTALS   = 1;
+  RESOURCE_SILICATES = 2;
+  RESOURCE_ICE       = 3;
+}
+
+message ResourceItem {
+  ResourceType type  = 1;
+  double       amount = 2;
+}
+
+message Property {
+  string            name   = 1;
+  string            value  = 2;
+  repeated Property nested = 3;
+}
+
+message Blueprint {
+  string                name       = 1;
+  repeated Property     properties = 2;
+  repeated ResourceItem cost       = 3;
+  uint32                labor      = 4;
+}
+
+message NamesList {
+  uint32          left  = 1;
+  repeated string names = 2;
+}
+
+//=============================================================================
+// Modules interfaces
+
 message IAccessPanel {
   message LoginRequest {
     string login    = 1;
@@ -167,19 +203,6 @@ message IAsteroidScanner {
 }
 
 
-enum ResourceType {
-  RESOURCE_UNKNOWN   = 0;
-  RESOURCE_METTALS   = 1;
-  RESOURCE_SILICATES = 2;
-  RESOURCE_ICE       = 3;
-}
-
-message ResourceItem {
-  ResourceType type  = 1;
-  double       amount = 2;
-}
-
-
 message IResourceContainer {
 
   enum Status {
@@ -275,30 +298,13 @@ message IBlueprintsLibrary {
     BLUEPRINT_NOT_FOUND = 2;
   }
   
-  message Property {
-    string            name   = 1;
-    string            value  = 2;
-    repeated Property nested = 3;
-  }
-  
-  message ModuleBlueprint {
-    string            name       = 1;
-    repeated Property properties = 2;
-  }
-  
-  message NamesList {
-    uint32          left  = 1;
-    repeated string names = 2;
-  }
-  
-  
   oneof choice {
-    string modules_list_req     = 1;
-    string module_blueprint_req = 2;
+    string    blueprints_list_req = 1;
+    string    blueprint_req       = 2;
     
-    NamesList       modules_list          = 20;
-    ModuleBlueprint module_blueprint      = 21;
-    Status          module_blueprint_fail = 22;
+    NamesList blueprints_list     = 20;
+    Blueprint blueprint           = 21;
+    Status    blueprint_fail      = 22;
   }
 }
 

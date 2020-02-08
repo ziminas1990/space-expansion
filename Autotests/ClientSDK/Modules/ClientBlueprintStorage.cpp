@@ -29,7 +29,7 @@ bool BlueprintsStorage::getModulesBlueprintsNames(
     std::string const& sFilter, std::vector<BlueprintName>& output)
 {
   spex::Message request;
-  request.mutable_blueprints_library()->mutable_modules_list_req()->assign(sFilter);
+  request.mutable_blueprints_library()->mutable_blueprints_list_req()->assign(sFilter);
   if (!send(request)) {
     return false;
   }
@@ -40,11 +40,11 @@ bool BlueprintsStorage::getModulesBlueprintsNames(
     if (!wait(response)) {
       return false;
     }
-    if (response.choice_case() != spex::IBlueprintsLibrary::kModulesList) {
+    if (response.choice_case() != spex::IBlueprintsLibrary::kBlueprintsList) {
       return false;
     }
-    nLeft             = response.modules_list().left();
-    auto const& names = response.modules_list().names();
+    nLeft             = response.blueprints_list().left();
+    auto const& names = response.blueprints_list().names();
     for (std::string const& name : names) {
       output.push_back(name);
     }
@@ -57,7 +57,7 @@ BlueprintsStorage::Status BlueprintsStorage::getBlueprint(
     BlueprintName const& name, Blueprint &out)
 {
   spex::Message request;
-  request.mutable_blueprints_library()->mutable_module_blueprint_req()->assign(
+  request.mutable_blueprints_library()->mutable_blueprint_req()->assign(
         name.getFullName());
   if (!send(request)) {
     return eTransportError;
@@ -67,22 +67,22 @@ BlueprintsStorage::Status BlueprintsStorage::getBlueprint(
   if (!wait(response)) {
     return eTransportError;
   }
-  if (response.choice_case() == spex::IBlueprintsLibrary::kModuleBlueprintFail) {
-    return convert(response.module_blueprint_fail());
+  if (response.choice_case() == spex::IBlueprintsLibrary::kBlueprintFail) {
+    return convert(response.blueprint_fail());
   }
-  if (response.choice_case() != spex::IBlueprintsLibrary::kModuleBlueprint) {
+  if (response.choice_case() != spex::IBlueprintsLibrary::kBlueprint) {
     return eUnexpectedMessage;
   }
 
-  spex::IBlueprintsLibrary::ModuleBlueprint const& body = response.module_blueprint();
+  spex::Blueprint const& body = response.blueprint();
   out.m_sName = body.name();
-  for (spex::IBlueprintsLibrary::Property const& property : body.properties()) {
+  for (spex::Property const& property : body.properties()) {
     PropertyUniqPtr pItem = std::make_unique<Property>();
     pItem->sName = property.name();
     pItem->sValue = property.value();
 
     // Let's assume, that only 2 layer hierarchy is possible
-    for (spex::IBlueprintsLibrary::Property const& nested: property.nested()) {
+    for (spex::Property const& nested: property.nested()) {
       PropertyUniqPtr pNestedItem = std::make_unique<Property>();
       pNestedItem->sName = nested.name();
       pNestedItem->sValue = nested.value();

@@ -8,11 +8,10 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::BlueprintsStorage);
 
 namespace modules {
 
-static void importProperties(YAML::Node const& from,
-                             spex::IBlueprintsLibrary::Property* to)
+static void importProperties(YAML::Node const& from, spex::Property* to)
 {
   for (auto const& parameter: from) {
-    spex::IBlueprintsLibrary::Property* pProperty = to->add_nested();
+    spex::Property* pProperty = to->add_nested();
     pProperty->set_name(parameter.first.as<std::string>());
     if (parameter.second.IsScalar()) {
       pProperty->set_value(parameter.second.as<std::string>());
@@ -39,11 +38,11 @@ void BlueprintsStorage::handleBlueprintsStorageMessage(
     uint32_t nSessionId, spex::IBlueprintsLibrary const& message)
 {
   switch (message.choice_case()) {
-    case spex::IBlueprintsLibrary::kModulesListReq:
-      onModulesListReq(nSessionId, message.modules_list_req());
+    case spex::IBlueprintsLibrary::kBlueprintsListReq:
+      onModulesListReq(nSessionId, message.blueprints_list_req());
       return;
-    case spex::IBlueprintsLibrary::kModuleBlueprintReq:
-      onModuleBlueprintReq(nSessionId, message.module_blueprint_req());
+    case spex::IBlueprintsLibrary::kBlueprintReq:
+      onModuleBlueprintReq(nSessionId, message.blueprint_req());
       return;
     default:
       assert("Unsupported message!" == nullptr);
@@ -66,8 +65,8 @@ void BlueprintsStorage::onModulesListReq(
 
   if (modulesNamesList.empty()) {
     spex::Message response;
-    spex::IBlueprintsLibrary::NamesList* pBody =
-        response.mutable_blueprints_library()->mutable_modules_list();
+    spex::NamesList* pBody =
+        response.mutable_blueprints_library()->mutable_blueprints_list();
     pBody->set_left(0);
     sendToClient(nSessionId, response);
     return;
@@ -77,8 +76,8 @@ void BlueprintsStorage::onModulesListReq(
   size_t nNamesLeft       = modulesNamesList.size();
   while (nNamesLeft) {
     spex::Message response;
-    spex::IBlueprintsLibrary::NamesList* pBody =
-        response.mutable_blueprints_library()->mutable_modules_list();
+    spex::NamesList* pBody =
+        response.mutable_blueprints_library()->mutable_blueprints_list();
     for (size_t i = 0; i < nNamesPerMessage && nNamesLeft; ++i) {
        pBody->add_names(std::move(modulesNamesList[--nNamesLeft]));
     }
@@ -103,8 +102,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
   }
 
   spex::Message response;
-  spex::IBlueprintsLibrary::ModuleBlueprint* pBody =
-      response.mutable_blueprints_library()->mutable_module_blueprint();
+  spex::Blueprint* pBody = response.mutable_blueprints_library()->mutable_blueprint();
   pBody->set_name(sName);
 
   // Complex code: converting blueprint specification in that way:
@@ -112,7 +110,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
   YAML::Node specification;
   pBlueprint->dump(specification);
   for (auto const& property: specification) {
-    spex::IBlueprintsLibrary::Property* pItem = pBody->add_properties();
+    spex::Property* pItem = pBody->add_properties();
     pItem->set_name(property.first.as<std::string>());
     if (property.second.IsScalar()) {
       pItem->set_value(property.second.as<std::string>());
@@ -130,7 +128,7 @@ bool BlueprintsStorage::sendModuleBlueprintFail(
     uint32_t nSessionId, spex::IBlueprintsLibrary::Status error) const
 {
   spex::Message response;
-  response.mutable_blueprints_library()->set_module_blueprint_fail(error);
+  response.mutable_blueprints_library()->set_blueprint_fail(error);
   return sendToClient(nSessionId, response);
 }
 
