@@ -30,10 +30,17 @@ private:
   std::string m_sModuleType;
 };
 
+struct Property;
+using PropertyUniqPtr = std::unique_ptr<Property>;
+using Properties = std::map<std::string, PropertyUniqPtr>;
+
+struct Property {
+  std::string sName;
+  std::string sValue;
+  Properties  nested;
+};
 
 struct Blueprint {
-  using Properties = std::map<std::string, std::string>;
-
   std::string  m_sName;
   Properties   m_properties;
 };

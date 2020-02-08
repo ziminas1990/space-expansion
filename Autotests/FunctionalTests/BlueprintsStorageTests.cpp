@@ -195,8 +195,8 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
                 client::BlueprintName("CelestialScanner/huge-scanner"),
                 blueprint));
     EXPECT_EQ("CelestialScanner/huge-scanner", blueprint.m_sName);
-    EXPECT_EQ("20000000", blueprint.m_properties["max_scanning_radius_km"]);
-    EXPECT_EQ("40",       blueprint.m_properties["processing_time_us"]);
+    EXPECT_EQ("20000000", blueprint.m_properties["max_scanning_radius_km"]->sValue);
+    EXPECT_EQ("40",       blueprint.m_properties["processing_time_us"]->sValue);
   }
 
   {
@@ -206,8 +206,8 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
                 client::BlueprintName("AsteroidScanner/tiny-scanner"),
                 blueprint));
     EXPECT_EQ("AsteroidScanner/tiny-scanner", blueprint.m_sName);
-    EXPECT_EQ("10000", blueprint.m_properties["max_scanning_distance"]);
-    EXPECT_EQ("100",   blueprint.m_properties["scanning_time_ms"]);
+    EXPECT_EQ("10000", blueprint.m_properties["max_scanning_distance"]->sValue);
+    EXPECT_EQ("100",   blueprint.m_properties["scanning_time_ms"]->sValue);
   }
 
   {
@@ -217,7 +217,7 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
                 client::BlueprintName("Engine/civilian-engine"),
                 blueprint));
     EXPECT_EQ("Engine/civilian-engine", blueprint.m_sName);
-    EXPECT_EQ("500000", blueprint.m_properties["max_thrust"]);
+    EXPECT_EQ("500000", blueprint.m_properties["max_thrust"]->sValue);
   }
 
   {
@@ -227,7 +227,38 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
                 client::BlueprintName("ResourceContainer/titanic-cargo"),
                 blueprint));
     EXPECT_EQ("ResourceContainer/titanic-cargo", blueprint.m_sName);
-    EXPECT_EQ("1000", blueprint.m_properties["volume"]);
+    EXPECT_EQ("1000", blueprint.m_properties["volume"]->sValue);
+  }
+}
+
+TEST_F(BlueprintStorageTests, GetShipBlueprints)
+{
+  animateWorld();
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("James", "Bond")
+        .expectSuccess());
+
+  client::BlueprintsStorage storage;
+  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+
+  {
+    client::Blueprint blueprint;
+    ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+              storage.getBlueprint(
+                client::BlueprintName("Ship/Titanic-Scout"),
+                blueprint));
+    EXPECT_EQ("Ship/Titanic-Scout", blueprint.m_sName);
+    EXPECT_EQ("250",       blueprint.m_properties["radius"]->sValue);
+    EXPECT_EQ("100000000", blueprint.m_properties["weight"]->sValue);
+
+    client::PropertyUniqPtr const& pShipModules = blueprint.m_properties["modules"];
+    EXPECT_EQ("CelestialScanner/huge-scanner",
+              pShipModules->nested["celestial-scanner"]->sValue);
+    EXPECT_EQ("AsteroidScanner/huge-scanner",
+              pShipModules->nested["asteroid-scanner"]->sValue);
+    EXPECT_EQ("Engine/titanic-engine",
+              pShipModules->nested["engine"]->sValue);
   }
 }
 

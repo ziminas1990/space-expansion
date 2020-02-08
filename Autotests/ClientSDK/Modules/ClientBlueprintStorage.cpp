@@ -77,7 +77,19 @@ BlueprintsStorage::Status BlueprintsStorage::getBlueprint(
   spex::IBlueprintsLibrary::ModuleBlueprint const& body = response.module_blueprint();
   out.m_sName = body.name();
   for (spex::IBlueprintsLibrary::Property const& property : body.properties()) {
-    out.m_properties[property.name()] = property.value();
+    PropertyUniqPtr pItem = std::make_unique<Property>();
+    pItem->sName = property.name();
+    pItem->sValue = property.value();
+
+    // Let's assume, that only 2 layer hierarchy is possible
+    for (spex::IBlueprintsLibrary::Property const& nested: property.nested()) {
+      PropertyUniqPtr pNestedItem = std::make_unique<Property>();
+      pNestedItem->sName = nested.name();
+      pNestedItem->sValue = nested.value();
+      pItem->nested[pNestedItem->sName] = std::move(pNestedItem);
+    }
+
+    out.m_properties[pItem->sName] = std::move(pItem);
   }
 
   return eSuccess;
