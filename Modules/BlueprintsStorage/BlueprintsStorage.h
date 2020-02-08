@@ -5,8 +5,7 @@
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
 #include <Protocol.pb.h>
-#include <Blueprints/Modules/BlueprintsLibrary.h>
-#include <Blueprints/Ships/ShipBlueprintsLibrary.h>
+#include <Blueprints/BlueprintsLibrary.h>
 
 namespace modules {
 
@@ -17,8 +16,7 @@ class BlueprintsStorage :
 public:
   BlueprintsStorage();
 
-  void attachToLibraries(BlueprintsLibrary const* pModulesBlueprints,
-                         ships::ShipBlueprintsLibrary const* pShipsBlueprints);
+  void attachToLibrary(BlueprintsLibrary const* pModulesBlueprints);
 
 protected:
   // override from BaseModule
@@ -32,8 +30,7 @@ protected:
   bool sendModuleBlueprintFail(uint32_t nSessionId,
                                spex::IBlueprintsLibrary::Status error) const;
 private:
-  BlueprintsLibrary            const* m_pModulesBlueprints;
-  ships::ShipBlueprintsLibrary const* m_pShipsBlueprints;
+  BlueprintsLibrary const* m_pLibrary;
 };
 
 using BlueprintsStoragePtr = std::shared_ptr<BlueprintsStorage>;

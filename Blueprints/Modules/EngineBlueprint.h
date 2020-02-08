@@ -1,17 +1,22 @@
 #pragma once
 
-#include <Blueprints/Modules/ModuleBlueprint.h>
+#include <Blueprints/AbstractBlueprint.h>
 #include <Modules/Engine/Engine.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
 namespace modules {
 
-class EngineBlueprint : public ModuleBlueprint
+class EngineBlueprint : public AbstractBlueprint
 {
 public:
 
   EngineBlueprint() : m_nMaxThrust(0) {}
+
+  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
+  {
+    return std::make_shared<Engine>(std::move(sName), m_nMaxThrust);
+  }
 
   bool load(YAML::Node const& data) override
   {
@@ -23,11 +28,6 @@ public:
   {
     utils::YamlDumper(out)
             .add("max_thrust", m_nMaxThrust);
-  }
-
-  BaseModulePtr build() const override
-  {
-    return std::make_shared<Engine>(m_nMaxThrust);
   }
 
 private:

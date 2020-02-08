@@ -1,5 +1,6 @@
 #include "BlueprintsStorage.h"
 
+#include <Blueprints/AbstractBlueprint.h>
 #include <Utils/StringUtils.h>
 #include <yaml-cpp/yaml.h>
 
@@ -7,18 +8,31 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::BlueprintsStorage);
 
 namespace modules {
 
+static void importProperties(YAML::Node const& from,
+                             spex::IBlueprintsLibrary::Property* to)
+{
+  for (auto const& parameter: from) {
+    spex::IBlueprintsLibrary::Property* pProperty = to->add_nested();
+    pProperty->set_name(parameter.first.as<std::string>());
+    if (parameter.second.IsScalar()) {
+      pProperty->set_value(parameter.second.as<std::string>());
+    } else if (parameter.second.IsMap()) {
+      importProperties(parameter.second, pProperty);
+    } else {
+      assert(false);
+    }
+  }
+}
+
 BlueprintsStorage::BlueprintsStorage()
   : BaseModule("BlueprintsLibrary", "Central")
 {
   GlobalContainer<BlueprintsStorage>::registerSelf(this);
 }
 
-void BlueprintsStorage::attachToLibraries(
-    BlueprintsLibrary            const* pModulesBlueprints,
-    ships::ShipBlueprintsLibrary const* pShipsBlueprints)
+void BlueprintsStorage::attachToLibrary(BlueprintsLibrary const* pModulesBlueprints)
 {
-  m_pModulesBlueprints = pModulesBlueprints;
-  m_pShipsBlueprints   = pShipsBlueprints;
+  m_pLibrary = pModulesBlueprints;
 }
 
 void BlueprintsStorage::handleBlueprintsStorageMessage(
@@ -41,7 +55,7 @@ void BlueprintsStorage::onModulesListReq(
 {
   std::vector<std::string> modulesNamesList;
   modulesNamesList.reserve(10);
-  m_pModulesBlueprints->iterate(
+  m_pLibrary->iterate(
         [&modulesNamesList, &sFilter](modules::BlueprintName const& name) -> bool {
           std::string const& sFullName = name.toString();
           if (utils::StringUtils::startsWith(sFullName, sFilter))
@@ -82,7 +96,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     return;
   }
 
-  ModuleBlueprintPtr pBlueprint = m_pModulesBlueprints->getBlueprint(blueprintName);
+  AbstractBlueprintPtr pBlueprint = m_pLibrary->getBlueprint(blueprintName);
   if (!pBlueprint) {
     sendModuleBlueprintFail(nSessionId, spex::IBlueprintsLibrary::BLUEPRINT_NOT_FOUND);
     return;
@@ -93,12 +107,20 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
       response.mutable_blueprints_library()->mutable_module_blueprint();
   pBody->set_name(sName);
 
+  // Complex code: converting blueprint specification in that way:
+  // Blueprint -> YAML -> Protobuf
   YAML::Node specification;
   pBlueprint->dump(specification);
-  for (auto const& parameter: specification) {
-    spex::IBlueprintsLibrary::Property* pProperty = pBody->add_properties();
-    pProperty->set_name(parameter.first.as<std::string>());
-    pProperty->set_value(parameter.second.as<std::string>());
+  for (auto const& property: specification) {
+    spex::IBlueprintsLibrary::Property* pItem = pBody->add_properties();
+    pItem->set_name(property.first.as<std::string>());
+    if (property.second.IsScalar()) {
+      pItem->set_value(property.second.as<std::string>());
+    } else if (property.second.IsMap()) {
+      importProperties(property.second, pItem);
+    } else {
+      assert(false);
+    }
   }
 
   sendToClient(nSessionId, response);

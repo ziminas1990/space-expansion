@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Blueprints/Modules/ModuleBlueprint.h>
+#include <Blueprints/AbstractBlueprint.h>
 #include <Modules/CelestialScanner/CelestialScanner.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
 namespace modules {
 
-class CelestialScannerBlueprint : public ModuleBlueprint
+class CelestialScannerBlueprint : public AbstractBlueprint
 {
 public:
 
@@ -15,10 +15,10 @@ public:
     : m_nMaxScanningRadiusKm(0), m_nProcessingTimeUs(0)
   {}
 
-  BaseModulePtr build() const override
+  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
   {
     return std::make_shared<CelestialScanner>(
-          m_nMaxScanningRadiusKm, m_nProcessingTimeUs);
+          std::move(sName), m_nMaxScanningRadiusKm, m_nProcessingTimeUs);
   }
 
   bool load(YAML::Node const& data) override

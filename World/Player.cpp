@@ -8,16 +8,13 @@
 namespace world
 {
 
-Player::Player(std::string sLogin,
-               modules::BlueprintsLibrary avaliableModulesBlueprints,
-               ships::ShipBlueprintsLibrary shipsBlueprints)
+Player::Player(std::string sLogin, modules::BlueprintsLibrary blueprints)
   : m_sLogin(std::move(sLogin)),
     m_pEntryPoint(std::make_shared<modules::Commutator>()),
     m_pBlueprintsExplorer(std::make_shared<modules::BlueprintsStorage>()),
-    m_modulesBlueprints(std::move(avaliableModulesBlueprints)),
-    m_shipsBlueprints(std::move(shipsBlueprints))
+    m_blueprints(std::move(blueprints))
 {
-  m_pBlueprintsExplorer->attachToLibraries(&m_modulesBlueprints, &m_shipsBlueprints);
+  m_pBlueprintsExplorer->attachToLibrary(&m_blueprints);
   m_pBlueprintsExplorer->attachToChannel(m_pEntryPoint);
   m_pEntryPoint->attachModule(m_pBlueprintsExplorer);
 }
@@ -60,15 +57,19 @@ bool Player::loadState(YAML::Node const& data)
     utils::StringUtils::split('/', sShipTypeAndName, sShipType, sShipName);
     assert(!sShipName.empty() && !sShipType.empty());
 
-    ships::ShipBlueprintPtr pShipBlueprint = m_shipsBlueprints.getBlueprint(sShipType);
+    modules::AbstractBlueprintPtr pShipBlueprint =
+        m_blueprints.getBlueprint(modules::BlueprintName("Ship", sShipType));
     assert(pShipBlueprint);
     if (!pShipBlueprint)
       return false;
-    ships::ShipPtr pShip = pShipBlueprint->build(std::move(sShipName),
-                                                 m_modulesBlueprints);
+
+    ships::ShipPtr pShip =
+        std::dynamic_pointer_cast<ships::Ship>(
+          pShipBlueprint->build(std::move(sShipName), m_blueprints));
     assert(pShip);
     if (!pShip)
       return false;
+
     if (!pShip->loadState(kv.second)) {
       assert(false);
       return false;

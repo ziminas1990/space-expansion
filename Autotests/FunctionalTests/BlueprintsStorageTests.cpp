@@ -113,7 +113,10 @@ TEST_F(BlueprintStorageTests, GetAllModules)
     client::BlueprintName("ResourceContainer/toy-cargo"),
     client::BlueprintName("ResourceContainer/civilian-cargo"),
     client::BlueprintName("ResourceContainer/huge-cargo"),
-    client::BlueprintName("ResourceContainer/titanic-cargo")
+    client::BlueprintName("ResourceContainer/titanic-cargo"),
+    client::BlueprintName("Ship/Tiny-Scout"),
+    client::BlueprintName("Ship/Civilian-Scout"),
+    client::BlueprintName("Ship/Titanic-Scout")
   };
 
   std::vector<client::BlueprintName> modulesBlueprintsNames;

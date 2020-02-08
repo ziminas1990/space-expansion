@@ -19,8 +19,8 @@ class AsteroidMiner :
     public utils::GlobalContainer<AsteroidMiner>
 {
 public:
-  AsteroidMiner(uint32_t nMaxDistance, uint32_t nCycleTimeMs, uint32_t nYieldPerCycle,
-                std::string sContainerName);
+  AsteroidMiner(std::string sName, uint32_t nMaxDistance, uint32_t nCycleTimeMs,
+                uint32_t nYieldPerCycle, std::string sContainerName);
 
   void attachToResourceContainer(ResourceContainerPtr pContainer);
 

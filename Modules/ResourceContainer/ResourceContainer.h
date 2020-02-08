@@ -18,7 +18,7 @@ class ResourceContainer :
     public utils::GlobalContainer<ResourceContainer>
 {
 public:
-  ResourceContainer(uint32_t nVolume);
+  ResourceContainer(std::string&& sName, uint32_t nVolume);
 
   // override from BaseModule
   bool loadState(YAML::Node const& data) override;

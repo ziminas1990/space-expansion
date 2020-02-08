@@ -11,7 +11,7 @@ namespace modules {
 class Engine : public BaseModule, public utils::GlobalContainer<Engine>
 {
 public:
-  Engine(uint32_t maxThrust);
+  Engine(std::string&& sName, uint32_t maxThrust);
 
   void proceed(uint32_t nIntervalUs);
 

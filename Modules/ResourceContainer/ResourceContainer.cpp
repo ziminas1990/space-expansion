@@ -52,8 +52,8 @@ std::vector<ResourceContainer::Port> ResourceContainer::m_allPorts =
     std::vector<ResourceContainer::Port>(1024);
 uint32_t                             ResourceContainer::m_nNextSecretKey = 1;
 
-ResourceContainer::ResourceContainer(uint32_t nVolume)
-  : BaseModule("ResourceContainer", std::string()),
+ResourceContainer::ResourceContainer(std::string &&sName, uint32_t nVolume)
+  : BaseModule("ResourceContainer", std::move(sName)),
     m_nVolume(nVolume), m_nUsedSpace(0), m_amount(world::Resources::eTotalResources),
     m_nOpenedPortId(m_freePortsIds.getInvalidValue())
 {

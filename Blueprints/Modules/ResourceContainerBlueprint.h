@@ -1,21 +1,21 @@
 #pragma once
 
-#include "ModuleBlueprint.h"
+#include <Blueprints/AbstractBlueprint.h>
 #include <Modules/ResourceContainer/ResourceContainer.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
 namespace modules {
 
-class ResourceContainerBlueprint : public ModuleBlueprint
+class ResourceContainerBlueprint : public AbstractBlueprint
 {
 public:
   ResourceContainerBlueprint() : m_nVolume(0)
   {}
 
-  BaseModulePtr build() const override
+  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
   {
-    return std::make_shared<ResourceContainer>(m_nVolume);
+    return std::make_shared<ResourceContainer>(std::move(sName), m_nVolume);
   }
 
   bool load(YAML::Node const& data) override

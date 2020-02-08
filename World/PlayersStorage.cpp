@@ -6,19 +6,15 @@
 namespace world {
 
 
-bool PlayersStorage::loadState(
-    YAML::Node const& data,
-    modules::BlueprintsLibrary   const& avaliableModulesBlueprints,
-    ships::ShipBlueprintsLibrary const& shipsBlueprints)
+bool PlayersStorage::loadState(YAML::Node const& data,
+                               modules::BlueprintsLibrary const& blueprints)
 {
   for(auto const& kv : data) {
     std::string sLogin = kv.first.as<std::string>();
     assert(!sLogin.empty());
     if (sLogin.empty())
       return false;
-    PlayerPtr pPlayer =
-        std::make_shared<Player>(
-          sLogin, avaliableModulesBlueprints, shipsBlueprints);
+    PlayerPtr pPlayer = std::make_shared<Player>(sLogin, blueprints);
     if (!pPlayer->loadState(kv.second)) {
       assert(false);
       return false;

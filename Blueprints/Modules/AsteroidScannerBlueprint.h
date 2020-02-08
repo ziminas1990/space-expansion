@@ -1,21 +1,22 @@
 #pragma once
 
-#include "ModuleBlueprint.h"
+#include <Blueprints/AbstractBlueprint.h>
 #include <Modules/AsteroidScanner/AsteroidScanner.h>
 #include <Utils/YamlReader.h>
 #include <Utils/YamlDumper.h>
 
 namespace modules {
 
-class AsteroidScannerBlueprint : public ModuleBlueprint
+class AsteroidScannerBlueprint : public AbstractBlueprint
 {
 public:
   AsteroidScannerBlueprint() : m_nMaxScanningDistance(0), m_nScanningTimeMs(0)
   {}
 
-  BaseModulePtr build() const override
+  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
   {
-    return std::make_shared<AsteroidScanner>(m_nMaxScanningDistance, m_nScanningTimeMs);
+    return std::make_shared<AsteroidScanner>(
+          std::move(sName), m_nMaxScanningDistance, m_nScanningTimeMs);
   }
 
   bool load(YAML::Node const& data) override

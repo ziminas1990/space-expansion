@@ -45,6 +45,12 @@ YamlDumper& YamlDumper::add(char const* pName, geometry::Vector const& vector)
   return *this;
 }
 
+YamlDumper &YamlDumper::add(const char *pName, YAML::Node &&node)
+{
+  m_data[pName] = std::move(node);
+  return *this;
+}
+
 
 
 } // namespace utils

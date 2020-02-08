@@ -1,23 +1,24 @@
 #pragma once
 
 #include <inttypes.h>
-#include "ModuleBlueprint.h"
+#include <Blueprints/AbstractBlueprint.h>
 #include <Modules/AsteroidMiner/AsteroidMiner.h>
 #include <Utils/YamlReader.h>
 #include <Utils/YamlDumper.h>
 
 namespace modules {
 
-class AsteroidMinerBlueprint : public ModuleBlueprint
+class AsteroidMinerBlueprint : public AbstractBlueprint
 {
 public:
   AsteroidMinerBlueprint() : m_nMaxDistance(0), m_nCycleTimeMs(0), m_nYieldPerCycle(0)
   {}
 
-  BaseModulePtr build() const override
+  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
   {
     return std::make_shared<AsteroidMiner>(
-          m_nMaxDistance, m_nCycleTimeMs, m_nYieldPerCycle, m_sContainerName);
+          std::move(sName), m_nMaxDistance, m_nCycleTimeMs, m_nYieldPerCycle,
+          m_sContainerName);
   }
 
   bool load(YAML::Node const& data) override

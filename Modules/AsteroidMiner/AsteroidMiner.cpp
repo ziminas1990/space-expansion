@@ -13,9 +13,10 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::AsteroidMiner);
 namespace modules
 {
 
-AsteroidMiner::AsteroidMiner(uint32_t nMaxDistance, uint32_t nCycleTimeMs,
-                             uint32_t nYieldPerCycle, std::string sContainerName)
-  : BaseModule("AsteroidMiner", std::string()),
+AsteroidMiner::AsteroidMiner(std::string sName, uint32_t nMaxDistance,
+                             uint32_t nCycleTimeMs, uint32_t nYieldPerCycle,
+                             std::string sContainerName)
+  : BaseModule("AsteroidMiner", std::move(sName)),
     m_nMaxDistance(nMaxDistance), m_nCycleTimeMs(nCycleTimeMs),
     m_nYeildPerCycle(nYieldPerCycle), m_sContainerName(std::move(sContainerName)),
     m_nCycleProgressUs(0), m_nTunnelId(0)

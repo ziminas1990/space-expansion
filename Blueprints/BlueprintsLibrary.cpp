@@ -1,11 +1,12 @@
 #include "BlueprintsLibrary.h"
 
 #include "BlueprintFactory.h"
+#include "Ships/ShipBlueprint.h"
 #include <yaml-cpp/yaml.h>
 
 namespace modules {
 
-bool BlueprintsLibrary::loadBlueprints(YAML::Node const& modulesSection)
+bool BlueprintsLibrary::loadModulesBlueprints(YAML::Node const& modulesSection)
 {
   for(auto const& modulesClassInfo : modulesSection) {
     std::string const& sModuleClass = modulesClassInfo.first.as<std::string>();
@@ -13,7 +14,7 @@ bool BlueprintsLibrary::loadBlueprints(YAML::Node const& modulesSection)
     for (auto const& moduleTypeInfo : modulesClassInfo.second) {
       std::string const& sModuleType = moduleTypeInfo.first.as<std::string>();
 
-      ModuleBlueprintPtr pBlueprint =
+      AbstractBlueprintPtr pBlueprint =
           BlueprintsFactory::make(sModuleClass, moduleTypeInfo.second);
       assert(pBlueprint != nullptr);
       if (!pBlueprint) {
@@ -26,10 +27,27 @@ bool BlueprintsLibrary::loadBlueprints(YAML::Node const& modulesSection)
   return true;
 }
 
-ModuleBlueprintPtr BlueprintsLibrary::getBlueprint(BlueprintName const& name) const
+bool BlueprintsLibrary::loadShipsBlueprints(YAML::Node const& shipsSection)
+{
+  for(auto const& shipInfo : shipsSection) {
+      std::string const& sShipClassName = shipInfo.first.as<std::string>();
+
+      ships::ShipBlueprintPtr pBlueprint =
+          std::make_shared<ships::ShipBlueprint>(sShipClassName);
+      if (!pBlueprint->load(shipInfo.second)) {
+        assert(false);
+        return false;
+      }
+
+      m_blueprints[BlueprintName("Ship", sShipClassName)] = pBlueprint;
+    }
+    return true;
+}
+
+AbstractBlueprintPtr BlueprintsLibrary::getBlueprint(BlueprintName const& name) const
 {
   auto I = m_blueprints.find(name);
-  return I != m_blueprints.end() ? I->second : ModuleBlueprintPtr();
+  return I != m_blueprints.end() ? I->second : AbstractBlueprintPtr();
 }
 
 void BlueprintsLibrary::iterate(

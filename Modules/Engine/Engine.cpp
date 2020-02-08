@@ -5,8 +5,8 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Engine);
 
 namespace modules {
 
-Engine::Engine(uint32_t maxThrust)
-  : BaseModule ("Engine/Nuclear", std::string()),
+Engine::Engine(std::string&& sName, uint32_t maxThrust)
+  : BaseModule ("Engine/Nuclear", std::move(sName)),
     m_maxThrust(maxThrust)
 {
   GlobalContainer<Engine>::registerSelf(this);

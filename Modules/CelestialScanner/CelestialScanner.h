@@ -17,7 +17,8 @@ class CelestialScanner :
     public utils::GlobalContainer<CelestialScanner>
 {
 public:
-  CelestialScanner(uint32_t m_nMaxScanningRadiusKm, uint32_t m_nProcessingTimeUs);
+  CelestialScanner(std::string&& sName, uint32_t m_nMaxScanningRadiusKm,
+                   uint32_t m_nProcessingTimeUs);
 
   void proceed(uint32_t nIntervalUs) override;
 

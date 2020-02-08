@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ModuleBlueprint.h"
+#include <Blueprints/AbstractBlueprint.h>
 #include <Utils/YamlForwardDeclarations.h>
 
 namespace modules
@@ -9,7 +9,7 @@ namespace modules
 class BlueprintsFactory
 {
 public:
-  static ModuleBlueprintPtr make(std::string const& sModuleType, YAML::Node const& data);
+  static AbstractBlueprintPtr make(std::string const& sModuleType, YAML::Node const& data);
 };
 
 } // namespace modules

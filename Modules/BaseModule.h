@@ -42,8 +42,6 @@ public:
   std::string const& getModuleType() const { return m_sModuleType; }
   std::string const& getModuleName() const { return m_sModuleName; }
 
-  void changeModuleName(std::string sName) { m_sModuleName = std::move(sName); }
-
   void putOffline()         { m_eStatus = Status::eOffline; }
   void putOnline()          { m_eStatus = Status::eOnline; }
   void onDoestroyed()       { m_eStatus = Status::eDestoyed; }

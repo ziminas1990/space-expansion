@@ -34,22 +34,21 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
 
   {
     YAML::Node const& modulesBlueprintsSection = blueprintsSection["Modules"];
-    if (!m_modulesBlueprints.loadBlueprints(modulesBlueprintsSection)) {
+    if (!m_blueprints.loadModulesBlueprints(modulesBlueprintsSection)) {
       assert("Fail to load modules blueprints section!" == nullptr);
       return false;
     }
   }
   {
     YAML::Node const& shipsBlueprintsSection = blueprintsSection["Ships"];
-    if (!m_shipsBlueprints.loadBlueprints(shipsBlueprintsSection)) {
+    if (!m_blueprints.loadShipsBlueprints(shipsBlueprintsSection)) {
       assert("Fail to load ships blueprints section!" == nullptr);
       return false;
     }
   }
 
   YAML::Node const& playersState = data["Players"];
-  if (!m_pPlayersStorage->loadState(
-        playersState, m_modulesBlueprints, m_shipsBlueprints)) {
+  if (!m_pPlayersStorage->loadState(playersState, m_blueprints)) {
     assert(false);
     return false;
   }

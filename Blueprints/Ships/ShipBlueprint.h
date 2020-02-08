@@ -3,8 +3,9 @@
 #include <memory>
 #include <map>
 #include <Ships/Ship.h>
-#include <Blueprints/Modules/BlueprintName.h>
-#include <Blueprints/Modules/BlueprintsLibrary.h>
+#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BlueprintName.h>
+#include <Blueprints/BlueprintsLibrary.h>
 
 #include <Utils/YamlForwardDeclarations.h>
 
@@ -14,25 +15,15 @@ class ShipBlueprint;
 using ShipBlueprintPtr      = std::shared_ptr<ShipBlueprint>;
 using ShipBlueprintConstPtr = std::shared_ptr<ShipBlueprint const>;
 
-class ShipBlueprint
+class ShipBlueprint : public modules::AbstractBlueprint
 {
 public:
-  static ShipBlueprintPtr make(std::string sShipType, YAML::Node const& data);
+  ShipBlueprint(std::string sShipProjectName);
 
-  virtual ~ShipBlueprint() = default;
-
-  virtual ShipPtr build(std::string shipName,
-                        modules::BlueprintsLibrary const& modules) const;
-
-  virtual ShipBlueprintPtr wrapToSharedPtr()
-  {
-    return std::make_shared<ShipBlueprint>(std::move(*this));
-  }
-
-  ShipBlueprint& setWeightAndRadius(double weight, double radius);
-  ShipBlueprint& setShipType(std::string sShipType);
-  ShipBlueprint& addModule(std::string sModuleName,
-                           modules::BlueprintName sBlueprintName);
+  modules::BaseModulePtr build(std::string sName,
+                               modules::BlueprintsLibrary const& library) const override;
+  bool load(YAML::Node const& data) override;
+  void dump(YAML::Node& out) const override;
 
 private:
   std::string m_sType  = "unknown";

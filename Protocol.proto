@@ -274,27 +274,16 @@ message IBlueprintsLibrary {
     INTERNAL_ERROR      = 1;
     BLUEPRINT_NOT_FOUND = 2;
   }
-
+  
   message Property {
     string            name   = 1;
     string            value  = 2;
     repeated Property nested = 3;
   }
-
-  message ProductionCost {
-    repeated ResourceItem resources = 1;
-    uint32   time_sec = 2;
-  }
   
   message ModuleBlueprint {
-    string            name            = 1;
-    repeated Property properties      = 2;
-  }
-  
-  message ShipBlueprint {
-    string            name            = 1;
-    repeated Property properties      = 2;
-    repeated string   modules         = 3;
+    string            name       = 1;
+    repeated Property properties = 2;
   }
   
   message NamesList {
@@ -306,15 +295,10 @@ message IBlueprintsLibrary {
   oneof choice {
     string modules_list_req     = 1;
     string module_blueprint_req = 2;
-    bool   ship_list_req        = 3;
-    string ship_blueprint_req   = 4;
     
     NamesList       modules_list          = 20;
     ModuleBlueprint module_blueprint      = 21;
     Status          module_blueprint_fail = 22;
-    NamesList       ship_list             = 23;
-    ShipBlueprint   ship_blueprint        = 24;
-    Status          ship_blueprint_fail   = 25;
   }
 }
 

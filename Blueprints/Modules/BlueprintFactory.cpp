@@ -1,4 +1,4 @@
-#include "BlueprintFactory.h"
+#include <Blueprints/BlueprintFactory.h>
 
 #include "EngineBlueprint.h"
 #include "CelestialScannerBlueprint.h"
@@ -11,12 +11,12 @@
 namespace modules
 {
 
-ModuleBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
+AbstractBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
                                            YAML::Node const& data)
 {
   utils::YamlReader reader(data);
 
-  ModuleBlueprintPtr pBlueprint;
+  AbstractBlueprintPtr pBlueprint;
 
   if (sModuleType == "Engine") {
     pBlueprint = std::make_shared<EngineBlueprint>();
@@ -37,7 +37,7 @@ ModuleBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
   assert(pBlueprint != nullptr);
   if (!pBlueprint || !pBlueprint->load(data)) {
     assert(nullptr == "Failed to read blueprint");
-    return ModuleBlueprintPtr();
+    return AbstractBlueprintPtr();
   }
   return pBlueprint;
 }

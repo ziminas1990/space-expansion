@@ -7,28 +7,43 @@
 
 namespace ships {
 
-ShipBlueprintPtr ShipBlueprint::make(std::string sShipType, YAML::Node const& data)
+ShipBlueprint::ShipBlueprint(std::string sShipProjectName)
+  : m_sType(std::move(sShipProjectName))
+{}
+
+modules::BaseModulePtr ShipBlueprint::build(
+    std::string sName, const modules::BlueprintsLibrary &library) const
 {
-  double      shipWeight;
-  double      shipRadius;
+  ShipPtr pShip = std::make_shared<Ship>(m_sType, std::move(sName), m_weight, m_radius);
+  for (auto const& kv : m_modules)
+  {
+    modules::AbstractBlueprintPtr pBlueprint = library.getBlueprint(kv.second);
+    assert(pBlueprint);
+    if (!pBlueprint) {
+      return ShipPtr();
+    }
 
-  if (!utils::YamlReader(data)
-      .read("weight", shipWeight)
-      .read("radius", shipRadius)) {
-    assert(false);
-    return ShipBlueprintPtr();
+    modules::BaseModulePtr pModule = pBlueprint->build(kv.first, library);
+    pShip->installModule(std::move(pModule));
   }
+  return pShip;
+}
 
-  ShipBlueprintPtr pBlueprint = std::make_shared<ShipBlueprint>();
-  pBlueprint->setShipType(std::move(sShipType));
-  pBlueprint->setWeightAndRadius(shipWeight, shipRadius);
+bool ShipBlueprint::load(YAML::Node const& data)
+{
+  if (!utils::YamlReader(data)
+      .read("weight", m_weight)
+      .read("radius", m_radius)) {
+    assert(false);
+    return false;
+  }
 
   for (auto const& kv : data["modules"]) {
     std::string sModuleName = kv.first.as<std::string>();
-    if (pBlueprint->m_modules.find(sModuleName) != pBlueprint->m_modules.end()) {
+    if (m_modules.find(sModuleName) != m_modules.end()) {
       // Duplicate detected
       assert(false);
-      return ShipBlueprintPtr();
+      return false;
     }
 
     std::string const& sBlueprintName = kv.second.as<std::string>();
@@ -36,54 +51,27 @@ ShipBlueprintPtr ShipBlueprint::make(std::string sShipType, YAML::Node const& da
     std::string sModuleType;
     utils::StringUtils::split('/', sBlueprintName, sModuleClass, sModuleType);
     assert(!sModuleClass.empty() && !sModuleType.empty());
-    pBlueprint->m_modules.insert(
-          std::make_pair(
-            std::move(sModuleName),
-            modules::BlueprintName(std::move(sModuleClass), std::move(sModuleType))));
+    m_modules.emplace(
+          std::move(sModuleName),
+          modules::BlueprintName(std::move(sModuleClass), std::move(sModuleType)));
   }
-  return pBlueprint;
+  return true;
 }
 
-ShipPtr ShipBlueprint::build(std::string shipName,
-                             modules::BlueprintsLibrary const& modules) const
+void ShipBlueprint::dump(YAML::Node& out) const
 {
-  ShipPtr pShip = std::make_shared<Ship>(m_sType, std::move(shipName),
-                                         m_weight, m_radius);
-  for (auto const& kv : m_modules)
+  YAML::Node modules;
   {
-    modules::ModuleBlueprintPtr pBlueprint = modules.getBlueprint(kv.second);
-    assert(pBlueprint);
-    if (!pBlueprint) {
-      return ShipPtr();
-    }
-
-    modules::BaseModulePtr pModule = pBlueprint->build();
-    pModule->changeModuleName(kv.first);
-    pShip->installModule(pModule);
+    utils::YamlDumper dumper(modules);
+    for (auto const& kv : m_modules)
+      // kv - { module_name, blueprint_name }
+      dumper.add(kv.first.c_str(), kv.second.toString());
   }
-  return pShip;
-}
 
-ShipBlueprint& ShipBlueprint::setWeightAndRadius(double weight, double radius)
-{
-  m_weight = weight;
-  m_radius = radius;
-  return *this;
-}
-
-ShipBlueprint& ShipBlueprint::setShipType(std::string sShipType)
-{
-  m_sType = std::move(sShipType);
-  return *this;
-}
-
-ShipBlueprint& ShipBlueprint::addModule(
-    std::string sModuleName, modules::BlueprintName sBlueprintName)
-{
-  if (m_modules.find(sModuleName) != m_modules.end())
-    return *this;
-  m_modules.insert(std::make_pair(std::move(sModuleName), std::move(sBlueprintName)));
-  return *this;
+  utils::YamlDumper dumper(out);
+  dumper.add("weight", m_weight)
+        .add("radius", m_radius)
+        .add("modules", std::move(modules));
 }
 
 } // namespace ships

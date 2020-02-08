@@ -29,7 +29,7 @@ public:
   // Complex types:
   YamlDumper& add(char const* pName, geometry::Point const& point);
   YamlDumper& add(char const* pName, geometry::Vector const& vector);
-
+  YamlDumper& add(char const* pName, YAML::Node&& node);
 private:
   YAML::Node& m_data;
 };

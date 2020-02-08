@@ -12,8 +12,8 @@ namespace modules
 {
 
 CelestialScanner::CelestialScanner(
-    uint32_t nMaxScanningRadiusKm, uint32_t nProcessingTimeUs)
-  : BaseModule("CelestialScanner", std::string()),
+    std::string &&sName, uint32_t nMaxScanningRadiusKm, uint32_t nProcessingTimeUs)
+  : BaseModule("CelestialScanner", std::move(sName)),
     m_nMaxScanningRadiusKm(nMaxScanningRadiusKm), m_nProcessingTimeUs(nProcessingTimeUs)
 {
   GlobalContainer<CelestialScanner>::registerSelf(this);
