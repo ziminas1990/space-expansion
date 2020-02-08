@@ -17,7 +17,7 @@ modules::BaseModulePtr ShipBlueprint::build(
   ShipPtr pShip = std::make_shared<Ship>(m_sType, std::move(sName), m_weight, m_radius);
   for (auto const& kv : m_modules)
   {
-    modules::AbstractBlueprintPtr pBlueprint = library.getBlueprint(kv.second);
+    modules::BaseBlueprintPtr pBlueprint = library.getBlueprint(kv.second);
     assert(pBlueprint);
     if (!pBlueprint) {
       return ShipPtr();

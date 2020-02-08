@@ -1,14 +1,14 @@
 #pragma once
 
 #include <inttypes.h>
-#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BaseBlueprint.h>
 #include <Modules/AsteroidMiner/AsteroidMiner.h>
 #include <Utils/YamlReader.h>
 #include <Utils/YamlDumper.h>
 
 namespace modules {
 
-class AsteroidMinerBlueprint : public AbstractBlueprint
+class AsteroidMinerBlueprint : public BaseBlueprint
 {
 public:
   AsteroidMinerBlueprint() : m_nMaxDistance(0), m_nCycleTimeMs(0), m_nYieldPerCycle(0)

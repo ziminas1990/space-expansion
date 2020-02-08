@@ -1,6 +1,6 @@
 #include "BlueprintsStorage.h"
 
-#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BaseBlueprint.h>
 #include <Utils/StringUtils.h>
 #include <yaml-cpp/yaml.h>
 
@@ -95,7 +95,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     return;
   }
 
-  AbstractBlueprintPtr pBlueprint = m_pLibrary->getBlueprint(blueprintName);
+  BaseBlueprintPtr pBlueprint = m_pLibrary->getBlueprint(blueprintName);
   if (!pBlueprint) {
     sendModuleBlueprintFail(nSessionId, spex::IBlueprintsLibrary::BLUEPRINT_NOT_FOUND);
     return;

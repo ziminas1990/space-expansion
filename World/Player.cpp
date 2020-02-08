@@ -57,7 +57,7 @@ bool Player::loadState(YAML::Node const& data)
     utils::StringUtils::split('/', sShipTypeAndName, sShipType, sShipName);
     assert(!sShipName.empty() && !sShipType.empty());
 
-    modules::AbstractBlueprintPtr pShipBlueprint =
+    modules::BaseBlueprintPtr pShipBlueprint =
         m_blueprints.getBlueprint(modules::BlueprintName("Ship", sShipType));
     assert(pShipBlueprint);
     if (!pShipBlueprint)

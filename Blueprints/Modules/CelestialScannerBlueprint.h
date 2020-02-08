@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BaseBlueprint.h>
 #include <Modules/CelestialScanner/CelestialScanner.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
 namespace modules {
 
-class CelestialScannerBlueprint : public AbstractBlueprint
+class CelestialScannerBlueprint : public BaseBlueprint
 {
 public:
 

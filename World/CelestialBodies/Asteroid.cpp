@@ -26,9 +26,9 @@ bool Asteroid::loadState(YAML::Node const& data)
         PhysicalObject::LoadMask().loadPosition().loadVelocity().loadRadius()))
     return false;
   utils::YamlReader reader(data);
-  reader.read("silicates", m_composition.percents[Resources::Type::eSilicate])
-        .read("mettals",   m_composition.percents[Resources::Type::eMettal])
-        .read("ice",       m_composition.percents[Resources::Type::eIce]);
+  reader.read("silicates", m_composition.percents[Resource::Type::eSilicate])
+        .read("mettals",   m_composition.percents[Resource::Type::eMettal])
+        .read("ice",       m_composition.percents[Resource::Type::eIce]);
   m_composition.normalize();
   if (!reader.isOk())
     return false;
@@ -38,7 +38,7 @@ bool Asteroid::loadState(YAML::Node const& data)
   return true;
 }
 
-double Asteroid::yield(Resources::Type eType, double amount)
+double Asteroid::yield(Resource::Type eType, double amount)
 {
   m_spinlock.lock();
 
@@ -59,19 +59,19 @@ AsteroidComposition::AsteroidComposition(
   utility = std::min(utility, 1.0);
   utility = std::max(0.0,     utility);
 
-  percents[Resources::Type::eIce]      = nIce;
-  percents[Resources::Type::eMettal]   = nMettals;
-  percents[Resources::Type::eSilicate] = nSilicates;
+  percents[Resource::Type::eIce]      = nIce;
+  percents[Resource::Type::eMettal]   = nMettals;
+  percents[Resource::Type::eSilicate] = nSilicates;
   normalize(utility);
 }
 
 void AsteroidComposition::normalize(double utility)
 {
   // TODO: maybe "for" is better?
-  double total = percents[Resources::Type::eIce] +
-                 percents[Resources::Type::eMettal] +
-                 percents[Resources::Type::eSilicate];
-  for (size_t i = 0; i < world::Resources::eTotalResources; ++i) {
+  double total = percents[Resource::Type::eIce] +
+                 percents[Resource::Type::eMettal] +
+                 percents[Resource::Type::eSilicate];
+  for (size_t i = 0; i < world::Resource::eTotalResources; ++i) {
     percents[i] *= utility/total;
   }
 }

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BaseBlueprint.h>
 #include <Modules/ResourceContainer/ResourceContainer.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
 namespace modules {
 
-class ResourceContainerBlueprint : public AbstractBlueprint
+class ResourceContainerBlueprint : public BaseBlueprint
 {
 public:
   ResourceContainerBlueprint() : m_nVolume(0)

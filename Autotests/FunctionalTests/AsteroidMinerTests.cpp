@@ -108,7 +108,7 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resources::eMettal));
+            miner.startMining(0, world::Resource::eMettal));
 
   double nLastCycleAmount = 0;
   double nYieldTotal      = 0;
@@ -145,7 +145,7 @@ TEST_F(AsteroidMinerTests, StopMining)
   ASSERT_EQ(client::AsteroidMiner::eMinerIsIdle, miner.stopMining());
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resources::eMettal));
+            miner.startMining(0, world::Resource::eMettal));
 
   utils::Stopwatch stopwatch;
   double nAmount = 0;
@@ -180,7 +180,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
   double nTotalIce       = 0;
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resources::eMettal));
+            miner.startMining(0, world::Resource::eMettal));
   for(size_t i = 0; i < 5; ++i) {
     double nAmount = 0;
     ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
@@ -189,7 +189,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.stopMining());
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resources::eSilicate));
+            miner.startMining(0, world::Resource::eSilicate));
   for(size_t i = 0; i < 5; ++i) {
     double nAmount = 0;
     ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
@@ -198,7 +198,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.stopMining());
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resources::eIce));
+            miner.startMining(0, world::Resource::eIce));
   for(size_t i = 0; i < 5; ++i) {
     double nAmount = 0;
     ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
@@ -231,13 +231,13 @@ TEST_F(AsteroidMinerTests, StartMiningFails)
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
 
   ASSERT_EQ(client::AsteroidMiner::eAsteroidDoesntExist,
-            miner.startMining(42, world::Resources::eMettal));
+            miner.startMining(42, world::Resource::eMettal));
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resources::eMettal));
+            miner.startMining(0, world::Resource::eMettal));
 
   ASSERT_EQ(client::AsteroidMiner::eMinerIsBusy,
-            miner.startMining(0, world::Resources::eMettal));
+            miner.startMining(0, world::Resource::eMettal));
 }
 
 TEST_F(AsteroidMinerTests, NoAvaliableSpace)
@@ -259,7 +259,7 @@ TEST_F(AsteroidMinerTests, NoAvaliableSpace)
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resources::eIce));
+            miner.startMining(0, world::Resource::eIce));
 
   client::ResourceContainer::Content content;
   cargo.getContent(content);

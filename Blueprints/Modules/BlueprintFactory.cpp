@@ -11,12 +11,12 @@
 namespace modules
 {
 
-AbstractBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
+BaseBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
                                            YAML::Node const& data)
 {
   utils::YamlReader reader(data);
 
-  AbstractBlueprintPtr pBlueprint;
+  BaseBlueprintPtr pBlueprint;
 
   if (sModuleType == "Engine") {
     pBlueprint = std::make_shared<EngineBlueprint>();
@@ -37,7 +37,7 @@ AbstractBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
   assert(pBlueprint != nullptr);
   if (!pBlueprint || !pBlueprint->load(data)) {
     assert(nullptr == "Failed to read blueprint");
-    return AbstractBlueprintPtr();
+    return BaseBlueprintPtr();
   }
   return pBlueprint;
 }

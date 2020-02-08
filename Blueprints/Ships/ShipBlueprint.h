@@ -3,7 +3,7 @@
 #include <memory>
 #include <map>
 #include <Ships/Ship.h>
-#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BaseBlueprint.h>
 #include <Blueprints/BlueprintName.h>
 #include <Blueprints/BlueprintsLibrary.h>
 
@@ -15,7 +15,7 @@ class ShipBlueprint;
 using ShipBlueprintPtr      = std::shared_ptr<ShipBlueprint>;
 using ShipBlueprintConstPtr = std::shared_ptr<ShipBlueprint const>;
 
-class ShipBlueprint : public modules::AbstractBlueprint
+class ShipBlueprint : public modules::BaseBlueprint
 {
 public:
   ShipBlueprint(std::string sShipProjectName);

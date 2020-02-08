@@ -24,10 +24,10 @@ public:
   bool loadState(YAML::Node const& data) override;
   void proceed(uint32_t nIntervalUs) override;
 
-  double putResource(world::Resources::Type type, double amount);
+  double putResource(world::Resource::Type type, double amount);
   // Return an amount of resources, that have been actually put
-  double consume(world::Resources::Type type, double amount);
-  bool   consumeExactly(world::Resources::Type type, double amount);
+  double consume(world::Resource::Type type, double amount);
+  bool   consumeExactly(world::Resource::Type type, double amount);
 
 private:
   void handleResourceContainerMessage(
@@ -39,7 +39,7 @@ private:
   void sendClosePortStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);
   void sendContent(uint32_t nTunnelId);
   void sendTransferStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);
-  void sendTransferReport(uint32_t nTunnelId, world::Resources::Type type, double amount);
+  void sendTransferReport(uint32_t nTunnelId, world::Resource::Type type, double amount);
 
   void terminateActiveTransfer(spex::IResourceContainer::Status status);
 
@@ -47,7 +47,7 @@ private:
   void closePort(uint32_t nTunnelId);
   void transfer(uint32_t nTunnelId, spex::IResourceContainer::Transfer const& req);
 
-  double consumeResource(world::Resources::Type type, double amount);
+  double consumeResource(world::Resource::Type type, double amount);
 
 private:
 
@@ -69,7 +69,7 @@ private:
   struct Transfer {
     Transfer() = default;
     Transfer(uint32_t nTunnelId, uint32_t nPortId, uint32_t nPortSecretKey,
-             world::Resources::Type eResourceType, double nAmount)
+             world::Resource::Type eResourceType, double nAmount)
       : m_nTunnelId(nTunnelId), m_nPortId(nPortId), m_nPortSecretKey(nPortSecretKey),
         m_eResourceType(eResourceType), m_nLeft(nAmount)
     {}
@@ -79,7 +79,7 @@ private:
     void reset() {
       m_nPortId        = m_freePortsIds.getInvalidValue();
       m_nPortSecretKey = 0;
-      m_eResourceType  = world::Resources::eUnknown;
+      m_eResourceType  = world::Resource::eUnknown;
       m_nLeft          = 0;
       m_nReserved      = 0;
       m_nTransferred   = 0;
@@ -89,7 +89,7 @@ private:
     uint32_t  m_nPortId        = m_freePortsIds.getInvalidValue();
     uint32_t  m_nPortSecretKey = 0;
 
-    world::Resources::Type m_eResourceType = world::Resources::eUnknown;
+    world::Resource::Type m_eResourceType = world::Resource::eUnknown;
     double    m_nLeft        = 0;
     double    m_nReserved    = 0;
     double    m_nTransferred = 0;

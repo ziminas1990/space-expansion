@@ -44,7 +44,7 @@ bool AsteroidMiner::getSpecification(AsteroidMinerSpecification &specification)
 }
 
 AsteroidMiner::Status AsteroidMiner::startMining(
-    uint32_t nAsteroidId, world::Resources::Type eResourceType)
+    uint32_t nAsteroidId, world::Resource::Type eResourceType)
 {
   spex::Message message;
   spex::IAsteroidMiner* request = message.mutable_asteroid_miner();

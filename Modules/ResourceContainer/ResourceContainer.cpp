@@ -12,28 +12,28 @@ namespace modules {
 // Helpers
 //========================================================================================
 
-static world::Resources::Type convert(spex::ResourceType type)
+static world::Resource::Type convert(spex::ResourceType type)
 {
   switch (type) {
     case spex::ResourceType::RESOURCE_ICE:
-      return world::Resources::eIce;
+      return world::Resource::eIce;
     case spex::ResourceType::RESOURCE_METTALS:
-      return world::Resources::eMettal;
+      return world::Resource::eMettal;
     case spex::ResourceType::RESOURCE_SILICATES:
-      return world::Resources::eSilicate;
+      return world::Resource::eSilicate;
     default:
-      return world::Resources::eUnknown;
+      return world::Resource::eUnknown;
   }
 }
 
-static spex::ResourceType convert(world::Resources::Type type)
+static spex::ResourceType convert(world::Resource::Type type)
 {
   switch (type) {
-    case world::Resources::eIce:
+    case world::Resource::eIce:
       return spex::ResourceType::RESOURCE_ICE;
-    case world::Resources::eMettal:
+    case world::Resource::eMettal:
       return spex::ResourceType::RESOURCE_METTALS;
-    case world::Resources::eSilicate:
+    case world::Resource::eSilicate:
       return spex::ResourceType::RESOURCE_SILICATES;
     default:
       assert(false);
@@ -54,7 +54,7 @@ uint32_t                             ResourceContainer::m_nNextSecretKey = 1;
 
 ResourceContainer::ResourceContainer(std::string &&sName, uint32_t nVolume)
   : BaseModule("ResourceContainer", std::move(sName)),
-    m_nVolume(nVolume), m_nUsedSpace(0), m_amount(world::Resources::eTotalResources),
+    m_nVolume(nVolume), m_nUsedSpace(0), m_amount(world::Resource::eTotalResources),
     m_nOpenedPortId(m_freePortsIds.getInvalidValue())
 {
   GlobalContainer<ResourceContainer>::registerSelf(this);
@@ -62,10 +62,10 @@ ResourceContainer::ResourceContainer(std::string &&sName, uint32_t nVolume)
 
 bool ResourceContainer::loadState(YAML::Node const& data)
 {
-  static std::vector<std::pair<std::string, world::Resources::Type> > resources = {
-    std::make_pair("mettals",   world::Resources::eMettal),
-    std::make_pair("silicates", world::Resources::eSilicate),
-    std::make_pair("ice",       world::Resources::eIce),
+  static std::vector<std::pair<std::string, world::Resource::Type> > resources = {
+    std::make_pair("mettals",   world::Resource::eMettal),
+    std::make_pair("silicates", world::Resource::eSilicate),
+    std::make_pair("ice",       world::Resource::eIce),
   };
 
   if (!BaseModule::loadState(data))
@@ -77,7 +77,7 @@ bool ResourceContainer::loadState(YAML::Node const& data)
   for (auto resource : resources) {
     m_amount[resource.second] = 0;
     reader.read(resource.first.c_str(), m_amount[resource.second]);
-    m_nUsedSpace += m_amount[resource.second] / world::Resources::density[resource.second];
+    m_nUsedSpace += m_amount[resource.second] / world::Resource::density[resource.second];
   }
 
   return m_nUsedSpace <= m_nVolume;
@@ -139,15 +139,15 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   }
 }
 
-double ResourceContainer::putResource(world::Resources::Type type, double amount)
+double ResourceContainer::putResource(world::Resource::Type type, double amount)
 {
-  double transfferedVolume = amount / world::Resources::density[type];
+  double transfferedVolume = amount / world::Resource::density[type];
 
   std::lock_guard<std::mutex> guard(m_accessMutex);
   double freeVolume = m_nVolume - m_nUsedSpace;
   if (freeVolume < transfferedVolume) {
     transfferedVolume = freeVolume;
-    amount            = freeVolume * world::Resources::density[type];
+    amount            = freeVolume * world::Resource::density[type];
   }
 
   m_amount[type] += amount;
@@ -155,13 +155,13 @@ double ResourceContainer::putResource(world::Resources::Type type, double amount
   return amount;
 }
 
-double ResourceContainer::consume(world::Resources::Type type, double amount)
+double ResourceContainer::consume(world::Resource::Type type, double amount)
 {
   std::lock_guard<std::mutex> guard(m_accessMutex);
   return consumeResource(type, amount);
 }
 
-bool ResourceContainer::consumeExactly(world::Resources::Type type, double amount)
+bool ResourceContainer::consumeExactly(world::Resource::Type type, double amount)
 {
   std::lock_guard<std::mutex> guard(m_accessMutex);
   if (m_amount[type] >= amount) {
@@ -215,10 +215,10 @@ void ResourceContainer::sendClosePortStatus(
 
 void ResourceContainer::sendContent(uint32_t nTunnelId)
 {
-  static std::vector<std::pair<world::Resources::Type, spex::ResourceType> > types = {
-    {world::Resources::eMettal,   spex::ResourceType::RESOURCE_METTALS},
-    {world::Resources::eIce,      spex::ResourceType::RESOURCE_ICE},
-    {world::Resources::eSilicate, spex::ResourceType::RESOURCE_SILICATES}
+  static std::vector<std::pair<world::Resource::Type, spex::ResourceType> > types = {
+    {world::Resource::eMettal,   spex::ResourceType::RESOURCE_METTALS},
+    {world::Resource::eIce,      spex::ResourceType::RESOURCE_ICE},
+    {world::Resource::eSilicate, spex::ResourceType::RESOURCE_SILICATES}
   };
 
   // Nobody wouldn't change container's content during command handling phase,
@@ -250,7 +250,7 @@ void ResourceContainer::sendTransferStatus(
 
 
 void ResourceContainer::sendTransferReport(
-    uint32_t nTunnelId, world::Resources::Type type, double amount)
+    uint32_t nTunnelId, world::Resource::Type type, double amount)
 {
   spex::Message message;
   spex::ResourceItem *pReport =
@@ -357,10 +357,10 @@ void ResourceContainer::transfer(
   switchToActiveState();
 }
 
-double ResourceContainer::consumeResource(world::Resources::Type type, double amount)
+double ResourceContainer::consumeResource(world::Resource::Type type, double amount)
 {
   amount = std::min(m_amount[type], amount);
-  m_nUsedSpace   -= amount / world::Resources::density[type];
+  m_nUsedSpace   -= amount / world::Resource::density[type];
   m_amount[type] -= amount;
 
   if (m_nUsedSpace < 0)

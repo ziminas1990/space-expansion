@@ -53,7 +53,7 @@ private:
   uint32_t               m_nAsteroidId;
   uint64_t               m_nCycleProgressUs;
   uint32_t               m_nTunnelId;
-  world::Resources::Type m_eResourceType;
+  world::Resource::Type m_eResourceType;
 };
 
 } // namespace modules

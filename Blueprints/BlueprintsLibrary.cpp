@@ -14,7 +14,7 @@ bool BlueprintsLibrary::loadModulesBlueprints(YAML::Node const& modulesSection)
     for (auto const& moduleTypeInfo : modulesClassInfo.second) {
       std::string const& sModuleType = moduleTypeInfo.first.as<std::string>();
 
-      AbstractBlueprintPtr pBlueprint =
+      BaseBlueprintPtr pBlueprint =
           BlueprintsFactory::make(sModuleClass, moduleTypeInfo.second);
       assert(pBlueprint != nullptr);
       if (!pBlueprint) {
@@ -44,10 +44,10 @@ bool BlueprintsLibrary::loadShipsBlueprints(YAML::Node const& shipsSection)
     return true;
 }
 
-AbstractBlueprintPtr BlueprintsLibrary::getBlueprint(BlueprintName const& name) const
+BaseBlueprintPtr BlueprintsLibrary::getBlueprint(BlueprintName const& name) const
 {
   auto I = m_blueprints.find(name);
-  return I != m_blueprints.end() ? I->second : AbstractBlueprintPtr();
+  return I != m_blueprints.end() ? I->second : BaseBlueprintPtr();
 }
 
 void BlueprintsLibrary::iterate(

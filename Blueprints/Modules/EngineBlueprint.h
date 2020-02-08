@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BaseBlueprint.h>
 #include <Modules/Engine/Engine.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
 namespace modules {
 
-class EngineBlueprint : public AbstractBlueprint
+class EngineBlueprint : public BaseBlueprint
 {
 public:
 

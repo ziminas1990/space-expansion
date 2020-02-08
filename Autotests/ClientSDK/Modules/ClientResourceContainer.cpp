@@ -38,19 +38,19 @@ static bool fillContent(ResourceContainer::Content &content,
   content.m_nUsedSpace = data.used();
 
   for (spex::ResourceItem const& item : data.resources()) {
-    world::Resources::Type eType = utils::convert(item.type());
+    world::Resource::Type eType = utils::convert(item.type());
     content.m_amount[eType] = item.amount();
   }
   return true;
 }
 
 ResourceContainer::Content& ResourceContainer::Content::set(
-    world::Resources::Type eType, double amount)
+    world::Resource::Type eType, double amount)
 {
   assert(eType < m_amount.size());
-  m_nUsedSpace    -= m_amount[eType] / world::Resources::density[eType];
+  m_nUsedSpace    -= m_amount[eType] / world::Resource::density[eType];
   m_amount[eType]  = amount;
-  m_nUsedSpace    += amount / world::Resources::density[eType];
+  m_nUsedSpace    += amount / world::Resource::density[eType];
   return *this;
 }
 
@@ -113,7 +113,7 @@ ResourceContainer::Status ResourceContainer::closePort()
 }
 
 ResourceContainer::Status ResourceContainer::transferRequest(
-    uint32_t nPortId, uint32_t nAccessKey, world::Resources::Type type, double amount)
+    uint32_t nPortId, uint32_t nAccessKey, world::Resource::Type type, double amount)
 {
   spex::Message message;
   spex::IResourceContainer::Transfer* pRequest =
@@ -140,7 +140,7 @@ ResourceContainer::Status ResourceContainer::transferRequest(
 }
 
 ResourceContainer::Status ResourceContainer::waitTransfer(
-    world::Resources::Type type, double amount)
+    world::Resource::Type type, double amount)
 {
   while (true) {
     spex::IResourceContainer response;

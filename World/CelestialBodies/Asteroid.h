@@ -15,13 +15,13 @@ struct AsteroidComposition
   AsteroidComposition() : AsteroidComposition(0.1, 1, 1, 1)
   {}
 
-  double silicates_percent() const { return percents[Resources::Type::eSilicate]; }
-  double mettals_percent()   const { return percents[Resources::Type::eMettal]; }
-  double ice_percent()       const { return percents[Resources::Type::eIce]; }
+  double silicates_percent() const { return percents[Resource::Type::eSilicate]; }
+  double mettals_percent()   const { return percents[Resource::Type::eMettal]; }
+  double ice_percent()       const { return percents[Resource::Type::eIce]; }
 
   void normalize(double utility = 1.0);
 
-  double percents[Resources::Type::eTotalResources];
+  double percents[Resource::Type::eTotalResources];
 };
 
 class Asteroid;
@@ -41,7 +41,7 @@ public:
     return utils::GlobalContainer<Asteroid>::getInstanceId();
   }
 
-  double yield(Resources::Type eType, double amount);
+  double yield(Resource::Type eType, double amount);
 
 private:
   AsteroidComposition m_composition;

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Blueprints/AbstractBlueprint.h>
+#include <Blueprints/BaseBlueprint.h>
 #include <Modules/AsteroidScanner/AsteroidScanner.h>
 #include <Utils/YamlReader.h>
 #include <Utils/YamlDumper.h>
 
 namespace modules {
 
-class AsteroidScannerBlueprint : public AbstractBlueprint
+class AsteroidScannerBlueprint : public BaseBlueprint
 {
 public:
   AsteroidScannerBlueprint() : m_nMaxScanningDistance(0), m_nScanningTimeMs(0)

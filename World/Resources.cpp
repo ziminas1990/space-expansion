@@ -3,9 +3,9 @@
 
 namespace world {
 
-std::vector<double> Resources::density;
+std::vector<double> Resource::density;
 
-bool Resources::initialize()
+bool Resource::initialize()
 {
   density.resize(eTotalResources);
   density[eMettal]   = 4500;  // Ti
