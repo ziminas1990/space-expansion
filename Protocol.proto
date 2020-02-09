@@ -7,11 +7,17 @@ package spex;
 //=============================================================================
 // Common types
 
+message NamesList {
+  uint32          left  = 1;
+  repeated string names = 2;
+}
+
 enum ResourceType {
   RESOURCE_UNKNOWN   = 0;
   RESOURCE_METTALS   = 1;
   RESOURCE_SILICATES = 2;
   RESOURCE_ICE       = 3;
+  RESOURCE_LABOR     = 101;
 }
 
 message ResourceItem {
@@ -28,13 +34,7 @@ message Property {
 message Blueprint {
   string                name       = 1;
   repeated Property     properties = 2;
-  repeated ResourceItem cost       = 3;
-  uint32                labor      = 4;
-}
-
-message NamesList {
-  uint32          left  = 1;
-  repeated string names = 2;
+  repeated ResourceItem expenses   = 3;
 }
 
 //=============================================================================

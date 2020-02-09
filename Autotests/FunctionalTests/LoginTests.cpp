@@ -19,6 +19,8 @@ protected:
       "    CommandCenter:",
       "      weight : 4000000",
       "      radius : 800",
+      "      expenses:",
+      "        labor: 1000",
       "Players:",
       "  admin:",
       "    password: admin",

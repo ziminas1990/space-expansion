@@ -23,15 +23,17 @@ public:
 
   bool load(YAML::Node const& data) override
   {
-    return utils::YamlReader(data)
-        .read("max_distance",    m_nMaxDistance)
-        .read("cycle_time_ms",   m_nCycleTimeMs)
-        .read("yield_per_cycle", m_nYieldPerCycle)
-        .read("container",       m_sContainerName);
+    return BaseBlueprint::load(data)
+        && utils::YamlReader(data)
+           .read("max_distance",    m_nMaxDistance)
+           .read("cycle_time_ms",   m_nCycleTimeMs)
+           .read("yield_per_cycle", m_nYieldPerCycle)
+           .read("container",       m_sContainerName);
   }
 
   void dump(YAML::Node& out) const override
   {
+    BaseBlueprint::dump(out);
     utils::YamlDumper(out)
             .add("max_distance",    m_nMaxDistance)
             .add("cycle_time_ms",   m_nCycleTimeMs)

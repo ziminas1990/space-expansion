@@ -20,12 +20,13 @@ public:
 
   bool load(YAML::Node const& data) override
   {
-    return utils::YamlReader(data)
-        .read("max_thrust", m_nMaxThrust);
+    return BaseBlueprint::load(data)
+        && utils::YamlReader(data).read("max_thrust", m_nMaxThrust);
   }
 
   void dump(YAML::Node& out) const override
   {
+    BaseBlueprint::dump(out);
     utils::YamlDumper(out)
             .add("max_thrust", m_nMaxThrust);
   }

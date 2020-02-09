@@ -110,8 +110,13 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
   YAML::Node specification;
   pBlueprint->dump(specification);
   for (auto const& property: specification) {
+    std::string propertyName = property.first.as<std::string>();
+    if (propertyName == "expenses")
+      // Expenses will be sent as separated "expenses" field
+      continue;
+
     spex::Property* pItem = pBody->add_properties();
-    pItem->set_name(property.first.as<std::string>());
+    pItem->set_name(std::move(propertyName));
     if (property.second.IsScalar()) {
       pItem->set_value(property.second.as<std::string>());
     } else if (property.second.IsMap()) {

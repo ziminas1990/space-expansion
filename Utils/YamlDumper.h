@@ -17,7 +17,7 @@ namespace utils {
 class YamlDumper
 {
 public:
-  YamlDumper(YAML::Node& source) : m_data(source) {}
+  YamlDumper(YAML::Node& node) : m_data(node) {}
 
   // Built-in types:
   // TODO: replace with template?

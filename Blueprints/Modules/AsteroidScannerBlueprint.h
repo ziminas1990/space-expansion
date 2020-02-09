@@ -21,13 +21,15 @@ public:
 
   bool load(YAML::Node const& data) override
   {
-    return utils::YamlReader(data)
-        .read("max_scanning_distance", m_nMaxScanningDistance)
-        .read("scanning_time_ms",      m_nScanningTimeMs);
+    return BaseBlueprint::load(data)
+        && utils::YamlReader(data)
+           .read("max_scanning_distance", m_nMaxScanningDistance)
+           .read("scanning_time_ms",      m_nScanningTimeMs);
   }
 
   void dump(YAML::Node& out) const override
   {
+    BaseBlueprint::dump(out);
     utils::YamlDumper(out)
         .add("max_scanning_distance", m_nMaxScanningDistance)
         .add("scanning_time_ms",      m_nScanningTimeMs);

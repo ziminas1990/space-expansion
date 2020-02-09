@@ -20,11 +20,13 @@ public:
 
   bool load(YAML::Node const& data) override
   {
-    return utils::YamlReader(data).read("volume", m_nVolume);
+    return BaseBlueprint::load(data)
+        && utils::YamlReader(data).read("volume", m_nVolume);
   }
 
   void dump(YAML::Node& out) const override
   {
+    BaseBlueprint::dump(out);
     utils::YamlDumper(out).add("volume", m_nVolume);
   }
 

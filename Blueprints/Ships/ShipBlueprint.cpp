@@ -31,6 +31,10 @@ modules::BaseModulePtr ShipBlueprint::build(
 
 bool ShipBlueprint::load(YAML::Node const& data)
 {
+  if (!BaseBlueprint::load(data)) {
+    return false;
+  }
+
   if (!utils::YamlReader(data)
       .read("weight", m_weight)
       .read("radius", m_radius)) {
@@ -60,6 +64,8 @@ bool ShipBlueprint::load(YAML::Node const& data)
 
 void ShipBlueprint::dump(YAML::Node& out) const
 {
+  BaseBlueprint::dump(out);
+
   YAML::Node modules;
   {
     utils::YamlDumper dumper(modules);
