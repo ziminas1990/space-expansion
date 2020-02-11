@@ -16,7 +16,7 @@ struct AsteroidComposition
   {}
 
   double silicates_percent() const { return percents[Resource::Type::eSilicate]; }
-  double mettals_percent()   const { return percents[Resource::Type::eMettal]; }
+  double mettals_percent()   const { return percents[Resource::Type::eMetal]; }
   double ice_percent()       const { return percents[Resource::Type::eIce]; }
 
   void normalize(double utility = 1.0);

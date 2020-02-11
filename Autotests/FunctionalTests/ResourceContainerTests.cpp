@@ -98,7 +98,7 @@ TEST_F(ResourceContainerTests, GetContent)
   client::ResourceContainer::Content content;
   ASSERT_TRUE(container.getContent(content));
   EXPECT_EQ(1000, content.m_nVolume);
-  EXPECT_NEAR(100000, content.m_amount[world::Resource::eMettal],   0.1);
+  EXPECT_NEAR(100000, content.m_amount[world::Resource::eMetal],   0.1);
   EXPECT_NEAR(50000,  content.m_amount[world::Resource::eSilicate], 0.1);
   EXPECT_NEAR(250000, content.m_amount[world::Resource::eIce],      0.1);
   EXPECT_NEAR(316.6,  content.m_nUsedSpace, 0.1);
@@ -191,10 +191,10 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
   // transporting all mettals
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
             freighterContainer.transferRequest(
-              nPort, nAccessKey, world::Resource::eMettal, freigherContent.mettals()));
+              nPort, nAccessKey, world::Resource::eMetal, freigherContent.mettals()));
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
             freighterContainer.waitTransfer(
-              world::Resource::eMettal, freigherContent.mettals()));
+              world::Resource::eMetal, freigherContent.mettals()));
 
   stationContent.addMettals(freigherContent.mettals());
   freigherContent.setMettals(0);

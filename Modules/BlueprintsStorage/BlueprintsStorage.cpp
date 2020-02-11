@@ -1,8 +1,10 @@
 #include "BlueprintsStorage.h"
 
+#include <yaml-cpp/yaml.h>
+
 #include <Blueprints/BaseBlueprint.h>
 #include <Utils/StringUtils.h>
-#include <yaml-cpp/yaml.h>
+#include <Utils/ItemsConverter.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::BlueprintsStorage);
 
@@ -124,6 +126,12 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     } else {
       assert(false);
     }
+  }
+
+  world::Resources const& expenses = pBlueprint->expenses();
+  for (world::ResourceItem const& resource : expenses) {
+    spex::ResourceItem* pItem = pBody->add_expenses();
+    utils::convert(resource, pItem);
   }
 
   sendToClient(nSessionId, response);

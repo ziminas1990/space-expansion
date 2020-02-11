@@ -10,7 +10,7 @@ struct Resource {
   static bool initialize();
 
   enum Type {
-    eMettal,
+    eMetal,
     eSilicate,
     eIce,
     eLabor, // some amount of work/producing
@@ -27,6 +27,22 @@ struct Resource {
 };
 
 struct ResourceItem {
+  static ResourceItem metals(double nAmount) {
+    return ResourceItem(Resource::eMetal, nAmount);
+  }
+
+  static ResourceItem silicates(double nAmount) {
+    return ResourceItem(Resource::eSilicate, nAmount);
+  }
+
+  static ResourceItem ice(double nAmount) {
+    return ResourceItem(Resource::eIce, nAmount);
+  }
+
+  static ResourceItem labor(double nAmount) {
+    return ResourceItem(Resource::eLabor, nAmount);
+  }
+
   ResourceItem()
     : m_eType(Resource::eUnknown), m_nAmount(0)
   {}
@@ -34,6 +50,8 @@ struct ResourceItem {
   ResourceItem(Resource::Type eType, double nAmount)
     : m_eType(eType), m_nAmount(nAmount)
   {}
+
+  bool operator==(ResourceItem const& other) const;
 
   bool isValid() const { return m_eType != Resource::eUnknown; }
 

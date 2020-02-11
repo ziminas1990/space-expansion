@@ -5,6 +5,7 @@
 
 #include <Autotests/ClientSDK/Interfaces.h>
 #include <Autotests/ClientSDK/ClientBaseModule.h>
+#include <World/Resources.h>
 
 namespace autotests { namespace client {
 
@@ -41,8 +42,9 @@ struct Property {
 };
 
 struct Blueprint {
-  std::string  m_sName;
-  Properties   m_properties;
+  std::string      m_sName;
+  Properties       m_properties;
+  world::Resources m_expenses;
 };
 
 
@@ -64,7 +66,7 @@ public:
   bool getModulesBlueprintsNames(std::string const& sFilter,
                                  std::vector<BlueprintName> &output);
 
-  Status getBlueprint(const BlueprintName &name, Blueprint& out);
+  Status getBlueprint(BlueprintName const& name, Blueprint& out);
 
 };
 

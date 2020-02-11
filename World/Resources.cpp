@@ -6,6 +6,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <Utils/FloatComparator.h>
+
 namespace world {
 
 std::vector<double> Resource::density;
@@ -13,7 +15,7 @@ std::vector<double> Resource::density;
 bool Resource::initialize()
 {
   density.resize(eTotalResources);
-  density[eMettal]   = 4500;  // Ti
+  density[eMetal]    = 4500;  // Ti
   density[eIce]      = 916;
   density[eSilicate] = 2330;  // Si
   return true;
@@ -22,10 +24,10 @@ bool Resource::initialize()
 Resource::Type Resource::typeFromString(std::string const& sType)
 {
   const static std::map<std::string, Type> table = {
-    std::make_pair("mettal",    eMettal),
-    std::make_pair("ice",       eIce),
-    std::make_pair("silicates", eSilicate),
-    std::make_pair("labor",     eLabor)
+    std::make_pair("metal",    eMetal),
+    std::make_pair("ice",      eIce),
+    std::make_pair("silicate", eSilicate),
+    std::make_pair("labor",    eLabor)
   };
 
   auto I = table.find(sType);
@@ -37,9 +39,9 @@ std::string const& Resource::typeToString(Resource::Type eType)
 {
   const static std::string unknown("unknown");
   const static std::map<Type, std::string> table = {
-    std::make_pair(eMettal,   "mettal"),
+    std::make_pair(eMetal,    "metal"),
     std::make_pair(eIce,      "ice"),
-    std::make_pair(eSilicate, "silicates"),
+    std::make_pair(eSilicate, "silicate"),
     std::make_pair(eLabor,    "labor")
   };
 
@@ -48,6 +50,12 @@ std::string const& Resource::typeToString(Resource::Type eType)
   return I != table.end() ? I->second : unknown;
 }
 
+
+bool ResourceItem::operator==(ResourceItem const& other) const
+{
+  return m_eType == other.m_eType
+      && utils::AlmostEqual(m_nAmount, other.m_nAmount);
+}
 
 bool ResourceItem::load(std::pair<YAML::Node, YAML::Node> const& data)
 {

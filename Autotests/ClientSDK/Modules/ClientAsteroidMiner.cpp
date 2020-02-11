@@ -1,5 +1,5 @@
 #include "ClientAsteroidMiner.h"
-#include <Utils/ProtocolEnumsConverter.h>
+#include <Utils/ItemsConverter.h>
 
 namespace autotests { namespace client {
 

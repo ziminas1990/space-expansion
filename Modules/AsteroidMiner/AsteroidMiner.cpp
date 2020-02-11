@@ -3,7 +3,7 @@
 #include <Ships/Ship.h>
 #include <World/CelestialBodies/Asteroid.h>
 #include <Utils/YamlReader.h>
-#include <Utils/ProtocolEnumsConverter.h>
+#include <Utils/ItemsConverter.h>
 
 #include <assert.h>
 #include <math.h>

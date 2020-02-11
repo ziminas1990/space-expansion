@@ -11,6 +11,16 @@
 namespace autotests
 {
 
+static bool hasResource(world::Resources const& resources,
+                        world::ResourceItem const& expected)
+{
+  for (world::ResourceItem const& resource : resources) {
+    if (resource == expected)
+      return true;
+  }
+  return false;
+}
+
 class BlueprintStorageTests : public FunctionalTestFixture
 {
 protected:
@@ -24,7 +34,7 @@ protected:
       "        max_scanning_radius_km: 200000",
       "        processing_time_us:     10",
       "        expenses:",
-      "          labor: 10",
+      "          labor:    10",
       "      civilian-scanner:",
       "        max_scanning_radius_km: 2000000",
       "        processing_time_us:     20",
@@ -34,7 +44,10 @@ protected:
       "        max_scanning_radius_km: 20000000",
       "        processing_time_us:     40",
       "        expenses:",
-      "          labor: 1000",
+      "          labor:    12345",
+      "          metal:    5232",
+      "          silicate: 2833",
+      "          ice:      4723",
       "    AsteroidScanner:",
       "      tiny-scanner:",
       "        max_scanning_distance:  10000",
@@ -108,7 +121,10 @@ protected:
       "        asteroid-scanner:  AsteroidScanner/huge-scanner",
       "        engine:            Engine/titanic-engine",
       "      expenses:",
-      "        labor: 10000",
+      "          labor:    10000",
+      "          metal:    524837",
+      "          silicate: 2848331",
+      "          ice:      4734",
       "Players:",
       "  James:",
       "    password: Bond"
@@ -229,6 +245,11 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
     EXPECT_EQ("CelestialScanner/huge-scanner", blueprint.m_sName);
     EXPECT_EQ("20000000", blueprint.m_properties["max_scanning_radius_km"]->sValue);
     EXPECT_EQ("40",       blueprint.m_properties["processing_time_us"]->sValue);
+
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(5232)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::silicates(2833)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(4723)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(12345)));
   }
 
   {
@@ -261,6 +282,10 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
     EXPECT_EQ("ResourceContainer/titanic-cargo", blueprint.m_sName);
     EXPECT_EQ("1000", blueprint.m_properties["volume"]->sValue);
   }
+
+  {
+
+  }
 }
 
 TEST_F(BlueprintStorageTests, GetShipBlueprints)
@@ -291,6 +316,11 @@ TEST_F(BlueprintStorageTests, GetShipBlueprints)
               pShipModules->nested["asteroid-scanner"]->sValue);
     EXPECT_EQ("Engine/titanic-engine",
               pShipModules->nested["engine"]->sValue);
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(524837)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses,
+                            world::ResourceItem::silicates(2848331)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(4734)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(10000)));
   }
 }
 

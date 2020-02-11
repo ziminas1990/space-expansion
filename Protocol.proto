@@ -14,7 +14,7 @@ message NamesList {
 
 enum ResourceType {
   RESOURCE_UNKNOWN   = 0;
-  RESOURCE_METTALS   = 1;
+  RESOURCE_METALS    = 1;
   RESOURCE_SILICATES = 2;
   RESOURCE_ICE       = 3;
   RESOURCE_LABOR     = 101;

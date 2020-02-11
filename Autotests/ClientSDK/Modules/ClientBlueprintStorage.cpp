@@ -1,6 +1,7 @@
 #include "ClientBlueprintStorage.h"
 
 #include <Utils/StringUtils.h>
+#include <Utils/ItemsConverter.h>
 
 namespace autotests { namespace client {
 
@@ -90,6 +91,10 @@ BlueprintsStorage::Status BlueprintsStorage::getBlueprint(
     }
 
     out.m_properties[pItem->sName] = std::move(pItem);
+  }
+
+  for (spex::ResourceItem const& resource : body.expenses()) {
+    out.m_expenses.push_back(utils::convert(resource));
   }
 
   return eSuccess;

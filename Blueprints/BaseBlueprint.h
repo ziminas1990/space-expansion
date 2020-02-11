@@ -25,7 +25,7 @@ public:
   virtual bool load(YAML::Node const& data);
   virtual void dump(YAML::Node& out) const;
 
-  world::Resources const& cost()  const { return m_expenses; }
+  world::Resources const& expenses()  const { return m_expenses; }
     // Return total number of resources, that are required to produce item
 
 private:

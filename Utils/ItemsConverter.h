@@ -8,8 +8,8 @@ inline world::Resource::Type convert(spex::ResourceType eType)
   switch (eType) {
     case spex::ResourceType::RESOURCE_ICE:
       return world::Resource::eIce;
-    case spex::ResourceType::RESOURCE_METTALS:
-      return world::Resource::eMettal;
+    case spex::ResourceType::RESOURCE_METALS:
+      return world::Resource::eMetal;
     case spex::ResourceType::RESOURCE_SILICATES:
       return world::Resource::eSilicate;
     case spex::ResourceType::RESOURCE_LABOR:
@@ -29,8 +29,8 @@ inline spex::ResourceType convert(world::Resource::Type eType)
   switch (eType) {
     case world::Resource::eIce:
       return spex::ResourceType::RESOURCE_ICE;
-    case world::Resource::eMettal:
-      return spex::ResourceType::RESOURCE_METTALS;
+    case world::Resource::eMetal:
+      return spex::ResourceType::RESOURCE_METALS;
     case world::Resource::eSilicate:
       return spex::ResourceType::RESOURCE_SILICATES;
     case world::Resource::eLabor:
@@ -42,6 +42,21 @@ inline spex::ResourceType convert(world::Resource::Type eType)
     }
   }
   return spex::ResourceType::RESOURCE_UNKNOWN;
+}
+
+inline void convert(world::ResourceItem const& item, spex::ResourceItem* pOutput)
+{
+  pOutput->set_type(convert(item.m_eType));
+  pOutput->set_amount(item.m_nAmount);
+}
+
+inline world::ResourceItem convert(spex::ResourceItem const& item)
+{
+  world::ResourceItem output;
+  output.m_eType   = convert(item.type());
+  output.m_nAmount = item.amount();
+  return output;
+
 }
 
 }

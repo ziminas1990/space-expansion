@@ -1,45 +1,13 @@
 #include "ResourceContainer.h"
 #include <Utils/YamlReader.h>
 #include <Utils/FloatComparator.h>
+#include <Utils/ItemsConverter.h>
 
 #include <Ships/Ship.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::ResourceContainer);
 
 namespace modules {
-
-//========================================================================================
-// Helpers
-//========================================================================================
-
-static world::Resource::Type convert(spex::ResourceType type)
-{
-  switch (type) {
-    case spex::ResourceType::RESOURCE_ICE:
-      return world::Resource::eIce;
-    case spex::ResourceType::RESOURCE_METTALS:
-      return world::Resource::eMettal;
-    case spex::ResourceType::RESOURCE_SILICATES:
-      return world::Resource::eSilicate;
-    default:
-      return world::Resource::eUnknown;
-  }
-}
-
-static spex::ResourceType convert(world::Resource::Type type)
-{
-  switch (type) {
-    case world::Resource::eIce:
-      return spex::ResourceType::RESOURCE_ICE;
-    case world::Resource::eMettal:
-      return spex::ResourceType::RESOURCE_METTALS;
-    case world::Resource::eSilicate:
-      return spex::ResourceType::RESOURCE_SILICATES;
-    default:
-      assert(false);
-      return spex::ResourceType::RESOURCE_ICE;
-  }
-}
 
 
 //========================================================================================
@@ -63,7 +31,7 @@ ResourceContainer::ResourceContainer(std::string &&sName, uint32_t nVolume)
 bool ResourceContainer::loadState(YAML::Node const& data)
 {
   static std::vector<std::pair<std::string, world::Resource::Type> > resources = {
-    std::make_pair("mettals",   world::Resource::eMettal),
+    std::make_pair("mettals",   world::Resource::eMetal),
     std::make_pair("silicates", world::Resource::eSilicate),
     std::make_pair("ice",       world::Resource::eIce),
   };
@@ -216,7 +184,7 @@ void ResourceContainer::sendClosePortStatus(
 void ResourceContainer::sendContent(uint32_t nTunnelId)
 {
   static std::vector<std::pair<world::Resource::Type, spex::ResourceType> > types = {
-    {world::Resource::eMettal,   spex::ResourceType::RESOURCE_METTALS},
+    {world::Resource::eMetal,   spex::ResourceType::RESOURCE_METALS},
     {world::Resource::eIce,      spex::ResourceType::RESOURCE_ICE},
     {world::Resource::eSilicate, spex::ResourceType::RESOURCE_SILICATES}
   };
@@ -255,7 +223,7 @@ void ResourceContainer::sendTransferReport(
   spex::Message message;
   spex::ResourceItem *pReport =
       message.mutable_resource_container()->mutable_transfer_report();
-  pReport->set_type(convert(type));
+  pReport->set_type(utils::convert(type));
   pReport->set_amount(amount);
   sendToClient(nTunnelId, message);
 }
@@ -350,7 +318,7 @@ void ResourceContainer::transfer(
 
     m_activeTransfer =
         Transfer(nTunnelId, req.port_id(), port.m_nSecretKey,
-                 convert(req.resource().type()), req.resource().amount());
+                 utils::convert(req.resource().type()), req.resource().amount());
   }
 
   sendTransferStatus(nTunnelId, spex::IResourceContainer::SUCCESS);
