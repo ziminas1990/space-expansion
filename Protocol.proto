@@ -309,6 +309,37 @@ message IBlueprintsLibrary {
 }
 
 
+message IShipyard {
+
+  enum Status {
+    SUCCESS             = 0;
+    INTERNAL_ERROR      = 1;
+
+    BUILD_STARTED       = 2;
+    BUILD_FREEZED       = 3;
+    BUILD_COMPLETE      = 4;
+    BLUEPRINT_NOT_FOUND = 5;
+
+    SHIPYARD_IS_BUSY    = 6;
+  }
+
+  message StartBuild {
+    string blueprint_name = 1;
+    string ship_name      = 2;
+  }
+
+
+  oneof choice {
+    StartBuild start_build    = 1;
+    bool       cancel_build   = 2;
+
+    Status build_status   = 20;
+    double build_progress = 21;
+  }
+
+}
+
+
 message ICommutator {
 
   message GetTotalSlots {}
@@ -374,5 +405,6 @@ message Message {
     IResourceContainer resource_container = 10;
     IAsteroidMiner     asteroid_miner     = 11;
     IBlueprintsLibrary blueprints_library = 12;
+    IShipyard          shipyard           = 13;
   }
 }

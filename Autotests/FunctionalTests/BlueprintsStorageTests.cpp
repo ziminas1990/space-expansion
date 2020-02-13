@@ -282,10 +282,6 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
     EXPECT_EQ("ResourceContainer/titanic-cargo", blueprint.m_sName);
     EXPECT_EQ("1000", blueprint.m_properties["volume"]->sValue);
   }
-
-  {
-
-  }
 }
 
 TEST_F(BlueprintStorageTests, GetShipBlueprints)
