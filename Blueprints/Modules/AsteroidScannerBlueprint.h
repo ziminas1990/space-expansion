@@ -13,10 +13,10 @@ public:
   AsteroidScannerBlueprint() : m_nMaxScanningDistance(0), m_nScanningTimeMs(0)
   {}
 
-  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
+  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
     return std::make_shared<AsteroidScanner>(
-          std::move(sName), m_nMaxScanningDistance, m_nScanningTimeMs);
+          std::move(sName), std::move(pOwner), m_nMaxScanningDistance, m_nScanningTimeMs);
   }
 
   bool load(YAML::Node const& data) override

@@ -20,8 +20,9 @@ std::vector<ResourceContainer::Port> ResourceContainer::m_allPorts =
     std::vector<ResourceContainer::Port>(1024);
 uint32_t                             ResourceContainer::m_nNextSecretKey = 1;
 
-ResourceContainer::ResourceContainer(std::string &&sName, uint32_t nVolume)
-  : BaseModule("ResourceContainer", std::move(sName)),
+ResourceContainer::ResourceContainer(
+    std::string &&sName, world::PlayerWeakPtr pOwner, uint32_t nVolume)
+  : BaseModule("ResourceContainer", std::move(sName), std::move(pOwner)),
     m_nVolume(nVolume), m_nUsedSpace(0), m_amount(world::Resource::eTotalResources),
     m_nOpenedPortId(m_freePortsIds.getInvalidValue())
 {

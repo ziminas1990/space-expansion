@@ -10,6 +10,11 @@ namespace ships {
 class Ship;
 }
 
+namespace world {
+class Player;
+using PlayerWeakPtr = std::weak_ptr<world::Player>;
+}
+
 namespace modules
 {
 
@@ -31,9 +36,12 @@ private:
   };
 
 public:
-  BaseModule(std::string sModuleType, std::string moduleName)
-    : m_sModuleType(std::move(sModuleType)), m_sModuleName(std::move(moduleName)),
-      m_eStatus(Status::eOnline), m_eState(State::eIdle)
+  BaseModule(std::string sModuleType, std::string moduleName, world::PlayerWeakPtr pOwner)
+    : m_sModuleType(std::move(sModuleType)),
+      m_sModuleName(std::move(moduleName)),
+      m_pOwner(std::move(pOwner)),
+      m_eStatus(Status::eOnline),
+      m_eState(State::eIdle)
   {}
 
   virtual bool loadState(YAML::Node const& /*source*/) { return true; }
@@ -57,6 +65,8 @@ public:
   bool isDeactivating() const { return m_eState == State::eDeactivating; }
 
   void installOn(ships::Ship* pShip);
+
+  world::PlayerWeakPtr getOwner() const { return m_pOwner; }
 
   // from IProtobufTerminal:
   // By default, there is no reason to reject new session opening and there is
@@ -102,11 +112,12 @@ protected:
   }
 
 private:
-  std::string  m_sModuleType;
-  std::string  m_sModuleName;
-  Status       m_eStatus;
-  State        m_eState;
-  ships::Ship* m_pPlatform = nullptr;
+  std::string          m_sModuleType;
+  std::string          m_sModuleName;
+  world::PlayerWeakPtr m_pOwner;
+  Status               m_eStatus;
+  State                m_eState;
+  ships::Ship*         m_pPlatform = nullptr;
 };
 
 using BaseModulePtr     = std::shared_ptr<BaseModule>;

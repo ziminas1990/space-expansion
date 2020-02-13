@@ -13,9 +13,9 @@ public:
 
   EngineBlueprint() : m_nMaxThrust(0) {}
 
-  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
+  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
-    return std::make_shared<Engine>(std::move(sName), m_nMaxThrust);
+    return std::make_shared<Engine>(std::move(sName), std::move(pOwner), m_nMaxThrust);
   }
 
   bool load(YAML::Node const& data) override

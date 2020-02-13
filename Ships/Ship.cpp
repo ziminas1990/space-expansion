@@ -8,8 +8,9 @@ DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 namespace ships
 {
 
-Ship::Ship(std::string const& sShipType, std::string sName, double weight, double radius)
-  : BaseModule(std::string("Ship/") + sShipType, std::move(sName)),
+Ship::Ship(std::string const& sShipType, std::string sName, world::PlayerWeakPtr pOwner,
+           double weight, double radius)
+  : BaseModule(std::string("Ship/") + sShipType, std::move(sName), std::move(pOwner)),
     newton::PhysicalObject(weight, radius),
     m_pCommutator(std::make_shared<modules::Commutator>())
 {

@@ -14,9 +14,9 @@ bool PlayersStorage::loadState(YAML::Node const& data,
     assert(!sLogin.empty());
     if (sLogin.empty())
       return false;
-    PlayerPtr pPlayer = std::make_shared<Player>(sLogin, blueprints);
-    if (!pPlayer->loadState(kv.second)) {
-      assert(false);
+    PlayerPtr pPlayer = Player::load(sLogin, blueprints, kv.second);
+    assert(pPlayer != nullptr);
+    if (!pPlayer) {
       return false;
     }
     if (m_players.find(sLogin) != m_players.end()) {

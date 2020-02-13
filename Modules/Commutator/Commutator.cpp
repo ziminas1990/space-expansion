@@ -6,7 +6,7 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
 namespace modules
 {
 
-Commutator::Commutator() : BaseModule("Commutator", std::string())
+Commutator::Commutator() : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
 {
   GlobalContainer<Commutator>::registerSelf(this);
 }

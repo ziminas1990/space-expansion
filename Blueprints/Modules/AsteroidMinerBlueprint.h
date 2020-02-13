@@ -14,11 +14,11 @@ public:
   AsteroidMinerBlueprint() : m_nMaxDistance(0), m_nCycleTimeMs(0), m_nYieldPerCycle(0)
   {}
 
-  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
+  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
     return std::make_shared<AsteroidMiner>(
-          std::move(sName), m_nMaxDistance, m_nCycleTimeMs, m_nYieldPerCycle,
-          m_sContainerName);
+          std::move(sName), std::move(pOwner), m_nMaxDistance, m_nCycleTimeMs,
+          m_nYieldPerCycle, m_sContainerName);
   }
 
   bool load(YAML::Node const& data) override

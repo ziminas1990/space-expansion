@@ -15,10 +15,11 @@ public:
     : m_nMaxScanningRadiusKm(0), m_nProcessingTimeUs(0)
   {}
 
-  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
+  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
     return std::make_shared<CelestialScanner>(
-          std::move(sName), m_nMaxScanningRadiusKm, m_nProcessingTimeUs);
+          std::move(sName), std::move(pOwner),
+          m_nMaxScanningRadiusKm, m_nProcessingTimeUs);
   }
 
   bool load(YAML::Node const& data) override

@@ -2,8 +2,10 @@
 
 #include <yaml-cpp/yaml.h>
 #include <Utils/YamlReader.h>
+#include <Utils/YamlDumper.h>
 #include <Utils/StringUtils.h>
-#include <Blueprints/Modules/EngineBlueprint.h>
+#include <Blueprints/BlueprintsLibrary.h>
+#include <World/Player.h>
 
 namespace ships {
 
@@ -12,18 +14,22 @@ ShipBlueprint::ShipBlueprint(std::string sShipProjectName)
 {}
 
 modules::BaseModulePtr ShipBlueprint::build(
-    std::string sName, const modules::BlueprintsLibrary &library) const
+    std::string sName, world::PlayerWeakPtr pOwner) const
 {
-  ShipPtr pShip = std::make_shared<Ship>(m_sType, std::move(sName), m_weight, m_radius);
+  ShipPtr pShip =
+      std::make_shared<Ship>(m_sType, std::move(sName), pOwner, m_weight, m_radius);
+
+  modules::BlueprintsLibrary& blueprins = pOwner.lock()->getBlueprints();
+
   for (auto const& kv : m_modules)
   {
-    modules::BaseBlueprintPtr pBlueprint = library.getBlueprint(kv.second);
+    modules::BaseBlueprintPtr pBlueprint = blueprins.getBlueprint(kv.second);
     assert(pBlueprint);
     if (!pBlueprint) {
       return ShipPtr();
     }
 
-    modules::BaseModulePtr pModule = pBlueprint->build(kv.first, library);
+    modules::BaseModulePtr pModule = pBlueprint->build(kv.first, pOwner);
     pShip->installModule(std::move(pModule));
   }
   return pShip;

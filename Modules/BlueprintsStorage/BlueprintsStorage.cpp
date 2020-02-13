@@ -2,6 +2,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <World/Player.h>
+#include <Blueprints/BlueprintsLibrary.h>
 #include <Blueprints/BaseBlueprint.h>
 #include <Utils/StringUtils.h>
 #include <Utils/ItemsConverter.h>
@@ -25,15 +27,10 @@ static void importProperties(YAML::Node const& from, spex::Property* to)
   }
 }
 
-BlueprintsStorage::BlueprintsStorage()
-  : BaseModule("BlueprintsLibrary", "Central")
+BlueprintsStorage::BlueprintsStorage(world::PlayerWeakPtr pOwner)
+  : BaseModule("BlueprintsLibrary", "Central", pOwner)
 {
   GlobalContainer<BlueprintsStorage>::registerSelf(this);
-}
-
-void BlueprintsStorage::attachToLibrary(BlueprintsLibrary const* pModulesBlueprints)
-{
-  m_pLibrary = pModulesBlueprints;
 }
 
 void BlueprintsStorage::handleBlueprintsStorageMessage(
@@ -56,7 +53,8 @@ void BlueprintsStorage::onModulesListReq(
 {
   std::vector<std::string> modulesNamesList;
   modulesNamesList.reserve(10);
-  m_pLibrary->iterate(
+
+  getLibrary().iterate(
         [&modulesNamesList, &sFilter](modules::BlueprintName const& name) -> bool {
           std::string const& sFullName = name.toString();
           if (utils::StringUtils::startsWith(sFullName, sFilter))
@@ -97,7 +95,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     return;
   }
 
-  BaseBlueprintPtr pBlueprint = m_pLibrary->getBlueprint(blueprintName);
+  BaseBlueprintPtr pBlueprint = getLibrary().getBlueprint(blueprintName);
   if (!pBlueprint) {
     sendModuleBlueprintFail(nSessionId, spex::IBlueprintsLibrary::BLUEPRINT_NOT_FOUND);
     return;
@@ -143,6 +141,11 @@ bool BlueprintsStorage::sendModuleBlueprintFail(
   spex::Message response;
   response.mutable_blueprints_library()->set_blueprint_fail(error);
   return sendToClient(nSessionId, response);
+}
+
+const BlueprintsLibrary &BlueprintsStorage::getLibrary() const
+{
+  return getOwner().lock()->getBlueprints();
 }
 
 } // namespace modules

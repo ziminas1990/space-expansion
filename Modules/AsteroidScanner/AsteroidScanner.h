@@ -17,7 +17,8 @@ class AsteroidScanner :
     public utils::GlobalContainer<AsteroidScanner>
 {
 public:
-  AsteroidScanner(std::string&& sName, uint32_t nMaxDistance, uint32_t nScanningTimeMs);
+  AsteroidScanner(std::string&& sName, world::PlayerWeakPtr pOwner,
+                  uint32_t nMaxDistance, uint32_t nScanningTimeMs);
 
   void proceed(uint32_t nIntervalUs) override;
 

@@ -15,7 +15,7 @@ class MockedBaseModule :
 {
 public:
   MockedBaseModule(std::string&& sModuleType = "MockedBaseModule")
-    : modules::BaseModule(std::move(sModuleType), std::string())
+    : modules::BaseModule(std::move(sModuleType), std::string(), world::PlayerWeakPtr())
   {}
 
   // We should call only ProtobufSyncPipe implementation of this functions

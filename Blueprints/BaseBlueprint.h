@@ -7,7 +7,11 @@
 #include <Utils/YamlForwardDeclarations.h>
 #include <World/Resources.h>
 
-#include "BlueprintsLibrary.h"
+namespace world {
+class Player;
+using PlayerPtr     = std::shared_ptr<Player>;
+using PlayerWeakPtr = std::weak_ptr<Player>;
+}
 
 namespace modules {
 
@@ -19,8 +23,7 @@ class BaseBlueprint
 public:
   virtual ~BaseBlueprint() = default;
 
-  virtual BaseModulePtr build(
-      std::string sName, BlueprintsLibrary const& library) const = 0;
+  virtual BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const = 0;
 
   virtual bool load(YAML::Node const& data);
   virtual void dump(YAML::Node& out) const;

@@ -12,18 +12,26 @@
 namespace world
 {
 
+class Player;
+using PlayerPtr = std::shared_ptr<Player>;
+
 class Player
 {
-public:
-  Player(std::string sLogin, modules::BlueprintsLibrary blueprints);
-  ~Player();
+  Player(std::string&& sLogin, modules::BlueprintsLibrary&& blueprints);
 
-  bool loadState(YAML::Node const& data);
+public:
+
+  static PlayerPtr load(std::string sLogin, modules::BlueprintsLibrary blueprints,
+                        YAML::Node const& state);
+  ~Player();
 
   void attachToChannel(network::ProtobufChannelPtr pChannel);
 
   std::string const& getLogin()    const { return m_sLogin; }
   std::string const& getPassword() const { return m_sPassword; }
+
+  modules::BlueprintsLibrary&       getBlueprints()       { return m_blueprints; }
+  modules::BlueprintsLibrary const& getBlueprints() const { return m_blueprints; }
 
 private:
   std::string const m_sLogin;
@@ -39,7 +47,5 @@ private:
 
   std::vector<ships::ShipPtr>   m_ships;
 };
-
-using PlayerPtr = std::shared_ptr<Player>;
 
 } // namespace world

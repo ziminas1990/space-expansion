@@ -11,9 +11,9 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::AsteroidScanner);
 namespace modules
 {
 
-AsteroidScanner::AsteroidScanner(
-    std::string&& sName, uint32_t nMaxDistance, uint32_t nScanningTimeMs)
-  : BaseModule("AsteroidScanner", std::move(sName)),
+AsteroidScanner::AsteroidScanner(std::string&& sName, world::PlayerWeakPtr pOwner,
+                                 uint32_t nMaxDistance, uint32_t nScanningTimeMs)
+  : BaseModule("AsteroidScanner", std::move(sName), std::move(pOwner)),
     m_nMaxDistance(nMaxDistance), m_nScanningTimeMs(nScanningTimeMs)
 {
   GlobalContainer<AsteroidScanner>::registerSelf(this);

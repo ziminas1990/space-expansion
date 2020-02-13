@@ -12,8 +12,9 @@ namespace modules
 {
 
 CelestialScanner::CelestialScanner(
-    std::string &&sName, uint32_t nMaxScanningRadiusKm, uint32_t nProcessingTimeUs)
-  : BaseModule("CelestialScanner", std::move(sName)),
+    std::string &&sName, world::PlayerWeakPtr pOwner,
+    uint32_t nMaxScanningRadiusKm, uint32_t nProcessingTimeUs)
+  : BaseModule("CelestialScanner", std::move(sName), std::move(pOwner)),
     m_nMaxScanningRadiusKm(nMaxScanningRadiusKm), m_nProcessingTimeUs(nProcessingTimeUs)
 {
   GlobalContainer<CelestialScanner>::registerSelf(this);

@@ -17,7 +17,8 @@ class Ship :
     public utils::GlobalContainer<Ship>
 {
 public:
-  Ship(std::string const& sShipType, std::string sName, double weight, double radius);
+  Ship(std::string const& sShipType, std::string sName, world::PlayerWeakPtr pOwner,
+       double weight, double radius);
   ~Ship() override;
 
   bool loadState(YAML::Node const& source) override;

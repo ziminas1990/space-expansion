@@ -13,9 +13,10 @@ public:
   ResourceContainerBlueprint() : m_nVolume(0)
   {}
 
-  BaseModulePtr build(std::string sName, BlueprintsLibrary const&) const override
+  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
-    return std::make_shared<ResourceContainer>(std::move(sName), m_nVolume);
+    return std::make_shared<ResourceContainer>(
+          std::move(sName), std::move(pOwner), m_nVolume);
   }
 
   bool load(YAML::Node const& data) override

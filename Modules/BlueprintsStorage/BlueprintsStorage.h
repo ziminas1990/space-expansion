@@ -5,18 +5,17 @@
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
 #include <Protocol.pb.h>
-#include <Blueprints/BlueprintsLibrary.h>
 
 namespace modules {
+
+class BlueprintsLibrary;
 
 class BlueprintsStorage :
     public BaseModule,
     public utils::GlobalContainer<BlueprintsStorage>
 {
 public:
-  BlueprintsStorage();
-
-  void attachToLibrary(BlueprintsLibrary const* pModulesBlueprints);
+  BlueprintsStorage(world::PlayerWeakPtr pOwner);
 
 protected:
   // override from BaseModule
@@ -29,8 +28,9 @@ protected:
 
   bool sendModuleBlueprintFail(uint32_t nSessionId,
                                spex::IBlueprintsLibrary::Status error) const;
+
 private:
-  BlueprintsLibrary const* m_pLibrary;
+  BlueprintsLibrary const& getLibrary() const;
 };
 
 using BlueprintsStoragePtr = std::shared_ptr<BlueprintsStorage>;

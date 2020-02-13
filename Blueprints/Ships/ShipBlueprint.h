@@ -5,7 +5,6 @@
 #include <Ships/Ship.h>
 #include <Blueprints/BaseBlueprint.h>
 #include <Blueprints/BlueprintName.h>
-#include <Blueprints/BlueprintsLibrary.h>
 
 #include <Utils/YamlForwardDeclarations.h>
 
@@ -21,7 +20,7 @@ public:
   ShipBlueprint(std::string sShipProjectName);
 
   modules::BaseModulePtr build(std::string sName,
-                               modules::BlueprintsLibrary const& library) const override;
+                               world::PlayerWeakPtr pOwner) const override;
   bool load(YAML::Node const& data) override;
   void dump(YAML::Node& out) const override;
 
