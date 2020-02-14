@@ -4,7 +4,7 @@
 #include "Ships/ShipBlueprint.h"
 #include <yaml-cpp/yaml.h>
 
-namespace modules {
+namespace blueprints {
 
 bool BlueprintsLibrary::loadModulesBlueprints(YAML::Node const& modulesSection)
 {
@@ -32,8 +32,7 @@ bool BlueprintsLibrary::loadShipsBlueprints(YAML::Node const& shipsSection)
   for(auto const& shipInfo : shipsSection) {
       std::string const& sShipClassName = shipInfo.first.as<std::string>();
 
-      ships::ShipBlueprintPtr pBlueprint =
-          std::make_shared<ships::ShipBlueprint>(sShipClassName);
+      ShipBlueprintPtr pBlueprint = std::make_shared<ShipBlueprint>(sShipClassName);
       if (!pBlueprint->load(shipInfo.second)) {
         assert(false);
         return false;
@@ -50,8 +49,7 @@ BaseBlueprintPtr BlueprintsLibrary::getBlueprint(BlueprintName const& name) cons
   return I != m_blueprints.end() ? I->second : BaseBlueprintPtr();
 }
 
-void BlueprintsLibrary::iterate(
-    std::function<bool(BlueprintName const&)> const& viewer) const
+void BlueprintsLibrary::iterate(std::function<bool(BlueprintName const&)> const& viewer) const
 {
   for(auto const& kv : m_blueprints) {
     if (!viewer(kv.first))

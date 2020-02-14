@@ -7,7 +7,7 @@
 #include <Blueprints/BlueprintsLibrary.h>
 #include <World/Player.h>
 
-namespace ships {
+namespace blueprints {
 
 ShipBlueprint::ShipBlueprint(std::string sShipProjectName)
   : m_sType(std::move(sShipProjectName))
@@ -16,17 +16,18 @@ ShipBlueprint::ShipBlueprint(std::string sShipProjectName)
 modules::BaseModulePtr ShipBlueprint::build(
     std::string sName, world::PlayerWeakPtr pOwner) const
 {
-  ShipPtr pShip =
-      std::make_shared<Ship>(m_sType, std::move(sName), pOwner, m_weight, m_radius);
+  ships::ShipPtr pShip =
+      std::make_shared<ships::Ship>(
+        m_sType, std::move(sName), pOwner, m_weight, m_radius);
 
-  modules::BlueprintsLibrary& blueprins = pOwner.lock()->getBlueprints();
+  BlueprintsLibrary& blueprins = pOwner.lock()->getBlueprints();
 
   for (auto const& kv : m_modules)
   {
-    modules::BaseBlueprintPtr pBlueprint = blueprins.getBlueprint(kv.second);
+    BaseBlueprintPtr pBlueprint = blueprins.getBlueprint(kv.second);
     assert(pBlueprint);
     if (!pBlueprint) {
-      return ShipPtr();
+      return ships::ShipPtr();
     }
 
     modules::BaseModulePtr pModule = pBlueprint->build(kv.first, pOwner);
@@ -63,7 +64,7 @@ bool ShipBlueprint::load(YAML::Node const& data)
     assert(!sModuleClass.empty() && !sModuleType.empty());
     m_modules.emplace(
           std::move(sModuleName),
-          modules::BlueprintName(std::move(sModuleClass), std::move(sModuleType)));
+          BlueprintName(std::move(sModuleClass), std::move(sModuleType)));
   }
   return true;
 }

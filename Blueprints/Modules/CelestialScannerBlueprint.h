@@ -5,7 +5,7 @@
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
-namespace modules {
+namespace blueprints {
 
 class CelestialScannerBlueprint : public BaseBlueprint
 {
@@ -15,9 +15,9 @@ public:
     : m_nMaxScanningRadiusKm(0), m_nProcessingTimeUs(0)
   {}
 
-  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
+  modules::BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
-    return std::make_shared<CelestialScanner>(
+    return std::make_shared<modules::CelestialScanner>(
           std::move(sName), std::move(pOwner),
           m_nMaxScanningRadiusKm, m_nProcessingTimeUs);
   }

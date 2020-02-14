@@ -8,11 +8,11 @@
 
 #include <Utils/YamlReader.h>
 
-namespace modules
+namespace blueprints
 {
 
 BaseBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
-                                           YAML::Node const& data)
+                                         YAML::Node const& data)
 {
   utils::YamlReader reader(data);
 

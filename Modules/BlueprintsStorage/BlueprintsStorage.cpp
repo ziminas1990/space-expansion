@@ -55,7 +55,7 @@ void BlueprintsStorage::onModulesListReq(
   modulesNamesList.reserve(10);
 
   getLibrary().iterate(
-        [&modulesNamesList, &sFilter](modules::BlueprintName const& name) -> bool {
+        [&modulesNamesList, &sFilter](blueprints::BlueprintName const& name) -> bool {
           std::string const& sFullName = name.toString();
           if (utils::StringUtils::startsWith(sFullName, sFilter))
             modulesNamesList.push_back(sFullName);
@@ -89,13 +89,13 @@ void BlueprintsStorage::onModulesListReq(
 void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
                                              std::string const& sName) const
 {
-  BlueprintName blueprintName = BlueprintName::make(sName);
+  blueprints::BlueprintName blueprintName = blueprints::BlueprintName::make(sName);
   if (!blueprintName.isValid()) {
     sendModuleBlueprintFail(nSessionId, spex::IBlueprintsLibrary::BLUEPRINT_NOT_FOUND);
     return;
   }
 
-  BaseBlueprintPtr pBlueprint = getLibrary().getBlueprint(blueprintName);
+  blueprints::BaseBlueprintPtr pBlueprint = getLibrary().getBlueprint(blueprintName);
   if (!pBlueprint) {
     sendModuleBlueprintFail(nSessionId, spex::IBlueprintsLibrary::BLUEPRINT_NOT_FOUND);
     return;
@@ -143,7 +143,7 @@ bool BlueprintsStorage::sendModuleBlueprintFail(
   return sendToClient(nSessionId, response);
 }
 
-const BlueprintsLibrary &BlueprintsStorage::getLibrary() const
+blueprints::BlueprintsLibrary const& BlueprintsStorage::getLibrary() const
 {
   return getOwner().lock()->getBlueprints();
 }

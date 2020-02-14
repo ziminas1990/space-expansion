@@ -17,11 +17,11 @@ using PlayerPtr = std::shared_ptr<Player>;
 
 class Player
 {
-  Player(std::string&& sLogin, modules::BlueprintsLibrary&& blueprints);
+  Player(std::string&& sLogin, blueprints::BlueprintsLibrary&& blueprints);
 
 public:
 
-  static PlayerPtr load(std::string sLogin, modules::BlueprintsLibrary blueprints,
+  static PlayerPtr load(std::string sLogin, blueprints::BlueprintsLibrary blueprints,
                         YAML::Node const& state);
   ~Player();
 
@@ -30,8 +30,8 @@ public:
   std::string const& getLogin()    const { return m_sLogin; }
   std::string const& getPassword() const { return m_sPassword; }
 
-  modules::BlueprintsLibrary&       getBlueprints()       { return m_blueprints; }
-  modules::BlueprintsLibrary const& getBlueprints() const { return m_blueprints; }
+  blueprints::BlueprintsLibrary&       getBlueprints()       { return m_blueprints; }
+  blueprints::BlueprintsLibrary const& getBlueprints() const { return m_blueprints; }
 
 private:
   std::string const m_sLogin;
@@ -41,7 +41,7 @@ private:
   modules::CommutatorPtr        m_pEntryPoint;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
 
-  modules::BlueprintsLibrary    m_blueprints;
+  blueprints::BlueprintsLibrary m_blueprints;
     // Every player has it's own set of blueprint, that can be improoved during the game
     // At the start, all players have the same blueprints library
 

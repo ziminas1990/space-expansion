@@ -6,7 +6,7 @@
 #include <Utils/YamlReader.h>
 #include <Utils/YamlDumper.h>
 
-namespace modules {
+namespace blueprints {
 
 class AsteroidMinerBlueprint : public BaseBlueprint
 {
@@ -14,9 +14,10 @@ public:
   AsteroidMinerBlueprint() : m_nMaxDistance(0), m_nCycleTimeMs(0), m_nYieldPerCycle(0)
   {}
 
-  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
+  modules::BaseModulePtr
+  build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
-    return std::make_shared<AsteroidMiner>(
+    return std::make_shared<modules::AsteroidMiner>(
           std::move(sName), std::move(pOwner), m_nMaxDistance, m_nCycleTimeMs,
           m_nYieldPerCycle, m_sContainerName);
   }

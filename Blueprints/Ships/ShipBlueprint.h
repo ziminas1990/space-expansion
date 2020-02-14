@@ -8,13 +8,13 @@
 
 #include <Utils/YamlForwardDeclarations.h>
 
-namespace ships {
+namespace blueprints {
 
 class ShipBlueprint;
 using ShipBlueprintPtr      = std::shared_ptr<ShipBlueprint>;
 using ShipBlueprintConstPtr = std::shared_ptr<ShipBlueprint const>;
 
-class ShipBlueprint : public modules::BaseBlueprint
+class ShipBlueprint : public BaseBlueprint
 {
 public:
   ShipBlueprint(std::string sShipProjectName);
@@ -29,7 +29,7 @@ private:
   double      m_weight = 1000;
   double      m_radius = 1;
 
-  std::map<std::string, modules::BlueprintName> m_modules;
+  std::map<std::string, BlueprintName> m_modules;
 };
 
 } // namespace ships

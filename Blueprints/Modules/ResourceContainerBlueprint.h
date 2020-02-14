@@ -5,7 +5,7 @@
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
-namespace modules {
+namespace blueprints {
 
 class ResourceContainerBlueprint : public BaseBlueprint
 {
@@ -13,9 +13,10 @@ public:
   ResourceContainerBlueprint() : m_nVolume(0)
   {}
 
-  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
+  modules::BaseModulePtr
+  build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
-    return std::make_shared<ResourceContainer>(
+    return std::make_shared<modules::ResourceContainer>(
           std::move(sName), std::move(pOwner), m_nVolume);
   }
 

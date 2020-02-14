@@ -18,7 +18,7 @@ namespace world {
 class PlayersStorage
 {
 public:
-  bool loadState(YAML::Node const& data, modules::BlueprintsLibrary const& blueprints);
+  bool loadState(YAML::Node const& data, blueprints::BlueprintsLibrary const& blueprints);
 
   PlayerPtr getPlayer(std::string const& sLogin) const;
 

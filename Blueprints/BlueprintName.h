@@ -5,7 +5,7 @@
 
 #include <Utils/StringUtils.h>
 
-namespace modules {
+namespace blueprints {
 
 class BlueprintName
 {

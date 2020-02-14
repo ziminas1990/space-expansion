@@ -5,7 +5,7 @@
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
-namespace modules {
+namespace blueprints {
 
 class EngineBlueprint : public BaseBlueprint
 {
@@ -13,9 +13,11 @@ public:
 
   EngineBlueprint() : m_nMaxThrust(0) {}
 
-  BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const override
+  modules::BaseModulePtr
+  build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
-    return std::make_shared<Engine>(std::move(sName), std::move(pOwner), m_nMaxThrust);
+    return std::make_shared<modules::Engine>(
+          std::move(sName), std::move(pOwner), m_nMaxThrust);
   }
 
   bool load(YAML::Node const& data) override

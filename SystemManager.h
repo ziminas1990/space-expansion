@@ -49,7 +49,7 @@ private:
   conveyor::Conveyor*          m_pConveyor = nullptr;
   boost::asio::io_service      m_IoService;
 
-  modules::BlueprintsLibrary   m_blueprints;
+  blueprints::BlueprintsLibrary m_blueprints;
     // Blueprints of modules, that a avaliable for all players right from the start of
     // the game
 

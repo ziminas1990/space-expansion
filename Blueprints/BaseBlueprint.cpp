@@ -2,7 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace modules {
+namespace blueprints {
 
 bool BaseBlueprint::load(YAML::Node const& data)
 {

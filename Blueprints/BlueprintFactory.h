@@ -3,7 +3,7 @@
 #include <Blueprints/BaseBlueprint.h>
 #include <Utils/YamlForwardDeclarations.h>
 
-namespace modules
+namespace blueprints
 {
 
 class BlueprintsFactory

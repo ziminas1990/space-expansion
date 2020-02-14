@@ -6,9 +6,11 @@
 #include <Utils/GlobalContainer.h>
 #include <Protocol.pb.h>
 
-namespace modules {
-
+namespace blueprints {
 class BlueprintsLibrary;
+}
+
+namespace modules {
 
 class BlueprintsStorage :
     public BaseModule,
@@ -30,7 +32,7 @@ protected:
                                spex::IBlueprintsLibrary::Status error) const;
 
 private:
-  BlueprintsLibrary const& getLibrary() const;
+  blueprints::BlueprintsLibrary const& getLibrary() const;
 };
 
 using BlueprintsStoragePtr = std::shared_ptr<BlueprintsStorage>;

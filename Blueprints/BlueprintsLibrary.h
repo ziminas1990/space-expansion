@@ -7,7 +7,7 @@
 #include <Utils/YamlForwardDeclarations.h>
 #include "BlueprintName.h"
 
-namespace modules {
+namespace blueprints {
 
 class BaseBlueprint;
 using BaseBlueprintPtr = std::shared_ptr<BaseBlueprint>;

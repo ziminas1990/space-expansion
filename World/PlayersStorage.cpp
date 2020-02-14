@@ -7,7 +7,7 @@ namespace world {
 
 
 bool PlayersStorage::loadState(YAML::Node const& data,
-                               modules::BlueprintsLibrary const& blueprints)
+                               blueprints::BlueprintsLibrary const& blueprints)
 {
   for(auto const& kv : data) {
     std::string sLogin = kv.first.as<std::string>();

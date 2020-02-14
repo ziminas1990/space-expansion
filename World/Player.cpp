@@ -8,12 +8,12 @@
 namespace world
 {
 
-Player::Player(std::string&& sLogin, modules::BlueprintsLibrary&& blueprints)
+Player::Player(std::string&& sLogin, blueprints::BlueprintsLibrary&& blueprints)
   : m_sLogin(std::move(sLogin)),
     m_blueprints(std::move(blueprints))
 {}
 
-PlayerPtr Player::load(std::string sLogin, modules::BlueprintsLibrary blueprints,
+PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary blueprints,
                        YAML::Node const& state)
 {
   PlayerPtr pPlayer =
@@ -45,8 +45,8 @@ PlayerPtr Player::load(std::string sLogin, modules::BlueprintsLibrary blueprints
     utils::StringUtils::split('/', sShipTypeAndName, sShipType, sShipName);
     assert(!sShipName.empty() && !sShipType.empty());
 
-    modules::BaseBlueprintPtr pShipBlueprint =
-        pPlayer->m_blueprints.getBlueprint(modules::BlueprintName("Ship", sShipType));
+    blueprints::BaseBlueprintPtr pShipBlueprint =
+        pPlayer->m_blueprints.getBlueprint(blueprints::BlueprintName("Ship", sShipType));
     assert(pShipBlueprint);
     if (!pShipBlueprint)
       return PlayerPtr();

@@ -13,7 +13,7 @@ using PlayerPtr     = std::shared_ptr<Player>;
 using PlayerWeakPtr = std::weak_ptr<Player>;
 }
 
-namespace modules {
+namespace blueprints {
 
 class BaseBlueprint;
 using BaseBlueprintPtr = std::shared_ptr<BaseBlueprint>;
@@ -23,7 +23,8 @@ class BaseBlueprint
 public:
   virtual ~BaseBlueprint() = default;
 
-  virtual BaseModulePtr build(std::string sName, world::PlayerWeakPtr pOwner) const = 0;
+  virtual modules::BaseModulePtr build(std::string sName,
+                                       world::PlayerWeakPtr pOwner) const = 0;
 
   virtual bool load(YAML::Node const& data);
   virtual void dump(YAML::Node& out) const;
