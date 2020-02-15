@@ -36,12 +36,12 @@ public:
       m_nVolume(0), m_nUsedSpace(0.0), m_amount(world::Resource::eTotalResources)
     {}
 
-    double mettals()   const { return m_amount[world::Resource::eMetal]; }
+    double metals()    const { return m_amount[world::Resource::eMetal]; }
     double silicates() const { return m_amount[world::Resource::eSilicate]; }
     double ice()       const { return m_amount[world::Resource::eIce]; }
 
-    Content& setMettals(double amount);
-    Content& addMettals(double amount) { return setMettals(mettals() + amount); }
+    Content& setMetals(double amount);
+    Content& addMetals(double amount) { return setMetals(metals() + amount); }
 
     Content& setSilicates(double amount);
     Content& addSilicates(double amount) { return setSilicates(silicates() + amount); }
@@ -70,7 +70,7 @@ public:
 using ResourceContainerPtr = std::shared_ptr<ResourceContainer>;
 
 inline
-ResourceContainer::Content& ResourceContainer::Content::setMettals(double amount)
+ResourceContainer::Content& ResourceContainer::Content::setMetals(double amount)
 {
   return set(world::Resource::eMetal, amount);
 }

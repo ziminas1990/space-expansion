@@ -66,7 +66,7 @@ protected:
       "        velocity:  { x: 0,   y: 0},",
       "        radius:     10,",
       "        silicates:  5,",
-      "        mettals:    3,",
+      "        metals:     3,",
       "        ice:        1 }",
     };
     std::stringstream ss;
@@ -131,7 +131,7 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
 
     client::ResourceContainer::Content content;
     cargo.getContent(content);
-    EXPECT_DOUBLE_EQ(content.mettals(), nYieldTotal);
+    EXPECT_DOUBLE_EQ(content.metals(), nYieldTotal);
   }
 }
 
@@ -183,7 +183,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
 
-  double nTotalMettals   = 0;
+  double nTotalMetals    = 0;
   double nTotalSilicates = 0;
   double nTotalIce       = 0;
 
@@ -192,7 +192,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
   for(size_t i = 0; i < 5; ++i) {
     double nAmount = 0;
     ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
-    nTotalMettals += nAmount;
+    nTotalMetals += nAmount;
   }
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.stopMining());
 
@@ -218,7 +218,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
   client::ResourceContainer::Content content;
   cargo.getContent(content);
-  EXPECT_DOUBLE_EQ(content.mettals(),   nTotalMettals);
+  EXPECT_DOUBLE_EQ(content.metals(),    nTotalMetals);
   EXPECT_DOUBLE_EQ(content.silicates(), nTotalSilicates);
   EXPECT_DOUBLE_EQ(content.ice(),       nTotalIce);
 }

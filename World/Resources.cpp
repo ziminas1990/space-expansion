@@ -18,6 +18,7 @@ bool Resource::initialize()
   density[eMetal]    = 4500;  // Ti
   density[eIce]      = 916;
   density[eSilicate] = 2330;  // Si
+  density[eLabor]    = 0;     // It non material resource
   return true;
 }
 

@@ -20,7 +20,10 @@ class Commutator :
 public:
   Commutator();
 
-  void attachModule(BaseModulePtr pModule);
+  uint32_t attachModule(BaseModulePtr pModule);
+    // Attach module to commutator. Return slotId - number of slot, to which the module
+    // has been attached
+
   void detachFromModules();
 
   // Check if all slotes are still active; if some slot is NOT active anymore,

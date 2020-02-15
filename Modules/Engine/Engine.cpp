@@ -6,7 +6,7 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Engine);
 namespace modules {
 
 Engine::Engine(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t maxThrust)
-  : BaseModule ("Engine/Nuclear", std::move(sName), std::move(pOwner)),
+  : BaseModule ("Engine", std::move(sName), std::move(pOwner)),
     m_maxThrust(maxThrust)
 {
   GlobalContainer<Engine>::registerSelf(this);

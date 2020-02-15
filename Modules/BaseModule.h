@@ -92,13 +92,14 @@ protected:
   // Will be called once, when module is installed on some ship
   virtual void onInstalled(ships::Ship* /*pPlatform*/) {}
 
-  // returns a pointer to the ship, on which module has been installed
+  // returns a pointer to the ship, on which module is installed
   ships::Ship*       getPlatform()       { return m_pPlatform; }
   ships::Ship const* getPlatform() const { return m_pPlatform; }
 
   inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {
     return network::BufferedProtobufTerminal::send(nSessionId, message);
   }
+
   bool sendToClient(uint32_t nSessionId, spex::ICommutator const& message) const;
   bool sendToClient(uint32_t nSessionId, spex::IShip const& message) const;
   bool sendToClient(uint32_t nSessionId, spex::INavigation const& message) const;

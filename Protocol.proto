@@ -317,24 +317,35 @@ message IShipyard {
 
     BUILD_STARTED       = 2;
     BUILD_FREEZED       = 3;
-    BUILD_COMPLETE      = 4;
-    BLUEPRINT_NOT_FOUND = 5;
+    BUILD_FAILED        = 5;
+    BLUEPRINT_NOT_FOUND = 6;
 
-    SHIPYARD_IS_BUSY    = 6;
+    SHIPYARD_IS_BUSY    = 7;
   }
 
+  message Specification {
+    double labor_per_sec = 1;
+  }
+  
   message StartBuild {
     string blueprint_name = 1;
     string ship_name      = 2;
   }
 
+  message ShipBuilt {
+    string ship_name = 1;
+    uint32 slot_id   = 2;
+  }
 
   oneof choice {
-    StartBuild start_build    = 1;
-    bool       cancel_build   = 2;
-
-    Status build_status   = 20;
-    double build_progress = 21;
+    bool       specification_req = 1;
+    StartBuild start_build       = 2;
+    bool       cancel_build      = 3;
+    
+    Specification specification     = 20;
+    Status        building_status   = 21;
+    double        building_progress = 22;
+    ShipBuilt     building_complete = 23;
   }
 
 }

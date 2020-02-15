@@ -23,28 +23,30 @@ uint32_t                             ResourceContainer::m_nNextSecretKey = 1;
 ResourceContainer::ResourceContainer(
     std::string &&sName, world::PlayerWeakPtr pOwner, uint32_t nVolume)
   : BaseModule("ResourceContainer", std::move(sName), std::move(pOwner)),
-    m_nVolume(nVolume), m_nUsedSpace(0), m_amount(world::Resource::eTotalResources),
+    m_nVolume(nVolume), m_nUsedSpace(0),
     m_nOpenedPortId(m_freePortsIds.getInvalidValue())
 {
   GlobalContainer<ResourceContainer>::registerSelf(this);
+  m_amount.fill(0);
 }
 
 bool ResourceContainer::loadState(YAML::Node const& data)
 {
   static std::vector<std::pair<std::string, world::Resource::Type> > resources = {
-    std::make_pair("mettals",   world::Resource::eMetal),
+    std::make_pair("metals",    world::Resource::eMetal),
     std::make_pair("silicates", world::Resource::eSilicate),
     std::make_pair("ice",       world::Resource::eIce),
   };
 
-  if (!BaseModule::loadState(data))
+  if (!BaseModule::loadState(data)) {
     return false;
+  }
 
+  m_amount.fill(0);
   m_nUsedSpace = 0;
 
   utils::YamlReader reader(data);
   for (auto resource : resources) {
-    m_amount[resource.second] = 0;
     reader.read(resource.first.c_str(), m_amount[resource.second]);
     m_nUsedSpace += m_amount[resource.second] / world::Resource::density[resource.second];
   }
@@ -134,11 +136,26 @@ bool ResourceContainer::consumeExactly(world::Resource::Type type, double amount
 {
   std::lock_guard<std::mutex> guard(m_accessMutex);
   if (m_amount[type] >= amount) {
-    consume(type, amount);
+    consumeResource(type, amount);
     return true;
   } else {
     return false;
   }
+}
+
+bool ResourceContainer::consumeExactly(world::ResourcesArray const& resources)
+{
+  std::lock_guard<std::mutex> guard(m_accessMutex);
+  for (size_t i = 0; i < world::Resource::eTotalResources; ++i) {
+    if (m_amount[i] < resources[i])
+      return false;
+  }
+  for (size_t i = 0; i < world::Resource::eTotalResources; ++i) {
+    assert(m_amount[i] >= resources[i]);
+    m_amount[i] -= resources[i];
+  }
+  recalculateUsedSpace();
+  return true;
 }
 
 void ResourceContainer::handleResourceContainerMessage(
@@ -337,6 +354,16 @@ double ResourceContainer::consumeResource(world::Resource::Type type, double amo
   if (m_amount[type] < 0)
     m_amount[type] = 0;
   return amount;
+}
+
+void ResourceContainer::recalculateUsedSpace()
+{
+  double usedSpace = 0;
+  for (size_t type = 0; type < world::Resource::eLabor; ++type) {
+    usedSpace += m_amount[type] / world::Resource::density[type];
+  }
+  assert(usedSpace <= m_nVolume);
+  m_nUsedSpace = usedSpace;
 }
 
 } // namespace modules

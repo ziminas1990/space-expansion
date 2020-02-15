@@ -1,11 +1,12 @@
 #include "ShipBlueprint.h"
 
 #include <yaml-cpp/yaml.h>
+#include <Ships/Ship.h>
+#include <Blueprints/BlueprintsLibrary.h>
+#include <World/Player.h>
 #include <Utils/YamlReader.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/StringUtils.h>
-#include <Blueprints/BlueprintsLibrary.h>
-#include <World/Player.h>
 
 namespace blueprints {
 
@@ -16,15 +17,22 @@ ShipBlueprint::ShipBlueprint(std::string sShipProjectName)
 modules::BaseModulePtr ShipBlueprint::build(
     std::string sName, world::PlayerWeakPtr pOwner) const
 {
+  BlueprintsLibrary& library = pOwner.lock()->getBlueprints();
+  return build(std::move(sName), pOwner, library);
+}
+
+ships::ShipPtr ShipBlueprint::build(
+    std::string sName,
+    world::PlayerWeakPtr pOwner,
+    BlueprintsLibrary const& customLibrary) const
+{
   ships::ShipPtr pShip =
       std::make_shared<ships::Ship>(
         m_sType, std::move(sName), pOwner, m_weight, m_radius);
 
-  BlueprintsLibrary& blueprins = pOwner.lock()->getBlueprints();
-
   for (auto const& kv : m_modules)
   {
-    BaseBlueprintPtr pBlueprint = blueprins.getBlueprint(kv.second);
+    BaseBlueprintPtr pBlueprint = customLibrary.getBlueprint(kv.second);
     assert(pBlueprint);
     if (!pBlueprint) {
       return ships::ShipPtr();
@@ -34,6 +42,16 @@ modules::BaseModulePtr ShipBlueprint::build(
     pShip->installModule(std::move(pModule));
   }
   return pShip;
+}
+
+bool ShipBlueprint::checkDependencies(BlueprintsLibrary const& library) const
+{
+  for (auto const& kv : m_modules) {
+    // kv.second is BlueprintName object
+    if (!library.hasBlueprint(kv.second))
+      return false;
+  }
+  return true;
 }
 
 bool ShipBlueprint::load(YAML::Node const& data)

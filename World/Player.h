@@ -33,6 +33,8 @@ public:
   blueprints::BlueprintsLibrary&       getBlueprints()       { return m_blueprints; }
   blueprints::BlueprintsLibrary const& getBlueprints() const { return m_blueprints; }
 
+  modules::CommutatorPtr getCommutator() const { return m_pEntryPoint; }
+
 private:
   std::string const m_sLogin;
   std::string       m_sPassword;

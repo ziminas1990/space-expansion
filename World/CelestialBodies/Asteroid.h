@@ -11,12 +11,12 @@ namespace world {
 
 struct AsteroidComposition
 {
-  AsteroidComposition(double utility, double nSilicates, double nMettals, double nIce);
+  AsteroidComposition(double utility, double nSilicates, double nMetals, double nIce);
   AsteroidComposition() : AsteroidComposition(0.1, 1, 1, 1)
   {}
 
   double silicates_percent() const { return percents[Resource::Type::eSilicate]; }
-  double mettals_percent()   const { return percents[Resource::Type::eMetal]; }
+  double metals_percent()    const { return percents[Resource::Type::eMetal]; }
   double ice_percent()       const { return percents[Resource::Type::eIce]; }
 
   void normalize(double utility = 1.0);

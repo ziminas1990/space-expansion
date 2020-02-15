@@ -5,12 +5,10 @@
 #include <functional>
 
 #include <Utils/YamlForwardDeclarations.h>
+#include "BlueprintsForwardDecls.h"
 #include "BlueprintName.h"
 
 namespace blueprints {
-
-class BaseBlueprint;
-using BaseBlueprintPtr = std::shared_ptr<BaseBlueprint>;
 
 class BlueprintsLibrary
 {
@@ -21,7 +19,9 @@ public:
   bool loadModulesBlueprints(YAML::Node const& modulesSection);
   bool loadShipsBlueprints(YAML::Node const& shipsSection);
 
+  void overwriteBlueprint(BlueprintName const& name, BaseBlueprintPtr pBlueprint);
   BaseBlueprintPtr getBlueprint(BlueprintName const& name) const;
+  bool             hasBlueprint(BlueprintName const& name) const;
 
   void iterate(std::function<bool(const BlueprintName &)> const& viewer) const;
 

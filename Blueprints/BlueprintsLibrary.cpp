@@ -40,13 +40,25 @@ bool BlueprintsLibrary::loadShipsBlueprints(YAML::Node const& shipsSection)
 
       m_blueprints[BlueprintName("Ship", sShipClassName)] = pBlueprint;
     }
-    return true;
+  return true;
+}
+
+void BlueprintsLibrary::overwriteBlueprint(
+    BlueprintName const& name, BaseBlueprintPtr pBlueprint)
+{
+  m_blueprints[name] = std::move(pBlueprint);
 }
 
 BaseBlueprintPtr BlueprintsLibrary::getBlueprint(BlueprintName const& name) const
 {
   auto I = m_blueprints.find(name);
   return I != m_blueprints.end() ? I->second : BaseBlueprintPtr();
+}
+
+bool BlueprintsLibrary::hasBlueprint(const BlueprintName &name) const
+{
+  auto I = m_blueprints.find(name);
+  return I != m_blueprints.end();
 }
 
 void BlueprintsLibrary::iterate(std::function<bool(BlueprintName const&)> const& viewer) const

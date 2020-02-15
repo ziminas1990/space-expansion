@@ -60,7 +60,7 @@ protected:
       "        modules:",
       "          engine: { x: 0, y: 0}",
       "          cargo:",
-      "            mettals:   100000",
+      "            metals:    100000",
       "            silicates: 50000",
       "            ice:       250000",
       "      'Station/Earth Hub' :",
@@ -68,7 +68,7 @@ protected:
       "        velocity: { x: 0, y: 0}",
       "        modules:",
       "          cargo:",
-      "            mettals:   1000000",
+      "            metals:    1000000",
       "            silicates: 1000000",
       "            ice:       1000000",
     };
@@ -188,16 +188,16 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
             stationsContainer.openPort(nAccessKey, nPort));
 
-  // transporting all mettals
+  // transporting all metals
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
             freighterContainer.transferRequest(
-              nPort, nAccessKey, world::Resource::eMetal, freigherContent.mettals()));
+              nPort, nAccessKey, world::Resource::eMetal, freigherContent.metals()));
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
             freighterContainer.waitTransfer(
-              world::Resource::eMetal, freigherContent.mettals()));
+              world::Resource::eMetal, freigherContent.metals()));
 
-  stationContent.addMettals(freigherContent.mettals());
-  freigherContent.setMettals(0);
+  stationContent.addMetals(freigherContent.metals());
+  freigherContent.setMetals(0);
   ASSERT_TRUE(freighterContainer.checkContent(freigherContent));
   ASSERT_TRUE(stationsContainer.checkContent(stationContent));
 

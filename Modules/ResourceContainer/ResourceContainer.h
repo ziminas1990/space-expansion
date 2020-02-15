@@ -25,9 +25,12 @@ public:
   void proceed(uint32_t nIntervalUs) override;
 
   double putResource(world::Resource::Type type, double amount);
+  double putResource(world::ResourcesArray const& resources);
   // Return an amount of resources, that have been actually put
   double consume(world::Resource::Type type, double amount);
   bool   consumeExactly(world::Resource::Type type, double amount);
+  bool   consumeExactly(world::ResourcesArray const& resources);
+
 
 private:
   void handleResourceContainerMessage(
@@ -48,6 +51,7 @@ private:
   void transfer(uint32_t nTunnelId, spex::IResourceContainer::Transfer const& req);
 
   double consumeResource(world::Resource::Type type, double amount);
+  void recalculateUsedSpace();
 
 private:
 
@@ -96,10 +100,10 @@ private:
   };
 
 private:
-  mutable std::mutex  m_accessMutex;
-  uint32_t            m_nVolume;
-  double              m_nUsedSpace;
-  std::vector<double> m_amount;
+  mutable std::mutex    m_accessMutex;
+  uint32_t              m_nVolume;
+  double                m_nUsedSpace;
+  world::ResourcesArray m_amount;
 
   uint32_t m_nOpenedPortId;
   Transfer m_activeTransfer;

@@ -11,7 +11,7 @@ Commutator::Commutator() : BaseModule("Commutator", std::string(), world::Player
   GlobalContainer<Commutator>::registerSelf(this);
 }
 
-void Commutator::attachModule(BaseModulePtr pModule)
+uint32_t Commutator::attachModule(BaseModulePtr pModule)
 {
   // We assume, that this operation is rather rare therefore we can afford to
   // execute it in O(N) time
@@ -21,10 +21,11 @@ void Commutator::attachModule(BaseModulePtr pModule)
     {
       onModuleHasBeenDetached(nSlotId);
       m_Slots[nSlotId] = pModule;
-      return;
+      return nSlotId;
     }
   }
   m_Slots.push_back(pModule);
+  return static_cast<uint32_t>(m_Slots.size()) - 1;
 }
 
 void Commutator::detachFromModules()

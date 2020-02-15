@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <array>
 #include <Utils/YamlForwardDeclarations.h>
 
 namespace world {
@@ -10,12 +11,15 @@ struct Resource {
   static bool initialize();
 
   enum Type {
+    // Material resources:
     eMetal,
     eSilicate,
     eIce,
+
+    // Non-material resources:
     eLabor, // some amount of work/producing
 
-    // total number of resources
+    // service fields
     eTotalResources,
     eUnknown
   };
@@ -62,6 +66,9 @@ struct ResourceItem {
   double         m_nAmount;
 };
 
-using Resources = std::vector<ResourceItem>;
+using Resources      = std::vector<ResourceItem>;
+
+using ResourcesArray = std::array<double, Resource::eTotalResources>;
+  // Resource type is index, amount is value
 
 } // namespace world

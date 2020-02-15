@@ -6,18 +6,16 @@
 #include <Modules/BaseModule.h>
 #include <Utils/YamlForwardDeclarations.h>
 #include <World/Resources.h>
-
-namespace world {
-class Player;
-using PlayerPtr     = std::shared_ptr<Player>;
-using PlayerWeakPtr = std::weak_ptr<Player>;
-}
+#include <World/WorldForwardDecls.h>
 
 namespace blueprints {
 
 class BaseBlueprint;
 using BaseBlueprintPtr = std::shared_ptr<BaseBlueprint>;
 
+// Blueprints are used to create items like modules or whole ships.
+// Blueprint must be immutable. Blueprint object, that has been created once, should
+// be never changed.
 class BaseBlueprint
 {
 public:
@@ -29,7 +27,7 @@ public:
   virtual bool load(YAML::Node const& data);
   virtual void dump(YAML::Node& out) const;
 
-  world::Resources const& expenses()  const { return m_expenses; }
+  world::Resources const& expenses() const { return m_expenses; }
     // Return total number of resources, that are required to produce item
 
 private:

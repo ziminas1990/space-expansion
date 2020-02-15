@@ -64,13 +64,13 @@ protected:
       "        velocity:  { x: 0,    y: 0},",
       "        radius:    100,",
       "        silicates:  80,",
-      "        mettals:    15,",
+      "        metals:     15,",
       "        ice:         5 }",
       "    - { position:  { x: 0, y: 100000},",
       "        velocity:  { x: 0, y: 0},",
       "        radius:    100,",
       "        silicates:  50,",
-      "        mettals:     3,",
+      "        metals:      3,",
       "        ice:        40 }"
     };
     std::stringstream ss;

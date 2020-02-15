@@ -46,6 +46,7 @@ public:
   geometry::Vector const& getVelocity() const { return m_velocity; }
 
   void moveTo(geometry::Point const& position);
+  void setVelocity(geometry::Vector const& velocity) { m_velocity = velocity; }
   void changeWeight(double delta);
   void setWeight(double weight) {
     // May be inlining this function is better
