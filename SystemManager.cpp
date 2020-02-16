@@ -96,6 +96,7 @@ bool SystemManager::createAllComponents()
   m_pResourceContainerManager = std::make_shared<modules::ResourceContainerManager>();
   m_pAsteroidMinerManager     = std::make_shared<modules::AsteroidMinerManager>();
   m_pBlueprintsStorageManager = std::make_shared<modules::BlueprintsStorageManager>();
+  m_pShipyardManager          = std::make_shared<modules::ShipyardManager>();
 
   m_pUdpDispatcher  =
       std::make_shared<network::UdpDispatcher>(
@@ -133,6 +134,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pResourceContainerManager);
   m_pConveyor->addLogicToChain(m_pAsteroidMinerManager);
   m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
+  m_pConveyor->addLogicToChain(m_pShipyardManager);
 
   return true;
 }

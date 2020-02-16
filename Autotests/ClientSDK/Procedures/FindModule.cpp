@@ -140,5 +140,11 @@ bool FindBlueprintStorage(ClientCommutator& commutator, BlueprintsStorage& stora
   return FindModule(commutator, "BlueprintsLibrary", storage, sName);
 }
 
+bool FindShipyard(ClientCommutator &commutator, Shipyard& shipyard,
+                  std::string const& sName)
+{
+  return FindModule(commutator, "Shipyard", shipyard, sName);
+}
+
 
 }}  // namespace autotests::client

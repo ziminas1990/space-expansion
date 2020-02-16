@@ -5,6 +5,7 @@
 #include "AsteroidScannerBlueprint.h"
 #include "ResourceContainerBlueprint.h"
 #include "AsteroidMinerBlueprint.h"
+#include "Shipyard.h"
 
 #include <Utils/YamlReader.h>
 
@@ -20,18 +21,16 @@ BaseBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
 
   if (sModuleType == "Engine") {
     pBlueprint = std::make_shared<EngineBlueprint>();
-
   } else if (sModuleType == "CelestialScanner") {
     pBlueprint = std::make_shared<CelestialScannerBlueprint>();
-
   } else if (sModuleType == "AsteroidScanner") {
     pBlueprint = std::make_shared<AsteroidScannerBlueprint>();
-
   } else if (sModuleType == "ResourceContainer") {
     pBlueprint = std::make_shared<ResourceContainerBlueprint>();
-
   } else if (sModuleType == "AsteroidMiner") {
     pBlueprint = std::make_shared<AsteroidMinerBlueprint>();
+  } else if (sModuleType == "Shipyard") {
+    pBlueprint = std::make_shared<ShipyardBlueprint>();
   }
 
   assert(pBlueprint != nullptr);

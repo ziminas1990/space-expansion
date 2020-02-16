@@ -35,6 +35,7 @@ private:
 
   void finishBuildingProcedure();
 
+  void sendSpeification(uint32_t nSessionId);
   void sendBuildStatus(spex::IShipyard::Status eStatus);
   void sendBuildProgress(double progress);
   void sendBuildComplete(std::string &&sShipName, uint32_t nSlotId);

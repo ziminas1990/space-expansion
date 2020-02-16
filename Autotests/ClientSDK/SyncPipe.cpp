@@ -125,6 +125,15 @@ bool SyncPipe::wait(spex::IBlueprintsLibrary &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool SyncPipe::wait(spex::IShipyard &out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kShipyard, message, nTimeoutMs))
+    return false;
+  out = std::move(message.shipyard());
+  return true;
+}
+
 void SyncPipe::onMessageReceived(spex::Message &&message)
 {
   switch(message.choice_case()) {

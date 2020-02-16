@@ -7,6 +7,7 @@
 #include <Autotests/ClientSDK/Modules/ClientResourceContainer.h>
 #include <Autotests/ClientSDK/Modules/ClientAsteroidMiner.h>
 #include <Autotests/ClientSDK/Modules/ClientBlueprintStorage.h>
+#include <Autotests/ClientSDK/Modules/ClientShipyard.h>
 
 namespace autotests { namespace client {
 
@@ -32,5 +33,7 @@ bool FindAsteroidMiner(Ship& ship, AsteroidMiner& miner,
                        std::string const& sName = std::string());
 bool FindBlueprintStorage(ClientCommutator &commutator, BlueprintsStorage& storage,
                           std::string const& sName = std::string());
+bool FindShipyard(ClientCommutator &commutator, Shipyard& shipyard,
+                  std::string const& sName = std::string());
 
 }}  // namespace autotests::client

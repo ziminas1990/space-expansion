@@ -22,6 +22,7 @@
 #include "Modules/ResourceContainer/ResourceContainerManager.h"
 #include "Modules/AsteroidMiner/AsteroidMinerManager.h"
 #include "Modules/BlueprintsStorage/BlueprintsStorageManager.h"
+#include <Modules/Shipyard/ShipyardManager.h>
 
 class SystemManager
 {
@@ -63,6 +64,7 @@ private:
   modules::ResourceContainerManagerPtr m_pResourceContainerManager;
   modules::AsteroidMinerManagerPtr     m_pAsteroidMinerManager;
   modules::BlueprintsStorageManagerPtr m_pBlueprintsStorageManager;
+  modules::ShipyardManagerPtr          m_pShipyardManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
   network::ProtobufChannelPtr m_pLoginChannel;

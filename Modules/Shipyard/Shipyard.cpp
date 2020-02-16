@@ -14,7 +14,7 @@ Shipyard::Shipyard(std::string &&sName, world::PlayerWeakPtr pOwner,
   : BaseModule("Shipyard", std::move(sName), std::move(pOwner)),
     m_laborPerSecond(laborPerSecond), m_sContainerName(std::move(sContainerName))
 {
-
+  utils::GlobalContainer<Shipyard>::registerSelf(this);
 }
 
 bool Shipyard::loadState(YAML::Node const& /*data*/)
@@ -29,7 +29,7 @@ void Shipyard::proceed(uint32_t nIntervalUs)
   double nIntervalSec  = nIntervalUs / 1000000;
   double laborProduced = m_laborPerSecond * nIntervalSec;
 
-  double progressInc = m_building.resources[world::Resource::eLabor] / laborProduced;
+  double progressInc = laborProduced / m_building.resources[world::Resource::eLabor];
   if (m_building.progress + progressInc > 1)
     progressInc = 1 - m_building.progress;
 
@@ -72,10 +72,16 @@ void Shipyard::onSessionClosed(uint32_t nSessionId)
   m_openedSessions.erase(nSessionId);
 }
 
-void Shipyard::handleShipyardMessage(uint32_t /*nTunnelId*/,
-                                     spex::IShipyard const& /*message*/)
+void Shipyard::handleShipyardMessage(uint32_t nTunnelId,
+                                     spex::IShipyard const& message)
 {
-
+  switch(message.choice_case()) {
+    case spex::IShipyard::kSpecificationReq:
+      sendSpeification(nTunnelId);
+      return;
+    default:
+      return;
+  }
 }
 
 void Shipyard::finishBuildingProcedure()
@@ -100,6 +106,15 @@ void Shipyard::finishBuildingProcedure()
   sendBuildComplete(std::move(m_building.sShipName), nSlotId);
 
   switchToIdleState();
+}
+
+void Shipyard::sendSpeification(uint32_t nSessionId)
+{
+  spex::Message message;
+  spex::IShipyard::Specification* pBody =
+      message.mutable_shipyard()->mutable_specification();
+  pBody->set_labor_per_sec(m_laborPerSecond);
+  sendToClient(nSessionId, message);
 }
 
 void Shipyard::sendBuildStatus(spex::IShipyard::Status eStatus)
