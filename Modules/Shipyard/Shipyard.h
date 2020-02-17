@@ -35,8 +35,11 @@ private:
 
   void finishBuildingProcedure();
 
+  void startBuildReq(uint32_t nSessionId, const spex::IShipyard::StartBuild &req);
+
   void sendSpeification(uint32_t nSessionId);
   void sendBuildStatus(spex::IShipyard::Status eStatus);
+  void sendBuildStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus);
   void sendBuildProgress(double progress);
   void sendBuildComplete(std::string &&sShipName, uint32_t nSlotId);
 
@@ -48,7 +51,7 @@ private:
   std::set<uint32_t> m_openedSessions;
 
   struct BuildingTask {
-    BuildingTask() : progress(0) {}
+    BuildingTask() : progress(0), nIntervalSinceLastProgressInd(0) {}
 
     blueprints::ShipBlueprintPtr  pShipBlueprint;
     std::string                   sShipName;

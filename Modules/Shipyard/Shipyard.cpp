@@ -79,6 +79,9 @@ void Shipyard::handleShipyardMessage(uint32_t nTunnelId,
     case spex::IShipyard::kSpecificationReq:
       sendSpeification(nTunnelId);
       return;
+    case spex::IShipyard::kStartBuild:
+      startBuildReq(nTunnelId, message.start_build());
+      return;
     default:
       return;
   }
@@ -108,6 +111,49 @@ void Shipyard::finishBuildingProcedure()
   switchToIdleState();
 }
 
+void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild const& req)
+{
+  if (!isIdle()) {
+    sendBuildStatus(spex::IShipyard::SHIPYARD_IS_BUSY);
+    return;
+  }
+
+  ships::Ship*     pPlatform = getPlatform();
+  world::PlayerPtr pOwner    = getOwner().lock();
+
+  if (!pPlatform || !pOwner) {
+    sendBuildStatus(nSessionId, spex::IShipyard::INTERNAL_ERROR);
+    return;
+  }
+
+  m_building = BuildingTask();
+  m_building.pContainer =
+      std::dynamic_pointer_cast<modules::ResourceContainer>(
+        pPlatform->getModuleByName(m_sContainerName));
+  if (!m_building.pContainer) {
+    sendBuildStatus(nSessionId, spex::IShipyard::INTERNAL_ERROR);
+    return;
+  }
+
+  m_building.localLibraryCopy = pOwner->getBlueprints();
+  m_building.pShipBlueprint =
+      std::dynamic_pointer_cast<blueprints::ShipBlueprint>(
+        m_building.localLibraryCopy.getBlueprint(
+          blueprints::BlueprintName::make(req.blueprint_name())));
+  if (!m_building.pShipBlueprint ||
+      !m_building.pShipBlueprint->checkDependencies(m_building.localLibraryCopy)) {
+    sendBuildStatus(nSessionId, spex::IShipyard::BLUEPRINT_NOT_FOUND);
+    return;
+  }
+
+  m_building.pShipBlueprint->exportTotalExpenses(
+        m_building.localLibraryCopy, m_building.resources);
+  m_building.sShipName = req.ship_name();
+
+  switchToActiveState();
+  sendBuildStatus(nSessionId, spex::IShipyard::BUILD_STARTED);
+}
+
 void Shipyard::sendSpeification(uint32_t nSessionId)
 {
   spex::Message message;
@@ -123,6 +169,13 @@ void Shipyard::sendBuildStatus(spex::IShipyard::Status eStatus)
   message.mutable_shipyard()->set_building_status(eStatus);
   for (uint32_t nSessionId : m_openedSessions)
     sendToClient(nSessionId, message);
+}
+
+void Shipyard::sendBuildStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus)
+{
+  spex::Message message;
+  message.mutable_shipyard()->set_building_status(eStatus);
+  sendToClient(nSessionId, message);
 }
 
 void Shipyard::sendBuildProgress(double progress)
