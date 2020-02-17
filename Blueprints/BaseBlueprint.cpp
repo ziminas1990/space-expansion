@@ -1,5 +1,6 @@
 #include "BaseBlueprint.h"
 
+#include <World/Resources.h>
 #include <yaml-cpp/yaml.h>
 
 namespace blueprints {
@@ -13,27 +14,37 @@ bool BaseBlueprint::load(YAML::Node const& data)
     return false;
   }
 
-  m_expenses.reserve(expenses.size());
+  m_expenses.fill(0);
   for (auto const& resource : expenses) {
     world::ResourceItem item;
     if (!item.load(resource)) {
       assert("Failed to load item" == nullptr);
       return false;
     }
-    m_expenses.push_back(item);
+    m_expenses[item.m_eType] += item.m_nAmount;
   }
-
-  assert(expenses.size() == m_expenses.size());
   return true;
 }
 
 void BaseBlueprint::dump(YAML::Node& out) const
 {
   YAML::Node expenses;
-  for (world::ResourceItem resource : m_expenses) {
-    resource.dump(expenses);
+  for (size_t i = 0; i < m_expenses.size(); ++i) {
+    world::ResourceItem item(static_cast<world::Resource::Type>(i), m_expenses[i]);
+    item.dump(expenses);
   }
   out["expenses"] = std::move(expenses);
+}
+
+world::Resources BaseBlueprint::expensesAsItems() const
+{
+  world::Resources expenses;
+  for (size_t i = 0; i < m_expenses.size(); ++i) {
+    if (m_expenses[i] > 0.001) {
+      expenses.emplace_back(static_cast<world::Resource::Type>(i), m_expenses[i]);
+    }
+  }
+  return expenses;
 }
 
 } // namespace modules

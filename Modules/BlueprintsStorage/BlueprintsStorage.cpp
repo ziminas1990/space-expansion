@@ -126,7 +126,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     }
   }
 
-  world::Resources const& expenses = pBlueprint->expenses();
+  world::Resources expenses = pBlueprint->expensesAsItems();
   for (world::ResourceItem const& resource : expenses) {
     spex::ResourceItem* pItem = pBody->add_expenses();
     utils::convert(resource, pItem);

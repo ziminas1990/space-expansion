@@ -27,11 +27,13 @@ public:
   virtual bool load(YAML::Node const& data);
   virtual void dump(YAML::Node& out) const;
 
-  world::Resources const& expenses() const { return m_expenses; }
+  world::ResourcesArray const& expenses() const { return m_expenses; }
     // Return total number of resources, that are required to produce item
 
+  world::Resources expensesAsItems() const;
+
 private:
-  world::Resources m_expenses;
+  world::ResourcesArray m_expenses;
 };
 
 } // namespace modules
