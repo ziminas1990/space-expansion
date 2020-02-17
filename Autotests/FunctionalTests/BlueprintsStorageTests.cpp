@@ -44,10 +44,10 @@ protected:
       "        max_scanning_radius_km: 20000000",
       "        processing_time_us:     40",
       "        expenses:",
-      "          labor:    12345",
-      "          metal:    5232",
-      "          silicate: 2833",
-      "          ice:      4723",
+      "          labor:     500",
+      "          metal:    2000",
+      "          silicate: 1000",
+      "          ice:       500",
       "    AsteroidScanner:",
       "      tiny-scanner:",
       "        max_scanning_distance:  10000",
@@ -63,7 +63,10 @@ protected:
       "        max_scanning_distance:  100000",
       "        scanning_time_ms:       400",
       "        expenses:",
-      "          labor: 1000",
+      "          labor:     500",
+      "          metal:    2000",
+      "          silicate: 1000",
+      "          ice:       500",
       "    Engine:",
       "      ancient-nordic-engine:",
       "        max_thrust: 5000",
@@ -76,7 +79,10 @@ protected:
       "      titanic-engine:",
       "        max_thrust: 50000000",
       "        expenses:",
-      "          labor: 1000",
+      "          labor:    1000",
+      "          metal:    5000",
+      "          silicate: 2000",
+      "          ice:      1000",
       "    ResourceContainer:",
       "      toy-cargo:",
       "        volume: 1",
@@ -122,9 +128,9 @@ protected:
       "        engine:            Engine/titanic-engine",
       "      expenses:",
       "          labor:    10000",
-      "          metal:    524837",
-      "          silicate: 2848331",
-      "          ice:      4734",
+      "          metal:    40000",
+      "          silicate: 20000",
+      "          ice:      10000",
       "Players:",
       "  James:",
       "    password: Bond"
@@ -246,10 +252,10 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
     EXPECT_EQ("20000000", blueprint.m_properties["max_scanning_radius_km"]->sValue);
     EXPECT_EQ("40",       blueprint.m_properties["processing_time_us"]->sValue);
 
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(5232)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::silicates(2833)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(4723)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(12345)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(2000)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::silicates(1000)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(500)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(500)));
   }
 
   {
@@ -312,11 +318,11 @@ TEST_F(BlueprintStorageTests, GetShipBlueprints)
               pShipModules->nested["asteroid-scanner"]->sValue);
     EXPECT_EQ("Engine/titanic-engine",
               pShipModules->nested["engine"]->sValue);
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(524837)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(49000)));
     EXPECT_TRUE(hasResource(blueprint.m_expenses,
-                            world::ResourceItem::silicates(2848331)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(4734)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(10000)));
+                            world::ResourceItem::silicates(24000)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(12000)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(12000)));
   }
 }
 

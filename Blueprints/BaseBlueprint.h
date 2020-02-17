@@ -29,8 +29,8 @@ public:
 
   world::ResourcesArray const& expenses() const { return m_expenses; }
     // Return total number of resources, that are required to produce item
-
-  world::Resources expensesAsItems() const;
+  void expenses(world::ResourcesArray& out) const;
+    // Add module expenses to the specified 'out' expenses
 
 private:
   world::ResourcesArray m_expenses;

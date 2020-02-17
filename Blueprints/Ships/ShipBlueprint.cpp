@@ -54,6 +54,20 @@ bool ShipBlueprint::checkDependencies(BlueprintsLibrary const& library) const
   return true;
 }
 
+bool ShipBlueprint::exportTotalExpenses(BlueprintsLibrary const& library,
+                                        world::ResourcesArray& total) const
+{
+  total = expenses(); // hull expenses
+  for (auto const& kv : m_modules) {
+    BlueprintName const& name             = kv.second;
+    BaseBlueprintPtr     pModuleBlueprint = library.getBlueprint(name);
+    if (!pModuleBlueprint)
+      return false;
+    pModuleBlueprint->expenses(total);
+  }
+  return true;
+}
+
 bool ShipBlueprint::load(YAML::Node const& data)
 {
   if (!BaseBlueprint::load(data)) {

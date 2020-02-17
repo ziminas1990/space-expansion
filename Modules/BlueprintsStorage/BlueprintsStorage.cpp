@@ -5,6 +5,7 @@
 #include <World/Player.h>
 #include <Blueprints/BlueprintsLibrary.h>
 #include <Blueprints/BaseBlueprint.h>
+#include <Blueprints/Ships/ShipBlueprint.h>
 #include <Utils/StringUtils.h>
 #include <Utils/ItemsConverter.h>
 
@@ -95,7 +96,8 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     return;
   }
 
-  blueprints::BaseBlueprintPtr pBlueprint = getLibrary().getBlueprint(blueprintName);
+  blueprints::BlueprintsLibrary const& library = getLibrary();
+  blueprints::BaseBlueprintPtr pBlueprint = library.getBlueprint(blueprintName);
   if (!pBlueprint) {
     sendModuleBlueprintFail(nSessionId, spex::IBlueprintsLibrary::BLUEPRINT_NOT_FOUND);
     return;
@@ -126,10 +128,25 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     }
   }
 
-  world::Resources expenses = pBlueprint->expensesAsItems();
-  for (world::ResourceItem const& resource : expenses) {
-    spex::ResourceItem* pItem = pBody->add_expenses();
-    utils::convert(resource, pItem);
+  world::ResourcesArray expenses;
+  if (blueprintName.getModuleClass() == "Ship") {
+    // Exception: for ship's blueprint we should return summ expenses for hull and all
+    // ship's modules
+    blueprints::ShipBlueprintPtr pShipBlueprint =
+        std::dynamic_pointer_cast<blueprints::ShipBlueprint>(pBlueprint);
+    assert(pShipBlueprint);
+    pShipBlueprint->exportTotalExpenses(library, expenses);
+  } else {
+    pBlueprint->expenses(expenses);
+  }
+
+  for (size_t i = 0; i < expenses.size(); ++i) {
+    if (expenses[i] > 0) {
+      world::Resource::Type type = static_cast<world::Resource::Type>(i);
+      spex::ResourceItem* pItem = pBody->add_expenses();
+      pItem->set_type(utils::convert(type));
+      pItem->set_amount(expenses[i]);
+    }
   }
 
   sendToClient(nSessionId, response);
@@ -145,7 +162,10 @@ bool BlueprintsStorage::sendModuleBlueprintFail(
 
 blueprints::BlueprintsLibrary const& BlueprintsStorage::getLibrary() const
 {
-  return getOwner().lock()->getBlueprints();
+  const static blueprints::BlueprintsLibrary emptyLibrary;
+
+  world::PlayerPtr pOwner = getOwner().lock();
+  return pOwner ? pOwner->getBlueprints() : emptyLibrary;
 }
 
 } // namespace modules

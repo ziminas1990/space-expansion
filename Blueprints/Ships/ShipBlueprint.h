@@ -45,6 +45,14 @@ public:
     // 'library'. Return false if ship can't be built because at least one module's
     // blueprint doesn't exist in the 'library'.
 
+  bool exportTotalExpenses(blueprints::BlueprintsLibrary const& library,
+                           world::ResourcesArray& total) const;
+    // Calculate total expenses for ships producing. In includes expenses for the ship
+    // hull and, additionally, expenses for producing all modules, that are required
+    // for the ship. The specified 'library' will be used to get modules blueprints.
+    // Return false, if some of the ship's modules bluperint is not found in the
+    // 'library'. Otherwise return true.
+
   bool load(YAML::Node const& data) override;
   void dump(YAML::Node& out) const override;
 

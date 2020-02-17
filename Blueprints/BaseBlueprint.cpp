@@ -36,15 +36,11 @@ void BaseBlueprint::dump(YAML::Node& out) const
   out["expenses"] = std::move(expenses);
 }
 
-world::Resources BaseBlueprint::expensesAsItems() const
+void BaseBlueprint::expenses(world::ResourcesArray& out) const
 {
-  world::Resources expenses;
   for (size_t i = 0; i < m_expenses.size(); ++i) {
-    if (m_expenses[i] > 0.001) {
-      expenses.emplace_back(static_cast<world::Resource::Type>(i), m_expenses[i]);
-    }
+    out[i] += m_expenses[i];
   }
-  return expenses;
 }
 
 } // namespace modules
