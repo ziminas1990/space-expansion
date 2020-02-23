@@ -47,18 +47,12 @@ message IAccessPanel {
     string ip       = 3;
     uint32 port     = 4;
   }
-  message LoginSuccess {
-    uint32 port     = 1;
-  }
-  message LoginFailed {
-    string reason   = 1;
-  }
   
   oneof choice {
-    LoginRequest login        = 1;
+    LoginRequest login     = 1;
     
-    LoginSuccess loginSuccess = 21;
-    LoginFailed  loginFailed  = 22;
+    uint32 access_granted  = 21;
+    string access_rejected = 22;
   }
 }
 
