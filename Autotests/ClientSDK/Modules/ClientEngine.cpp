@@ -22,7 +22,7 @@ bool Engine::getSpecification(EngineSpecification& specification)
 bool Engine::setThrust(geometry::Vector thrust, uint32_t nDurationMs)
 {
   spex::Message request;
-  spex::IEngine::SetThrust *pBody = request.mutable_engine()->mutable_change_thrust();
+  spex::IEngine::ChangeThrust *pBody = request.mutable_engine()->mutable_change_thrust();
   pBody->set_x(thrust.getX());
   pBody->set_y(thrust.getY());
   pBody->set_thrust(uint32_t(thrust.getLength()));

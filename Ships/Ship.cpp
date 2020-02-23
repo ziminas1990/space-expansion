@@ -87,9 +87,9 @@ modules::BaseModulePtr Ship::getModuleByName(std::string const& sName) const
 void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
 {
   switch (message.choice_case()) {
-    case spex::IShip::kStateRequest: {
+    case spex::IShip::kStateReq: {
       spex::IShip response;
-      spex::IShip_GetStateResponse* pBody = response.mutable_stateresponse();
+      spex::IShip::State* pBody = response.mutable_state();
       pBody->set_weight(getWeight());
       sendToClient(nSessionId, response);
       return;

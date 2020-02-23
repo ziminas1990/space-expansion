@@ -33,17 +33,17 @@ bool Ship::getPosition(geometry::Point &position)
 bool Ship::getState(ShipState& state)
 {
   spex::Message request;
-  request.mutable_ship()->mutable_staterequest();
+  request.mutable_ship()->set_state_req(true);
   if (!send(request))
     return false;
 
   spex::IShip response;
   if (!wait(response))
     return false;
-  if (response.choice_case() != spex::IShip::kStateResponse)
+  if (response.choice_case() != spex::IShip::kState)
     return false;
 
-  state.nWeight = response.stateresponse().weight();
+  state.nWeight = response.state().weight();
   return true;
 }
 

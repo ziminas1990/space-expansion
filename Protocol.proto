@@ -59,18 +59,17 @@ message IAccessPanel {
 
 message IEngine
 {
-
   message Specification {
     uint32 max_thrust = 1;
   }
-  
-  message SetThrust {
+
+  message ChangeThrust {
     double x           = 1;
     double y           = 2;
     uint32 thrust      = 4;
     uint32 duration_ms = 5;
   }
-  
+
   message CurrentThrust {
     double x      = 1;
     double y      = 2;
@@ -78,27 +77,25 @@ message IEngine
   }
 
   oneof choice {
-    bool      specification_req = 1;
-    SetThrust change_thrust     = 2;
-    bool      thrust_req        = 3;
-    
+    bool         specification_req = 1;
+    ChangeThrust change_thrust     = 2;
+    bool         thrust_req        = 3;
+
     Specification specification = 21;
     CurrentThrust thrust        = 22;
   }
-  
 }
 
 
 message IShip {
-  message GetState {}
-  message GetStateResponse {
+  message State {
     double weight = 1;
   }
 
   oneof choice {
-    GetState         stateRequest = 1;
+    bool state_req = 1;
 
-    GetStateResponse stateResponse = 21;
+    State state = 21;
   }
 }
 

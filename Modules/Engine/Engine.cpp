@@ -67,7 +67,7 @@ void Engine::getSpecification(uint32_t nSessionId) const
   sendToClient(nSessionId, response);
 }
 
-void Engine::setThrust(spex::IEngine::SetThrust const& req)
+void Engine::setThrust(const spex::IEngine::ChangeThrust &req)
 {
   geometry::Vector& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
