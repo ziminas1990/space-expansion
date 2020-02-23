@@ -87,9 +87,9 @@ modules::BaseModulePtr Ship::getModuleByName(std::string const& sName) const
 void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
 {
   switch (message.choice_case()) {
-    case spex::IShip::kStateRequest: {
+    case spex::IShip::kStateReq: {
       spex::IShip response;
-      spex::IShip_GetStateResponse* pBody = response.mutable_stateresponse();
+      spex::IShip::State* pBody = response.mutable_state();
       pBody->set_weight(getWeight());
       sendToClient(nSessionId, response);
       return;
@@ -103,10 +103,9 @@ void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
 void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const& message)
 {
   switch (message.choice_case()) {
-    case spex::INavigation::kPositionRequest: {
+    case spex::INavigation::kPositionReq: {
       spex::INavigation navigation;
-      spex::INavigation_GetPositionResponse* pBody =
-          navigation.mutable_positionresponse();
+      spex::Position* pBody = navigation.mutable_position();
       pBody->set_x(getPosition().x);
       pBody->set_y(getPosition().y);
       pBody->set_vx(getVelocity().getX());

@@ -25,14 +25,14 @@ bool ClientAccessPanel::sendLoginRequest(
   return send(message);
 }
 
-bool ClientAccessPanel::waitLoginSuccess(uint16_t &nServerPort)
+bool ClientAccessPanel::waitLoginSuccess(uint16_t& nServerPort)
 {
   spex::IAccessPanel response;
   if (!wait(response))
     return false;
-  if (response.choice_case() != spex::IAccessPanel::kLoginSuccess)
+  if (response.choice_case() != spex::IAccessPanel::kAccessGranted)
     return false;
-  nServerPort = uint16_t(response.loginsuccess().port());
+  nServerPort = static_cast<uint16_t>(response.access_granted());
   return true;
 }
 
@@ -40,7 +40,7 @@ bool ClientAccessPanel::waitLoginFailed()
 {
   spex::IAccessPanel response;
   return wait(response)
-      && response.choice_case() == spex::IAccessPanel::kLoginFailed;
+      && response.choice_case() == spex::IAccessPanel::kAccessRejected;
 }
 
 }}  // namespace autotests::client

@@ -81,22 +81,18 @@ bool AccessPanel::checkLogin(std::string const& sLogin,
       && pPlayer->getPassword() == sPassword;
 }
 
-bool AccessPanel::sendLoginSuccess(
-    uint32_t nSessionId, const network::UdpEndPoint &localAddress)
+bool AccessPanel::sendLoginSuccess(uint32_t nSessionId,
+                                   network::UdpEndPoint const& localAddress)
 {
   spex::Message message;
-  spex::IAccessPanel::LoginSuccess* pBody =
-      message.mutable_accesspanel()->mutable_loginsuccess();
-  pBody->set_port(localAddress.port());
+  message.mutable_accesspanel()->set_access_granted(localAddress.port());
   return send(nSessionId, message);
 }
 
 bool AccessPanel::sendLoginFailed(uint32_t nSessionId, std::string const& reason)
 {
   spex::Message message;
-  spex::IAccessPanel::LoginFailed* pBody =
-      message.mutable_accesspanel()->mutable_loginfailed();
-  pBody->set_reason(reason);
+  message.mutable_accesspanel()->set_access_rejected(reason);
   return send(nSessionId, message);
 }
 

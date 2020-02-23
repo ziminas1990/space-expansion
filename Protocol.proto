@@ -37,6 +37,13 @@ message Blueprint {
   repeated ResourceItem expenses   = 3;
 }
 
+message Position {
+  double x   = 1;
+  double y   = 2;
+  double vx  = 4;
+  double vy  = 5;
+}
+
 //=============================================================================
 // Modules interfaces
 
@@ -47,39 +54,29 @@ message IAccessPanel {
     string ip       = 3;
     uint32 port     = 4;
   }
-  message LoginSuccess {
-    uint32 port     = 1;
-  }
-  message LoginFailed {
-    string reason   = 1;
-  }
   
   oneof choice {
-    LoginRequest login        = 1;
+    LoginRequest login     = 1;
     
-    LoginSuccess loginSuccess = 21;
-    LoginFailed  loginFailed  = 22;
+    uint32 access_granted  = 21;
+    string access_rejected = 22;
   }
 }
 
 
 message IEngine
 {
-
-  message GetSpecification {}
   message Specification {
-    uint32 maxThrust = 1;
+    uint32 max_thrust = 1;
   }
-  
-  message SetThrust {
+
+  message ChangeThrust {
     double x           = 1;
     double y           = 2;
     uint32 thrust      = 4;
     uint32 duration_ms = 5;
   }
-  
-  message GetThrust {}
-  
+
   message CurrentThrust {
     double x      = 1;
     double y      = 2;
@@ -87,52 +84,46 @@ message IEngine
   }
 
   oneof choice {
-    GetSpecification getSpecification = 1;
-    SetThrust        setThrust        = 2;
-    GetThrust        getThrust        = 3;
-    
-    Specification    specification    = 21;
-    CurrentThrust    currentThrust    = 22;
+    bool         specification_req = 1;
+    ChangeThrust change_thrust     = 2;
+    bool         thrust_req        = 3;
+
+    Specification specification = 21;
+    CurrentThrust thrust        = 22;
   }
-  
 }
 
 
 message IShip {
-  message GetState {}
-  message GetStateResponse {
+  message State {
     double weight = 1;
   }
 
   oneof choice {
-    GetState         stateRequest = 1;
+    bool state_req = 1;
 
-    GetStateResponse stateResponse = 21;
+    State state = 21;
   }
 }
 
 
 message INavigation {
-
-  message GetPosition {}
-  message GetPositionResponse {
-    double x   = 1;
-    double y   = 2;
-    double vx  = 4;
-    double vy  = 5;
-  }
   
   oneof choice {
-    GetPosition positionRequest = 1;
+    bool position_req = 1;
     
-    GetPositionResponse positionResponse = 2;
+    Position position = 21;
   }
 }
 
 
 message ICelestialScanner {
 
-  message GetSpecification {}
+  enum Status {
+    SUCCESS      = 0;
+    SCANNER_BUSY = 1;
+  }
+
   message Specification {
     uint32 max_radius_km      = 1;
     uint32 processing_time_us = 2;
@@ -143,30 +134,27 @@ message ICelestialScanner {
     uint32 minimal_radius_m   = 2;
   }
 
+  message AsteroidInfo {
+    uint32 id = 1;
+    double x  = 2;
+    double y  = 3;
+    double vx = 4;
+    double vy = 5;
+    double r  = 6;
+  }
+
   message ScanResults {
-    message AsteroidInfo {
-      uint32 id = 1;
-      double x  = 2;
-      double y  = 3;
-      double vx = 4;
-      double vy = 5;
-      double r  = 6;
-    }
-    
     repeated AsteroidInfo asteroids = 1;
     uint32                left      = 2;
   }
 
-  message ScannerBusy {}
-  
-  
   oneof choice {
-    GetSpecification get_specification = 1;
-    Scan             scan              = 2;
+    bool specification_req = 1;
+    Scan scan              = 2;
     
-    Specification specification  = 21;
-    ScanResults   scan_result    = 22;
-    ScannerBusy   busy_response  = 23;
+    Specification specification   = 21;
+    ScanResults   scanning_report = 22;
+    Status        scanning_failed = 23;
   }
   
 }
@@ -353,50 +341,32 @@ message IShipyard {
 
 message ICommutator {
 
-  message GetTotalSlots {}
-  message GetTotalSlotsResponse {
-    uint32 nTotalSlots = 1;
+  enum Status {
+    SUCCESS      = 0;
+    INVALID_SLOT = 1;
   }
-
-  message GetModuleInfo {
-    uint32 nSlotId     = 1;
-  }
-  message GetAllModulesInfo {}
+  
   message ModuleInfo {
-    uint32 nSlotId     = 1;
-    string sModuleType = 2;
-    string sModuleName = 3;
-  }
-
-  message OpenTunnel {
-    uint32 nSlotId   = 2;
-  }
-  message OpenTunnelSuccess {
-    uint32 nTunnelId = 2;
-  }
-  message OpenTunnelFailed {}
-
-  message CloseTunnel {
-    uint32 nTunnelId = 1;
-  }
-  message TunnelClosed {
-    uint32 nTunnelId = 1;
+    uint32 slot_id     = 1;
+    string module_type = 2;
+    string module_name = 3;
   }
 
   oneof choice {
     // Requests and command from Client
-    GetTotalSlots     getTotalSlots          = 1;
-    GetModuleInfo     getModuleInfo          = 2;
-    GetAllModulesInfo getAllModulesInfo      = 3;
-    OpenTunnel        openTunnel             = 4;
-    CloseTunnel       closeTunnel            = 5;
+    bool       total_slots_req      = 1;
+    uint32     module_info_req      = 2;
+    bool       all_modules_info_req = 3;
+    uint32     open_tunnel          = 4;
+    uint32     close_tunnel         = 5;
 
     // Responces and indications from server
-    GetTotalSlotsResponse totalSlotsResponse = 41;
-    ModuleInfo            moduleInfo         = 42;
-    OpenTunnelSuccess     openTunnelSuccess  = 43;
-    OpenTunnelFailed      openTunnelFailed   = 44; 
-    TunnelClosed          tunnelClosed       = 45;
+    uint32     total_slots         = 21;
+    ModuleInfo module_info         = 22;
+    uint32     open_tunnel_report  = 23;
+    Status     open_tunnel_failed  = 24;
+    uint32     close_tunnel_report = 25;
+    Status     close_tunnel_failed = 26;
   }
 }
 

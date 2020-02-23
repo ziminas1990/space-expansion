@@ -5,7 +5,7 @@ namespace autotests { namespace client {
 bool CelestialScanner::getSpecification(CelestialScannerSpecification& specification)
 {
   spex::Message request;
-  request.mutable_celestialscanner()->mutable_get_specification();
+  request.mutable_celestialscanner()->set_specification_req(true);
   if (!send(request))
     return false;
 
@@ -20,7 +20,8 @@ bool CelestialScanner::getSpecification(CelestialScannerSpecification& specifica
   return true;
 }
 
-bool CelestialScanner::scan(uint32_t nRadiusKm, uint32_t nMinimalRadiusM,
+bool CelestialScanner::scan(uint32_t nRadiusKm,
+                            uint32_t nMinimalRadiusM,
                             std::vector<AsteroidInfo>& asteroids)
 {
   spex::Message request;
@@ -36,18 +37,18 @@ bool CelestialScanner::scan(uint32_t nRadiusKm, uint32_t nMinimalRadiusM,
     spex::ICelestialScanner response;
     if (!wait(response))
       return false;
-    if (response.choice_case() != spex::ICelestialScanner::kScanResult)
+    if (response.choice_case() != spex::ICelestialScanner::kScanningReport)
       return false;
 
-    nAsteroidsLeft = response.scan_result().left();
+    nAsteroidsLeft = response.scanning_report().left();
 
     if (!nTotalAsteroids) {
       nTotalAsteroids = static_cast<size_t>(nAsteroidsLeft) +
-          static_cast<size_t>(response.scan_result().asteroids().size());
+          static_cast<size_t>(response.scanning_report().asteroids().size());
       asteroids.reserve(nTotalAsteroids);
     }
 
-    for (auto const& asteroid : response.scan_result().asteroids())
+    for (auto const& asteroid : response.scanning_report().asteroids())
     {
       AsteroidInfo info;
       info.nId      = asteroid.id();

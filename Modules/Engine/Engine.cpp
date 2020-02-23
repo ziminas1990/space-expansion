@@ -35,21 +35,22 @@ bool Engine::loadState(YAML::Node const& source)
 void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& message)
 {
   switch(message.choice_case()) {
-    case spex::IEngine::kGetSpecification: {
+    case spex::IEngine::kSpecificationReq: {
       getSpecification(nSessionId);
       return;
     }
-    case spex::IEngine::kSetThrust: {
-      setThrust(message.setthrust());
+    case spex::IEngine::kChangeThrust: {
+      setThrust(message.change_thrust());
       return;
     }
-    case spex::IEngine::kGetThrust: {
+    case spex::IEngine::kThrustReq: {
       getThrust(nSessionId);
       return;
     }
-    case spex::IEngine::kCurrentThrust:
+    case spex::IEngine::kThrust:
     case spex::IEngine::kSpecification:
     case spex::IEngine::CHOICE_NOT_SET:
+      assert("Unexpected message" == nullptr);
       return;
   }
 }
@@ -62,11 +63,11 @@ void Engine::onInstalled(ships::Ship* pPlatform)
 void Engine::getSpecification(uint32_t nSessionId) const
 {
   spex::IEngine response;
-  response.mutable_specification()->set_maxthrust(m_maxThrust);
+  response.mutable_specification()->set_max_thrust(m_maxThrust);
   sendToClient(nSessionId, response);
 }
 
-void Engine::setThrust(spex::IEngine::SetThrust const& req)
+void Engine::setThrust(const spex::IEngine::ChangeThrust &req)
 {
   geometry::Vector& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
@@ -89,7 +90,7 @@ void Engine::setThrust(spex::IEngine::SetThrust const& req)
 void Engine::getThrust(uint32_t nSessionId) const
 {
   spex::IEngine response;
-  spex::IEngine::CurrentThrust *pBody = response.mutable_currentthrust();
+  spex::IEngine::CurrentThrust *pBody = response.mutable_thrust();
 
   geometry::Vector const& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);

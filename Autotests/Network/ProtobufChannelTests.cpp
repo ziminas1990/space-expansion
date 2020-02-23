@@ -62,12 +62,12 @@ void ProtobufChannelTests::createSomeMessages(std::vector<spex::Message> &out)
   }
   {
     spex::Message message;
-    message.mutable_accesspanel()->mutable_loginfailed()->set_reason("test");
+    message.mutable_accesspanel()->set_access_rejected("test");
     out.push_back(std::move(message));
   }
   {
     spex::Message message;
-    message.mutable_accesspanel()->mutable_loginsuccess()->set_port(12345);
+    message.mutable_accesspanel()->set_access_granted(12345);
     out.push_back(std::move(message));
   }
 }
@@ -78,14 +78,14 @@ TEST_F(ProtobufChannelTests, SingleMessage)
   std::string sReason = "test";
   {
     spex::Message message;
-    message.mutable_accesspanel()->mutable_loginfailed()->set_reason(sReason);
+    message.mutable_accesspanel()->set_access_rejected(sReason);
     sendMessage(message);
   }
   {
     spex::IAccessPanel message;
     ASSERT_TRUE(m_pMockedTerminal->wait(0, message));
-    EXPECT_EQ(spex::IAccessPanel::kLoginFailed, message.choice_case());
-    EXPECT_EQ(sReason, message.loginfailed().reason());
+    EXPECT_EQ(spex::IAccessPanel::kAccessRejected, message.choice_case());
+    EXPECT_EQ(sReason, message.access_rejected());
   }
 }
 

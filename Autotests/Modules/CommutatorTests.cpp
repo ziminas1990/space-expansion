@@ -131,7 +131,8 @@ TEST_F(CommutatorTests, TunnelingMessage)
     pAnotherClient->attachToChannel(pTunnel);
     ASSERT_TRUE(pAnotherClient->sendOpenTunnel(nSlotId));
     ASSERT_TRUE(pMockedCommutator->waitOpenTunnel(pTunnel->getTunnelId(), nSlotId));
-    ASSERT_TRUE(pMockedCommutator->sendOpenTunnelFailed(pTunnel->getTunnelId()));
+    ASSERT_TRUE(pMockedCommutator->sendOpenTunnelFailed(
+                  pTunnel->getTunnelId(), spex::ICommutator::INVALID_SLOT));
     ASSERT_TRUE(pAnotherClient->waitOpenTunnelFailed());
   }
 }

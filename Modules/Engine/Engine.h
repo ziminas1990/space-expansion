@@ -23,7 +23,7 @@ protected:
   void onInstalled(ships::Ship* pPlatform) override;
 
   void getSpecification(uint32_t nSessionId) const;
-  void setThrust(spex::IEngine::SetThrust const& req);
+  void setThrust(spex::IEngine::ChangeThrust const& req);
   void getThrust(uint32_t nSessionId) const;
 
 private:
