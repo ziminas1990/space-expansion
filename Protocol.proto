@@ -60,9 +60,8 @@ message IAccessPanel {
 message IEngine
 {
 
-  message GetSpecification {}
   message Specification {
-    uint32 maxThrust = 1;
+    uint32 max_thrust = 1;
   }
   
   message SetThrust {
@@ -72,8 +71,6 @@ message IEngine
     uint32 duration_ms = 5;
   }
   
-  message GetThrust {}
-  
   message CurrentThrust {
     double x      = 1;
     double y      = 2;
@@ -81,12 +78,12 @@ message IEngine
   }
 
   oneof choice {
-    GetSpecification getSpecification = 1;
-    SetThrust        setThrust        = 2;
-    GetThrust        getThrust        = 3;
+    bool      specification_req = 1;
+    SetThrust change_thrust     = 2;
+    bool      thrust_req        = 3;
     
-    Specification    specification    = 21;
-    CurrentThrust    currentThrust    = 22;
+    Specification specification = 21;
+    CurrentThrust thrust        = 22;
   }
   
 }
