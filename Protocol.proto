@@ -119,7 +119,11 @@ message INavigation {
 
 message ICelestialScanner {
 
-  message GetSpecification {}
+  enum Status {
+    SUCCESS      = 0;
+    SCANNER_BUSY = 1;
+  }
+
   message Specification {
     uint32 max_radius_km      = 1;
     uint32 processing_time_us = 2;
@@ -130,30 +134,27 @@ message ICelestialScanner {
     uint32 minimal_radius_m   = 2;
   }
 
+  message AsteroidInfo {
+    uint32 id = 1;
+    double x  = 2;
+    double y  = 3;
+    double vx = 4;
+    double vy = 5;
+    double r  = 6;
+  }
+
   message ScanResults {
-    message AsteroidInfo {
-      uint32 id = 1;
-      double x  = 2;
-      double y  = 3;
-      double vx = 4;
-      double vy = 5;
-      double r  = 6;
-    }
-    
     repeated AsteroidInfo asteroids = 1;
     uint32                left      = 2;
   }
 
-  message ScannerBusy {}
-  
-  
   oneof choice {
-    GetSpecification get_specification = 1;
-    Scan             scan              = 2;
+    bool specification_req = 1;
+    Scan scan              = 2;
     
-    Specification specification  = 21;
-    ScanResults   scan_result    = 22;
-    ScannerBusy   busy_response  = 23;
+    Specification specification   = 21;
+    ScanResults   scanning_report = 22;
+    Status        scanning_failed = 23;
   }
   
 }
