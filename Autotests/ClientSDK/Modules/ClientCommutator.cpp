@@ -1,20 +1,21 @@
 #include "ClientCommutator.h"
+#include <Protocol.pb.h>
 
 namespace autotests { namespace client {
 
 bool ClientCommutator::getTotalSlots(uint32_t& nTotalSlots)
 {
   spex::Message request;
-  request.mutable_commutator()->mutable_gettotalslots();
+  request.mutable_commutator()->set_total_slots_req(true);
   if (!send(request))
     return false;
 
   spex::ICommutator message;
   if (!wait(message))
     return false;
-  if (message.choice_case() != spex::ICommutator::kTotalSlotsResponse)
+  if (message.choice_case() != spex::ICommutator::kTotalSlots)
     return false;
-  nTotalSlots = message.totalslotsresponse().ntotalslots();
+  nTotalSlots = message.total_slots();
   return true;
 }
 
@@ -25,7 +26,7 @@ bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
     return false;
 
   spex::Message request;
-  request.mutable_commutator()->mutable_getallmodulesinfo();
+  request.mutable_commutator()->set_all_modules_info_req(true);
   if (!send(request))
     return false;
 
@@ -36,9 +37,9 @@ bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
     if (response.choice_case() != spex::ICommutator::kModuleInfo)
       return false;
     attachedModules.push_back(
-          ModuleInfo({response.moduleinfo().nslotid(),
-                      response.moduleinfo().smoduletype(),
-                      response.moduleinfo().smodulename()}));
+          ModuleInfo({response.module_info().slot_id(),
+                      response.module_info().module_type(),
+                      response.module_info().module_name()}));
   }
   return attachedModules.size() == nTotal;
 }
@@ -62,7 +63,7 @@ TunnelPtr ClientCommutator::openTunnel(uint32_t nSlotId)
 bool ClientCommutator::sendOpenTunnel(uint32_t nSlotId)
 {
   spex::Message request;
-  request.mutable_commutator()->mutable_opentunnel()->set_nslotid(nSlotId);
+  request.mutable_commutator()->set_open_tunnel(nSlotId);
   return send(request);
 }
 
@@ -71,12 +72,14 @@ bool ClientCommutator::waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId)
   spex::ICommutator message;
   if (!wait(message))
     return false;
-  if (message.choice_case() != spex::ICommutator::kOpenTunnelSuccess)
-    return false;
-  if (pOpenedTunnelId) {
-    *pOpenedTunnelId = message.opentunnelsuccess().ntunnelid();
+  if (message.choice_case() == spex::ICommutator::kOpenTunnelReport) {
+    if (pOpenedTunnelId) {
+      *pOpenedTunnelId = message.open_tunnel_report();
+    }
+    return true;
   }
-  return true;
+  assert(message.choice_case() == spex::ICommutator::kOpenTunnelFailed);
+  return false;
 }
 
 bool ClientCommutator::waitOpenTunnelFailed()

@@ -342,50 +342,32 @@ message IShipyard {
 
 message ICommutator {
 
-  message GetTotalSlots {}
-  message GetTotalSlotsResponse {
-    uint32 nTotalSlots = 1;
+  enum Status {
+    SUCCESS      = 0;
+    INVALID_SLOT = 1;
   }
-
-  message GetModuleInfo {
-    uint32 nSlotId     = 1;
-  }
-  message GetAllModulesInfo {}
+  
   message ModuleInfo {
-    uint32 nSlotId     = 1;
-    string sModuleType = 2;
-    string sModuleName = 3;
-  }
-
-  message OpenTunnel {
-    uint32 nSlotId   = 2;
-  }
-  message OpenTunnelSuccess {
-    uint32 nTunnelId = 2;
-  }
-  message OpenTunnelFailed {}
-
-  message CloseTunnel {
-    uint32 nTunnelId = 1;
-  }
-  message TunnelClosed {
-    uint32 nTunnelId = 1;
+    uint32 slot_id     = 1;
+    string module_type = 2;
+    string module_name = 3;
   }
 
   oneof choice {
     // Requests and command from Client
-    GetTotalSlots     getTotalSlots          = 1;
-    GetModuleInfo     getModuleInfo          = 2;
-    GetAllModulesInfo getAllModulesInfo      = 3;
-    OpenTunnel        openTunnel             = 4;
-    CloseTunnel       closeTunnel            = 5;
+    bool       total_slots_req      = 1;
+    uint32     module_info_req      = 2;
+    bool       all_modules_info_req = 3;
+    uint32     open_tunnel          = 4;
+    uint32     close_tunnel         = 5;
 
     // Responces and indications from server
-    GetTotalSlotsResponse totalSlotsResponse = 41;
-    ModuleInfo            moduleInfo         = 42;
-    OpenTunnelSuccess     openTunnelSuccess  = 43;
-    OpenTunnelFailed      openTunnelFailed   = 44; 
-    TunnelClosed          tunnelClosed       = 45;
+    uint32     total_slots         = 21;
+    ModuleInfo module_info         = 22;
+    uint32     open_tunnel_report  = 23;
+    Status     open_tunnel_failed  = 24;
+    uint32     close_tunnel_report = 25;
+    Status     close_tunnel_failed = 26;
   }
 }
 

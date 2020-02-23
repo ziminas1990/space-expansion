@@ -1,4 +1,5 @@
 #include "MockedCommutator.h"
+#include <Protocol.pb.h>
 
 namespace autotests
 {
@@ -14,21 +15,21 @@ bool MockedCommutator::waitOpenTunnel(uint32_t nSessionId, uint32_t nSlotId)
     return false;
   if (message.choice_case() != spex::ICommutator::kOpenTunnel)
     return false;
-  return message.opentunnel().nslotid() == nSlotId;
+  return message.open_tunnel() == nSlotId;
 }
 
 bool MockedCommutator::sendOpenTunnelSuccess(uint32_t nSessionId, uint32_t nTunnelId)
 {
   spex::ICommutator message;
-  spex::ICommutator::OpenTunnelSuccess* pBody = message.mutable_opentunnelsuccess();
-  pBody->set_ntunnelid(nTunnelId);
+  message.set_open_tunnel_report(nTunnelId);
   return sendToClient(nSessionId, message);
 }
 
-bool MockedCommutator::sendOpenTunnelFailed(uint32_t nSessionId)
+bool MockedCommutator::sendOpenTunnelFailed(uint32_t nSessionId,
+                                            spex::ICommutator::Status eReason)
 {
   spex::ICommutator message;
-  message.mutable_opentunnelfailed();
+  message.set_open_tunnel_failed(eReason);
   return sendToClient(nSessionId, message);
 }
 
