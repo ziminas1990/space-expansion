@@ -7,20 +7,20 @@ namespace autotests { namespace client {
 bool Ship::getPosition(geometry::Point& position, geometry::Vector& velocity)
 {
   spex::Message request;
-  request.mutable_navigation()->mutable_positionrequest();
+  request.mutable_navigation()->set_position_req(true);
   if (!send(request))
     return false;
 
   spex::INavigation response;
   if (!wait(response))
     return false;
-  if (response.choice_case() != spex::INavigation::kPositionResponse)
+  if (response.choice_case() != spex::INavigation::kPosition)
     return false;
 
-  position.x = response.positionresponse().x();
-  position.y = response.positionresponse().y();
-  velocity.setPosition(response.positionresponse().vx(),
-                       response.positionresponse().vy());
+  position.x = response.position().x();
+  position.y = response.position().y();
+  velocity.setPosition(response.position().vx(),
+                       response.position().vy());
   return true;
 }
 

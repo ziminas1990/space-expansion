@@ -103,10 +103,9 @@ void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
 void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const& message)
 {
   switch (message.choice_case()) {
-    case spex::INavigation::kPositionRequest: {
+    case spex::INavigation::kPositionReq: {
       spex::INavigation navigation;
-      spex::INavigation_GetPositionResponse* pBody =
-          navigation.mutable_positionresponse();
+      spex::Position* pBody = navigation.mutable_position();
       pBody->set_x(getPosition().x);
       pBody->set_y(getPosition().y);
       pBody->set_vx(getVelocity().getX());
