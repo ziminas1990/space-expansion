@@ -31,7 +31,7 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
 void Commutator::detachFromModules()
 {
   for (Tunnel& tunnel : m_Tunnels) {
-    m_Slots[tunnel.m_nSlotId]->onSessionClosed(tunnel.m_nSessionId);
+    m_Slots[tunnel.m_nSlotId]->onSessionClosed(tunnel.m_nFather);
     tunnel.m_lUp = false;
   }
   m_Tunnels.clear();
@@ -51,7 +51,7 @@ void Commutator::checkSlotsAndTunnels()
     if (!pModule || !pModule->isOnline()) {
       spex::ICommutator message;
       message.set_close_tunnel_report(nTunnelId);
-      sendToClient(tunnel.m_nSessionId, std::move(message));
+      sendToClient(tunnel.m_nFather, std::move(message));
       tunnel = Tunnel();
     }
   }
@@ -79,7 +79,7 @@ void Commutator::onSessionClosed(uint32_t nSessionId)
   m_OpenedSessions.erase(nSessionId);
   for (uint32_t nTunnelId = 0; nTunnelId <= m_Tunnels.size(); ++nTunnelId)
   {
-    if (m_Tunnels[nTunnelId].m_nSessionId == nSessionId) {
+    if (m_Tunnels[nTunnelId].m_nFather == nSessionId) {
       m_ReusableTunnels.push(nTunnelId);
       m_Tunnels[nTunnelId] = Tunnel();
     }
@@ -93,13 +93,24 @@ bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
   tunnelPDU.set_tunnelid(nTunnelId);
   *tunnelPDU.mutable_encapsulated() = message;
   return nTunnelId < m_Tunnels.size()
-      && sendToClient(m_Tunnels[nTunnelId].m_nSessionId, tunnelPDU);
+      && sendToClient(m_Tunnels[nTunnelId].m_nFather, tunnelPDU);
 }
 
-void Commutator::closeSession(uint32_t nSessionId)
+void Commutator::closeSession(uint32_t nTunnelId)
 {
   // in this context, sessionId (we got it from terminal) is a tunnelId
-  onCloseTunnelRequest(nSessionId);
+  if (nTunnelId >= m_Tunnels.size())
+    return;
+
+  Tunnel& tunnel = m_Tunnels[nTunnelId];
+  if (!tunnel.m_lUp) {
+    return;
+  }
+
+  spex::ICommutator message;
+  message.set_close_tunnel_report(nTunnelId);
+  sendToClient(tunnel.m_nFather, std::move(message));
+  tunnel = Tunnel();
 }
 
 void Commutator::detachFromTerminal()
@@ -172,40 +183,63 @@ void Commutator::getAllModulesInfo(uint32_t nSessionId) const
 
 void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
 {
-  spex::ICommutator message;
   if (nSlot >= m_Slots.size() || !m_Slots[nSlot]) {
-    message.set_open_tunnel_failed(spex::ICommutator::INVALID_SLOT);
-  } else {
-    uint32_t nTunnelId;
-    if (!m_ReusableTunnels.empty()) {
-      nTunnelId = m_ReusableTunnels.top();
-      m_ReusableTunnels.pop();
-    } else {
-      m_Tunnels.push_back(Tunnel());
-      nTunnelId = static_cast<uint32_t>(m_Tunnels.size() - 1);
-    }
-    Tunnel& tunnel      = m_Tunnels[nTunnelId];
-    tunnel.m_nSlotId    = nSlot;
-    tunnel.m_nSessionId = nSessionId;
-    tunnel.m_lUp        = true;
-    message.set_open_tunnel_report(nTunnelId);
+    sendOpenTunnelFailed(nSessionId, spex::ICommutator::INVALID_SLOT);
+    return;
   }
+
+  BaseModulePtr pModule = m_Slots[nSlot];
+  if (!pModule || !pModule->isOnline()) {
+    sendOpenTunnelFailed(nSessionId, spex::ICommutator::MODULE_OFFLINE);
+    return;
+  }
+
+  uint32_t nTunnelId;
+  if (!m_ReusableTunnels.empty()) {
+    nTunnelId = m_ReusableTunnels.top();
+    m_ReusableTunnels.pop();
+  } else {
+    m_Tunnels.push_back(Tunnel());
+    nTunnelId = static_cast<uint32_t>(m_Tunnels.size() - 1);
+  }
+
+  if (!pModule->openSession(nTunnelId)) {
+    m_ReusableTunnels.push(nTunnelId);
+    sendOpenTunnelFailed(nSessionId, spex::ICommutator::REJECTED_BY_MODULE);
+    return;
+  }
+
+  Tunnel& tunnel      = m_Tunnels[nTunnelId];
+  tunnel.m_nSlotId    = nSlot;
+  tunnel.m_nFather = nSessionId;
+  tunnel.m_lUp        = true;
+
+  spex::ICommutator message;
+  message.set_open_tunnel_report(nTunnelId);
   sendToClient(nSessionId, message);
 }
 
-void Commutator::onCloseTunnelRequest(uint32_t nTunnelId, uint32_t nSessionId)
+void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
 {
-  if (nTunnelId >= m_Tunnels.size())
+  if (nTunnelId >= m_Tunnels.size()) {
+    sendCloseTunnelFailed(nSessionId, spex::ICommutator::INVALID_TUNNEL);
     return;
+  }
 
   Tunnel& tunnel = m_Tunnels[nTunnelId];
-  if (!tunnel.m_lUp ||
-      (tunnel.m_nSessionId != nSessionId && nSessionId != uint32_t(-1)))
+  if (!tunnel.m_lUp || tunnel.m_nFather != nSessionId) {
+    sendCloseTunnelFailed(nSessionId, spex::ICommutator::INVALID_TUNNEL);
     return;
+  }
+
+  BaseModulePtr pModule = m_Slots[tunnel.m_nSlotId];
+  if (!pModule) {
+    pModule->onSessionClosed(nTunnelId);
+  }
 
   spex::ICommutator message;
   message.set_close_tunnel_report(nTunnelId);
-  sendToClient(tunnel.m_nSessionId, std::move(message));
+  sendToClient(tunnel.m_nFather, std::move(message));
   tunnel = Tunnel();
 }
 
@@ -231,7 +265,7 @@ void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
     if (m_Tunnels[nTunnelId].m_nSlotId == nSlotId) {
       spex::ICommutator message;
       message.set_close_tunnel_report(nTunnelId);
-      sendToClient(m_Tunnels[nTunnelId].m_nSessionId, std::move(message));
+      sendToClient(m_Tunnels[nTunnelId].m_nFather, std::move(message));
     }
   }
 }
@@ -245,6 +279,22 @@ void Commutator::onModuleHasBeenAttached(uint32_t nSlotId)
     message.mutable_module_info()->set_module_name(m_Slots[nSlotId]->getModuleName());
     sendToClient(nSessionId, std::move(message));
   }
+}
+
+void Commutator::sendOpenTunnelFailed(uint32_t nSessionId,
+                                      spex::ICommutator::Status eReason)
+{
+  spex::ICommutator message;
+  message.set_open_tunnel_failed(eReason);
+  sendToClient(nSessionId, message);
+}
+
+void Commutator::sendCloseTunnelFailed(uint32_t nSessionId,
+                                       spex::ICommutator::Status eReason)
+{
+  spex::ICommutator message;
+  message.set_close_tunnel_failed(eReason);
+  sendToClient(nSessionId, message);
 }
 
 } // namespace modules

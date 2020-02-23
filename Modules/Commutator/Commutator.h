@@ -51,18 +51,21 @@ private:
   void getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const;
   void getAllModulesInfo(uint32_t nSessionId) const;
   void onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot);
-  void onCloseTunnelRequest(uint32_t nTunnelId, uint32_t nSessionId = uint32_t(-1));
+  void onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId);
 
   void commutateMessage(uint32_t nTunnelId, spex::Message const& message);
 
   void onModuleHasBeenDetached(uint32_t nSlotId);
   void onModuleHasBeenAttached(uint32_t nSlotId);
 
+  void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
+  void sendCloseTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
+
 private:
   struct Tunnel {
-    bool     m_lUp        = false;
-    uint32_t m_nSessionId = 0; // Session, that created a tunnel
-    uint32_t m_nSlotId    = 0;
+    bool     m_lUp     = false;
+    uint32_t m_nFather = 0; // Session, that created a tunnel
+    uint32_t m_nSlotId = 0;
   };
 
 private:

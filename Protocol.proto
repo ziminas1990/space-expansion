@@ -342,8 +342,11 @@ message IShipyard {
 message ICommutator {
 
   enum Status {
-    SUCCESS      = 0;
-    INVALID_SLOT = 1;
+    SUCCESS            = 0;
+    INVALID_SLOT       = 1;
+    MODULE_OFFLINE     = 2;
+    REJECTED_BY_MODULE = 3;
+    INVALID_TUNNEL     = 4;
   }
   
   message ModuleInfo {
