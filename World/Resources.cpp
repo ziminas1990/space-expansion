@@ -10,25 +10,51 @@
 
 namespace world {
 
-std::vector<double> Resource::density;
+std::array<double, Resource::eTotalResources> Resource::density = {0};
+const std::array<Resource::Type, 3> Resource::MaterialResources = {
+  Resource::eMetal, Resource::eSilicate, Resource::eIce
+};
+const std::array<Resource::Type, 1> Resource::NonMaterialResources = {
+  Resource::eLabor
+};
 
 bool Resource::initialize()
 {
-  density.resize(eTotalResources);
   density[eMetal]    = 4500;  // Ti
   density[eIce]      = 916;
   density[eSilicate] = 2330;  // Si
-  density[eLabor]    = 0;     // It non material resource
+  density[eLabor]    = 0;     // It is non material resource
+
+  // Run-time checks:
+  if (MaterialResources.size() + NonMaterialResources.size() != eTotalResources) {
+    assert("All resources must be either material or non-material!" == nullptr);
+    return false;
+  }
+
+  for (Type eResource : MaterialResources) {
+    if (!isMaterial(eResource)) {
+      assert("isMaterisl() must return 'true' for material resource!" == nullptr);
+      return false;
+    }
+  }
+
+  for (Type eResource : NonMaterialResources) {
+    if (isMaterial(eResource)) {
+      assert("isMaterisl() must return 'false' for non-material resource!" == nullptr);
+      return false;
+    }
+  }
+
   return true;
 }
 
 Resource::Type Resource::typeFromString(std::string const& sType)
 {
   const static std::map<std::string, Type> table = {
-    std::make_pair("metal",    eMetal),
-    std::make_pair("ice",      eIce),
-    std::make_pair("silicate", eSilicate),
-    std::make_pair("labor",    eLabor)
+    std::make_pair("metals",    eMetal),
+    std::make_pair("ice",       eIce),
+    std::make_pair("silicates", eSilicate),
+    std::make_pair("labor",     eLabor)
   };
 
   auto I = table.find(sType);
@@ -40,9 +66,9 @@ std::string const& Resource::typeToString(Resource::Type eType)
 {
   const static std::string unknown("unknown");
   const static std::map<Type, std::string> table = {
-    std::make_pair(eMetal,    "metal"),
+    std::make_pair(eMetal,    "metals"),
     std::make_pair(eIce,      "ice"),
-    std::make_pair(eSilicate, "silicate"),
+    std::make_pair(eSilicate, "silicates"),
     std::make_pair(eLabor,    "labor")
   };
 

@@ -7,6 +7,8 @@
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientShipyard.h>
 #include <Autotests/ClientSDK/Procedures/FindModule.h>
+#include <Autotests/ClientSDK/Procedures/Resources.h>
+#include <Autotests/ClientSDK/Modules/ClientBlueprintStorage.h>
 
 #include "Scenarios.h"
 
@@ -23,23 +25,66 @@ protected:
       ,"  Modules:"
       ,"    Shipyard:"
       ,"      small-shipyard:"
-      ,"        productivity:   254"
-      ,"        container_name: shipyard_container"
+      ,"        productivity:   5"
+      ,"        container_name: shipyard_cargo"
       ,"        expenses:"
       ,"          labor: 100"
       ,"    ResourceContainer:"
-      ,"      small-container:"
+      ,"      huge-container:"
       ,"        volume: 100"
       ,"        expenses:"
-      ,"          labor: 10"
+      ,"          labor: 100"
+      ,"      small-container:"
+      ,"        volume: 5"
+      ,"        expenses:"
+      ,"          labor:     10"
+      ,"          metals:    10"
+      ,"          silicates: 5"
+      ,"    Engine:"
+      ,"      toy-engine:"
+      ,"        max_thrust: 500"
+      ,"        expenses:"
+      ,"          labor:     10"
+      ,"          metals:    5"
+      ,"          silicates: 5"
+      ,"          ice:       5"
+      ,"    AsteroidScanner:"
+      ,"      toy-scanner:"
+      ,"        max_scanning_distance:  1000"
+      ,"        scanning_time_ms:       100"
+      ,"        expenses:"
+      ,"          labor:     10"
+      ,"          metals:    2"
+      ,"          silicates: 5"
+      ,"    AsteroidMiner:"
+      ,"      toy-miner:"
+      ,"        max_distance:     200"
+      ,"        cycle_time_ms:    1000"
+      ,"        yield_per_cycle:  100"
+      ,"        container:        cargo"
+      ,"        expenses:"
+      ,"          labor: 100"
       ,"  Ships:"
       ,"    Station:"
       ,"      radius: 100"
       ,"      weight: 100000"
       ,"      modules:"
-      ,"        shipyard: Shipyard/small-shipyard"
+      ,"        shipyard:       Shipyard/small-shipyard"
+      ,"        shipyard_cargo: ResourceContainer/small-container"
+      ,"        cargo:          ResourceContainer/huge-container"
       ,"      expenses:"
-      ,"        labor: 1000"
+      ,"        labor: 10000"
+      ,"    MiningDrone:"
+      ,"      radius: 2"
+      ,"      weight: 120"
+      ,"      modules:"
+      ,"        engine: Engine/toy-engine"
+      ,"        cargo:  ResourceContainer/small-container"
+      ,"        miner:  AsteroidMiner/toy-miner"
+      ,"      expenses:"
+      ,"        labor:     100"
+      ,"        metals:    20"
+      ,"        silicates: 10"
       ,"Players:"
       ,"  Jack:"
       ,"    password: Black"
@@ -49,6 +94,10 @@ protected:
       ,"        velocity: { x: 0,   y: 0}"
       ,"        modules:"
       ,"          shipyard: {}"
+      ,"          cargo:"
+      ,"            metals:    100"
+      ,"            ice:       100"
+      ,"            silicates: 100"
     };
     std::stringstream ss;
     for (std::string const& line : data)
@@ -93,7 +142,76 @@ TEST_F(ShipyardTests, GetSpecification)
   client::ShipyardSpecification spec;
   ASSERT_TRUE(shipyard.getSpecification(spec));
 
-  EXPECT_DOUBLE_EQ(254, spec.m_nLaborPerSec);
+  EXPECT_DOUBLE_EQ(5, spec.m_nLaborPerSec);
+}
+
+TEST_F(ShipyardTests, BuildSuccessCase)
+{
+  const std::string sBlueprintName = "Ship/MiningDrone";
+  animateWorld();
+
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+
+  client::Ship station;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+
+  client::Shipyard shipyard;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+
+  // Moving to shipyard's cargo all requiered resources:
+  client::BlueprintsStorage storage;
+  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+
+  client::Blueprint blueprint;
+  ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+            storage.getBlueprint(client::BlueprintName(sBlueprintName), blueprint));
+
+  world::ResourcesArray expenses;
+  for (world::ResourceItem const& item : blueprint.m_expenses) {
+    expenses[item.m_eType] += item.m_nAmount;
+  }
+  ASSERT_TRUE(client::ResourcesManagment::shift(
+                station, "cargo", "shipyard_cargo", expenses));
+
+  // Start building and wait for confimation
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard.startBuilding("Ship/MiningDrone", "Drone #1"));
+
+  uint32_t    nSlotId = 0;
+  std::string sShipName;
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            shipyard.waitingWhileBuilding(&nSlotId, &sShipName));
+
+  // Connecting to ship, that has been built
+  client::Ship drone;
+  {
+    client::TunnelPtr pTunnel = m_pRootCommutator->openTunnel(nSlotId);
+    ASSERT_TRUE(pTunnel != nullptr);
+    drone.attachToChannel(pTunnel);
+  }
+
+  // Check that shipyard's container is empty now (all resources has been consumed)
+  client::ResourceContainer shipyardContainer;
+  client::FindResourceContainer(station, shipyardContainer, "shipyard_cargo");
+  world::ResourcesArray empty;
+  empty.fill(0);
+  ASSERT_TRUE(shipyardContainer.checkContent(empty));
+
+  // Check that new ship has the same position as a shipyard
+  freezeWorld();
+  geometry::Point stationPosition;
+  geometry::Vector stationVelocity;
+  ASSERT_TRUE(station.getPosition(stationPosition, stationVelocity));
+
+  geometry::Point  dronePosition;
+  geometry::Vector droneVelocity;
+  ASSERT_TRUE(drone.getPosition(dronePosition, droneVelocity));
+
+  ASSERT_TRUE(dronePosition.almostEqual(stationPosition, 0.1));
+  ASSERT_TRUE(droneVelocity.almostEqual(stationVelocity, 0.1));
 }
 
 } // namespace autotests

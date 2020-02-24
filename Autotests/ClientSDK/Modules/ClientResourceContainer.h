@@ -21,6 +21,7 @@ public:
     ePortIsNotOpened,
     ePortHasBeenClosed,
     eInvalidAccessKey,
+    eInvalidResource,
 
     eTransferGotInvalidReport,
     eTransferIncomplete,  // session closed, but according to reports, not all resources
@@ -32,9 +33,9 @@ public:
   };
 
   struct Content {
-    Content() :
-      m_nVolume(0), m_nUsedSpace(0.0), m_amount(world::Resource::eTotalResources)
-    {}
+    Content() : m_nVolume(0), m_nUsedSpace(0.0) {
+      m_amount.fill(0);
+    }
 
     double metals()    const { return m_amount[world::Resource::eMetal]; }
     double silicates() const { return m_amount[world::Resource::eSilicate]; }
@@ -51,9 +52,9 @@ public:
 
     Content& set(world::Resource::Type eType, double amount);
 
-    uint32_t            m_nVolume;
-    double              m_nUsedSpace;
-    std::vector<double> m_amount;
+    uint32_t              m_nVolume;
+    double                m_nUsedSpace;
+    world::ResourcesArray m_amount;
   };
 
   bool getContent(Content& content);
@@ -65,6 +66,7 @@ public:
   Status waitTransfer(world::Resource::Type type, double amount);
 
   bool checkContent(Content const& expected);
+  bool checkContent(world::ResourcesArray const& expected, double delta = 0.01);
 };
 
 using ResourceContainerPtr = std::shared_ptr<ResourceContainer>;

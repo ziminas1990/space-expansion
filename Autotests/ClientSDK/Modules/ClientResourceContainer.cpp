@@ -17,6 +17,8 @@ static ResourceContainer::Status convert(spex::IResourceContainer::Status status
       return ResourceContainer::ePortHasBeenClosed;
     case spex::IResourceContainer::INVALID_ACCESS_KEY:
       return ResourceContainer::eInvalidAccessKey;
+    case spex::IResourceContainer::INVALID_RESOURCE_TYPE:
+      return ResourceContainer::eInvalidResource;
     case spex::IResourceContainer::PORT_TOO_FAR:
       return ResourceContainer::eTransferTooFar;
     case spex::IResourceContainer::TRANSFER_IN_PROGRESS:
@@ -182,8 +184,21 @@ bool ResourceContainer::checkContent(ResourceContainer::Content const& expected)
   if (std::abs(content.m_nUsedSpace - expected.m_nUsedSpace) > 0.01)
     return false;
 
-  for (size_t i = 0; i < expected.m_amount.size(); ++i)
-    if (std::abs(expected.m_amount[i] - content.m_amount[i]) > 0.01)
+  for (world::Resource::Type eType : world::Resource::MaterialResources)
+    if (std::abs(expected.m_amount[eType] - content.m_amount[eType]) > 0.01)
+      return false;
+
+  return true;
+}
+
+bool ResourceContainer::checkContent(world::ResourcesArray const& expected, double delta)
+{
+  ResourceContainer::Content content;
+  if (!getContent(content))
+    return false;
+
+  for (size_t i = 0; i < expected.size(); ++i)
+    if (std::abs(expected[i] - content.m_amount[i]) > delta)
       return false;
 
   return true;

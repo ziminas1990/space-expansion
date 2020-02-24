@@ -29,7 +29,7 @@ public:
   // Return an amount of resources, that have been actually put
   double consume(world::Resource::Type type, double amount);
   bool   consumeExactly(world::Resource::Type type, double amount);
-  bool   consumeExactly(world::ResourcesArray const& resources);
+  bool   consumeExactly(world::ResourcesArray const& resources, double maxError = 0.01);
 
 
 private:

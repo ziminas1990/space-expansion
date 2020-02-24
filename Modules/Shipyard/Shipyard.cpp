@@ -26,7 +26,7 @@ void Shipyard::proceed(uint32_t nIntervalUs)
 {
   assert(isActive());
 
-  double nIntervalSec  = nIntervalUs / 1000000;
+  double nIntervalSec  = nIntervalUs / 1000000.0;
   double laborProduced = m_laborPerSecond * nIntervalSec;
 
   double progressInc = laborProduced / m_building.resources[world::Resource::eLabor];
@@ -37,7 +37,6 @@ void Shipyard::proceed(uint32_t nIntervalUs)
   world::ResourcesArray resourcesToConsume;
   for (size_t i = 0; i < world::Resource::eTotalResources; ++i) {
     resourcesToConsume[i] = m_building.resources[i] * progressInc;
-    m_building.resources[i] -= resourcesToConsume[i];
   }
 
   // If all consumed resources are in container, then consume them. Otherwise do not
@@ -76,11 +75,11 @@ void Shipyard::handleShipyardMessage(uint32_t nTunnelId,
                                      spex::IShipyard const& message)
 {
   switch(message.choice_case()) {
-    case spex::IShipyard::kSpecificationReq:
-      sendSpeification(nTunnelId);
-      return;
     case spex::IShipyard::kStartBuild:
       startBuildReq(nTunnelId, message.start_build());
+      return;
+    case spex::IShipyard::kSpecificationReq:
+      sendSpeification(nTunnelId);
       return;
     default:
       return;
@@ -106,6 +105,7 @@ void Shipyard::finishBuildingProcedure()
   pNewShip->moveTo(getPlatform()->getPosition());
   pNewShip->setVelocity(getPlatform()->getVelocity());
   uint32_t nSlotId = pOwner->getCommutator()->attachModule(pNewShip);
+  pNewShip->attachToChannel(pOwner->getCommutator());
   sendBuildComplete(std::move(m_building.sShipName), nSlotId);
 
   switchToIdleState();

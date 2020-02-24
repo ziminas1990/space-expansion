@@ -157,7 +157,6 @@ TEST_F(ResourceContainerTests, ClosePort)
   }
 }
 
-
 TEST_F(ResourceContainerTests, TransferSuccessCase)
 {
   animateWorld();
@@ -228,6 +227,37 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
   freigherContent.setIce(0);
   ASSERT_TRUE(freighterContainer.checkContent(freigherContent));
   ASSERT_TRUE(stationsContainer.checkContent(stationContent));
+}
+
+TEST_F(ResourceContainerTests, TransferNonMaterialResource)
+{
+  animateWorld();
+
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("merchant", "money")
+        .expectSuccess());
+
+  client::Ship freighter;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
+
+  client::Ship station;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
+
+  client::ResourceContainer stationsContainer;
+  ASSERT_TRUE(client::FindResourceContainer(station, stationsContainer, "cargo"));
+
+  client::ResourceContainer freighterContainer;
+  ASSERT_TRUE(client::FindResourceContainer(freighter, freighterContainer, "cargo"));
+
+  uint32_t nAccessKey = 43728;
+  uint32_t nPort      = 0;
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            stationsContainer.openPort(nAccessKey, nPort));
+
+  ASSERT_EQ(client::ResourceContainer::eInvalidResource,
+            freighterContainer.transferRequest(
+              nPort, nAccessKey, world::Resource::eLabor, 100));
 }
 
 } // namespace autotests

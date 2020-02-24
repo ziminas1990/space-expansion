@@ -143,16 +143,21 @@ bool ResourceContainer::consumeExactly(world::Resource::Type type, double amount
   }
 }
 
-bool ResourceContainer::consumeExactly(world::ResourcesArray const& resources)
+bool ResourceContainer::consumeExactly(world::ResourcesArray const& resources,
+                                       double maxError)
 {
   std::lock_guard<std::mutex> guard(m_accessMutex);
-  for (size_t i = 0; i < world::Resource::eTotalResources; ++i) {
-    if (m_amount[i] < resources[i])
+  for (world::Resource::Type eResource : world::Resource::MaterialResources) {
+    if (m_amount[eResource] + maxError < resources[eResource])
       return false;
   }
-  for (size_t i = 0; i < world::Resource::eTotalResources; ++i) {
-    assert(m_amount[i] >= resources[i]);
-    m_amount[i] -= resources[i];
+  for (world::Resource::Type eResource : world::Resource::MaterialResources) {
+    assert(m_amount[eResource] + maxError >= resources[eResource]);
+    m_amount[eResource] -= resources[eResource];
+    if (m_amount[eResource] < 0) {
+      assert(m_amount[eResource] > -maxError);
+      m_amount[eResource] = 0;
+    }
   }
   recalculateUsedSpace();
   return true;
@@ -315,6 +320,12 @@ void ResourceContainer::transfer(
     return;
   }
 
+  world::Resource::Type eType = utils::convert(req.resource().type());
+  if (!world::Resource::isMaterial(eType)) {
+    sendTransferStatus(nTunnelId, spex::IResourceContainer::INVALID_RESOURCE_TYPE);
+    return;
+  }
+
   {
     std::lock_guard<std::mutex> guard(m_portsMutex);
 
@@ -335,8 +346,8 @@ void ResourceContainer::transfer(
     }
 
     m_activeTransfer =
-        Transfer(nTunnelId, req.port_id(), port.m_nSecretKey,
-                 utils::convert(req.resource().type()), req.resource().amount());
+        Transfer(nTunnelId, req.port_id(), port.m_nSecretKey, eType,
+                 req.resource().amount());
   }
 
   sendTransferStatus(nTunnelId, spex::IResourceContainer::SUCCESS);

@@ -194,16 +194,17 @@ message IAsteroidScanner {
 message IResourceContainer {
 
   enum Status {
-    SUCCESS              = 0;
-    INTERNAL_ERROR       = 1;
-    PORT_ALREADY_OPEN    = 2;
-    PORT_DOESNT_EXIST    = 3;
-    PORT_IS_NOT_OPENED   = 4;
-    PORT_HAS_BEEN_CLOSED = 5;
-    INVALID_ACCESS_KEY   = 6;
-    PORT_TOO_FAR         = 7;
-    TRANSFER_IN_PROGRESS = 8;
-    NOT_ENOUGH_RESOURCES = 9;
+    SUCCESS               = 0;
+    INTERNAL_ERROR        = 1;
+    PORT_ALREADY_OPEN     = 2;
+    PORT_DOESNT_EXIST     = 3;
+    PORT_IS_NOT_OPENED    = 4;
+    PORT_HAS_BEEN_CLOSED  = 5;
+    INVALID_ACCESS_KEY    = 6;
+    INVALID_RESOURCE_TYPE = 7;
+    PORT_TOO_FAR          = 8;
+    TRANSFER_IN_PROGRESS  = 9;
+    NOT_ENOUGH_RESOURCES  = 10;
   }
 
   message OpenPort {
@@ -304,7 +305,8 @@ message IShipyard {
     INTERNAL_ERROR      = 1;
 
     BUILD_STARTED       = 2;
-    BUILD_FREEZED       = 3;
+    BUILD_CANCELED      = 3;
+    BUILD_FREEZED       = 4;
     BUILD_FAILED        = 5;
     BLUEPRINT_NOT_FOUND = 6;
 

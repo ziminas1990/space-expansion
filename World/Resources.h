@@ -24,10 +24,15 @@ struct Resource {
     eUnknown
   };
 
+  static bool isMaterial(Type eType) { return density[eType] > 0.0; }
+
   static Type               typeFromString(std::string const& sType);
   static std::string const& typeToString(Type eType);
 
-  static std::vector<double> density;
+  static std::array<double, eTotalResources> density;
+  static const std::array<Type, 3> MaterialResources;
+  static const std::array<Type, 1> NonMaterialResources;
+    // Only material resources, that can be put to container
 };
 
 struct ResourceItem {
