@@ -34,7 +34,8 @@ bool ResourcesManagment::shift(Ship& ship,
         return false;
     }
   }
-  return true;
+
+  return destination.closePort() == ResourceContainer::eStatusOk;
 }
 
 }}  // namespace autotests::client

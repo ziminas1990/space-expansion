@@ -9,6 +9,7 @@
 #include <Autotests/ClientSDK/Procedures/FindModule.h>
 #include <Autotests/ClientSDK/Procedures/Resources.h>
 #include <Autotests/ClientSDK/Modules/ClientBlueprintStorage.h>
+#include <Utils/Stopwatch.h>
 
 #include "Scenarios.h"
 
@@ -145,6 +146,26 @@ TEST_F(ShipyardTests, GetSpecification)
   EXPECT_DOUBLE_EQ(5, spec.m_nLaborPerSec);
 }
 
+TEST_F(ShipyardTests, BlueprintNotFound)
+{
+  const std::string sBlueprintName = "Ship/MiningDrone1111";
+  animateWorld();
+
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+
+  client::Ship station;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+
+  client::Shipyard shipyard;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+
+  ASSERT_EQ(client::Shipyard::eBlueprintNotFound,
+            shipyard.startBuilding(sBlueprintName, "Drone #1"));
+}
+
 TEST_F(ShipyardTests, BuildSuccessCase)
 {
   const std::string sBlueprintName = "Ship/MiningDrone";
@@ -178,7 +199,7 @@ TEST_F(ShipyardTests, BuildSuccessCase)
 
   // Start building and wait for confimation
   ASSERT_EQ(client::Shipyard::eBuildStarted,
-            shipyard.startBuilding("Ship/MiningDrone", "Drone #1"));
+            shipyard.startBuilding(sBlueprintName, "Drone #1"));
 
   uint32_t    nSlotId = 0;
   std::string sShipName;
@@ -212,6 +233,66 @@ TEST_F(ShipyardTests, BuildSuccessCase)
 
   ASSERT_TRUE(dronePosition.almostEqual(stationPosition, 0.1));
   ASSERT_TRUE(droneVelocity.almostEqual(stationVelocity, 0.1));
+}
+
+TEST_F(ShipyardTests, BuildFreezed)
+{
+  const std::string sBlueprintName = "Ship/MiningDrone";
+  animateWorld();
+
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+
+  client::Ship station;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+
+  client::Shipyard shipyard;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+
+  // Moving to shipyard's cargo 90% of total requiered resources (it will be not enough
+  // to finish building procedure)
+  client::BlueprintsStorage storage;
+  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+
+  client::Blueprint blueprint;
+  ASSERT_EQ(client::BlueprintsStorage::eSuccess,
+            storage.getBlueprint(client::BlueprintName(sBlueprintName), blueprint));
+
+  world::ResourcesArray expenses;
+  for (world::ResourceItem const& item : blueprint.m_expenses) {
+    expenses[item.m_eType] += item.m_nAmount * 0.9; // because 90%
+  }
+  ASSERT_TRUE(client::ResourcesManagment::shift(
+                station, "cargo", "shipyard_cargo", expenses));
+
+  // Start building and wait for eBuildFreezed status, cause run out of resources
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard.startBuilding(sBlueprintName, "Drone #1"));
+
+  uint32_t    nSlotId = 0;
+  std::string sShipName;
+  ASSERT_EQ(client::Shipyard::eBuildFreezed,
+            shipyard.waitingWhileBuilding(&nSlotId, &sShipName));
+
+  // Put resources, that are requiered to complete build (10% of total)
+  expenses.fill(0);
+  for (world::ResourceItem const& item : blueprint.m_expenses) {
+    expenses[item.m_eType] += item.m_nAmount * 0.1;
+  }
+  ASSERT_TRUE(client::ResourcesManagment::shift(
+                station, "cargo", "shipyard_cargo", expenses));
+
+  // Check that build completed
+  client::Shipyard::Status eStatus = client::Shipyard::eSuccess;
+  utils::Stopwatch watchDog;
+  do {
+    eStatus = shipyard.waitingWhileBuilding(&nSlotId, &sShipName);
+    ASSERT_LT(watchDog.testMs(), 500);  // To prevent infinite loop
+  } while (eStatus == client::Shipyard::eBuildFreezed);
+  ASSERT_EQ(client::Shipyard::eSuccess, eStatus);
+
 }
 
 } // namespace autotests
