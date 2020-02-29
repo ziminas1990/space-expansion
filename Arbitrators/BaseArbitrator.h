@@ -1,0 +1,69 @@
+#pragma once
+
+#include <string>
+#include <stdint.h>
+#include <vector>
+#include <atomic>
+
+#include <Conveyor/IAbstractLogic.h>
+#include <World/PlayersStorage.h>
+
+namespace arbitrator {
+
+struct Leaderboard {
+  struct Record {
+    Record(std::string sLogin, uint32_t nScore)
+      :  m_sLogin(std::move(sLogin)), m_nScore(nScore)
+    {}
+
+    bool operator<(Record const& other) const { return m_nScore < other.m_nScore; }
+
+    std::string m_sLogin;
+    uint32_t    m_nScore;
+  };
+
+  void sort();
+
+  std::vector<Record> m_table;
+};
+
+class BaseArbitrator : public conveyor::IAbstractLogic
+{
+  enum Stage {
+    eScoring = 0,
+    eCheckIfGameOver,
+    eTotalStages
+  };
+
+public:
+  BaseArbitrator(world::PlayerStoragePtr pPlayersStorage,
+                 double nTargetScore,
+                 size_t nCooldownTime = 200 * 1000);
+
+  void addPlayer(std::string sLogin, double score = 0) {
+    m_board.m_table.emplace_back(std::move(sLogin), score);
+  }
+
+  // overrides from IAbstractLogic interface
+  uint16_t getStagesCount() override { return eTotalStages; }
+  bool     prephareStage(uint16_t nStageId) override;
+  void     proceedStage(uint16_t nStageId, uint32_t nIntervalUs) override;
+  size_t   getCooldownTimeUs() const override { return m_nCooldownTime; }
+
+protected:
+  virtual uint32_t score(world::PlayerPtr pPlayer) = 0;
+  // This function should calculate some score for the player with the specified 'sLogin'.
+  // When the player's score reaches 'm_nTargetScore', the game will be finished.
+  // NOT: This function will be called concurrently, so it must be thread safe.
+
+private:
+  Leaderboard m_board;
+
+  world::PlayerStoragePtr m_pPlayersStorage;
+  double                  m_nTargetScore;
+  size_t                  m_nCooldownTime;
+
+  std::atomic<size_t> m_nNextId;
+};
+
+} // namespace arbitrator
