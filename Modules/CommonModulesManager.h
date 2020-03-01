@@ -15,7 +15,7 @@ namespace modules
 enum class Cooldown {
   eDefault           = 10100,
   eShip              = 10200,
-  eEngine            = 103000,
+  eEngine            = 50300,
   eAsteroidMiner     = 254000,
   eAsteroidScanner   = 305000,
   eCelestialScanner  = 506000,
