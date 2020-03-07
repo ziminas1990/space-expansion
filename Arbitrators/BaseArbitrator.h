@@ -27,6 +27,10 @@ struct Leaderboard {
   std::vector<Record> m_table;
 };
 
+// Implements base for all arbitrators.
+// Each arbitrator (subclass) must implement:
+// 1. `score()` - function, that calculates and returns score for some player
+// 2. `loadConfiguation()` - reading arbitrator configuration
 class BaseArbitrator : public conveyor::IAbstractLogic
 {
   enum Stage {
@@ -37,12 +41,16 @@ class BaseArbitrator : public conveyor::IAbstractLogic
 
 public:
   BaseArbitrator(world::PlayerStoragePtr pPlayersStorage,
-                 double nTargetScore,
                  size_t nCooldownTime = 200 * 1000);
+
+  virtual bool loadConfiguation(YAML::Node const& data) = 0;
 
   void addPlayer(std::string sLogin, double score = 0) {
     m_board.m_table.emplace_back(std::move(sLogin), score);
   }
+
+  uint32_t getTargetScore() const { return m_nTargetScore; }
+  void     changeTargetScore(uint32_t nTargetScore) { m_nTargetScore = nTargetScore; }
 
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() override { return eTotalStages; }
@@ -56,13 +64,13 @@ protected:
   // When the player's score reaches 'm_nTargetScore', the game will be finished.
   // NOTE: This function will be called concurrently, so it must be thread safe.
 
-  virtual void onGameOver();
+  void onGameOver();
 
 private:
   Leaderboard m_board;
 
   world::PlayerStoragePtr m_pPlayersStorage;
-  double                  m_nTargetScore;
+  uint32_t                m_nTargetScore;
   size_t                  m_nCooldownTime;
 
   std::atomic<size_t> m_nNextId;

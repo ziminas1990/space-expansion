@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <yaml-cpp/yaml.h>
+#include <Utils/YamlDumper.h>
 
 #include <Utils/FloatComparator.h>
 
@@ -17,7 +18,7 @@ std::array<std::string, Resource::eTotalResources> Resource::Names = {
   "metals", "silicates", "ice", "labor"
 };
 
-std::array<double, Resource::eTotalResources> Resource::density = {0};
+std::array<double, Resource::eTotalResources> Resource::Density = {0};
 const std::array<Resource::Type, 3> Resource::MaterialResources = {
   Resource::eMetal, Resource::eSilicate, Resource::eIce
 };
@@ -27,10 +28,10 @@ const std::array<Resource::Type, 1> Resource::NonMaterialResources = {
 
 bool Resource::initialize()
 {
-  density[eMetal]    = 4500;  // Ti
-  density[eIce]      = 916;
-  density[eSilicate] = 2330;  // Si
-  density[eLabor]    = 0;     // It is non material resource
+  Density[eMetal]    = 4500;  // Ti
+  Density[eIce]      = 916;
+  Density[eSilicate] = 2330;  // Si
+  Density[eLabor]    = 0;     // It is non material resource
 
   // Run-time checks:
   assert(AllTypes.size() == eTotalResources);
@@ -112,11 +113,29 @@ bool ResourcesArray::load(YAML::Node const& node)
   return true;
 }
 
+void ResourcesArray::dump(YAML::Node& out) const
+{
+  utils::YamlDumper dumper(out);
+  for (Resource::Type eType : Resource::AllTypes) {
+    if (utils::AlmostEqual(at(eType), 0))
+      continue;
+    dumper.add(Resource::typeToString(eType).c_str(), at(eType));
+  }
+}
+
+ResourcesArray& ResourcesArray::operator+=(ResourcesArray const& other)
+{
+  for (Resource::Type eType : Resource::AllTypes) {
+    at(eType) += other.at(eType);
+  }
+  return *this;
+}
+
 double ResourcesArray::calculateTotalVolume() const
 {
   double volume = 0;
   for (Resource::Type eResource : Resource::MaterialResources) {
-    volume += at(eResource) /  world::Resource::density[eResource];
+    volume += at(eResource) /  world::Resource::Density[eResource];
   }
   return volume;
 }

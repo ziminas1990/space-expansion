@@ -19,10 +19,10 @@ void Leaderboard::sort()
   }
 }
 
-BaseArbitrator::BaseArbitrator(world::PlayerStoragePtr pPlayersStorage,
-                               double nTargetScore, size_t nCooldownTime)
+BaseArbitrator::BaseArbitrator(
+    world::PlayerStoragePtr pPlayersStorage, size_t nCooldownTime)
   : m_pPlayersStorage(pPlayersStorage),
-    m_nTargetScore(nTargetScore),
+    m_nTargetScore(1000),
     m_nCooldownTime(nCooldownTime)
 {
 }

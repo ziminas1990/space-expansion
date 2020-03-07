@@ -2,6 +2,7 @@
 #include <yaml-cpp/yaml.h>
 #include <Geometry/Point.h>
 #include <Geometry/Vector.h>
+#include <World/Resources.h>
 
 namespace utils {
 
@@ -45,7 +46,15 @@ YamlDumper& YamlDumper::add(char const* pName, geometry::Vector const& vector)
   return *this;
 }
 
-YamlDumper &YamlDumper::add(const char *pName, YAML::Node &&node)
+YamlDumper &YamlDumper::add(char const* pName, world::ResourcesArray const& resources)
+{
+  YAML::Node node;
+  resources.dump(node);
+  m_data[pName] = node;
+  return *this;
+}
+
+YamlDumper &YamlDumper::add(char const* pName, YAML::Node &&node)
 {
   m_data[pName] = std::move(node);
   return *this;

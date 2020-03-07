@@ -28,6 +28,24 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
   return static_cast<uint32_t>(m_Slots.size()) - 1;
 }
 
+BaseModulePtr Commutator::findModuleByName(std::string const& sName) const
+{
+  for (BaseModulePtr pModule : m_Slots) {
+    if (pModule->getModuleName() == sName)
+      return pModule;
+  }
+  return BaseModulePtr();
+}
+
+BaseModulePtr Commutator::findModuleByType(std::string const& sType) const
+{
+  for (BaseModulePtr pModule : m_Slots) {
+    if (pModule->getModuleType() == sType)
+      return pModule;
+  }
+  return BaseModulePtr();
+}
+
 void Commutator::detachFromModules()
 {
   for (Tunnel& tunnel : m_Tunnels) {

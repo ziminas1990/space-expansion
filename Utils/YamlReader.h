@@ -4,11 +4,14 @@
 #include <string>
 #include "YamlForwardDeclarations.h"
 
-namespace geometry
-{
+namespace geometry {
 struct Point;
 class  Vector;
 } // namespace geometry
+
+namespace world {
+class ResourcesArray;
+}
 
 namespace utils {
 
@@ -32,6 +35,7 @@ public:
   // Complex types for occasions
   YamlReader& read(char const* pName, geometry::Point& point);
   YamlReader& read(char const* pName, geometry::Vector& vector);
+  YamlReader& read(char const* pName, world::ResourcesArray& resources);
 
 private:
   YAML::Node const& source;

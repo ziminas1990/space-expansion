@@ -19,8 +19,15 @@ class Shipyard :
     public utils::GlobalContainer<Shipyard>
 {
 public:
+  static std::string const& TypeName() {
+    const static std::string sTypeName = "Shipyard";
+    return sTypeName;
+  }
+
   Shipyard(std::string&& sName, world::PlayerWeakPtr pOwner,
            double laborPerSecond, std::string sContainerName);
+
+  std::string const& getContainerName() const { return m_sContainerName; }
 
   // override from BaseModule
   bool loadState(YAML::Node const& data) override;

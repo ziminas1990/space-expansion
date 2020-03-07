@@ -9,9 +9,11 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Shipyard);
 
 namespace modules {
 
+
+
 Shipyard::Shipyard(std::string &&sName, world::PlayerWeakPtr pOwner,
                    double laborPerSecond, std::string sContainerName)
-  : BaseModule("Shipyard", std::move(sName), std::move(pOwner)),
+  : BaseModule(TypeName(), std::move(sName), std::move(pOwner)),
     m_laborPerSecond(laborPerSecond), m_sContainerName(std::move(sContainerName))
 {
   utils::GlobalContainer<Shipyard>::registerSelf(this);

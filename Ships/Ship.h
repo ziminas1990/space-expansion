@@ -25,12 +25,15 @@ public:
 
   bool installModule(modules::BaseModulePtr pModule);
 
+  modules::CommutatorPtr getCommutator() const { return m_pCommutator; }
+
   // overrides from IProtobufTerminal interface
   void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
   void attachToChannel(network::IProtobufChannelPtr pChannel) override;
   void detachFromChannel() override;
 
   modules::BaseModulePtr getModuleByName(std::string const& sName) const;
+    // Return module with the specified 'sName'. Has O(log(N)) complicity.
 
 protected:
   void handleShipMessage(uint32_t nSessionId, spex::IShip const& message) override;

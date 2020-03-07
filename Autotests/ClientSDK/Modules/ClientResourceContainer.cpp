@@ -50,9 +50,9 @@ ResourceContainer::Content& ResourceContainer::Content::set(
     world::Resource::Type eType, double amount)
 {
   assert(eType < m_amount.size());
-  m_nUsedSpace    -= m_amount[eType] / world::Resource::density[eType];
+  m_nUsedSpace    -= m_amount[eType] / world::Resource::Density[eType];
   m_amount[eType]  = amount;
-  m_nUsedSpace    += amount / world::Resource::density[eType];
+  m_nUsedSpace    += amount / world::Resource::Density[eType];
   return *this;
 }
 

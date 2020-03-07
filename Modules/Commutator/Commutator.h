@@ -24,6 +24,16 @@ public:
     // Attach module to commutator. Return slotId - number of slot, to which the module
     // has been attached
 
+  BaseModulePtr findModuleByName(std::string const& sName) const;
+    // Return module with the specified 'sName'. If module doesn't exist, return null.
+    // Note that call has O(n) complicity
+
+  BaseModulePtr findModuleByType(std::string const& sType) const;
+    // Return module with the specified 'sType'. If module doesn't exist, return null.
+    // Note that call has O(n) complicity
+
+  std::vector<BaseModulePtr> getAllModules() const { return m_Slots; }
+
   void detachFromModules();
 
   // Check if all slotes are still active; if some slot is NOT active anymore,
