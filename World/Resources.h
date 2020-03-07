@@ -29,7 +29,10 @@ struct Resource {
   static Type               typeFromString(std::string const& sType);
   static std::string const& typeToString(Type eType);
 
-  static std::array<double, eTotalResources> density;
+  static std::array<Type, eTotalResources>        AllTypes;
+  static std::array<std::string, eTotalResources> Names;
+  static std::array<double, eTotalResources>      density;
+
   static const std::array<Type, 3> MaterialResources;
   static const std::array<Type, 1> NonMaterialResources;
     // Only material resources, that can be put to container
@@ -64,7 +67,7 @@ struct ResourceItem {
 
   bool isValid() const { return m_eType != Resource::eUnknown; }
 
-  bool load(const std::pair<YAML::Node, YAML::Node> &data);
+  bool load(std::pair<YAML::Node, YAML::Node> const& data);
   void dump(YAML::Node &out) const;
 
   Resource::Type m_eType;
@@ -73,7 +76,13 @@ struct ResourceItem {
 
 using Resources      = std::vector<ResourceItem>;
 
-using ResourcesArray = std::array<double, Resource::eTotalResources>;
-  // Resource type is index, amount is value
+// Resource type is index, amount is value
+class ResourcesArray : public std::array<double, Resource::eTotalResources>
+{
+public:
+  bool load(YAML::Node const& node);
+
+  double calculateTotalVolume() const;
+};
 
 } // namespace world

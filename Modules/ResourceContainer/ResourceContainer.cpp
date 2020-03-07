@@ -32,25 +32,8 @@ ResourceContainer::ResourceContainer(
 
 bool ResourceContainer::loadState(YAML::Node const& data)
 {
-  static std::vector<std::pair<std::string, world::Resource::Type> > resources = {
-    std::make_pair("metals",    world::Resource::eMetal),
-    std::make_pair("silicates", world::Resource::eSilicate),
-    std::make_pair("ice",       world::Resource::eIce),
-  };
-
-  if (!BaseModule::loadState(data)) {
-    return false;
-  }
-
-  m_amount.fill(0);
-  m_nUsedSpace = 0;
-
-  utils::YamlReader reader(data);
-  for (auto resource : resources) {
-    reader.read(resource.first.c_str(), m_amount[resource.second]);
-    m_nUsedSpace += m_amount[resource.second] / world::Resource::density[resource.second];
-  }
-
+  m_amount.load(data);
+  m_nUsedSpace = m_amount.calculateTotalVolume();
   return m_nUsedSpace <= m_nVolume;
 }
 
