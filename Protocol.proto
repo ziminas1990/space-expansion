@@ -378,13 +378,17 @@ message ICommutator {
 
 message IGame {
 
+  message Score {
+    string player = 1;
+    uint32 score  = 2;
+  }
+
   message GameOver {
-    string winner_name = 1;
+    repeated Score leaders = 1;
   }
 
   oneof choice {
-    
-    GameOver game_over_notify = 21;
+    GameOver game_over_report = 21;
   }
 }
 

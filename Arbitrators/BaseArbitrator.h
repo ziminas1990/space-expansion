@@ -52,9 +52,11 @@ public:
 
 protected:
   virtual uint32_t score(world::PlayerPtr pPlayer) = 0;
-  // This function should calculate some score for the player with the specified 'sLogin'.
+  // This function should calculate some score for the specified 'pPlayer'.
   // When the player's score reaches 'm_nTargetScore', the game will be finished.
-  // NOT: This function will be called concurrently, so it must be thread safe.
+  // NOTE: This function will be called concurrently, so it must be thread safe.
+
+  virtual void onGameOver();
 
 private:
   Leaderboard m_board;

@@ -30,6 +30,10 @@ public:
   // commutator will send an indication
   void checkSlotsAndTunnels();
 
+  // Send the specified 'message' to all channels, that are opened to *this* commutator.
+  // Channels, that were opened to commutator's modules will NOT be used to send message.
+  void broadcast(spex::Message const& message);
+
   // overrides from network::IPrutubufTerminal
   bool openSession(uint32_t nSessionId) override;
   void onSessionClosed(uint32_t nSessionId) override;

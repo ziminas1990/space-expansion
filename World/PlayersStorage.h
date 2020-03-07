@@ -20,10 +20,12 @@ class PlayersStorage
 public:
   bool loadState(YAML::Node const& data, blueprints::BlueprintsLibrary const& blueprints);
 
+  std::vector<PlayerPtr> const& getAllPlayers() const { return m_players; }
   PlayerPtr getPlayer(std::string const& sLogin) const;
 
 private:
-  std::map<std::string, PlayerPtr> m_players;
+  std::vector<PlayerPtr> m_players;
+  std::map<std::string, size_t> m_loginToPlayer;
 
   mutable utils::Mutex m_Mutex;
 };
