@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 #include <atomic>
+#include <memory>
 
 #include <Conveyor/IAbstractLogic.h>
 #include <World/PlayersStorage.h>
@@ -43,7 +44,7 @@ public:
   BaseArbitrator(world::PlayerStoragePtr pPlayersStorage,
                  size_t nCooldownTime = 200 * 1000);
 
-  virtual bool loadConfiguation(YAML::Node const& data) = 0;
+  virtual bool loadConfiguation(YAML::Node const& data);
 
   void addPlayer(std::string sLogin, double score = 0) {
     m_board.m_table.emplace_back(std::move(sLogin), score);
@@ -75,5 +76,7 @@ private:
 
   std::atomic<size_t> m_nNextId;
 };
+
+using BaseArbitratorPtr = std::shared_ptr<BaseArbitrator>;
 
 } // namespace arbitrator

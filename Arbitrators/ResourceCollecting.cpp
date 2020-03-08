@@ -16,7 +16,8 @@ ResourceCollecting::ResourceCollecting(world::PlayerStoragePtr pPlayersStorage)
 bool ResourceCollecting::loadConfiguation(YAML::Node const& data)
 {
   utils::YamlReader reader(data);
-  return reader.read("Resources", m_target);
+  return BaseArbitrator::loadConfiguation(data)
+      && reader.read("Resources", m_target);
 }
 
 uint32_t ResourceCollecting::score(world::PlayerPtr pPlayer)

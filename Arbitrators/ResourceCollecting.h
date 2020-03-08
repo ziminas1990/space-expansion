@@ -7,6 +7,11 @@ namespace arbitrator {
 class ResourceCollecting : public BaseArbitrator
 {
 public:
+  static std::string const& Name() {
+    static const std::string sName = "Collecting Resources";
+    return sName;
+  }
+
   ResourceCollecting(world::PlayerStoragePtr pPlayersStorage);
 
   bool loadConfiguation(YAML::Node const& data) override;

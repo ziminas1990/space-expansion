@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include <Utils/YamlReader.h>
+
 namespace arbitrator {
 
 void Leaderboard::sort()
@@ -25,6 +27,12 @@ BaseArbitrator::BaseArbitrator(
     m_nTargetScore(1000),
     m_nCooldownTime(nCooldownTime)
 {
+}
+
+bool BaseArbitrator::loadConfiguation(YAML::Node const& data)
+{
+  utils::YamlReader reader(data);
+  return reader.read("target_score", m_nTargetScore);
 }
 
 bool BaseArbitrator::prephareStage(uint16_t nStageId)

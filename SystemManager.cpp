@@ -6,6 +6,7 @@
 #include "Ships/ShipsManager.h"
 #include "Conveyor/Proceeders.h"
 #include "World/Resources.h"
+#include <Arbitrators/ArbitratorsFactory.h>
 
 SystemManager::~SystemManager()
 {
@@ -57,6 +58,15 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
   if (worldState.IsDefined() && !m_world.loadState(worldState)) {
     assert(false);
     return false;
+  }
+
+  YAML::Node const& arbitratorCfg = data["Arbitrator"];
+  if (arbitratorCfg.IsDefined()) {
+    m_pArbitrator = arbitrator::Factory::make(arbitratorCfg, m_pPlayersStorage);
+    if (!m_pArbitrator) {
+      assert("Failed to load arbitrator" == nullptr);
+      return false;
+    }
   }
   return true;
 }
@@ -135,6 +145,10 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pAsteroidMinerManager);
   m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
   m_pConveyor->addLogicToChain(m_pShipyardManager);
+
+  if (m_pArbitrator) {
+    m_pConveyor->addLogicToChain(m_pArbitrator);
+  }
 
   return true;
 }
