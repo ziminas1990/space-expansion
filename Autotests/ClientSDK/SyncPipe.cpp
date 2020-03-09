@@ -134,8 +134,18 @@ bool SyncPipe::wait(spex::IShipyard &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool SyncPipe::wait(spex::IGame& out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kGame, message, nTimeoutMs))
+    return false;
+  out = std::move(message.game());
+  return true;
+}
+
 void SyncPipe::onMessageReceived(spex::Message &&message)
 {
+  std::cout << this << ":\n" << message.DebugString() << std::endl;
   switch(message.choice_case()) {
     case spex::Message::kEncapsulated: {
       spex::Message encapsulated = message.encapsulated();

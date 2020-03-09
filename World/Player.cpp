@@ -59,7 +59,7 @@ PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary bluepri
       return PlayerPtr();
 
     if (!pShip->loadState(kv.second)) {
-      assert(false);
+      assert("Failed to load ship" == nullptr);
       return PlayerPtr();
     }
     pShip->attachToChannel(pPlayer->m_pEntryPoint);

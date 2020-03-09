@@ -4,11 +4,15 @@
 #include <string>
 #include <Utils/YamlForwardDeclarations.h>
 
-namespace geometry
-{
+namespace geometry {
 struct Point;
 class  Vector;
 } // namespace geometry
+
+namespace world {
+class ResourcesArray;
+} // namespace world
+
 
 namespace utils {
 
@@ -29,6 +33,7 @@ public:
   // Complex types:
   YamlDumper& add(char const* pName, geometry::Point const& point);
   YamlDumper& add(char const* pName, geometry::Vector const& vector);
+  YamlDumper& add(char const* pName, world::ResourcesArray const& resources);
   YamlDumper& add(char const* pName, YAML::Node&& node);
 private:
   YAML::Node& m_data;

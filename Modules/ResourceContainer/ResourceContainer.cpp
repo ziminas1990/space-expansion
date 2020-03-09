@@ -32,25 +32,8 @@ ResourceContainer::ResourceContainer(
 
 bool ResourceContainer::loadState(YAML::Node const& data)
 {
-  static std::vector<std::pair<std::string, world::Resource::Type> > resources = {
-    std::make_pair("metals",    world::Resource::eMetal),
-    std::make_pair("silicates", world::Resource::eSilicate),
-    std::make_pair("ice",       world::Resource::eIce),
-  };
-
-  if (!BaseModule::loadState(data)) {
-    return false;
-  }
-
-  m_amount.fill(0);
-  m_nUsedSpace = 0;
-
-  utils::YamlReader reader(data);
-  for (auto resource : resources) {
-    reader.read(resource.first.c_str(), m_amount[resource.second]);
-    m_nUsedSpace += m_amount[resource.second] / world::Resource::density[resource.second];
-  }
-
+  m_amount.load(data);
+  m_nUsedSpace = m_amount.calculateTotalVolume();
   return m_nUsedSpace <= m_nVolume;
 }
 
@@ -112,13 +95,13 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
 
 double ResourceContainer::putResource(world::Resource::Type type, double amount)
 {
-  double transfferedVolume = amount / world::Resource::density[type];
+  double transfferedVolume = amount / world::Resource::Density[type];
 
   std::lock_guard<std::mutex> guard(m_accessMutex);
   double freeVolume = m_nVolume - m_nUsedSpace;
   if (freeVolume < transfferedVolume) {
     transfferedVolume = freeVolume;
-    amount            = freeVolume * world::Resource::density[type];
+    amount            = freeVolume * world::Resource::Density[type];
   }
 
   m_amount[type] += amount;
@@ -357,7 +340,7 @@ void ResourceContainer::transfer(
 double ResourceContainer::consumeResource(world::Resource::Type type, double amount)
 {
   amount = std::min(m_amount[type], amount);
-  m_nUsedSpace   -= amount / world::Resource::density[type];
+  m_nUsedSpace   -= amount / world::Resource::Density[type];
   m_amount[type] -= amount;
 
   if (m_nUsedSpace < 0)
@@ -371,7 +354,7 @@ void ResourceContainer::recalculateUsedSpace()
 {
   double usedSpace = 0;
   for (size_t type = 0; type < world::Resource::eLabor; ++type) {
-    usedSpace += m_amount[type] / world::Resource::density[type];
+    usedSpace += m_amount[type] / world::Resource::Density[type];
   }
   assert(usedSpace <= m_nVolume);
   m_nUsedSpace = usedSpace;

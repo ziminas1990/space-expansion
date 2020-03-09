@@ -24,11 +24,25 @@ public:
     // Attach module to commutator. Return slotId - number of slot, to which the module
     // has been attached
 
+  BaseModulePtr findModuleByName(std::string const& sName) const;
+    // Return module with the specified 'sName'. If module doesn't exist, return null.
+    // Note that call has O(n) complicity
+
+  BaseModulePtr findModuleByType(std::string const& sType) const;
+    // Return module with the specified 'sType'. If module doesn't exist, return null.
+    // Note that call has O(n) complicity
+
+  std::vector<BaseModulePtr> getAllModules() const { return m_Slots; }
+
   void detachFromModules();
 
   // Check if all slotes are still active; if some slot is NOT active anymore,
   // commutator will send an indication
   void checkSlotsAndTunnels();
+
+  // Send the specified 'message' to all channels, that are opened to *this* commutator.
+  // Channels, that were opened to commutator's modules will NOT be used to send message.
+  void broadcast(spex::Message const& message);
 
   // overrides from network::IPrutubufTerminal
   bool openSession(uint32_t nSessionId) override;

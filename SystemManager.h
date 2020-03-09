@@ -22,7 +22,8 @@
 #include "Modules/ResourceContainer/ResourceContainerManager.h"
 #include "Modules/AsteroidMiner/AsteroidMinerManager.h"
 #include "Modules/BlueprintsStorage/BlueprintsStorageManager.h"
-#include <Modules/Shipyard/ShipyardManager.h>
+#include "Modules/Shipyard/ShipyardManager.h"
+#include "Arbitrators/BaseArbitrator.h"
 
 class SystemManager
 {
@@ -73,4 +74,6 @@ private:
 
   world::World            m_world;
   world::PlayerStoragePtr m_pPlayersStorage;
+
+  arbitrator::BaseArbitratorPtr m_pArbitrator;
 };

@@ -28,6 +28,24 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
   return static_cast<uint32_t>(m_Slots.size()) - 1;
 }
 
+BaseModulePtr Commutator::findModuleByName(std::string const& sName) const
+{
+  for (BaseModulePtr pModule : m_Slots) {
+    if (pModule->getModuleName() == sName)
+      return pModule;
+  }
+  return BaseModulePtr();
+}
+
+BaseModulePtr Commutator::findModuleByType(std::string const& sType) const
+{
+  for (BaseModulePtr pModule : m_Slots) {
+    if (pModule->getModuleType() == sType)
+      return pModule;
+  }
+  return BaseModulePtr();
+}
+
 void Commutator::detachFromModules()
 {
   for (Tunnel& tunnel : m_Tunnels) {
@@ -66,6 +84,13 @@ void Commutator::checkSlotsAndTunnels()
   }
 }
 
+void Commutator::broadcast(spex::Message const& message)
+{
+  for (uint32_t nSessionId : m_OpenedSessions) {
+    sendToClient(nSessionId, message);
+  }
+}
+
 bool Commutator::openSession(uint32_t nSessionId)
 {
   if (m_OpenedSessions.size() >= m_nSessionsLimit)
@@ -79,8 +104,13 @@ void Commutator::onSessionClosed(uint32_t nSessionId)
   m_OpenedSessions.erase(nSessionId);
   for (uint32_t nTunnelId = 0; nTunnelId <= m_Tunnels.size(); ++nTunnelId)
   {
-    if (m_Tunnels[nTunnelId].m_nFather == nSessionId) {
+    Tunnel& tunnel = m_Tunnels[nTunnelId];
+    if (tunnel.m_nFather == nSessionId) {
       m_ReusableTunnels.push(nTunnelId);
+      BaseModulePtr pModule = m_Slots[tunnel.m_nSlotId];
+      if (pModule) {
+        pModule->onSessionClosed(nTunnelId);
+      }
       m_Tunnels[nTunnelId] = Tunnel();
     }
   }
@@ -233,7 +263,7 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
   }
 
   BaseModulePtr pModule = m_Slots[tunnel.m_nSlotId];
-  if (!pModule) {
+  if (pModule) {
     pModule->onSessionClosed(nTunnelId);
   }
 
@@ -272,13 +302,13 @@ void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
 
 void Commutator::onModuleHasBeenAttached(uint32_t nSlotId)
 {
-  for (uint32_t nSessionId : m_OpenedSessions) {
-    spex::ICommutator message;
-    message.mutable_module_info()->set_slot_id(nSlotId);
-    message.mutable_module_info()->set_module_type(m_Slots[nSlotId]->getModuleType());
-    message.mutable_module_info()->set_module_name(m_Slots[nSlotId]->getModuleName());
-    sendToClient(nSessionId, std::move(message));
-  }
+  spex::Message message;
+  spex::ICommutator::ModuleInfo* pBody =
+      message.mutable_commutator()->mutable_module_info();
+  pBody->set_slot_id(nSlotId);
+  pBody->set_module_type(m_Slots[nSlotId]->getModuleType());
+  pBody->set_module_name(m_Slots[nSlotId]->getModuleName());
+  broadcast(message);
 }
 
 void Commutator::sendOpenTunnelFailed(uint32_t nSessionId,

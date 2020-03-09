@@ -375,6 +375,24 @@ message ICommutator {
   }
 }
 
+
+message IGame {
+
+  message Score {
+    string player = 1;
+    uint32 score  = 2;
+  }
+
+  message GameOver {
+    repeated Score leaders = 1;
+  }
+
+  oneof choice {
+    GameOver game_over_report = 21;
+  }
+}
+
+
 message Message {
   uint32 tunnelId = 1;
 
@@ -392,5 +410,6 @@ message Message {
     IAsteroidMiner     asteroid_miner     = 11;
     IBlueprintsLibrary blueprints_library = 12;
     IShipyard          shipyard           = 13;
+    IGame              game               = 14;
   }
 }

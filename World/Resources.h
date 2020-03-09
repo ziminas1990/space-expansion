@@ -24,15 +24,17 @@ struct Resource {
     eUnknown
   };
 
-  static bool isMaterial(Type eType) { return density[eType] > 0.0; }
+  static bool isMaterial(Type eType) { return Density[eType] > 0.0; }
 
   static Type               typeFromString(std::string const& sType);
   static std::string const& typeToString(Type eType);
 
-  static std::array<double, eTotalResources> density;
+  static std::array<Type, eTotalResources>        AllTypes;
+  static std::array<std::string, eTotalResources> Names;
+  static std::array<double, eTotalResources>      Density;
+
   static const std::array<Type, 3> MaterialResources;
   static const std::array<Type, 1> NonMaterialResources;
-    // Only material resources, that can be put to container
 };
 
 struct ResourceItem {
@@ -64,7 +66,7 @@ struct ResourceItem {
 
   bool isValid() const { return m_eType != Resource::eUnknown; }
 
-  bool load(const std::pair<YAML::Node, YAML::Node> &data);
+  bool load(std::pair<YAML::Node, YAML::Node> const& data);
   void dump(YAML::Node &out) const;
 
   Resource::Type m_eType;
@@ -73,7 +75,24 @@ struct ResourceItem {
 
 using Resources      = std::vector<ResourceItem>;
 
-using ResourcesArray = std::array<double, Resource::eTotalResources>;
-  // Resource type is index, amount is value
+// Stores resources in array, where index is resource type and value is amout.
+// Note that this class can NOT be inherited, because it doesn't have virtual
+// destructor!
+class ResourcesArray : public std::array<double, Resource::eTotalResources>
+{
+public:
+  ResourcesArray() { fill(0); }
+
+  bool load(YAML::Node const& node);
+  void dump(YAML::Node &out) const;
+
+  ResourcesArray& metals(double amount);
+  ResourcesArray& silicates(double amount);
+  ResourcesArray& ice(double amount);
+
+  ResourcesArray& operator+=(ResourcesArray const& other);
+
+  double calculateTotalVolume() const;
+};
 
 } // namespace world

@@ -2,6 +2,7 @@
 
 #include <Geometry/Point.h>
 #include <Geometry/Vector.h>
+#include <World/Resources.h>
 #include <yaml-cpp/yaml.h>
 
 namespace utils
@@ -67,6 +68,15 @@ YamlReader& YamlReader::read(char const* pName, geometry::Vector& vector)
   if (noProblems) {
     YAML::Node const& container = source[pName];
     noProblems &= container.IsDefined() && vector.load(container);
+  }
+  return *this;
+}
+
+YamlReader &YamlReader::read(char const* pName, world::ResourcesArray& resources)
+{
+  if (noProblems) {
+    YAML::Node const& container = source[pName];
+    noProblems &= container.IsDefined() && resources.load(container);
   }
   return *this;
 }

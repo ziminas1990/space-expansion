@@ -5,12 +5,20 @@
 #include <utility>
 
 #include <yaml-cpp/yaml.h>
+#include <Utils/YamlDumper.h>
 
 #include <Utils/FloatComparator.h>
 
 namespace world {
 
-std::array<double, Resource::eTotalResources> Resource::density = {0};
+std::array<Resource::Type, Resource::eTotalResources> Resource::AllTypes = {
+  Resource::eMetal, Resource::eSilicate, Resource::eIce, Resource::eLabor
+};
+std::array<std::string, Resource::eTotalResources> Resource::Names = {
+  "metals", "silicates", "ice", "labor"
+};
+
+std::array<double, Resource::eTotalResources> Resource::Density = {0};
 const std::array<Resource::Type, 3> Resource::MaterialResources = {
   Resource::eMetal, Resource::eSilicate, Resource::eIce
 };
@@ -20,12 +28,14 @@ const std::array<Resource::Type, 1> Resource::NonMaterialResources = {
 
 bool Resource::initialize()
 {
-  density[eMetal]    = 4500;  // Ti
-  density[eIce]      = 916;
-  density[eSilicate] = 2330;  // Si
-  density[eLabor]    = 0;     // It is non material resource
+  Density[eMetal]    = 4500;  // Ti
+  Density[eIce]      = 916;
+  Density[eSilicate] = 2330;  // Si
+  Density[eLabor]    = 0;     // It is non material resource
 
   // Run-time checks:
+  assert(AllTypes.size() == eTotalResources);
+
   if (MaterialResources.size() + NonMaterialResources.size() != eTotalResources) {
     assert("All resources must be either material or non-material!" == nullptr);
     return false;
@@ -51,10 +61,10 @@ bool Resource::initialize()
 Resource::Type Resource::typeFromString(std::string const& sType)
 {
   const static std::map<std::string, Type> table = {
-    std::make_pair("metals",    eMetal),
-    std::make_pair("ice",       eIce),
-    std::make_pair("silicates", eSilicate),
-    std::make_pair("labor",     eLabor)
+    std::make_pair(Names[eMetal],    eMetal),
+    std::make_pair(Names[eIce],      eIce),
+    std::make_pair(Names[eSilicate], eSilicate),
+    std::make_pair(Names[eLabor],    eLabor)
   };
 
   auto I = table.find(sType);
@@ -65,18 +75,9 @@ Resource::Type Resource::typeFromString(std::string const& sType)
 std::string const& Resource::typeToString(Resource::Type eType)
 {
   const static std::string unknown("unknown");
-  const static std::map<Type, std::string> table = {
-    std::make_pair(eMetal,    "metals"),
-    std::make_pair(eIce,      "ice"),
-    std::make_pair(eSilicate, "silicates"),
-    std::make_pair(eLabor,    "labor")
-  };
-
-  auto I = table.find(eType);
-  assert(I != table.end());
-  return I != table.end() ? I->second : unknown;
+  assert(eType < Resource::eTotalResources);
+  return Names[eType];
 }
-
 
 bool ResourceItem::operator==(ResourceItem const& other) const
 {
@@ -97,6 +98,64 @@ bool ResourceItem::load(std::pair<YAML::Node, YAML::Node> const& data)
 void ResourceItem::dump(YAML::Node& out) const
 {
   out[Resource::typeToString(m_eType)] = m_nAmount;
+}
+
+bool ResourcesArray::load(YAML::Node const& node)
+{
+  std::array<double, Resource::eTotalResources>& out = *this;
+
+  assert(node.IsMap());
+  for (Resource::Type eResource : Resource::AllTypes) {
+    YAML::Node const& item = node[Resource::Names[eResource]];
+    if (item.IsDefined() && item.IsScalar())
+      out[eResource] = item.as<double>();
+  }
+  return true;
+}
+
+void ResourcesArray::dump(YAML::Node& out) const
+{
+  utils::YamlDumper dumper(out);
+  for (Resource::Type eType : Resource::AllTypes) {
+    if (utils::AlmostEqual(at(eType), 0))
+      continue;
+    dumper.add(Resource::typeToString(eType).c_str(), at(eType));
+  }
+}
+
+ResourcesArray& ResourcesArray::metals(double amount)
+{
+  at(Resource::eMetal) = amount;
+  return *this;
+}
+
+ResourcesArray &ResourcesArray::silicates(double amount)
+{
+  at(Resource::eSilicate) = amount;
+  return *this;
+}
+
+ResourcesArray &ResourcesArray::ice(double amount)
+{
+  at(Resource::eIce) = amount;
+  return *this;
+}
+
+ResourcesArray& ResourcesArray::operator+=(ResourcesArray const& other)
+{
+  for (Resource::Type eType : Resource::AllTypes) {
+    at(eType) += other.at(eType);
+  }
+  return *this;
+}
+
+double ResourcesArray::calculateTotalVolume() const
+{
+  double volume = 0;
+  for (Resource::Type eResource : Resource::MaterialResources) {
+    volume += at(eResource) /  world::Resource::Density[eResource];
+  }
+  return volume;
 }
 
 } // namespace world

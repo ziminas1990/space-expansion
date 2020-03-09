@@ -1,6 +1,7 @@
 #include "PlayersStorage.h"
 #include <Blueprints/Ships/ShipBlueprint.h>
 
+#include <assert.h>
 #include <yaml-cpp/yaml.h>
 
 namespace world {
@@ -19,11 +20,12 @@ bool PlayersStorage::loadState(YAML::Node const& data,
     if (!pPlayer) {
       return false;
     }
-    if (m_players.find(sLogin) != m_players.end()) {
+    if (m_loginToPlayer.find(sLogin) != m_loginToPlayer.end()) {
       assert(false);
       return false;
     }
-    m_players[sLogin] = pPlayer;
+    m_loginToPlayer[sLogin] = m_players.size();
+    m_players.push_back(std::move(pPlayer));
   }
   return true;
 }
@@ -31,8 +33,12 @@ bool PlayersStorage::loadState(YAML::Node const& data,
 PlayerPtr PlayersStorage::getPlayer(std::string const& sLogin) const
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
-  auto I = m_players.find(sLogin);
-  return (I != m_players.end()) ? I->second : PlayerPtr();
+  auto I = m_loginToPlayer.find(sLogin);
+  if (I == m_loginToPlayer.end())
+    return nullptr;
+  size_t nPlayerId = I->second;
+  assert(nPlayerId < m_players.size());
+  return m_players[nPlayerId];
 }
 
 } // namespace world

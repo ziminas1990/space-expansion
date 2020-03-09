@@ -28,7 +28,7 @@ public:
   // logic shouldn't be proceeded again
   // If functions returns 1 or 0, it means "procced again as soon as possible"
   // NOTE: By default, logic won't be proceeded more than 100 times per second
-  // NOTE: in-game time could differ from real time
+  // NOTE: in-game time can differ from real time
   virtual size_t getCooldownTimeUs() const { return 10 * 1000; }
 };
 

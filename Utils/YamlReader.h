@@ -4,16 +4,19 @@
 #include <string>
 #include "YamlForwardDeclarations.h"
 
-namespace geometry
-{
+namespace geometry {
 struct Point;
 class  Vector;
 } // namespace geometry
 
+namespace world {
+class ResourcesArray;
+}
+
 namespace utils {
 
 // This reader supports only types, that are required, so, it doesn't have any template
-// functions in interface. It allows to inclue yaml.h ONLY in UtilsReader.cpp
+// functions in interface. It allows to include yaml.h ONLY in UtilsReader.cpp
 class YamlReader
 {
 public:
@@ -29,9 +32,10 @@ public:
   YamlReader& read(char const* pName, double& value);
   YamlReader& read(char const* pName, std::string& sValue);
 
-  // Complex types:
+  // Complex types for occasions
   YamlReader& read(char const* pName, geometry::Point& point);
   YamlReader& read(char const* pName, geometry::Vector& vector);
+  YamlReader& read(char const* pName, world::ResourcesArray& resources);
 
 private:
   YAML::Node const& source;

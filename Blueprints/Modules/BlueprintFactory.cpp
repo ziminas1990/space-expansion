@@ -15,10 +15,7 @@ namespace blueprints
 BaseBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
                                          YAML::Node const& data)
 {
-  utils::YamlReader reader(data);
-
   BaseBlueprintPtr pBlueprint;
-
   if (sModuleType == "Engine") {
     pBlueprint = std::make_shared<EngineBlueprint>();
   } else if (sModuleType == "CelestialScanner") {

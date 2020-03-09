@@ -12,14 +12,22 @@ bool ResourcesManagment::shift(Ship& ship,
                                std::string const& sDestinationName,
                                world::ResourcesArray const& resources)
 {
+  return transfer(ship, sSourceName, ship, sDestinationName, resources);
+}
+
+bool ResourcesManagment::transfer(
+    Ship& sourceShip, std::string const& sSourceContainer,
+    Ship& destShip, std::string const& sDestContainer,
+    world::ResourcesArray const& resources)
+{
   static const uint32_t nAccessKey = 1334;
   ResourceContainer     source;
   ResourceContainer     destination;
-  uint32_t              nPortId;
-  if (!FindResourceContainer(ship, source, sSourceName))
+  uint32_t              nPortId = 0;
+  if (!FindResourceContainer(sourceShip, source, sSourceContainer))
     return false;
 
-  if (!FindResourceContainer(ship, destination, sDestinationName))
+  if (!FindResourceContainer(destShip, destination, sDestContainer))
     return false;
 
   if (destination.openPort(nAccessKey, nPortId) != ResourceContainer::eStatusOk)
@@ -34,7 +42,6 @@ bool ResourcesManagment::shift(Ship& ship,
         return false;
     }
   }
-
   return destination.closePort() == ResourceContainer::eStatusOk;
 }
 
