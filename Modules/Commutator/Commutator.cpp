@@ -87,7 +87,7 @@ void Commutator::checkSlotsAndTunnels()
 void Commutator::broadcast(spex::Message const& message)
 {
   for (uint32_t nSessionId : m_OpenedSessions) {
-    send(nSessionId, message);
+    sendToClient(nSessionId, message);
   }
 }
 

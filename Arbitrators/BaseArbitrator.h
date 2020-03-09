@@ -13,7 +13,7 @@ namespace arbitrator {
 
 struct Leaderboard {
   struct Record {
-    Record(std::string sLogin, uint32_t nScore)
+    Record(std::string sLogin, uint32_t nScore = 0)
       :  m_sLogin(std::move(sLogin)), m_nScore(nScore)
     {}
 

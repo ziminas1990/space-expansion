@@ -123,6 +123,24 @@ void ResourcesArray::dump(YAML::Node& out) const
   }
 }
 
+ResourcesArray& ResourcesArray::metals(double amount)
+{
+  at(Resource::eMetal) = amount;
+  return *this;
+}
+
+ResourcesArray &ResourcesArray::silicates(double amount)
+{
+  at(Resource::eSilicate) = amount;
+  return *this;
+}
+
+ResourcesArray &ResourcesArray::ice(double amount)
+{
+  at(Resource::eIce) = amount;
+  return *this;
+}
+
 ResourcesArray& ResourcesArray::operator+=(ResourcesArray const& other)
 {
   for (Resource::Type eType : Resource::AllTypes) {

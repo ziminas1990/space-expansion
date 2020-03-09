@@ -28,6 +28,8 @@ public:
   bool sendOpenTunnel(uint32_t nSlotId);
   bool waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId = nullptr);
   bool waitOpenTunnelFailed();
+
+  bool waitGameOverReport(spex::IGame::GameOver &report, uint16_t nTimeout = 500);
 };
 
 using ClientCommutatorPtr = std::shared_ptr<ClientCommutator>;

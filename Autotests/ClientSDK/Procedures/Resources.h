@@ -14,10 +14,14 @@ public:
   static bool shift(Ship& ship,
                     std::string const& sSourceName,
                     std::string const& sDestinationName,
-                    const world::ResourcesArray &resources);
+                    world::ResourcesArray const& resources);
     // Moves the specified 'resources' from container with the specified 'sSourceName' to
     // container with the specified 'sDestinationName'. Both containers should be a part
     // of the specified 'pShip'
+
+  static bool transfer(Ship& sourceShip, std::string const& sSourceContainer,
+                       Ship& destShip, std::string const& sDestContainer,
+                       world::ResourcesArray const& resources);
 };
 
 }} // namespace autotests::client

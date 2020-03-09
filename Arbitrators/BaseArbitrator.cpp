@@ -12,7 +12,7 @@ void Leaderboard::sort()
   // Insertion sort is the best option here
   for (size_t i = 1; i < nBoardLength; ++i) {
     for (size_t j = i; j > 0; --j) {
-      if (m_table[j] < m_table[j - 1]) {
+      if (m_table[j - 1] < m_table[j]) {
         std::swap(m_table[j], m_table[j - 1]);
       } else {
         break;
@@ -27,6 +27,9 @@ BaseArbitrator::BaseArbitrator(
     m_nTargetScore(1000),
     m_nCooldownTime(nCooldownTime)
 {
+  for (world::PlayerPtr const& pPlayer : pPlayersStorage->getAllPlayers()) {
+    m_board.m_table.emplace_back(pPlayer->getLogin());
+  }
 }
 
 bool BaseArbitrator::loadConfiguation(YAML::Node const& data)

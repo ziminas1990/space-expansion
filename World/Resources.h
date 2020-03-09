@@ -86,6 +86,10 @@ public:
   bool load(YAML::Node const& node);
   void dump(YAML::Node &out) const;
 
+  ResourcesArray& metals(double amount);
+  ResourcesArray& silicates(double amount);
+  ResourcesArray& ice(double amount);
+
   ResourcesArray& operator+=(ResourcesArray const& other);
 
   double calculateTotalVolume() const;

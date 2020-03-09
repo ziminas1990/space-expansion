@@ -67,6 +67,7 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
       assert("Failed to load arbitrator" == nullptr);
       return false;
     }
+    m_pConveyor->addLogicToChain(m_pArbitrator);
   }
   return true;
 }
@@ -145,10 +146,5 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pAsteroidMinerManager);
   m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
   m_pConveyor->addLogicToChain(m_pShipyardManager);
-
-  if (m_pArbitrator) {
-    m_pConveyor->addLogicToChain(m_pArbitrator);
-  }
-
   return true;
 }
