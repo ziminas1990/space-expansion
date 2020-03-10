@@ -2,10 +2,24 @@
 
 namespace autotests { namespace client {
 
+static AsteroidScanner::Status convert(spex::IAsteroidScanner::Status eStatus) {
+  switch (eStatus) {
+    case spex::IAsteroidScanner::IN_PROGRESS:
+      return AsteroidScanner::eInProgress;
+    case spex::IAsteroidScanner::SCANNER_BUSY:
+      return AsteroidScanner::eScannerIsBusy;
+    case spex::IAsteroidScanner::ASTEROID_TOO_FAR:
+      return AsteroidScanner::eAsteroidTooFar;
+    default:
+      assert(nullptr == "Unexpected status");
+      return AsteroidScanner::eUnexpectedStatus;
+  }
+}
+
 bool AsteroidScanner::getSpecification(AsteroidScannerSpecification &specification)
 {
   spex::Message request;
-  request.mutable_asteroid_scanner()->mutable_get_specification();
+  request.mutable_asteroid_scanner()->set_specification_req(true);
   if (!send(request))
     return false;
 
@@ -24,29 +38,37 @@ AsteroidScanner::Status
 AsteroidScanner::scan(uint32_t nAsteroidId, AsteroidScanner::AsteroidInfo *pResult)
 {
   spex::Message request;
-  spex::IAsteroidScanner::ScanRequest* pScanRequest =
-      request.mutable_asteroid_scanner()->mutable_scan_request();
-  pScanRequest->set_asteroid_id(nAsteroidId);
+  request.mutable_asteroid_scanner()->set_scan_asteroid(nAsteroidId);
   if (!send(request))
     return eStatusError;
 
   spex::IAsteroidScanner response;
+  // Waiting for 'IN PROGRESS' status message
   if (!wait(response))
-    return eStatusError;
-  if (response.choice_case() == spex::IAsteroidScanner::kScanFailed)
-    return eStatusScanFailed;
-  if (response.choice_case() != spex::IAsteroidScanner::kScanResult)
+    return eTimeoutError;
+  if (response.choice_case() != spex::IAsteroidScanner::kScanningStatus)
+    return eUnexpectedMessage;
+
+  Status eStatus = convert(response.scanning_status());
+  if (eStatus != eInProgress) {
+    return eStatus;
+  }
+
+  // Waiting for scanning results
+  if (!wait(response))
+    return eTimeoutError;
+  if (response.choice_case() != spex::IAsteroidScanner::kScanningFinished)
     return eStatusError;
 
   if (pResult) {
-    spex::IAsteroidScanner::ScanResult const& scanResponse = response.scan_result();
+    spex::IAsteroidScanner::ScanResult const& scanResponse = response.scanning_finished();
     pResult->m_asteroidId       = scanResponse.asteroid_id();
     pResult->m_weight           = scanResponse.weight();
     pResult->m_metalsPercent    = scanResponse.metals_percent();
     pResult->m_silicatesPercent = scanResponse.silicates_percent();
     pResult->m_icePercent       = scanResponse.ice_percent();
   }
-  return eStatusOk;
+  return eSuccess;
 }
 
 }}  // namespace autotests::client

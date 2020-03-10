@@ -29,7 +29,7 @@ private:
   void onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId);
 
   world::Asteroid* getAndCheckAsteroid(uint32_t nAsteroidId);
-  void sendFail(uint32_t nTunnelId);
+  void sendStatus(uint32_t nTunnelId, spex::IAsteroidScanner::Status status);
 private:
   uint32_t m_nMaxDistance;
   uint32_t m_nScanningTimeMs;

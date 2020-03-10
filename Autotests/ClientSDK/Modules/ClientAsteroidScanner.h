@@ -19,9 +19,19 @@ class AsteroidScanner : public ClientBaseModule
 {
 public:
   enum Status {
-    eStatusOk,
-    eStatusError,
-    eStatusScanFailed
+    eSuccess,
+
+    // Status, that are got from module
+    eInProgress,
+    eScannerIsBusy,
+    eAsteroidTooFar,
+
+    // Errors, detected on client side:
+    eTransportError,
+    eUnexpectedMessage,
+    eUnexpectedStatus,
+    eTimeoutError,
+    eStatusError
   };
 
   struct AsteroidInfo

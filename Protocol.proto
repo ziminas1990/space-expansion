@@ -161,15 +161,17 @@ message ICelestialScanner {
 
 message IAsteroidScanner {
 
-  message GetSpecification {}
+  enum Status {
+    IN_PROGRESS        = 0;
+    SCANNER_BUSY       = 1;
+    ASTEROID_TOO_FAR   = 2;
+  }
+
   message Specification {
     uint32 max_distance     = 1;
     uint32 scanning_time_ms = 2;
   }
   
-  message ScanRequest {
-    uint32 asteroid_id = 1;
-  }
   message ScanResult {
     uint32 asteroid_id       = 1;
     double weight            = 2;
@@ -177,16 +179,14 @@ message IAsteroidScanner {
     double ice_percent       = 4;
     double silicates_percent = 5;
   }
-  message ScanFailed {}
-
 
   oneof choice {
-    GetSpecification get_specification = 1;
-    ScanRequest      scan_request      = 2;
+    bool   specification_req = 1;
+    uint32 scan_asteroid     = 2;
     
-    Specification    specification     = 21;
-    ScanResult       scan_result       = 22;
-    ScanFailed       scan_failed       = 23;
+    Specification specification     = 21;
+    Status        scanning_status   = 22;
+    ScanResult    scanning_finished = 23;
   }
 }
 

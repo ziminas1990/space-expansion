@@ -120,7 +120,7 @@ TEST_F(CollectingResourcesArbitratorTests, BreathTest)
         .expectSuccess());
 
   client::Ship freighter;
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Mule", freighter));
 
   client::Ship hub_1;
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Hub#1", hub_1));

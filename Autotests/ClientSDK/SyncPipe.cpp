@@ -145,7 +145,6 @@ bool SyncPipe::wait(spex::IGame& out, uint16_t nTimeoutMs)
 
 void SyncPipe::onMessageReceived(spex::Message &&message)
 {
-  std::cout << this << ":\n" << message.DebugString() << std::endl;
   switch(message.choice_case()) {
     case spex::Message::kEncapsulated: {
       spex::Message encapsulated = message.encapsulated();

@@ -135,7 +135,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
     uint32_t nAsteroidId = asteroids.front().nId;
     client::AsteroidScanner::AsteroidInfo composition;
     ASSERT_EQ(asteroidScanner.scan(nAsteroidId, &composition),
-              client::AsteroidScanner::eStatusOk);
+              client::AsteroidScanner::eSuccess);
     EXPECT_NEAR(composition.m_metalsPercent,    0.15, 0.0001);
     EXPECT_NEAR(composition.m_silicatesPercent, 0.8,  0.0001);
     EXPECT_NEAR(composition.m_icePercent,       0.05, 0.0001);
@@ -156,7 +156,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
     uint32_t nAsteroidId = asteroids.front().nId;
     client::AsteroidScanner::AsteroidInfo composition;
     ASSERT_EQ(asteroidScanner.scan(nAsteroidId, &composition),
-              client::AsteroidScanner::eStatusOk);
+              client::AsteroidScanner::eSuccess);
     EXPECT_NEAR(composition.m_icePercent,       0.4301, 0.001);
     EXPECT_NEAR(composition.m_metalsPercent,    0.0322, 0.001);
     EXPECT_NEAR(composition.m_silicatesPercent, 0.5376, 0.001);
@@ -189,7 +189,7 @@ TEST_F(AsteroidScannerTests, FailedToScanTest)
 
     for (auto const& asteroidInfo : asteroids) {
       ASSERT_EQ(asteroidScanner.scan(asteroidInfo.nId),
-                client::AsteroidScanner::eStatusScanFailed);
+                client::AsteroidScanner::eAsteroidTooFar);
     }
   }
 }

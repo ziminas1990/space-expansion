@@ -23,7 +23,7 @@ void AsteroidScanner::proceed(uint32_t nIntervalUs)
 {
   world::Asteroid* pAsteroid = getAndCheckAsteroid(m_nAsteroidId);
   if (!pAsteroid) {
-    sendFail(m_nTunnelId);
+    sendStatus(m_nTunnelId, spex::IAsteroidScanner::ASTEROID_TOO_FAR);
     switchToIdleState();
     return;
   }
@@ -35,7 +35,7 @@ void AsteroidScanner::proceed(uint32_t nIntervalUs)
 
   spex::Message response;
   spex::IAsteroidScanner::ScanResult* pScanResult =
-      response.mutable_asteroid_scanner()->mutable_scan_result();
+      response.mutable_asteroid_scanner()->mutable_scanning_finished();
   pScanResult->set_asteroid_id(m_nAsteroidId);
   pScanResult->set_weight(pAsteroid->getWeight());
   pScanResult->set_ice_percent(pAsteroid->getComposition().ice_percent());
@@ -51,11 +51,11 @@ void AsteroidScanner::handleAsteroidScannerMessage(
 {
   switch (message.choice_case())
   {
-    case spex::IAsteroidScanner::kScanRequest: {
-      onScanRequest(nTunnelId, message.scan_request().asteroid_id());
+    case spex::IAsteroidScanner::kScanAsteroid: {
+      onScanRequest(nTunnelId, message.scan_asteroid());
       return;
     }
-    case spex::IAsteroidScanner::kGetSpecification: {
+    case spex::IAsteroidScanner::kSpecificationReq: {
       spex::Message response;
       spex::IAsteroidScanner::Specification* pBody =
           response.mutable_asteroid_scanner()->mutable_specification();
@@ -72,13 +72,13 @@ void AsteroidScanner::handleAsteroidScannerMessage(
 void AsteroidScanner::onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId)
 {
   if (!isIdle()) {
-    sendFail(nTunnelId);
+    sendStatus(nTunnelId, spex::IAsteroidScanner::SCANNER_BUSY);
     return;
   }
 
   world::Asteroid* pAsteroid = getAndCheckAsteroid(nAsteroidId);
   if (!pAsteroid) {
-    sendFail(nTunnelId);
+    sendStatus(nTunnelId, spex::IAsteroidScanner::ASTEROID_TOO_FAR);
     return;
   }
 
@@ -87,6 +87,7 @@ void AsteroidScanner::onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId)
   m_nAsteroidId         = nAsteroidId;
   m_nTunnelId           = nTunnelId;
   switchToActiveState();
+  sendStatus(nTunnelId, spex::IAsteroidScanner::IN_PROGRESS);
 }
 
 world::Asteroid* AsteroidScanner::getAndCheckAsteroid(uint32_t nAsteroidId)
@@ -105,11 +106,12 @@ world::Asteroid* AsteroidScanner::getAndCheckAsteroid(uint32_t nAsteroidId)
   return pAsteroid;
 }
 
-void AsteroidScanner::sendFail(uint32_t nTunnelId)
+void AsteroidScanner::sendStatus(uint32_t nTunnelId,
+                                 spex::IAsteroidScanner::Status status)
 {
-  spex::Message busyResponse;
-  busyResponse.mutable_asteroid_scanner()->mutable_scan_failed();
-  sendToClient(nTunnelId, busyResponse);
+  spex::Message statusMessage;
+  statusMessage.mutable_asteroid_scanner()->set_scanning_status(status);
+  sendToClient(nTunnelId, statusMessage);
 }
 
 
