@@ -48,6 +48,7 @@ message Position {
 // Modules interfaces
 
 message IAccessPanel {
+
   message LoginRequest {
     string login    = 1;
     string password = 2;
@@ -404,12 +405,13 @@ message Message {
     IShip              ship               = 5;
     INavigation        navigation         = 6;
     IEngine            engine             = 7;
-    ICelestialScanner  celestialScanner   = 8;
+    ICelestialScanner  celestial_scanner  = 8;
     IAsteroidScanner   asteroid_scanner   = 9;
     IResourceContainer resource_container = 10;
     IAsteroidMiner     asteroid_miner     = 11;
     IBlueprintsLibrary blueprints_library = 12;
     IShipyard          shipyard           = 13;
     IGame              game               = 14;
+    bytes              privileged         = 100;
   }
 }

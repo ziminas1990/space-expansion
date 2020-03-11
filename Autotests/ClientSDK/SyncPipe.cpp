@@ -85,7 +85,7 @@ bool SyncPipe::wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs)
   spex::Message message;
   if(!waitConcrete(spex::Message::kCelestialScanner, message, nTimeoutMs))
     return false;
-  out = std::move(message.celestialscanner());
+  out = std::move(message.celestial_scanner());
   return true;
 }
 

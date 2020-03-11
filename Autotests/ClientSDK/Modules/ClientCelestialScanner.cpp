@@ -5,7 +5,7 @@ namespace autotests { namespace client {
 bool CelestialScanner::getSpecification(CelestialScannerSpecification& specification)
 {
   spex::Message request;
-  request.mutable_celestialscanner()->set_specification_req(true);
+  request.mutable_celestial_scanner()->set_specification_req(true);
   if (!send(request))
     return false;
 
@@ -25,7 +25,8 @@ bool CelestialScanner::scan(uint32_t nRadiusKm,
                             std::vector<AsteroidInfo>& asteroids)
 {
   spex::Message request;
-  spex::ICelestialScanner::Scan* pBody = request.mutable_celestialscanner()->mutable_scan();
+  spex::ICelestialScanner::Scan* pBody =
+      request.mutable_celestial_scanner()->mutable_scan();
   pBody->set_scanning_radius_km(nRadiusKm);
   pBody->set_minimal_radius_m(nMinimalRadiusM);
   if (!send(request))

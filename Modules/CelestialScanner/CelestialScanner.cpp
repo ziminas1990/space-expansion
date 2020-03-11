@@ -43,7 +43,7 @@ void CelestialScanner::handleCelestialScannerMessage(
     case spex::ICelestialScanner::kSpecificationReq: {
       spex::Message response;
       spex::ICelestialScanner::Specification* pBody =
-          response.mutable_celestialscanner()->mutable_specification();
+          response.mutable_celestial_scanner()->mutable_specification();
       pBody->set_max_radius_km(m_nMaxScanningRadiusKm);
       pBody->set_processing_time_us(m_nProcessingTimeUs);
       sendToClient(nTunnelId, response);
@@ -59,7 +59,7 @@ void CelestialScanner::onScanRequest(
 {
   if (!isIdle()) {
     spex::Message busyResponse;
-    busyResponse.mutable_celestialscanner()->set_scanning_failed(
+    busyResponse.mutable_celestial_scanner()->set_scanning_failed(
           spex::ICelestialScanner::SCANNER_BUSY);
     sendToClient(nTunnelId, busyResponse);
     return;
@@ -103,7 +103,7 @@ void CelestialScanner::collectAndSendScanResults()
   if (scannedAsteroids.empty()) {
     spex::Message response;
     spex::ICelestialScanner::ScanResults *pBody =
-        response.mutable_celestialscanner()->mutable_scanning_report();
+        response.mutable_celestial_scanner()->mutable_scanning_report();
     pBody->set_left(0);
     sendToClient(m_nTunnelId, response);
     return;
@@ -113,7 +113,7 @@ void CelestialScanner::collectAndSendScanResults()
   {
     spex::Message response;
     spex::ICelestialScanner::ScanResults *pBody =
-        response.mutable_celestialscanner()->mutable_scanning_report();
+        response.mutable_celestial_scanner()->mutable_scanning_report();
     auto pBatch = pBody->mutable_asteroids();
     for (size_t j = 0; j < 10 && i < scannedAsteroids.size(); ++j, ++i)
     {

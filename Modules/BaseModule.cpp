@@ -29,7 +29,7 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       return;
     }
     case spex::Message::kCelestialScanner: {
-      handleCelestialScannerMessage(nSessionId, message.celestialscanner());
+      handleCelestialScannerMessage(nSessionId, message.celestial_scanner());
       return;
     }
     case spex::Message::kAsteroidMiner: {
