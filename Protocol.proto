@@ -157,7 +157,6 @@ message ICelestialScanner {
     ScanResults   scanning_report = 22;
     Status        scanning_failed = 23;
   }
-  
 }
 
 message IAsteroidScanner {

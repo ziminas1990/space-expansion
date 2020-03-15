@@ -23,11 +23,16 @@ t = 0.1 + 2 * R / c + processing_time * resolution.
   - **R** - радиус сканирования;
   - **processing_time** - удельное время обработки результатов сканирования;
   - **resolution** - разрешение сканирования.
+
 ## Интерфейс ICelestialScanner
 Все модули класса "CelestialScanner" реализуют интерфейс **ICelestialScanner**:
 ```protobuf
 message ICelestialScanner {
-  message GetSpecification {}
+  enum Status {
+    SUCCESS      = 0;
+    SCANNER_BUSY = 1;
+  }
+
   message Specification {
     uint32 max_radius_km      = 1;
     uint32 processing_time_us = 2;
@@ -38,34 +43,32 @@ message ICelestialScanner {
     uint32 minimal_radius_m   = 2;
   }
 
+  message AsteroidInfo {
+    uint32 id = 1;
+    double x  = 2;
+    double y  = 3;
+    double vx = 4;
+    double vy = 5;
+    double r  = 6;
+  }
+
   message ScanResults {
-    message AsteroidInfo {
-      uint32 id = 1;
-      double x  = 2;
-      double y  = 3;
-      double vx = 4;
-      double vy = 5;
-      double r  = 6;
-    }
-    
     repeated AsteroidInfo asteroids = 1;
     uint32                left      = 2;
   }
 
-  message ScannerBusy {}
-  
   oneof choice {
-    GetSpecification get_specification = 1;
-    Scan             scan              = 2;
+    bool specification_req = 1;
+    Scan scan              = 2;
     
-    Specification specification  = 21;
-    ScanResults   scan_result    = 22;
-    ScannerBusy   busy_response  = 23;
+    Specification specification   = 21;
+    ScanResults   scanning_report = 22;
+    Status        scanning_failed = 23;
   }
 }
 ```
 ## Как получить параметры сканера?
-Чтобы получить параметры сканера, нужно отправить запрос **GetSpecification**. В ответ поступит следующее сообщение **Specification**:
+Чтобы получить параметры сканера, нужно отправить запрос **specification_req**. В ответ поступит следующее сообщение **specification**, которое имеет следующий тип:
 ```protobuf
 message Specification {
   uint32 max_radius_km      = 1;
@@ -73,11 +76,11 @@ message Specification {
 }
 ```
 , где:
-  * **max_radius_km** - максимальный радиус сканирования в киллометрах;
+  * **max_radius_km** - максимальный радиус сканирования в километрах;
   * **processing_time_us** - удельное время анализа отражённого сигнала, в микросекундах.
 
 ## Как сканировать?
-Для того, чтобы запустить сканирование, необходимо отправить следующую команду:
+Для того, чтобы запустить сканирование, необходимо отправить следующую команду **scan**, которая имеет следующий тип:
 ```protobuf
 message Scan {
   uint32 scanning_radius_km = 1;
@@ -92,18 +95,10 @@ message Scan {
 ```
 resolution = (1000 * scanning_radius_km) / minimal_radius_m
 ```
-После успешного сканирования в ответ поступит одно или несколько следующих сообщений:
+
+После успешного сканирования в ответ поступит одно или несколько сообщений **scanning_report** с типом ScanResults:
 ```protobuf
 message ScanResults {
-  message AsteroidInfo {
-    uint32 id = 1;
-    double x  = 2;
-    double y  = 3;
-    double vx = 4;
-    double vy = 5;
-    double r  = 6;
-  }
-  
   repeated AsteroidInfo asteroids = 1;
   uint32                left      = 2;
 }
@@ -120,10 +115,11 @@ message ScanResults {
   * **vx, vy** - вектор скорости астероида;
   * **r** - радиус астероида.
 
-Если отправить на сканер команду **ScanRequest** во время обработки им другой команды **ScanRequest**, то сканер вернёт сообщение **ScannerBusy**. Т.е. сканер не может выполнять два запроса одновременно, при этом приоритет отдаётся первому поступившему запросу.
+Если сканирование не удалось, то сканер вернёт сообщение **scanning_failed** с указанием ошибки:
+  - **SCANNER_BUSY** - сканер уже занят выполнением другой команды.
 
 ## Усложнение механики сканирования
 Усложнение механики сканеров планируется следующим образом:
-  * у сканера будете предельное разрешение сканирования;
+  * у сканера будет предельное разрешение сканирования;
   * ответ будет поступать не одновременно для всех объектов, а постепенно, вначале по более близким объектам, затем по более удалённым;
   * чем ближе угловые размеры объекта к максимальной разрешающей способности сканера, тем с большей погрешностью сканер сообщает их радиус, позицию и скорость.

@@ -11,15 +11,17 @@
 ```protobuf
 message IAsteroidScanner {
 
-  message GetSpecification {}
+  enum Status {
+    IN_PROGRESS        = 0;
+    SCANNER_BUSY       = 1;
+    ASTEROID_TOO_FAR   = 2;
+  }
+
   message Specification {
-    uint32 max_distance    = 1;
-    uint32 scanning_time_k = 2;
+    uint32 max_distance     = 1;
+    uint32 scanning_time_ms = 2;
   }
   
-  message ScanRequest {
-    uint32 asteroid_id = 1;
-  }
   message ScanResult {
     uint32 asteroid_id       = 1;
     double weight            = 2;
@@ -27,49 +29,43 @@ message IAsteroidScanner {
     double ice_percent       = 4;
     double silicates_percent = 5;
   }
-  message ScanFailed {}
-
 
   oneof choice {
-    GetSpecification get_specification = 1;
-    ScanRequest      scan_request      = 2;
+    bool   specification_req = 1;
+    uint32 scan_asteroid     = 2;
     
-    Specification    specification     = 21;
-    ScanResult       scan_result       = 22;
-    ScanFailed       scan_failed       = 23;
+    Specification specification     = 21;
+    Status        scanning_status   = 22;
+    ScanResult    scanning_finished = 23;
   }
 }
 ```
 
 ## Как получить параметры сканера?
-Чтобы получить параметры сканера, нужно отправить запрос **GetSpecification**. В ответ поступит следующее сообщение **Specification**:
+Чтобы получить параметры сканера, нужно отправить запрос **specification_req**. В ответ поступит следующее сообщение **specification**:
 ```protobuf
 message Specification {
-  uint32 max_distance    = 1;
-  uint32 scanning_time_k = 2;
+  uint32 max_distance     = 1;
+  uint32 scanning_time_ms = 2;
 }
 ```
 , где:
   * **max_distance** - максимальная дистанция до астероида, выражена в метрах;
-  * **scanning_time_k ** - время, требуемое на сканирование 1 гектара поверхности (100 x 100 метров).
+  * **scanning_time_ms ** - время, требуемое на сканирование 1 гектара поверхности (100 x 100 метров).
 
 ## Как сканировать астероид?
 Для того, чтобы просканировать астероид, необходимо:
 1. обнаружить астероид; например, используя модуль, реализующий интерфейс *ICelestialScanner*;
 2. подлететь к нему на дистанцию, не превышающую **max_distance**;
-3. запустить сканирование, отправив команду **scan_request**;
+3. запустить сканирование, отправив команду **scan_asteroid**, в котором передаётся идентификатор астероида;
 4. до тех пор, пока не поступит ответ, держаться от астероида на дистанции, не превышающей *max_distance*.
 
-Запрос **scan_request**:
-```protobuf
-message ScanRequest {
-  uint32 asteroid_id = 1;
-}
-```
-, где:
-  * **asteroid_id** - уникальный идентификатор астероида; можно получить, например, сканируя астероиды через интерфейс *ICelestialScanner*.
+В ответ сервер отправит сообщение **scanning_status** с одним из следующих статусов:
+  - **IN_PROGRESS** - сканирование запущено, ожидайте результатов;
+  - **SCANNER_BUSY** - сканирование уже идёт (было запущено ранее);
+  - **ASTEROID_TOO_FAR** - указанный астероид слишком далеко (либо вообще не существует).
 
-Ответ на запрос имеет вид:
+Если сканирование прошло успешно, модуль отправит ответ **scanning_finished**:
 ```protobuf
 message ScanResult {
   uint32 asteroid_id       = 1;
@@ -86,8 +82,5 @@ message ScanResult {
   * **ice_percent** - процент льда;
   * **silicates_percent**- процент силикатов.
 
-В случае, если сканирование астероида не удалось, сканер отправляет сообщение **ScanFailed**. Оно может быть отправлено по следующим причинам:
-  * уже запущена другая задача сканирования;
-  * расстояние до астероида превышает максимально допустимое *max_distance*;
-  * в процессе сканирования корабль отдалился от астероида на дистанцию, превышающую *max_distance*.
-
+Если сканирование астероида не удалось, модуль отправит ещё одного сообщение **scanning_status** с указанием одной из следующих причин:
+  - **ASTEROID_TOO_FAR** - в процессе сканирования корабль отдалился от астероида слишком далеко, либо астероид перестал существовать (разрашуен?).

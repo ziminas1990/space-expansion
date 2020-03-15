@@ -7,22 +7,23 @@
  Интерфейсы ICommutator и INavigation уже рассматривались выше. Рассмотрим интерфейс IShip:
 ```protobuf
 message IShip {
-  message GetState {}
-  message GetStateResponse {
+  message State {
     double weight = 1;
   }
 
   oneof choice {
-    GetState         stateRequest = 1;
+    bool state_req = 1;
 
-    GetStateResponse stateResponse = 21;
+    State state = 21;
   }
 }
+
 ```
 
-Единственный запрос **GetState** позволяет получить информацию о состоянии корабля. В ответе **GetStateResponse** возвращаются следующие данные:
+Единственный запрос **state_req** позволяет получить информацию о состоянии корабля. В ответе **state** возвращаются следующие данные:
 
 | Параметр | Ед. изм. | Возможные значения | Описание              |
 |----------|----------|--------------------|-----------------------|
 | weight   | кг       | > 0                | Текущая масса корабля |
 
+(этот список будет пополняться).
