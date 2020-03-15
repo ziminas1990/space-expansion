@@ -43,6 +43,7 @@ private:
   void finishBuildingProcedure();
 
   void startBuildReq(uint32_t nSessionId, const spex::IShipyard::StartBuild &req);
+  void cancelBuildReq(uint32_t nSessionId);
 
   void sendSpeification(uint32_t nSessionId);
   void sendBuildStatus(spex::IShipyard::Status eStatus);

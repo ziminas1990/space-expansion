@@ -80,6 +80,9 @@ void Shipyard::handleShipyardMessage(uint32_t nTunnelId,
     case spex::IShipyard::kStartBuild:
       startBuildReq(nTunnelId, message.start_build());
       return;
+    case spex::IShipyard::kCancelBuild:
+      cancelBuildReq(nTunnelId);
+      return;
     case spex::IShipyard::kSpecificationReq:
       sendSpeification(nTunnelId);
       return;
