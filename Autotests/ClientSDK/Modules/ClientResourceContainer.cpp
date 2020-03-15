@@ -76,7 +76,7 @@ ResourceContainer::Status ResourceContainer::openPort(
     uint32_t nAccessKey, uint32_t& nPortId)
 {
   spex::Message request;
-  request.mutable_resource_container()->mutable_open_port()->set_access_key(nAccessKey);
+  request.mutable_resource_container()->set_open_port(nAccessKey);
 
   if (!send(request))
     return eStatusError;

@@ -155,7 +155,7 @@ void ResourceContainer::handleResourceContainerMessage(
       return;
     }
     case spex::IResourceContainer::kOpenPort: {
-      openPort(nTunnelId, message.open_port().access_key());
+      openPort(nTunnelId, message.open_port());
       return;
     }
     case spex::IResourceContainer::kClosePort: {

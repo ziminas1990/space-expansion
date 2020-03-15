@@ -206,10 +206,6 @@ message IResourceContainer {
     TRANSFER_IN_PROGRESS  = 9;
     NOT_ENOUGH_RESOURCES  = 10;
   }
-
-  message OpenPort {
-    uint32 access_key = 1;
-  }
   
   message Content {
     uint32 volume = 1;
@@ -226,7 +222,7 @@ message IResourceContainer {
   oneof choice {
     // Requests and command from Client
     bool           content_req       = 1;
-    OpenPort       open_port         = 2;
+    uint32         open_port         = 2;
     bool           close_port        = 3;
     Transfer       transfer          = 4;
     
