@@ -67,6 +67,7 @@ public:
         return !m_busyModulesIds.empty();
       default:
         assert(false);
+		return false;
     }
   }
 
@@ -74,9 +75,9 @@ public:
   {
     switch (nStageId) {
       case eStageHandleMessages:
-        return handleAllMessages();
+        handleAllMessages();
       case eStageProceeding:
-        return proceedBusyModules(nIntervalUs);
+        proceedBusyModules(nIntervalUs);
       default:
         assert(false);
     }

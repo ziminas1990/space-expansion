@@ -1,7 +1,8 @@
 #include "Asteroid.h"
 #include <Utils/YamlReader.h>
-#include <math.h>
+
 #include <assert.h>
+#include <cmath>
 
 DECLARE_GLOBAL_CONTAINER_CPP(world::Asteroid);
 

@@ -1,6 +1,7 @@
 #include "Randomizer.h"
 #include <Geometry/Point.h>
-#include <math.h>
+
+#include <cmath>
 
 namespace utils {
 

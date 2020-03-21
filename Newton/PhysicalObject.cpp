@@ -1,6 +1,7 @@
 #include "PhysicalObject.h"
 
 #include <mutex>  // for std::lock_guard
+#include <algorithm>
 #include <Utils/YamlReader.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(newton::PhysicalObject);

@@ -1,5 +1,7 @@
 #include "AsteroidGenerator.h"
 
+#include <cmath>
+
 #include <Utils/YamlReader.h>
 #include <Utils/Randomizer.h>
 

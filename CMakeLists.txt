@@ -63,8 +63,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
-  COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Werror=return-type"
 )
+if (UNIX)
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Werror=return-type"
+  )
+elseif (WIN32)
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    COMPILE_OPTIONS "-D_USE_MATH_DEFINES;-D_WIN32_WINNT=0x0601;-DNOMINMAX"
+  )
+endif ()
 
 if (build-32bit)
   set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS " -m32")

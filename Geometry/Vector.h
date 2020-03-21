@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
 #include <Utils/FloatComparator.h>
 #include <Utils/YamlForwardDeclarations.h>

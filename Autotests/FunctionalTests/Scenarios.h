@@ -103,7 +103,7 @@ public:
       uint32_t m_nTickUs     = 5000;
     };
 
-    struct std::list<ProceduresBatch> m_batches;
+    std::list<ProceduresBatch> m_batches;
   };
 
   // =====================================================================================
