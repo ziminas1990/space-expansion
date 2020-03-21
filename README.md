@@ -12,6 +12,7 @@
 ```Намекаю на то что space expansion это то за что можно выложить много денег``` - Вадим Подовинников
 
 ## Building
+### Unix
 This project supports building only with CMake + conan.
 The easiest way to build application is to run at the build directory the following commands:
 ```
@@ -36,3 +37,6 @@ conan install $SOURCE_DIR/conanfile.txt --build=missing -s build_type=Debug -s a
 cmake $SOURCE_DIR -Dautotests-mode=ON -Dbuild-debug=ON -Dbuild-32bit=ON
 cmake --build . -- -j4
 ```
+
+### Windows
+See the ["Building on Windows"](Doc/building-on-windows.md) page
