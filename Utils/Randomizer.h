@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 namespace geometry {
-  class Point;
+  struct Point;
 } // namespace geometry
 
 namespace utils {

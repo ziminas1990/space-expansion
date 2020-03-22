@@ -1,8 +1,9 @@
+
 # Building in Windows 10
-This article describes how to build space-expansion server on windows 10.
+Windows is not a target platform for this project, but it is possible to build space-expansion on windows. This guide describes how to build space-expansion server on windows 10. Probably, you may use it to build server on windows 7 or 8 too.
 
 ## Installing required tools
-1. Install **Build Tools для Visual Studio 2019** from [this page](https://visualstudio.microsoft.com/ru/downloads/) or use this [direct link](https://visualstudio.microsoft.com/ru/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16); 
+1. Install **Build Tools for Visual Studio 2019** from [this page](https://visualstudio.microsoft.com/ru/downloads/) or use this [direct link](https://visualstudio.microsoft.com/ru/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16); 
 2. Install [CMake](https://cmake.org/download/);
    It will be better, if you select the "Add CMake to system path" option during the installation process;
 3. Install [Python](https://www.python.org/downloads/);
@@ -10,9 +11,9 @@ This article describes how to build space-expansion server on windows 10.
 4. install [Git](https://git-scm.com/)
 5. install Conan packet manager (see below)
 
-After all this packets are installed, make sure that you can run them from the command line interface (CLI). To start command line press **"WIN + R"** and type the **"powershell"** command.
+After all this packages are installed, make sure that you can run them from the command line interface (CLI). To start CLI press **"WIN + R"** and type the **"powershell"** command.
 
-To check that tools as accessable from the CLI, tun the following commands to see the similar output:
+To check that tools are accessable from the CLI, run the following commands to see the similar output:
 ```powershell
 cmake --version
 
@@ -35,9 +36,9 @@ pip3 --version
 pip 19.2.3 from c:\users\zimin\appdata\local\programs\python\python38-32\lib\site-packages\pip (python 3.8)
 ```
 
-If some of this command can't be found by windows you should add path to corresponding application to the PATH environment variable (it also can be optionally done during installiation process).
+If some of this command can't be found by windows you should add path to the corresponding application to the PATH environment variable (it also can be optionally done during installiation process).
 
-If everything work as expected, you may want to install **Conan** packet manager is a powerfull tool for building dependencies for C++ projects. To install conan run:
+If everything work as expected, you may want to install **Conan** packet manager - a powerfull tool for building dependencies for C++ projects. To install conan run:
 ```powershell
 pip install conan
 ```
@@ -66,37 +67,47 @@ Clone the server's sources:
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
 ```
 
-Now, to build server run the following commands:
+Create build directory and move into it:
 ```
+mkdir $SPEX_BUILD_DIR
 cd $SPEX_BUILD_DIR
+```
+
+Run conan to build all required dependencies:
+```powershell
 conan install $SPEX_SOURCE_DIR/conanfile.txt --build=missing
+```
+**Hint:** after you have run conan, you may want to check if it used proper compiler and build configuration. Please, refer to "Conan profile" for details.
+
+Start building with cmake:
+```
 cmake $SPEX_SOURCE_DIR
-cmake --build .
+cmake --build . --config Release
 ```
 
 # Troubleshooting
-## Conan
-If you got some problem with Conan and want to retry conan build, first you should do is **remove conan cache**. Normally, conan cache is a **$HOME/.conan** directory. If it is exist, just run
+## Conan profile
+Normally, when Conan starts for the first time, it creates **Concn Cache** directory at ```$HOME/.conan```. To see current conan profile open the ```$HOME/.conan/profile/default```.  It should contain the following lines:
+```
+[settings]
+os=Windows
+os_build=Windows
+arch=x86_64
+arch_build=x86_64
+compiler=Visual Studio
+compiler.version=16
+build_type=Release
+[options]
+[build_requires]
+[env]
+```
+Make sure, that "Visual Studio" is used as compiler and it's version is 15 or greater.
+
+If you got some problem during building, you may retry with Conan and want to retry conan build, first thing you should do is **remove conan cache** directory:
 ```powershell
 Remove-Item –path $HOME/.conan –recurse
 ```
-
-You can also check, that conan found appropriate compiler. After you removed conan cache, you can run conan again. If conan managed to find windows compiler, it will output the following log:
-```
-Auto detecting your dev setup to initialize the default profile (C:\Users\zimin\.conan\profiles\default)
-Found Visual Studio 16
-Default settings
-        os=Windows
-        os_build=Windows
-        arch=x86_64
-        arch_build=x86_64
-        compiler=Visual Studio
-        compiler.version=16
-        build_type=Release
-*** You can change them in C:\Users\zimin\.conan\profiles\default ***
-*** Or override with -s compiler='other' -s ...s***
-```
-
+## CMake
 When you run cmake configuration for the first time, it should also output the similar log:
 ```powershell
 -- Building for: Visual Studio 16 2019
