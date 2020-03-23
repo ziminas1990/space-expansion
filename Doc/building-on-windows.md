@@ -1,5 +1,4 @@
-
-# Building in Windows 10
+# Building on Windows 10
 Windows is not a target platform for this project, but it is possible to build space-expansion on windows. This guide describes how to build space-expansion server on windows 10. Probably, you may use it to build server on windows 7 or 8 too.
 
 ## Installing required tools
@@ -50,6 +49,44 @@ conan --version
 Conan version 1.23.0
 ```
 
+## Prepharing conan (optional)
+This step can be skipped, but it can be usefull if you got some error and trying to figure out what was wrong.
+Conan profile specifies, which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
+
+If you have already run conan, you may want to remove the conan cache first. It can be done with the following command:
+```
+Remove-Item –path $HOME/.conan –recurse
+```
+Now, let's create default profile:
+```
+conan profile new default --detect
+
+Found Visual Studio 16
+Profile created with detected settings: C:\Users\zimin\.conan\profiles\default
+```
+In this case, conan detect only Visual Studio 16 compiler. If you have installed other compilers, conan may find them too. Now let's take a look at profile:
+```
+notepad.exe $HOME/.conan/profiles/default
+```
+
+You may see the following file:
+```
+[settings]
+os=Windows
+os_build=Windows
+arch=x86_64
+arch_build=x86_64
+compiler=Visual Studio
+compiler.version=16
+build_type=Release
+[options]
+[build_requires]
+[env]
+```
+This means, that Visual Studio compiler will be used (version 16) to build dependencies in Release 64-bit mode. That is what we need. Server should also be built with the same compiler, bitness and build type (Release).
+
+**In general**, if you have some error and suspect that it is because something wrong with conan, you can clear conan cache, check conan profiile and rebuild all dependencies again
+
 ## Building server
 Let's assume, that you have the following powershell variables:
 1. **SPEX_SOURCE_DIR** - path to the directory, where you have cloned the latest [server sources](https://github.com/ziminas1990/space-expansion);
@@ -85,28 +122,9 @@ cmake $SPEX_SOURCE_DIR
 cmake --build . --config Release
 ```
 
-# Troubleshooting
-## Conan profile
-Normally, when Conan starts for the first time, it creates **Concn Cache** directory at ```$HOME/.conan```. To see current conan profile open the ```$HOME/.conan/profile/default```.  It should contain the following lines:
-```
-[settings]
-os=Windows
-os_build=Windows
-arch=x86_64
-arch_build=x86_64
-compiler=Visual Studio
-compiler.version=16
-build_type=Release
-[options]
-[build_requires]
-[env]
-```
-Make sure, that "Visual Studio" is used as compiler and it's version is 15 or greater.
 
-If you got some problem during building, you may retry with Conan and want to retry conan build, first thing you should do is **remove conan cache** directory:
-```powershell
-Remove-Item –path $HOME/.conan –recurse
-```
+
+# Troubleshooting
 ## CMake
 When you run cmake configuration for the first time, it should also output the similar log:
 ```powershell
@@ -115,5 +133,4 @@ When you run cmake configuration for the first time, it should also output the s
 -- The C compiler identification is MSVC 19.25.28610.4
 -- The CXX compiler identification is MSVC 19.25.28610.4
 ```
-
 **Make sure** that both cmake and conan use the same compiler!
