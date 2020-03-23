@@ -76,8 +76,10 @@ public:
     switch (nStageId) {
       case eStageHandleMessages:
         handleAllMessages();
+        break;
       case eStageProceeding:
         proceedBusyModules(nIntervalUs);
+        break;
       default:
         assert(false);
     }

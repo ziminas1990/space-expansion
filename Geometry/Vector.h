@@ -16,6 +16,8 @@ public:
     : x(other.x * k), y(other.y * k)
   {}
 
+  Vector& operator=(Vector const& other) = default;
+
   bool operator==(Vector const& other) const {
     return utils::AlmostEqual(x, other.x)
         && utils::AlmostEqual(y, other.y);

@@ -159,7 +159,7 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
   sendBuildStatus(nSessionId, spex::IShipyard::BUILD_STARTED);
 }
 
-void Shipyard::cancelBuildReq(uint32_t nSessionId)
+void Shipyard::cancelBuildReq(uint32_t)
 {
   assert("Cancel build is NOT implemented yet");
 }
