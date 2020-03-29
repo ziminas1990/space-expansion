@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option cc_enable_arenas = true;
+
+package admin;
+
+
+message Access {
+
+  message Login {
+    string login    = 1;
+    string password = 2;
+  }
+  
+  oneof choice {
+    Login  login   = 1;
+  
+    uint64 success = 128;
+    bool   fail    = 129;
+  }
+}
+
+
+message TimeControl {
+
+  oneof choice {
+    bool time = 1;
+    
+    uint64 now = 129;
+  }
+}
+
+
+message Message {
+  uint64 token = 1;
+
+  oneof choice {
+    // All possible interfaces are listed here
+    Access      access       = 2;
+    TimeControl time_control = 3;
+  }
+}

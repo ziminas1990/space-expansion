@@ -21,13 +21,18 @@ conan_basic_setup(TARGETS)
 # Я так и не понял, каким образом нужно генерить исходники protobuf, поэтому делаем
 # такой хак: достаём путь к директории с компилятором и генерим код так же
 # как и при ручной сборке
+# Have no idea, how to run protobuf compiler in a proper way. So, here is a hack: just
+# get path to compiler and run the compiler manually.
 set(PROTOBUF_COMPILER ${CONAN_BIN_DIRS_PROTOC_INSTALLER}/protoc)
-set(PROTOBUF_FILE   Protocol.proto)
+
+set(PROTOBUF_FILES   "Protocol.proto" "Priveledeged.proto")
 set(PROTOBUF_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.cc"
-                    "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.h")
+                    "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.h"
+                    "${CMAKE_CURRENT_BINARY_DIR}/Priveledeged.pb.cc"
+                    "${CMAKE_CURRENT_BINARY_DIR}/Priveledeged.pb.h")
 add_custom_command(
   OUTPUT ${PROTOBUF_OUTPUT}
-  COMMAND ${PROTOBUF_COMPILER} ${PROTOBUF_FILE} --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND ${PROTOBUF_COMPILER} ${PROTOBUF_FILES} --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   VERBATIM USES_TERMINAL)
 add_custom_target(protobuf-generated DEPENDS ${PROTOBUF_OUTPUT})

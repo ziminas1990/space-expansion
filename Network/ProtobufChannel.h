@@ -37,6 +37,9 @@ private:
 using PlayerChannel = ProtobufChannel<spex::Message>;
 using PlayerChannelPtr = std::shared_ptr<PlayerChannel>;
 
+using PrivilegedChannel = ProtobufChannel<admin::Message>;
+using PrivilegedChannelPtr = std::shared_ptr<PrivilegedChannel>;
+
 
 template<typename FrameType>
 bool ProtobufChannel<FrameType>::openSession(uint32_t nSessionId)

@@ -4,6 +4,7 @@
 #include <memory>
 
 #include <Protocol.pb.h>
+#include <Priveledeged.pb.h>
 
 namespace network
 {
@@ -78,9 +79,17 @@ using IPlayerChannel             = IChannel<spex::Message>;
 using IPlayerChannelPtr          = std::shared_ptr<IPlayerChannel>;
 using IPlayerChannelWeakPtr      = std::weak_ptr<IPlayerChannel>;
 
+using IPrivilegedChannel         = IChannel<admin::Message>;
+using IPrivilegedChannelPtr      = std::shared_ptr<IPlayerChannel>;
+using IPrivilegedChannelWeakPtr  = std::weak_ptr<IPlayerChannel>;
+
 using IPlayerTerminal            = ITerminal<spex::Message>;
 using IPlayerTerminalPtr         = std::shared_ptr<IPlayerTerminal>;
 using IPlayerTerminalWeakPtr     = std::weak_ptr<IPlayerTerminal>;
+
+using IPrivilegedTerminal        = ITerminal<admin::Message>;
+using IPrivilegedTerminalPtr     = std::shared_ptr<IPrivilegedTerminal>;
+using IPrivilegedTerminalWeakPtr = std::weak_ptr<IPrivilegedTerminal>;
 
 
 } // namespace network
