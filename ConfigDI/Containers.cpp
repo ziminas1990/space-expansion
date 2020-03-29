@@ -20,6 +20,28 @@ PortsPoolCfg& PortsPoolCfg::setEnd(uint16_t nEnd)
 }
 
 //========================================================================================
+// AdministratorCfg
+//========================================================================================
+
+AdministratorCfg& AdministratorCfg::setPort(uint16_t nPort)
+{
+  m_nPort = nPort;
+  return *this;
+}
+
+AdministratorCfg& AdministratorCfg::setLogin(std::string sLogin)
+{
+  m_sLogin = std::move(sLogin);
+  return *this;
+}
+
+AdministratorCfg& AdministratorCfg::setPassord(std::string sPassword)
+{
+  m_sPassword = std::move(sPassword);
+  return *this;
+}
+
+//========================================================================================
 // ApplicationCfg
 //========================================================================================
 
@@ -27,10 +49,11 @@ ApplicationCfg::ApplicationCfg()
   : m_nTotalThreads(1), m_nLoginUdpPort(0xFFFF)
 {}
 
-ApplicationCfg::ApplicationCfg(const IApplicationCfg &other)
+ApplicationCfg::ApplicationCfg(IApplicationCfg const& other)
   : m_nTotalThreads(other.getTotalThreads()),
     m_nLoginUdpPort(other.getLoginUdpPort()),
-    m_portsPool(other.getPortsPoolcfg())
+    m_portsPool(other.getPortsPoolcfg()),
+    m_administratorCfg(other.getAdministratorCfg())
 {}
 
 ApplicationCfg& ApplicationCfg::setTotalThreads(uint16_t nTotalThreads)
@@ -48,6 +71,12 @@ ApplicationCfg &ApplicationCfg::setLoginUdpPort(uint16_t nLoginUdpPort)
 ApplicationCfg &ApplicationCfg::setPortsPool(IPortsPoolCfg const& cfg)
 {
   m_portsPool = cfg;
+  return *this;
+}
+
+ApplicationCfg &ApplicationCfg::setAdministratorCfg(IAdministratorCfg const& cfg)
+{
+  m_administratorCfg = cfg;
   return *this;
 }
 

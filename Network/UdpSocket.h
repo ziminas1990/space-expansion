@@ -19,7 +19,7 @@ public:
   UdpSocket(boost::asio::io_service& io_context, uint16_t nLocalPort);
   UdpSocket(UdpSocket const& other) = delete;
   UdpSocket(UdpSocket&& other)      = delete;
-  ~UdpSocket();
+  ~UdpSocket() override;
 
   void addRemote(udp::endpoint const& remote);
   void removeRemote(udp::endpoint const& remote);

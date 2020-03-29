@@ -12,6 +12,12 @@ public:
   static PortsPoolCfg read(YAML::Node const& data);
 };
 
+class AdministratorCfgReader
+{
+public:
+  static AdministratorCfg read(YAML::Node const& data);
+};
+
 class ApplicationCfgReader
 {
 public:

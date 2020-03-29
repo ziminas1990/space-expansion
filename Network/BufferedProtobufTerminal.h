@@ -31,18 +31,24 @@ public:
 protected:
   virtual void handleMessage(uint32_t nSessionId, FrameType const& message) = 0;
   bool channelIsValid() const { return m_pChannel && m_pChannel->isValid(); }
+
   bool send(uint32_t nSessionId, FrameType const& message) const {
     return m_pChannel && m_pChannel->send(nSessionId, message);
+  }
+
+  void closeSession(uint32_t nSessionId) {
+    if (m_pChannel)
+      m_pChannel->closeSession(nSessionId);
   }
 
 private:
   struct BufferedMessage
   {
-    BufferedMessage(uint32_t nSessionId, spex::Message const& message)
+    BufferedMessage(uint32_t nSessionId, FrameType const& message)
       : m_nSessionId(nSessionId), m_body(message)
     {}
     uint32_t      m_nSessionId = 0;
-    spex::Message m_body;
+    FrameType m_body;
   };
 
 private:

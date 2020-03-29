@@ -56,8 +56,8 @@ private:
   bool sendLoginFailed(uint32_t nSessionId, std::string const& reason);
 
 private:
-  network::UdpDispatcherPtr   m_pConnectionManager;
-  world::PlayerStorageWeakPtr m_pPlayersStorage;
+  network::UdpDispatcherPtr     m_pConnectionManager;
+  world::PlayerStorageWeakPtr   m_pPlayersStorage;
 };
 
 using AccessPanelPtr = std::shared_ptr<AccessPanel>;

@@ -1,12 +1,19 @@
 #include "SystemManager.h"
+
 #include <thread>
 #include <yaml-cpp/yaml.h>
+#include <iostream>
 
+#include <Priveledeged.pb.h>
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Ships/ShipsManager.h"
 #include "Conveyor/Proceeders.h"
 #include "World/Resources.h"
 #include <Arbitrators/ArbitratorsFactory.h>
+
+//========================================================================================
+// SystemManager
+//========================================================================================
 
 SystemManager::~SystemManager()
 {
@@ -91,7 +98,31 @@ void SystemManager::proceedOnce(uint32_t nIntervalUs)
 
 void SystemManager::proceed()
 {
-  conveyor::runRealTimeProceeder(m_pConveyor);
+  const auto nMinTickSize = std::chrono::microseconds(100);
+  const auto nMaxTickSize = std::chrono::milliseconds(20);
+  auto startTime    = std::chrono::high_resolution_clock::now();
+  while (true)
+  {
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    auto dt =
+        std::chrono::duration_cast<std::chrono::microseconds>(
+          currentTime - startTime - m_inGameTime);
+    if (dt < nMinTickSize) {
+      std::this_thread::yield();
+      continue;
+    }
+    if (dt > nMaxTickSize)
+      dt = nMaxTickSize;
+
+#ifdef DEBUG_MODE
+    if (dt > nMaxTickSize / 2) {
+      std::cout << "Proceeding " << dt.count() << " usec..." << std::endl;
+    }
+#endif // ifdef DEBUG_MODE
+
+    m_pConveyor->proceed(static_cast<uint32_t>(dt.count()));
+    m_inGameTime += dt;
+  }
 }
 
 bool SystemManager::createAllComponents()
@@ -114,9 +145,15 @@ bool SystemManager::createAllComponents()
         m_IoService,
         m_configuration.getPortsPoolcfg().begin(),
         m_configuration.getPortsPoolcfg().end());
-  m_pLoginChannel   = std::make_shared<network::PlayerChannel>();
-  m_pAccessPanel    = std::make_shared<modules::AccessPanel>();
-  m_pPlayersStorage = std::make_shared<world::PlayersStorage>();
+  m_pLoginChannel       = std::make_shared<network::PlayerChannel>();
+  m_pAccessPanel        = std::make_shared<modules::AccessPanel>();
+  if (m_configuration.getAdministratorCfg().isValid()) {
+    m_pPrivilegedChannel  = std::make_shared<network::PrivilegedChannel>();
+    m_pAdministratorPanel = std::make_shared<AdministratorPanel>(
+          m_configuration.getAdministratorCfg(),
+          std::time(nullptr));
+  }
+  m_pPlayersStorage     = std::make_shared<world::PlayersStorage>();
   return true;
 }
 
@@ -127,6 +164,14 @@ bool SystemManager::configureComponents()
 
 bool SystemManager::linkComponents()
 {
+  if (m_pPrivilegedChannel && m_pAdministratorPanel) {
+    m_pUdpDispatcher->createUdpConnection(
+          m_pPrivilegedChannel,
+          m_configuration.getAdministratorCfg().getPort());
+    m_pPrivilegedChannel->attachToTerminal(m_pAdministratorPanel);
+    m_pAdministratorPanel->attachToChannel(m_pPrivilegedChannel);
+  }
+
   m_pUdpDispatcher->createUdpConnection(m_pLoginChannel,
                                         m_configuration.getLoginUdpPort());
   m_pLoginChannel->attachToTerminal(m_pAccessPanel);
@@ -136,6 +181,9 @@ bool SystemManager::linkComponents()
 
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
+  if (m_pAdministratorPanel) {
+    m_pConveyor->addLogicToChain(m_pAdministratorPanel);
+  }
   m_pConveyor->addLogicToChain(m_pNewtonEngine);
   m_pConveyor->addLogicToChain(m_pCommutatorsManager);
   m_pConveyor->addLogicToChain(m_pShipsManager);

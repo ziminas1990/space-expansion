@@ -32,6 +32,36 @@ private:
 };
 
 
+class AdministratorCfg : public IAdministratorCfg
+{
+public:
+  AdministratorCfg() = default;
+  AdministratorCfg(AdministratorCfg const&) = default;
+  AdministratorCfg(IAdministratorCfg const& other)
+    : m_nPort(other.getPort()),
+      m_sLogin(other.getLogin()),
+      m_sPassword(other.getPassword())
+  {}
+
+  bool isValid() const {
+    return m_nPort != 0 && !m_sLogin.empty() && !m_sPassword.empty();
+  }
+
+  AdministratorCfg& setPort(uint16_t nPort);
+  AdministratorCfg& setLogin(std::string sLogin);
+  AdministratorCfg& setPassord(std::string sPassword);
+
+  // overrides from IAdministratorCfg
+  uint16_t    getPort()     const override { return m_nPort; }
+  std::string getLogin()    const override { return m_sLogin; }
+  std::string getPassword() const override { return m_sPassword; }
+
+private:
+  uint16_t    m_nPort = 0;
+  std::string m_sLogin;
+  std::string m_sPassword;
+};
+
 class ApplicationCfg : public IApplicationCfg
 {
 public:
@@ -45,16 +75,21 @@ public:
   ApplicationCfg& setTotalThreads(uint16_t nTotalThreads);
   ApplicationCfg& setLoginUdpPort(uint16_t nLoginUdpPort);
   ApplicationCfg& setPortsPool(IPortsPoolCfg const& cfg);
+  ApplicationCfg& setAdministratorCfg(IAdministratorCfg const& cfg);
 
   // IApplicationCfg interface
   uint16_t             getTotalThreads() const override { return m_nTotalThreads; }
   uint16_t             getLoginUdpPort() const override { return m_nLoginUdpPort; }
-  const IPortsPoolCfg& getPortsPoolcfg() const override { return m_portsPool; }
+  IPortsPoolCfg const& getPortsPoolcfg() const override { return m_portsPool; }
+  AdministratorCfg const& getAdministratorCfg() const override {
+    return m_administratorCfg;
+  }
 
 private:
-  uint16_t     m_nTotalThreads;
-  uint16_t     m_nLoginUdpPort;
-  PortsPoolCfg m_portsPool;
+  uint16_t         m_nTotalThreads;
+  uint16_t         m_nLoginUdpPort;
+  PortsPoolCfg     m_portsPool;
+  AdministratorCfg m_administratorCfg;
 };
 
 } // namespace config

@@ -35,7 +35,6 @@ public:
       parts[i] /= sum;
     }
   }
-
 };
 
 } // namespace utils

@@ -93,7 +93,7 @@ template<typename FrameType>
 void ProtobufChannel<FrameType>::handleMessage(uint32_t nSessionId,
                                                BinaryMessage const& message)
 {
-  spex::Message pdu;
+  FrameType pdu;
   if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength))) {
     //std::cout << "Received\n" << pdu.DebugString() << std::endl;
     m_pTerminal->onMessageReceived(nSessionId, std::move(pdu));
