@@ -19,7 +19,7 @@ namespace modules
 {
 
 // Each module should inherite BaseModule class
-class BaseModule : public network::BufferedProtobufTerminal
+class BaseModule : public network::BufferedPlayerTerminal
 {
 private:
   enum class Status {
@@ -97,7 +97,7 @@ protected:
   ships::Ship const* getPlatform() const { return m_pPlatform; }
 
   inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {
-    return network::BufferedProtobufTerminal::send(nSessionId, message);
+    return network::BufferedPlayerTerminal::send(nSessionId, message);
   }
 
   bool sendToClient(uint32_t nSessionId, spex::ICommutator const& message) const;

@@ -17,7 +17,7 @@ using PlayerStorageWeakPtr = std::weak_ptr<PlayersStorage>;
 namespace modules {
 
 class AccessPanel :
-    public network::BufferedProtobufTerminal,
+    public network::BufferedPlayerTerminal,
     public conveyor::IAbstractLogic
 {
 public:

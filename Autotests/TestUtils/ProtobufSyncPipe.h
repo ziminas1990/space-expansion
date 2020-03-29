@@ -12,7 +12,7 @@ namespace autotests {
 class ProtobufSyncPipe;
 using ProtobufSyncPipePtr = std::shared_ptr<ProtobufSyncPipe>;
 
-class ProtobufSyncPipe : public network::IProtobufTerminal
+class ProtobufSyncPipe : public network::IPlayerTerminal
 {
   using MessagesQueue = std::queue<spex::Message>;
   using SessionsQueue = std::map<uint32_t, MessagesQueue>;
@@ -38,7 +38,7 @@ public:
   bool openSession(uint32_t /*nSessionId*/) override { return true; }
   void onMessageReceived(uint32_t nSessionId, spex::Message const& frame) override;
   void onSessionClosed(uint32_t /*nSessionId*/) override {}
-  void attachToChannel(network::IProtobufChannelPtr pChannel) override
+  void attachToChannel(network::IPlayerChannelPtr pChannel) override
   { m_pAttachedChannel = pChannel; }
   void detachFromChannel() override { m_pAttachedChannel.reset(); }
 
@@ -47,7 +47,7 @@ private:
                     spex::Message &out, uint16_t nTimeoutMs = 500);
 
 private:
-  network::IProtobufChannelPtr  m_pAttachedChannel;
+  network::IPlayerChannelPtr  m_pAttachedChannel;
   std::function<void()>         m_fEnviromentProceeder;
   mutable SessionsQueue         m_Sessions;
 };

@@ -17,7 +17,7 @@ namespace autotests
 
 class BidirectionalChannel :
     public client::IClientChannel,
-    public network::IProtobufChannel
+    public network::IPlayerChannel
 {
 public:
 
@@ -27,14 +27,14 @@ public:
   bool send(uint32_t nSessionId, spex::Message const& message) const override;
   void closeSession(uint32_t) override {}
   bool isValid() const override;
-  void attachToTerminal(network::IProtobufTerminalPtr pServer) override;
+  void attachToTerminal(network::IPlayerTerminalPtr pServer) override;
   void detachFromTerminal() override { m_pServer.reset(); }
 
   // overrides from client::IClientChannel
   bool send(spex::Message const& message) override;
 
 private:
-  network::IProtobufTerminalPtr  m_pServer;
+  network::IPlayerTerminalPtr  m_pServer;
   client::IClientTerminalWeakPtr m_pClientLink;
 };
 

@@ -407,6 +407,5 @@ message Message {
     IBlueprintsLibrary blueprints_library = 12;
     IShipyard          shipyard           = 13;
     IGame              game               = 14;
-    bytes              privileged         = 100;
   }
 }

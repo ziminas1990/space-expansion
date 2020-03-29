@@ -66,21 +66,21 @@ struct BinaryMessage
 };
 
 
-using IBinaryChannel           = IChannel<BinaryMessage>;
-using IBinaryChannelPtr        = std::shared_ptr<IBinaryChannel>;
-using IBinaryChannelWeakPtr    = std::weak_ptr<IBinaryChannel>;
+using IBinaryChannel             = IChannel<BinaryMessage>;
+using IBinaryChannelPtr          = std::shared_ptr<IBinaryChannel>;
+using IBinaryChannelWeakPtr      = std::weak_ptr<IBinaryChannel>;
 
-using IBinaryTerminal          = ITerminal<BinaryMessage>;
-using IBinaryTerminalPtr       = std::shared_ptr<IBinaryTerminal>;
-using IBinaryTerminalWeakPtr   = std::weak_ptr<IBinaryTerminal>;
+using IBinaryTerminal            = ITerminal<BinaryMessage>;
+using IBinaryTerminalPtr         = std::shared_ptr<IBinaryTerminal>;
+using IBinaryTerminalWeakPtr     = std::weak_ptr<IBinaryTerminal>;
 
-using IProtobufChannel         = IChannel<spex::Message>;
-using IProtobufChannelPtr      = std::shared_ptr<IProtobufChannel>;
-using IProtobufChannelWeakPtr  = std::weak_ptr<IProtobufChannel>;
+using IPlayerChannel             = IChannel<spex::Message>;
+using IPlayerChannelPtr          = std::shared_ptr<IPlayerChannel>;
+using IPlayerChannelWeakPtr      = std::weak_ptr<IPlayerChannel>;
 
-using IProtobufTerminal        = ITerminal<spex::Message>;
-using IProtobufTerminalPtr     = std::shared_ptr<IProtobufTerminal>;
-using IProtobufTerminalWeakPtr = std::weak_ptr<IProtobufTerminal>;
+using IPlayerTerminal            = ITerminal<spex::Message>;
+using IPlayerTerminalPtr         = std::shared_ptr<IPlayerTerminal>;
+using IPlayerTerminalWeakPtr     = std::weak_ptr<IPlayerTerminal>;
 
 
 } // namespace network

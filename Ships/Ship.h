@@ -29,7 +29,7 @@ public:
 
   // overrides from IProtobufTerminal interface
   void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
-  void attachToChannel(network::IProtobufChannelPtr pChannel) override;
+  void attachToChannel(network::IPlayerChannelPtr pChannel) override;
   void detachFromChannel() override;
 
   modules::BaseModulePtr getModuleByName(std::string const& sName) const;

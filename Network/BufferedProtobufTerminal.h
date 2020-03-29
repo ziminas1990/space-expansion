@@ -9,22 +9,26 @@ namespace network {
 // When subclassing this class, you MUST override:
 // 1. IProtobufTerminal::openSession(sessionId)
 // 2. IProtobufTerminal::onSessionClosed(sessionId)
-class BufferedProtobufTerminal : public IProtobufTerminal
+// 3. handleMessage(nSessionId, message)
+template<typename FrameType>
+class BufferedProtobufTerminal : public ITerminal<FrameType>
 {
+  using Channel    = IChannel<FrameType>;
+  using ChannelPtr = std::shared_ptr<Channel>;
 public:
   BufferedProtobufTerminal() { m_messages.reserve(0x40); }
 
   // overrides from IProtobufTerminal interface
-  void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
-  void attachToChannel(IProtobufChannelPtr pChannel) override { m_pChannel = pChannel; }
+  void onMessageReceived(uint32_t nSessionId, FrameType const& message) override;
+  void attachToChannel(ChannelPtr pChannel) override { m_pChannel = pChannel; }
   void detachFromChannel() override { m_pChannel.reset(); }
 
   void handleBufferedMessages();
 
 protected:
-  virtual void handleMessage(uint32_t nSessionId, spex::Message const& message) = 0;
+  virtual void handleMessage(uint32_t nSessionId, FrameType const& message) = 0;
   bool channelIsValid() const { return m_pChannel && m_pChannel->isValid(); }
-  bool send(uint32_t nSessionId, spex::Message const& message) const {
+  bool send(uint32_t nSessionId, FrameType const& message) const {
     return m_pChannel && m_pChannel->send(nSessionId, message);
   }
 
@@ -41,9 +45,27 @@ private:
 private:
   std::vector<BufferedMessage> m_messages;
 
-  IProtobufChannelPtr m_pChannel;
+  ChannelPtr m_pChannel;
 };
 
-using BufferedProtobufTerminalPtr = std::shared_ptr<BufferedProtobufTerminal>;
+
+using BufferedPlayerTerminal     = BufferedProtobufTerminal<spex::Message>;
+
+
+template<typename FrameType>
+void BufferedProtobufTerminal<FrameType>::onMessageReceived(
+    uint32_t nSessionId, FrameType const& message)
+{
+  m_messages.emplace_back(nSessionId, message);
+}
+
+template<typename FrameType>
+void BufferedProtobufTerminal<FrameType>::handleBufferedMessages()
+{
+  for(BufferedMessage& message : m_messages)
+    handleMessage(message.m_nSessionId, message.m_body);
+  m_messages.clear();
+}
+
 
 } // namespace network

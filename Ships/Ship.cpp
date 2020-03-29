@@ -66,7 +66,7 @@ void Ship::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
   }
 }
 
-void Ship::attachToChannel(network::IProtobufChannelPtr pChannel)
+void Ship::attachToChannel(network::IPlayerChannelPtr pChannel)
 {
   BaseModule::attachToChannel(pChannel);
   m_pCommutator->attachToChannel(pChannel);

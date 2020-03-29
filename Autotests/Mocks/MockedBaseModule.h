@@ -35,7 +35,7 @@ public:
     ProtobufSyncPipe::onSessionClosed(nSessionId);
   }
 
-  void attachToChannel(network::IProtobufChannelPtr pChannel) override
+  void attachToChannel(network::IPlayerChannelPtr pChannel) override
   {
     ProtobufSyncPipe::attachToChannel(pChannel);
     modules::BaseModule::attachToChannel(pChannel);

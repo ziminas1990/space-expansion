@@ -43,12 +43,11 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
   }
 
   // Creating protobuf transport layer
-  network::ProtobufChannelPtr pProtobufChannel =
-      std::make_shared<network::ProtobufChannel>();
+  network::PlayerChannelPtr pPlayerChannel = std::make_shared<network::PlayerChannel>();
 
   // Creating low-level transport (UDP)
   network::UdpSocketPtr pLocalSocket =
-      m_pConnectionManager->createUdpConnection(pProtobufChannel);
+      m_pConnectionManager->createUdpConnection(pPlayerChannel);
   if (!pLocalSocket) {
     sendLoginFailed(nSessionId, "Can't create UDP socket");
     return;
@@ -64,7 +63,7 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     return;
   }
 
-  pPlayer->attachToChannel(pProtobufChannel);
+  pPlayer->attachToChannel(pPlayerChannel);
   sendLoginSuccess(nSessionId, pLocalSocket->getNativeSocket().local_endpoint());
 }
 

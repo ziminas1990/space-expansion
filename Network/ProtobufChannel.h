@@ -6,6 +6,10 @@
 
 namespace network {
 
+// This class connects UDP socket with protobuf terminal
+// It performs converting binary messages into a protobuf messages and vice versa
+// The `FrameType` parameter specifies type of protobuf message, like `spex::Message`
+// or `admin::Message`
 template<typename FrameType>
 class ProtobufChannel : public BufferedTerminal, public IChannel<FrameType>
 {
@@ -29,7 +33,6 @@ protected:
 private:
   TerminalPtr m_pTerminal;
 };
-
 
 using PlayerChannel = ProtobufChannel<spex::Message>;
 using PlayerChannelPtr = std::shared_ptr<PlayerChannel>;

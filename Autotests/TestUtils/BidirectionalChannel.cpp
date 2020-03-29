@@ -24,7 +24,7 @@ bool BidirectionalChannel::isValid() const
   return m_pClientLink.lock() != client::IClientTerminalPtr();
 }
 
-void BidirectionalChannel::attachToTerminal(network::IProtobufTerminalPtr pServer)
+void BidirectionalChannel::attachToTerminal(network::IPlayerTerminalPtr pServer)
 {
   m_pServer = pServer;
 }

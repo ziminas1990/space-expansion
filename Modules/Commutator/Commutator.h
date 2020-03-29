@@ -13,7 +13,7 @@ namespace modules {
 class Commutator :
     public BaseModule,
     public utils::GlobalContainer<Commutator>,
-    public network::IProtobufChannel
+    public network::IPlayerChannel
 {
   static const size_t m_nSessionsLimit = 8;
 
@@ -52,7 +52,7 @@ public:
   bool send(uint32_t nSessionId, spex::Message const& message) const override;
   void closeSession(uint32_t nSessionId) override;
   bool isValid() const override { return channelIsValid(); }
-  void attachToTerminal(network::IProtobufTerminalPtr) override {}
+  void attachToTerminal(network::IPlayerTerminalPtr) override {}
   void detachFromTerminal() override;
 
 protected:
