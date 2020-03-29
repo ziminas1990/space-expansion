@@ -13,7 +13,7 @@ public:
 
   void SetUp() override
   {
-    m_pChannel        = std::make_shared<network::ProtobufChannel>();
+    m_pChannel        = std::make_shared<network::PlayerChannel>();
     m_pMockedTerminal = std::make_shared<ProtobufSyncPipe>();
 
     m_pChannel->attachToTerminal(m_pMockedTerminal);
@@ -30,8 +30,8 @@ protected:
   void createSomeMessages(std::vector<spex::Message>& out);
 
 protected:
-  network::ProtobufChannelPtr m_pChannel;
-  ProtobufSyncPipePtr         m_pMockedTerminal;
+  network::PlayerChannelPtr m_pChannel;
+  ProtobufSyncPipePtr       m_pMockedTerminal;
 };
 
 void ProtobufChannelTests::sendMessage(spex::Message const& message)

@@ -81,7 +81,7 @@ Player::~Player()
   m_pBlueprintsExplorer->detachFromChannel();
 }
 
-void Player::attachToChannel(network::ProtobufChannelPtr pChannel)
+void Player::attachToChannel(network::PlayerChannelPtr pChannel)
 {
   m_pChannel = std::move(pChannel);
   m_pEntryPoint->attachToChannel(m_pChannel);

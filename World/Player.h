@@ -25,7 +25,7 @@ public:
                         YAML::Node const& state);
   ~Player();
 
-  void attachToChannel(network::ProtobufChannelPtr pChannel);
+  void attachToChannel(network::PlayerChannelPtr pChannel);
 
   std::string const& getLogin()    const { return m_sLogin; }
   std::string const& getPassword() const { return m_sPassword; }
@@ -39,7 +39,7 @@ private:
   std::string const m_sLogin;
   std::string       m_sPassword;
 
-  network::ProtobufChannelPtr   m_pChannel;
+  network::PlayerChannelPtr   m_pChannel;
   modules::CommutatorPtr        m_pEntryPoint;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
 

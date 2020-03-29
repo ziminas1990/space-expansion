@@ -114,7 +114,7 @@ bool SystemManager::createAllComponents()
         m_IoService,
         m_configuration.getPortsPoolcfg().begin(),
         m_configuration.getPortsPoolcfg().end());
-  m_pLoginChannel   = std::make_shared<network::ProtobufChannel>();
+  m_pLoginChannel   = std::make_shared<network::PlayerChannel>();
   m_pAccessPanel    = std::make_shared<modules::AccessPanel>();
   m_pPlayersStorage = std::make_shared<world::PlayersStorage>();
   return true;

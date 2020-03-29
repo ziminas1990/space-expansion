@@ -68,7 +68,7 @@ private:
   modules::ShipyardManagerPtr          m_pShipyardManager;
 
   network::UdpDispatcherPtr   m_pUdpDispatcher;
-  network::ProtobufChannelPtr m_pLoginChannel;
+  network::PlayerChannelPtr m_pLoginChannel;
 
   modules::AccessPanelPtr     m_pAccessPanel;
 
