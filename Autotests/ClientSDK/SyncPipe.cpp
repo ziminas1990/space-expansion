@@ -4,38 +4,16 @@
 
 namespace autotests { namespace client {
 
-void SyncPipe::attachToDownlevel(IClientChannelPtr pDownlevel)
-{
-  m_pDownlevel = pDownlevel;
-}
+//========================================================================================
+// PlayerPipe
+//========================================================================================
 
-void SyncPipe::attachTunnelHandler(uint32_t nTunnelId, IClientTerminalWeakPtr pHandler)
+void PlayerPipe::attachTunnelHandler(uint32_t nTunnelId, IPlayerTerminalWeakPtr pHandler)
 {
   m_handlers[nTunnelId] = pHandler;
 }
 
-void SyncPipe::setProceeder(std::function<void ()> fEnviromentProceeder)
-{
-  m_fEnviromentProceeder = std::move(fEnviromentProceeder);
-}
-
-bool SyncPipe::waitAny(uint16_t nTimeoutMs)
-{
-  return utils::waitFor(
-        [this]() { return !m_receivedMessages.empty(); },
-        m_fEnviromentProceeder, nTimeoutMs);
-}
-
-bool SyncPipe::waitAny(spex::Message &out, uint16_t nTimeoutMs)
-{
-  if (!waitAny(nTimeoutMs))
-    return false;
-  out = std::move(m_receivedMessages.front());
-  m_receivedMessages.pop();
-  return true;
-}
-
-bool SyncPipe::wait(spex::IAccessPanel &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IAccessPanel &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kAccessPanel, message, nTimeoutMs))
@@ -44,7 +22,7 @@ bool SyncPipe::wait(spex::IAccessPanel &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::ICommutator &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::ICommutator &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kCommutator, message, nTimeoutMs))
@@ -53,7 +31,7 @@ bool SyncPipe::wait(spex::ICommutator &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IShip &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IShip &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kShip, message, nTimeoutMs))
@@ -62,7 +40,7 @@ bool SyncPipe::wait(spex::IShip &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::INavigation &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::INavigation &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kNavigation, message, nTimeoutMs))
@@ -71,7 +49,7 @@ bool SyncPipe::wait(spex::INavigation &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IEngine &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IEngine &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kEngine, message, nTimeoutMs))
@@ -80,7 +58,7 @@ bool SyncPipe::wait(spex::IEngine &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kCelestialScanner, message, nTimeoutMs))
@@ -89,7 +67,7 @@ bool SyncPipe::wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IAsteroidScanner &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IAsteroidScanner &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kAsteroidScanner, message, nTimeoutMs))
@@ -98,7 +76,7 @@ bool SyncPipe::wait(spex::IAsteroidScanner &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IResourceContainer &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IResourceContainer &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kResourceContainer, message, nTimeoutMs))
@@ -107,7 +85,7 @@ bool SyncPipe::wait(spex::IResourceContainer &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IAsteroidMiner &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IAsteroidMiner &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kAsteroidMiner, message, nTimeoutMs))
@@ -116,7 +94,7 @@ bool SyncPipe::wait(spex::IAsteroidMiner &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IBlueprintsLibrary &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IBlueprintsLibrary &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kBlueprintsLibrary, message, nTimeoutMs))
@@ -125,7 +103,7 @@ bool SyncPipe::wait(spex::IBlueprintsLibrary &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IShipyard &out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IShipyard &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kShipyard, message, nTimeoutMs))
@@ -134,7 +112,7 @@ bool SyncPipe::wait(spex::IShipyard &out, uint16_t nTimeoutMs)
   return true;
 }
 
-bool SyncPipe::wait(spex::IGame& out, uint16_t nTimeoutMs)
+bool PlayerPipe::wait(spex::IGame& out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(spex::Message::kGame, message, nTimeoutMs))
@@ -143,7 +121,7 @@ bool SyncPipe::wait(spex::IGame& out, uint16_t nTimeoutMs)
   return true;
 }
 
-void SyncPipe::onMessageReceived(spex::Message &&message)
+void PlayerPipe::onMessageReceived(spex::Message &&message)
 {
   switch(message.choice_case()) {
     case spex::Message::kEncapsulated: {
@@ -152,7 +130,7 @@ void SyncPipe::onMessageReceived(spex::Message &&message)
       if (I == m_handlers.end()) {
         return;
       }
-      IClientTerminalPtr pHandler = I->second.lock();
+      IPlayerTerminalPtr pHandler = I->second.lock();
       if (pHandler) {
         pHandler->onMessageReceived(std::move(encapsulated));
       } else {
@@ -161,28 +139,27 @@ void SyncPipe::onMessageReceived(spex::Message &&message)
       return;
     }
     default: {
-      m_receivedMessages.push(std::move(message));
+      SyncPipe<spex::Message>::onMessageReceived(std::move(message));
     }
   }
 }
 
-bool SyncPipe::send(spex::Message const& message)
-{
-  return m_pDownlevel && m_pDownlevel->send(message);
-}
-
-bool SyncPipe::waitConcrete(spex::Message::ChoiceCase eExpectedChoice,
+bool PlayerPipe::waitConcrete(spex::Message::ChoiceCase eExpectedChoice,
                             spex::Message &out, uint16_t nTimeoutMs)
 {
   return waitAny(out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
 }
+
+//========================================================================================
+// Tunnel
+//========================================================================================
 
 bool Tunnel::send(spex::Message const& body)
 {
   spex::Message message;
   message.set_tunnelid(m_nTunnelId);
   *message.mutable_encapsulated() = body;
-  return SyncPipe::send(message);
+  return PlayerPipe::send(message);
 }
 
 }}  // namespace autotests::client

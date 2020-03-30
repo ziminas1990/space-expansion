@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <Protocol.pb.h>
-
 namespace autotests { namespace client {
 
 class IProceedable
@@ -14,26 +13,40 @@ public:
   virtual bool isComplete() const = 0;
 };
 
-class IClientChannel
+template<typename FrameType>
+class IChannel
 {
 public:
-  virtual ~IClientChannel() = default;
+  virtual ~IChannel() = default;
 
-  virtual bool send(spex::Message const& message) = 0;
+  virtual bool send(FrameType const& message) = 0;
 };
 
-class IClientTerminal
+template<typename FrameType>
+class ITerminal
 {
 public:
-  virtual ~IClientTerminal() = default;
+  virtual ~ITerminal() = default;
 
-  virtual void onMessageReceived(spex::Message&& message) = 0;
+  virtual void onMessageReceived(FrameType&& message) = 0;
 };
 
-using IClientChannelPtr  = std::shared_ptr<IClientChannel>;
-using IClientTerminalPtr = std::shared_ptr<IClientTerminal>;
+template<typename FrameType>
+using IChannelPtr = std::shared_ptr<IChannel<FrameType>>;
 
-using IClientTerminalWeakPtr = std::weak_ptr<IClientTerminal>;
-using IClientChannelWeakPtr  = std::weak_ptr<IClientChannel>;
+template<typename FrameType>
+using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;
+
+template<typename FrameType>
+using ITerminalWeakPtr = std::weak_ptr<ITerminal<FrameType>>;
+
+
+using IPlayerChannel = IChannel<spex::Message>;
+using IPlayerChannelPtr  = std::shared_ptr<IPlayerChannel>;
+
+using IPlayerTerminal = ITerminal<spex::Message>;
+using IPlayerTerminalPtr = std::shared_ptr<IPlayerTerminal>;
+
+using IPlayerTerminalWeakPtr = std::weak_ptr<IPlayerTerminal>;
 
 }}  // namespace autotests::client

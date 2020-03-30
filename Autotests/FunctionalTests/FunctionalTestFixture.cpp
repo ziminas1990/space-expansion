@@ -28,8 +28,8 @@ void FunctionalTestFixture::SetUp()
         boost::asio::ip::address::from_string("127.0.0.1"), 0);
 
   // Initializing client components
-  m_pSocket         = std::make_shared<client::Socket>(m_IoService, m_clientAddress);
-  m_pRootPipe       = std::make_shared<client::SyncPipe>();
+  m_pSocket         = std::make_shared<client::PlayerSocket>(m_IoService, m_clientAddress);
+  m_pRootPipe       = std::make_shared<client::PlayerPipe>();
   m_pAccessPanel    = std::make_shared<client::ClientAccessPanel>();
   m_pRootCommutator = std::make_shared<client::ClientCommutator>();
 

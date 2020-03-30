@@ -34,7 +34,7 @@ void CommutatorTests::SetUp()
 
   m_pChannel           = std::make_shared<BidirectionalChannel>();
   m_pClient            = std::make_shared<client::ClientCommutator>();
-  m_pProtobufPipe      = std::make_shared<client::SyncPipe>();
+  m_pProtobufPipe      = std::make_shared<client::PlayerPipe>();
 
   // Setting up components
   m_Conveyor.addLogicToChain(m_pCommutatorManager);

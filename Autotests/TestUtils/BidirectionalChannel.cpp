@@ -4,7 +4,7 @@
 namespace autotests
 {
 
-void BidirectionalChannel::attachToClientSide(client::IClientTerminalWeakPtr pClientLink)
+void BidirectionalChannel::attachToClientSide(client::IPlayerTerminalWeakPtr pClientLink)
 {
   m_pClientLink = pClientLink;
 }
@@ -12,7 +12,7 @@ void BidirectionalChannel::attachToClientSide(client::IClientTerminalWeakPtr pCl
 bool BidirectionalChannel::send(uint32_t, spex::Message const& message) const
 {
   //std::cout << "Server -> Client:\n" << message.DebugString() << std::endl;
-  client::IClientTerminalPtr pTerminal = m_pClientLink.lock();
+  client::IPlayerTerminalPtr pTerminal = m_pClientLink.lock();
   if (!pTerminal)
     return false;
   pTerminal->onMessageReceived(spex::Message(message));
@@ -21,7 +21,7 @@ bool BidirectionalChannel::send(uint32_t, spex::Message const& message) const
 
 bool BidirectionalChannel::isValid() const
 {
-  return m_pClientLink.lock() != client::IClientTerminalPtr();
+  return m_pClientLink.lock() != client::IPlayerTerminalPtr();
 }
 
 void BidirectionalChannel::attachToTerminal(network::IPlayerTerminalPtr pServer)

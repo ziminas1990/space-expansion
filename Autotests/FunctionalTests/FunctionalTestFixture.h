@@ -57,22 +57,22 @@ protected:
   //               |                                     |
   //               +----------------+   +----------------+
   //                                |   |
-  //                        +---------------------+
-  //                        |  client::SyncPipe   |
-  //                        +---------------------+
+  //                      +------------------------+
+  //                      |   client::PlayerPipe   |
+  //                      +------------------------+
   //                                  |
-  //                        +---------------------+
-  //                        |   client::Socket    |
-  //                        +---------------------+
+  //                      +------------------------+
+  //                      |  client::PlayerSocket  |
+  //                      +------------------------+
   //                                  |
   //                                  +-------------------------------> Server
   //
 
-  boost::asio::io_service         m_IoService;
-  client::SocketPtr               m_pSocket;
-  client::SyncPipePtr             m_pRootPipe;
-  client::ClientAccessPanelPtr    m_pAccessPanel;
-  client::ClientCommutatorPtr     m_pRootCommutator;
+  boost::asio::io_service      m_IoService;
+  client::PlayerSocketPtr      m_pSocket;
+  client::PlayerPipePtr        m_pRootPipe;
+  client::ClientAccessPanelPtr m_pAccessPanel;
+  client::ClientCommutatorPtr  m_pRootCommutator;
 
   struct Statistic {
     uint32_t nTotalCycles = 0;

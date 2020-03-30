@@ -40,7 +40,7 @@ protected:
 
   // Components on client side
   client::ClientCommutatorPtr   m_pClient;
-  client::SyncPipePtr           m_pProtobufPipe;
+  client::PlayerPipePtr           m_pProtobufPipe;
 };
 
 } // namespace autotests

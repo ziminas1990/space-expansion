@@ -7,9 +7,9 @@ namespace autotests { namespace client {
 class ClientBaseModule
 {
 public:
-  void attachToChannel(SyncPipePtr pSyncPipe) { m_pSyncPipe = pSyncPipe; }
+  void attachToChannel(PlayerPipePtr pSyncPipe) { m_pSyncPipe = pSyncPipe; }
   void detachChannel() { m_pSyncPipe.reset(); }
-  SyncPipePtr getChannel() { return m_pSyncPipe; }
+  PlayerPipePtr getChannel() { return m_pSyncPipe; }
   bool isAttached() const { return m_pSyncPipe != nullptr; }
 
   // Forwarding interface from SyncPipe
@@ -21,7 +21,7 @@ public:
   { return m_pSyncPipe && m_pSyncPipe->wait(message, nTimeout); }
 
 private:
-  SyncPipePtr m_pSyncPipe;
+  PlayerPipePtr m_pSyncPipe;
 };
 
 }} // namespace autotests

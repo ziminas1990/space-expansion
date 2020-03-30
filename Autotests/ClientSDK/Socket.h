@@ -6,21 +6,24 @@
 
 namespace autotests { namespace client {
 
-class Socket : public IClientChannel
+class Socket
 {
-  using udp = boost::asio::ip::udp;
 public:
+  using udp = boost::asio::ip::udp;
+
   Socket(boost::asio::io_service& io_context, udp::endpoint localAddress);
   Socket(Socket const& other) = delete;
   Socket(Socket&& other)      = delete;
-  ~Socket() override;
+  virtual ~Socket();
 
   void setServerAddress(udp::endpoint serverAddress);
-  void attachToTerminal(IClientTerminalWeakPtr pTerminal)
-  { m_pTerminalLink = pTerminal; }
 
-  // overrides from IClientChannel
-  bool send(spex::Message const& message) override;
+  void send(std::string const& message);
+    // Send the specified 'message' to the server. Why message is
+    // 'std::string'? Because protobuf uses std::string
+
+protected:
+  virtual void handleData(uint8_t* pData, size_t nTotal) = 0;
 
 private:
   void receivingData();
@@ -31,12 +34,53 @@ private:
   udp::endpoint       m_senderAddress;
   udp::endpoint       m_serverAddress;
 
-  IClientTerminalWeakPtr m_pTerminalLink;
-
   size_t   m_nReceiveBufferSize;
   uint8_t* m_pReceiveBuffer;
 };
 
-using SocketPtr  = std::shared_ptr<Socket>;
+
+template<typename FrameT>
+class ProtobufSocket : public Socket,
+                       public IChannel<FrameT>
+{
+public:
+  ProtobufSocket(boost::asio::io_service& io_context, udp::endpoint localAddress)
+    : Socket(io_context, std::move(localAddress))
+  {}
+
+  void attachToTerminal(ITerminalWeakPtr<FrameT> pTerminal)
+  {
+    m_pTerminalLink = pTerminal;
+  }
+
+  // overrides from IChannel<FrameT>
+  bool send(FrameT const& message) override
+  {
+    std::string buffer;
+    if (!message.SerializeToString(&buffer))
+      return false;
+    Socket::send(buffer);
+    return true;
+  }
+
+protected:
+  // override from Socket
+  void handleData(uint8_t* pData, size_t nTotal) override
+  {
+    FrameT receivedMessage;
+    if (receivedMessage.ParseFromArray(pData, int(nTotal))) {
+      ITerminalPtr<FrameT> pTerminal = m_pTerminalLink.lock();
+      if (pTerminal)
+        pTerminal->onMessageReceived(std::move(receivedMessage));
+    }
+  }
+
+private:
+  ITerminalWeakPtr<FrameT> m_pTerminalLink;
+};
+
+
+using PlayerSocket = ProtobufSocket<spex::Message>;
+using PlayerSocketPtr = std::shared_ptr<PlayerSocket>;
 
 }}  // namespace autotests::client

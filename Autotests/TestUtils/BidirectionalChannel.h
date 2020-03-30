@@ -16,12 +16,12 @@ namespace autotests
 //
 
 class BidirectionalChannel :
-    public client::IClientChannel,
+    public client::IPlayerChannel,
     public network::IPlayerChannel
 {
 public:
 
-  void attachToClientSide(client::IClientTerminalWeakPtr pClientLink);
+  void attachToClientSide(client::IPlayerTerminalWeakPtr pClientLink);
 
   // overrides from IChannel interface
   bool send(uint32_t nSessionId, spex::Message const& message) const override;
@@ -35,7 +35,7 @@ public:
 
 private:
   network::IPlayerTerminalPtr  m_pServer;
-  client::IClientTerminalWeakPtr m_pClientLink;
+  client::IPlayerTerminalWeakPtr m_pClientLink;
 };
 
 using BidirectionalChannelPtr = std::shared_ptr<BidirectionalChannel>;

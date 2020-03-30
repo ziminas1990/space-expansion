@@ -23,12 +23,8 @@ void Socket::setServerAddress(boost::asio::ip::udp::endpoint serverAddress)
   m_serverAddress = std::move(serverAddress);
 }
 
-bool Socket::send(spex::Message const& message)
+void Socket::send(std::string const& buffer)
 {
-  std::string buffer;
-  if (!message.SerializeToString(&buffer))
-    return false;
-
   uint8_t* pChunk = new uint8_t[buffer.size()];
   memcpy(pChunk, buffer.data(), buffer.size());
   m_socket.async_send_to(
@@ -36,7 +32,6 @@ bool Socket::send(spex::Message const& message)
         [pChunk](const boost::system::error_code&, std::size_t) {
           delete [] pChunk;
         });
-  return true;
 }
 
 void Socket::receivingData()
@@ -49,20 +44,14 @@ void Socket::receivingData()
 }
 
 void Socket::onDataReceived(boost::system::error_code const& error,
-                                     std::size_t nTotalBytes)
+                            std::size_t nTotalBytes)
 {
   if (!error)
   {
-    spex::Message receivedMessage;
-    if (receivedMessage.ParseFromArray(m_pReceiveBuffer, int(nTotalBytes))) {
-      IClientTerminalPtr pTerminal = m_pTerminalLink.lock();
-      if (pTerminal)
-        pTerminal->onMessageReceived(std::move(receivedMessage));
-    }
+    handleData(m_pReceiveBuffer, nTotalBytes);
     // Continue receiving data
     receivingData();
   }
 }
-
 
 }}  // namespace autotests::client

@@ -4,26 +4,78 @@
 #include <map>
 #include <memory>
 #include <functional>
+
 #include "Interfaces.h"
+#include <Utils/WaitingFor.h>
 
 namespace autotests { namespace client {
 
-class SyncPipe :
-    public IClientChannel,
-    public IClientTerminal
+// Awesome class! For more details see the the 'waitAny()' docstring
+template<typename FrameType>
+class SyncPipe : public IChannel<FrameType>,
+                 public ITerminal<FrameType>
+{
+public:
+  void attachToDownlevel(IChannelPtr<FrameType> pDownlevel) {
+    m_pDownlevel = pDownlevel;
+  }
+
+  void detachDownlevel() { m_pDownlevel.reset(); }
+
+  void setProceeder(std::function<void()> fEnviromentProceeder) {
+    m_fEnviromentProceeder = std::move(fEnviromentProceeder);
+  }
+
+  std::function<void()> getProceeder() const { return m_fEnviromentProceeder; }
+
+  // waitAny() call is a key feature of SyncPipe. It blocks control until some
+  // message received or the specified 'nTimeoutMs' runs out. If message is
+  // received, store it to the specified 'out' and return true. Otherwise
+  // return false.
+  bool waitAny(FrameType &out, uint16_t nTimeoutMs)
+  {
+    if (!waitAny(nTimeoutMs))
+      return false;
+    out = std::move(m_receivedMessages.front());
+    m_receivedMessages.pop();
+    return true;
+  }
+
+  bool waitAny(uint16_t nTimeoutMs)
+  {
+    return utils::waitFor(
+          [this]() { return !m_receivedMessages.empty(); },
+          m_fEnviromentProceeder, nTimeoutMs);
+  }
+
+  // override from ITerminal<FrameType>
+  void onMessageReceived(FrameType &&message) override
+  {
+    m_receivedMessages.push(std::move(message));
+  }
+
+  // overrides from IChannel<FrameType> interface
+  bool send(FrameType const& message) override
+  {
+    return m_pDownlevel && m_pDownlevel->send(message);
+  }
+
+
+private:
+  IChannelPtr<FrameType> m_pDownlevel;
+    // Channel, that will be used to send messages
+  std::function<void()>  m_fEnviromentProceeder;
+    // Environment will be proceeded while pipe is waiting for message
+  std::queue<FrameType>  m_receivedMessages;
+    // All received messages are stored to this queue
+};
+
+
+class PlayerPipe : public SyncPipe<spex::Message>
 {
 public:
 
-  void attachToDownlevel(IClientChannelPtr pDownlevel);
-  void detachDownlevel() { m_pDownlevel.reset(); }
-  void attachTunnelHandler(uint32_t nTunnelId, IClientTerminalWeakPtr pHandler);
-
-  void setProceeder(std::function<void()> fEnviromentProceeder);
-  std::function<void()> getProceeder() const { return m_fEnviromentProceeder; }
-
-  // Waiting message in already opened session nSessionId
-  bool waitAny(uint16_t nTimeoutMs = 100);
-  bool waitAny(spex::Message &out, uint16_t nTimeoutMs = 100);
+  void attachTunnelHandler(uint32_t nTunnelId, IPlayerTerminalWeakPtr pHandler);
 
   bool wait(spex::IAccessPanel &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::ICommutator &out, uint16_t nTimeoutMs = 100);
@@ -38,31 +90,21 @@ public:
   bool wait(spex::IShipyard& out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IGame& out, uint16_t nTimeoutMs = 100);
 
-  // Expect, that no message will be received in session
-  bool expectSilence(uint16_t nTimeoutMs);
-
-  // overrides from IClientTerminal interface
+  // overrides from SyncPipe<spex::Message>
   void onMessageReceived(spex::Message&& message) override;
-
-  // overrides from IClientChannel interface
-  bool send(spex::Message const& message) override;
 
 private:
   bool waitConcrete(spex::Message::ChoiceCase eExpectedChoice,
                     spex::Message &out, uint16_t nTimeoutMs = 500);
 
 private:
-  IClientChannelPtr m_pDownlevel;
-  std::map<uint32_t, IClientTerminalWeakPtr> m_handlers;
-  std::function<void()> m_fEnviromentProceeder;
-
-  std::queue<spex::Message> m_receivedMessages;
+  std::map<uint32_t, IPlayerTerminalWeakPtr> m_handlers;
 };
 
-using SyncPipePtr = std::shared_ptr<SyncPipe>;
+using PlayerPipePtr = std::shared_ptr<PlayerPipe>;
 
 
-class Tunnel : public SyncPipe
+class Tunnel : public PlayerPipe
 {
 public:
   Tunnel(uint32_t nTunnelId) : m_nTunnelId(nTunnelId) {}
