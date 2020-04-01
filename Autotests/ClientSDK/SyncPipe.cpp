@@ -145,7 +145,7 @@ void PlayerPipe::onMessageReceived(spex::Message &&message)
 }
 
 bool PlayerPipe::waitConcrete(spex::Message::ChoiceCase eExpectedChoice,
-                            spex::Message &out, uint16_t nTimeoutMs)
+                              spex::Message &out, uint16_t nTimeoutMs)
 {
   return waitAny(out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
 }
@@ -160,6 +160,25 @@ bool Tunnel::send(spex::Message const& body)
   message.set_tunnelid(m_nTunnelId);
   *message.mutable_encapsulated() = body;
   return PlayerPipe::send(message);
+}
+
+//========================================================================================
+// PrivilegedPipe
+//========================================================================================
+
+bool PrivilegedPipe::wait(admin::Access &out, uint16_t nTimeoutMs)
+{
+  admin::Message message;
+  if(!waitConcrete(admin::Message::kAccess, message, nTimeoutMs))
+    return false;
+  out = std::move(message.access());
+  return true;
+}
+
+bool PrivilegedPipe::waitConcrete(admin::Message::ChoiceCase eExpectedChoice,
+                                  admin::Message &out, uint16_t nTimeoutMs)
+{
+  return waitAny(out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
 }
 
 }}  // namespace autotests::client

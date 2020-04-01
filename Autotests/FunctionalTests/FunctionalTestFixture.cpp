@@ -16,16 +16,16 @@ void FunctionalTestFixture::SetUp()
 {
   m_cfg = prephareConfiguration();
 
-  m_clientAddress =
-      boost::asio::ip::udp::endpoint(
-        boost::asio::ip::address::from_string("127.0.0.1"), 4455);
+  auto localHost = boost::asio::ip::address::from_string("127.0.0.1");
+
+  m_clientAddress = boost::asio::ip::udp::endpoint(localHost, 4455);
+  m_adminAddress  = boost::asio::ip::udp::endpoint(localHost, 4460);
+
   m_serverLoginAddress =
-      boost::asio::ip::udp::endpoint(
-        boost::asio::ip::address::from_string("127.0.0.1"),
-        m_cfg.getLoginUdpPort());
-  m_serverAddress =
-      boost::asio::ip::udp::endpoint(
-        boost::asio::ip::address::from_string("127.0.0.1"), 0);
+      boost::asio::ip::udp::endpoint(localHost, m_cfg.getLoginUdpPort());
+  m_serverAddress = boost::asio::ip::udp::endpoint(localHost, 0);
+  m_serverPrivilegedAddress =
+      boost::asio::ip::udp::endpoint(localHost, m_cfg.getAdministratorCfg().getPort());
 
   // Initializing client components
   m_pSocket         = std::make_shared<client::PlayerSocket>(m_IoService, m_clientAddress);
@@ -33,21 +33,31 @@ void FunctionalTestFixture::SetUp()
   m_pAccessPanel    = std::make_shared<client::ClientAccessPanel>();
   m_pRootCommutator = std::make_shared<client::ClientCommutator>();
 
+  m_pPrivilegedSocket = std::make_shared<client::PrivilegedSocket>(m_IoService,
+                                                                   m_adminAddress);
+  m_pPrivilegedPipe = std::make_shared<client::PrivilegedPipe>();
+
   m_pSocket->setServerAddress(m_serverLoginAddress);
-  m_pRootPipe->setProceeder(
-        [this](){
-          if (m_lWorldFreezed)
-            proceedFreezedWorld();
-          else
-            proceedEnviroment(100, 1000);
-        }
-  );
+  m_pPrivilegedSocket->setServerAddress(m_serverPrivilegedAddress);
+
+  auto fProceeder = [this](){
+    if (m_lWorldFreezed)
+      proceedFreezedWorld();
+    else
+      proceedEnviroment(100, 1000);
+  };
+
+  m_pRootPipe->setProceeder(fProceeder);
+  m_pPrivilegedPipe->setProceeder(fProceeder);
 
   // Linking client components
   m_pSocket->attachToTerminal(m_pRootPipe);
   m_pRootPipe->attachToDownlevel(m_pSocket);
   m_pAccessPanel->attachToChannel(m_pRootPipe);
   m_pRootCommutator->attachToChannel(m_pRootPipe);
+
+  m_pPrivilegedPipe->attachToDownlevel(m_pPrivilegedSocket);
+  m_pPrivilegedSocket->attachToTerminal(m_pPrivilegedPipe);
 
   // And, finaly, loading and running the world:
   m_application.initialize(m_cfg);
@@ -75,7 +85,12 @@ config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
       .setPortsPool(
         config::PortsPoolCfg()
         .setBegin(25000)
-        .setEnd(25100));
+        .setEnd(25100))
+      .setAdministratorCfg(
+        config::AdministratorCfg()
+        .setPort(4372)
+        .setLogin("god")
+        .setPassord("god"));
 }
 
 void FunctionalTestFixture::proceedFreezedWorld()

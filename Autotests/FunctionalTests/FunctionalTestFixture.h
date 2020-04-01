@@ -45,8 +45,16 @@ protected:
   bool m_lWorldFreezed;
 
   boost::asio::ip::udp::endpoint m_clientAddress;
+    // UDP address, that will be used to connect as client
+  boost::asio::ip::udp::endpoint m_adminAddress;
+    // UDP address, that will be used to connect as admin
   boost::asio::ip::udp::endpoint m_serverLoginAddress;
+    // Address, which is used by server to accept login requests
   boost::asio::ip::udp::endpoint m_serverAddress;
+    // Address, that was returned by server after successfull login
+  boost::asio::ip::udp::endpoint m_serverPrivilegedAddress;
+    // Adress, that is used by server to receive commands from
+    // administrator
 
   // Components for client side:
   //                                        Tunnels and Mocked Modules...
@@ -73,6 +81,10 @@ protected:
   client::PlayerPipePtr        m_pRootPipe;
   client::ClientAccessPanelPtr m_pAccessPanel;
   client::ClientCommutatorPtr  m_pRootCommutator;
+
+  // Components to communicate with access panel
+  client::PrivilegedSocketPtr m_pPrivilegedSocket;
+  client::PrivilegedPipePtr   m_pPrivilegedPipe;
 
   struct Statistic {
     uint32_t nTotalCycles = 0;

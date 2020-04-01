@@ -2,6 +2,9 @@
 
 #include "Interfaces.h"
 
+#include <Protocol.pb.h>
+#include <Priveledeged.pb.h>
+
 #include <boost/asio.hpp>
 
 namespace autotests { namespace client {
@@ -82,5 +85,8 @@ private:
 
 using PlayerSocket = ProtobufSocket<spex::Message>;
 using PlayerSocketPtr = std::shared_ptr<PlayerSocket>;
+
+using PrivilegedSocket = ProtobufSocket<admin::Message>;
+using PrivilegedSocketPtr = std::shared_ptr<PrivilegedSocket>;
 
 }}  // namespace autotests::client

@@ -6,6 +6,8 @@
 #include <functional>
 
 #include "Interfaces.h"
+#include <Protocol.pb.h>
+#include <Priveledeged.pb.h>
 #include <Utils/WaitingFor.h>
 
 namespace autotests { namespace client {
@@ -119,5 +121,20 @@ private:
 };
 
 using TunnelPtr = std::shared_ptr<Tunnel>;
+
+
+class PrivilegedPipe : public SyncPipe<admin::Message>
+{
+public:
+
+  bool wait(admin::Access &out, uint16_t nTimeoutMs = 100);
+
+private:
+  bool waitConcrete(admin::Message::ChoiceCase eExpectedChoice,
+                    admin::Message &out, uint16_t nTimeoutMs = 500);
+
+};
+
+using PrivilegedPipePtr = std::shared_ptr<PrivilegedPipe>;
 
 }} // namespace autotest::client

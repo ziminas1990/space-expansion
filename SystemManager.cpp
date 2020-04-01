@@ -20,6 +20,9 @@ SystemManager::~SystemManager()
   m_pAccessPanel->detachFromChannel();
   m_pLoginChannel->detachFromChannel();
   m_pLoginChannel->detachFromTerminal();
+  m_pAdministratorPanel->detachFromChannel();
+  m_pPrivilegedChannel->detachFromChannel();
+  m_pPrivilegedChannel->detachFromTerminal();
   delete m_pConveyor;
 }
 
