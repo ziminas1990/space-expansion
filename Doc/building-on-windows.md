@@ -99,9 +99,10 @@ $SPEX_SOURCE_DIR="$HOME\Projects\space-expansion-server"
 $SPEX_BUILD_DIR="$HOME\Projects\space-expansion-server-build"
 ```
 
-Clone the server's sources:
+Clone the server's sources and switch to `release-1.0` branch:
 ```powershell
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
+git checkout release-1.0
 ```
 
 Create build directory and move into it:
@@ -121,8 +122,6 @@ Start building with cmake:
 cmake $SPEX_SOURCE_DIR
 cmake --build . --config Release
 ```
-
-
 
 # Troubleshooting
 ## CMake
