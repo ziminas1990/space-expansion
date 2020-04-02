@@ -74,6 +74,9 @@ Prepharing to build:
 ```bash
 # Clone the sources
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
+# Checkout to branch with release 1.0 version; feel free to choose
+# another version you want
+git checkout release-1.0
 # Create build directory and move into it
 mkdir $SPEX_BUILD_DIR
 cd $SPEX_BUILD_DIR
