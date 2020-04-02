@@ -9,6 +9,7 @@
 #include <Autotests/ClientSDK/SyncPipe.h>
 #include <Autotests/ClientSDK/Modules/ClientAccessPanel.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
+#include <Autotests/ClientSDK/Modules/ClientAdministratorPanel.h>
 
 #include <Utils/YamlForwardDeclarations.h>
 
@@ -83,8 +84,9 @@ protected:
   client::ClientCommutatorPtr  m_pRootCommutator;
 
   // Components to communicate with access panel
-  client::PrivilegedSocketPtr m_pPrivilegedSocket;
-  client::PrivilegedPipePtr   m_pPrivilegedPipe;
+  client::PrivilegedSocketPtr   m_pPrivilegedSocket;
+  client::PrivilegedPipePtr     m_pPrivilegedPipe;
+  client::AdministratorPanelPtr m_pAdminPanel;
 
   struct Statistic {
     uint32_t nTotalCycles = 0;

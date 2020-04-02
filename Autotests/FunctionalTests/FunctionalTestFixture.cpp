@@ -36,6 +36,7 @@ void FunctionalTestFixture::SetUp()
   m_pPrivilegedSocket = std::make_shared<client::PrivilegedSocket>(m_IoService,
                                                                    m_adminAddress);
   m_pPrivilegedPipe = std::make_shared<client::PrivilegedPipe>();
+  m_pAdminPanel     = std::make_shared<client::AdministratorPanel>();
 
   m_pSocket->setServerAddress(m_serverLoginAddress);
   m_pPrivilegedSocket->setServerAddress(m_serverPrivilegedAddress);
@@ -58,6 +59,7 @@ void FunctionalTestFixture::SetUp()
 
   m_pPrivilegedPipe->attachToDownlevel(m_pPrivilegedSocket);
   m_pPrivilegedSocket->attachToTerminal(m_pPrivilegedPipe);
+  m_pAdminPanel->attachToChannel(m_pPrivilegedPipe);
 
   // And, finaly, loading and running the world:
   m_application.initialize(m_cfg);
