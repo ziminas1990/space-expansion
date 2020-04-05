@@ -1,11 +1,17 @@
 #include "AdministratorPanel.h"
-
+#include <SystemManager.h>
 #include <random>
 
 AdministratorPanel::AdministratorPanel(config::IAdministratorCfg const& cfg,
                                        unsigned int nTokenPattern)
   : m_cfg(cfg), m_tokenGenerator(nTokenPattern)
 {
+}
+
+void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
+{
+  m_pSystemManager = pSystemManager;
+  m_systemClockCtrl.setup(m_pSystemManager, getChannel());
 }
 
 bool AdministratorPanel::prephareStage(uint16_t nStageId)
@@ -33,7 +39,13 @@ void AdministratorPanel::handleMessage(uint32_t nSessionId, admin::Message const
     return;
   }
 
-  // switch goes here
+  switch(message.choice_case()) {
+    case admin::Message::kSystemClock:
+      m_systemClockCtrl.handleMessage(nSessionId, message.system_clock());
+      return;
+    default:
+      return;
+  }
 }
 
 void AdministratorPanel::onLoginRequest(uint32_t nSessionId,

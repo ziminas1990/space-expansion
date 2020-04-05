@@ -13,7 +13,7 @@
 #include "World/PlayersStorage.h"
 #include <World/World.h>
 #include "Blueprints/BlueprintsLibrary.h"
-#include "AdministratorPanel.h"
+#include <AdministratorPanel/AdministratorPanel.h>
 
 #include "Newton/NewtonEngine.h"
 #include "Ships/ShipsManager.h"
@@ -30,17 +30,44 @@
 class SystemManager
 {
 public:
+  enum class ClockState {
+    eRunInRealTime,
+      // Game logic runs in real time mode
+    eFreezed,
+      // Game logic is freezed
+    eManualMode,
+      // Game logic is proceeded in manual mode
+    eTerminate
+      // Game logic is stopped
+  };
+
+  struct Stats {
+    std::chrono::microseconds m_inGameTime;
+      // How much time has passed in the game's world scince it was run
+    std::chrono::microseconds m_freezedTime;
+      // How much time the world has been freezed
+  };
+
+public:
   ~SystemManager();
 
   bool initialize(config::IApplicationCfg const& cfg);
   bool loadWorldState(YAML::Node const& data);
 
   bool start();
-  void stop();
+  bool freeze();
+  void resume();
+  bool proceedInterval(uint32_t nTickUs, uint32_t nTotalTicks);
+  bool stop();
+  void stopConveyor();
 
-  [[noreturn]] void proceed();
+  ClockState getClockState() const { return m_eClockState; }
+  std::chrono::microseconds now() const { return m_inGameTime; }
 
+  void proceed();
   void proceedOnce(uint32_t nIntervalUs);
+
+  void exportStat(Stats& out) const;
 
 private:
   bool createAllComponents();
@@ -50,8 +77,17 @@ private:
 private:
   config::ApplicationCfg       m_configuration;
   conveyor::Conveyor*          m_pConveyor = nullptr;
-  std::chrono::microseconds    m_inGameTime;
+  std::vector<std::thread*>    m_slaves;
+  ClockState                   m_eClockState = ClockState::eFreezed;
+
   boost::asio::io_service      m_IoService;
+
+  struct {
+    uint32_t m_nTickDurationUs = 0;
+    uint32_t m_nTicksLeft      = 0;
+  } m_proceedSteps;
+    // This struct is used, when SystemManager is in freezed state and the time
+    // is controlled manually (from adminPanel or integration tests)
 
   blueprints::BlueprintsLibrary m_blueprints;
     // Blueprints of modules, that are avaliable for all players right from

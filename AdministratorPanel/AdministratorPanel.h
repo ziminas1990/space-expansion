@@ -3,11 +3,15 @@
 #include <map>
 #include <memory>
 
+#include "SystemClock.h"
+
 #include <Network/BufferedProtobufTerminal.h>
 #include <Conveyor/IAbstractLogic.h>
 #include <Network/UdpDispatcher.h>
 #include <ConfigDI/Containers.h>
 #include <Utils/RandomSequence.h>
+
+class SystemManager;
 
 class AdministratorPanel :
     public network::BufferedPrivilegedTerminal,
@@ -16,6 +20,8 @@ class AdministratorPanel :
 public:
   AdministratorPanel(config::IAdministratorCfg const& cfg,
                      unsigned int nTokenPattern);
+
+  void attachToSystemManager(SystemManager* pSystemManager);
 
   // from BufferedPrivilegedTerminal->IBinaryTerminal interface:
   bool openSession(uint32_t /*nSessionId*/) override { return true; }
@@ -32,12 +38,15 @@ protected:
   void handleMessage(uint32_t nSessionId, admin::Message const& message) override;
 
 private:
+  // Functions to handle the "Access" interface
   void onLoginRequest(uint32_t nSessionId, admin::Access::Login const& message);
   void sendLoginSuccess(uint32_t nSessionId, uint64_t nToken);
   void sendLoginFailed(uint32_t nSessionId);
 
 private:
-  config::AdministratorCfg m_cfg;
+  config::AdministratorCfg   m_cfg;
+  SystemManager*             m_pSystemManager;
+  administrator::SystemClock m_systemClockCtrl;
 
   utils::RandomSequence m_tokenGenerator;
 
