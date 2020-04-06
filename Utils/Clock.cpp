@@ -15,6 +15,13 @@ inline uint64_t timeSinceUs(std::chrono::system_clock::time_point point)
         .count());
 }
 
+void Clock::start(bool lDebugMode)
+{
+  m_startedAt    = std::chrono::high_resolution_clock::now();
+  m_inGameTime   = 0;
+  m_nDeviationUs = 0;
+}
+
 uint32_t Clock::getNextInterval()
 {
   const uint64_t nMaxTickUs = 20000; // 20 ms

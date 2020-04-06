@@ -47,7 +47,8 @@ private:
   bool configureComponents();
   bool linkComponents();
 
-  void printTimeStat();
+  static void printStatisticHeader();
+  void printStatistic();
 
 private:
   config::ApplicationCfg       m_configuration;

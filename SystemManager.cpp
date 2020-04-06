@@ -88,6 +88,7 @@ bool SystemManager::start()
   for(size_t i = 1; i < m_configuration.getTotalThreads(); ++i) {
     m_slaves.push_back(new std::thread([this]() { m_pConveyor->joinAsSlave();} ));
   }
+  m_clock.start();
   return true;
 }
 
@@ -113,6 +114,7 @@ void SystemManager::proceed()
   const uint32_t nMinTickLengthUs = 100;
   uint64_t       nTicksCounter    = 0;
 
+  printStatisticHeader();
   while (!m_clock.isTerminated()) {
     uint32_t nIntervalUs = m_clock.getNextInterval();
     m_pConveyor->proceed(nIntervalUs);
@@ -120,8 +122,8 @@ void SystemManager::proceed()
       std::this_thread::yield();
     }
     ++nTicksCounter;
-    if (nTicksCounter % 1000 == 0) {
-      printTimeStat();
+    if (nTicksCounter % 10000 == 0) {
+      printStatistic();
     }
   }
 
@@ -203,6 +205,15 @@ bool SystemManager::linkComponents()
   return true;
 }
 
+void SystemManager::printStatisticHeader()
+{
+  std::cout << std::right << std::setw(12) << "Ticks Total"
+            << std::right << std::setw(17) << "Real Time"
+            << std::right << std::setw(17) << "Ingame Time"
+            << std::right << std::setw(17) << "Deviation"
+            << std::endl;
+}
+
 static std::string toTime(uint64_t nIntervalUs)
 {
   uint64_t nIntervalMs = nIntervalUs / 1000;
@@ -221,21 +232,18 @@ static std::string toTime(uint64_t nIntervalUs)
   if (nMinutes) {
     ss << nMinutes << "m ";
   }
-  if (nSeconds) {
-    ss << nSeconds << ".";
-  }
-  ss << nIntervalMs << "s ";
+  ss << nSeconds << ".";
+  ss << nIntervalMs << "s";
   return ss.str();
 }
 
-void SystemManager::printTimeStat()
+void SystemManager::printStatistic()
 {
   utils::ClockStat stat;
   m_clock.exportStat(stat);
-  std::cout << std::left << std::setw(12) << stat.nTicksCounter
-            << std::setw(20) << toTime(stat.nRealTimeUs)
-            << std::setw(20) << toTime(stat.nIngameTimeUs)
-            << std::setw(20) << toTime(stat.nDeviationUs)
+  std::cout << std::right << std::setw(12) << stat.nTicksCounter
+            << std::right << std::setw(17) << toTime(stat.nRealTimeUs)
+            << std::right << std::setw(17) << toTime(stat.nIngameTimeUs)
+            << std::right << std::setw(17) << toTime(stat.nDeviationUs)
             << std::endl;
-
 }
