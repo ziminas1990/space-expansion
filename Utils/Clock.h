@@ -9,7 +9,8 @@ struct ClockStat {
   uint64_t nTicksCounter = 0;
   uint64_t nRealTimeUs   = 0;
   uint64_t nIngameTimeUs = 0;
-  uint64_t nDeviationUs    = 0;
+  uint64_t nDeviationUs  = 0;
+  uint64_t nAvgTickDurationPerPeriod = 0;
 };
 
 // This clock will be used by SystemManager to get proceeding intervals.
@@ -37,14 +38,14 @@ public:
 
   uint32_t getNextInterval();
     // Return interval to proceed game logic
-  uint64_t getTicksCounter() const { return m_nTicksCounter; }
 
-  void switchToRealtimeMode()   { m_eState = eRealTimeMode; }
-  void switchDebugMode()        { m_eState = eDebugMode; }
-  void terminated()             { m_eState = eTerminated; }
-  bool isInRealTimeMode() const { return m_eState == eRealTimeMode; }
-  bool isInDebugMode()    const { return m_eState == eDebugMode; }
-  bool isTerminated()     const { return m_eState == eTerminated; }
+  bool switchToRealtimeMode();
+  bool switchToDebugMode();
+  void terminated()              { m_eState = eTerminated; }
+  bool isInRealTimeMode()  const { return m_eState == eRealTimeMode; }
+  bool isInDebugMode()     const { return m_eState == eDebugMode; }
+  bool isDebugInProgress() const { return isInDebugMode() && m_nDebugTicksCounter; }
+  bool isTerminated()      const { return m_eState == eTerminated; }
 
   void setDebugTickUs(uint32_t nDurationUs) {
     m_nDebugTickUs = nDurationUs;
@@ -73,7 +74,9 @@ private:
   uint32_t m_nDebugTicksCounter;
 
   // For statistic purposes only
-  uint64_t m_nTicksCounter = 0;
+  uint64_t         m_nTotalTicksCounter  = 0;
+  mutable uint64_t m_nPeriodTicksCounter = 0;
+  mutable uint64_t m_nPeriodDurationUs   = 0;
 };
 
 } // namespace utils

@@ -9,6 +9,8 @@
 namespace network
 {
 
+const uint32_t gInvalidSessionId = uint32_t(-1);
+
 template<typename FrameType> class ITerminal;
 template<typename FrameType>
 using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;

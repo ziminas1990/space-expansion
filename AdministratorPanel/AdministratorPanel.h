@@ -9,6 +9,8 @@
 #include <ConfigDI/Containers.h>
 #include <Utils/RandomSequence.h>
 
+#include "ClockControl.h"
+
 class SystemManager;
 
 class AdministratorPanel :
@@ -42,9 +44,9 @@ private:
   void sendLoginFailed(uint32_t nSessionId);
 
 private:
-  config::AdministratorCfg   m_cfg;
-  SystemManager*             m_pSystemManager;
-  //administrator::SystemClock m_systemClockCtrl;
+  config::AdministratorCfg    m_cfg;
+  SystemManager*              m_pSystemManager;
+  administrator::ClockControl m_clockControl;
 
   utils::RandomSequence m_tokenGenerator;
 

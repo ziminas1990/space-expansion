@@ -122,7 +122,7 @@ void SystemManager::proceed()
       std::this_thread::yield();
     }
     ++nTicksCounter;
-    if (nTicksCounter % 10000 == 0) {
+    if (nTicksCounter % 1000 == 0) {
       printStatistic();
     }
   }
@@ -211,11 +211,19 @@ void SystemManager::printStatisticHeader()
             << std::right << std::setw(17) << "Real Time"
             << std::right << std::setw(17) << "Ingame Time"
             << std::right << std::setw(17) << "Deviation"
+            << std::right << std::setw(12) << "Avg. Tick"
             << std::endl;
 }
 
 static std::string toTime(uint64_t nIntervalUs)
 {
+  std::stringstream ss;
+  if (nIntervalUs < 50000) {
+    // for the small time intervals (less thatn 50 ms)
+    ss << nIntervalUs << "us";
+    return ss.str();
+  }
+
   uint64_t nIntervalMs = nIntervalUs / 1000;
 
   uint64_t nHours    = nIntervalMs / (3600 * 1000);
@@ -225,7 +233,6 @@ static std::string toTime(uint64_t nIntervalUs)
   uint64_t nSeconds  = nIntervalMs / 1000;
   nIntervalMs       %= 1000;
 
-  std::stringstream ss;
   if (nHours) {
     ss << nHours << "h ";
   }
@@ -245,5 +252,6 @@ void SystemManager::printStatistic()
             << std::right << std::setw(17) << toTime(stat.nRealTimeUs)
             << std::right << std::setw(17) << toTime(stat.nIngameTimeUs)
             << std::right << std::setw(17) << toTime(stat.nDeviationUs)
+            << std::right << std::setw(12) << toTime(stat.nAvgTickDurationPerPeriod)
             << std::endl;
 }
