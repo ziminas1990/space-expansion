@@ -11,7 +11,6 @@ AdministratorPanel::AdministratorPanel(config::IAdministratorCfg const& cfg,
 void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
 {
   m_pSystemManager = pSystemManager;
-  m_systemClockCtrl.setup(m_pSystemManager, getChannel());
 }
 
 bool AdministratorPanel::prephareStage(uint16_t nStageId)
@@ -37,14 +36,6 @@ void AdministratorPanel::handleMessage(uint32_t nSessionId, admin::Message const
   if (I == m_tokens.end() || message.token() != I->second) {
     // invalid token -> ignoring message
     return;
-  }
-
-  switch(message.choice_case()) {
-    case admin::Message::kSystemClock:
-      m_systemClockCtrl.handleMessage(nSessionId, message.system_clock());
-      return;
-    default:
-      return;
   }
 }
 

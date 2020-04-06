@@ -3,8 +3,6 @@
 #include <map>
 #include <memory>
 
-#include "SystemClock.h"
-
 #include <Network/BufferedProtobufTerminal.h>
 #include <Conveyor/IAbstractLogic.h>
 #include <Network/UdpDispatcher.h>
@@ -46,7 +44,7 @@ private:
 private:
   config::AdministratorCfg   m_cfg;
   SystemManager*             m_pSystemManager;
-  administrator::SystemClock m_systemClockCtrl;
+  //administrator::SystemClock m_systemClockCtrl;
 
   utils::RandomSequence m_tokenGenerator;
 

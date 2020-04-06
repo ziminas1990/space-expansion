@@ -1,8 +1,9 @@
 #include "SystemManager.h"
 
 #include <thread>
-#include <yaml-cpp/yaml.h>
 #include <iostream>
+#include <iomanip>
+#include <yaml-cpp/yaml.h>
 
 #include <Priveledeged.pb.h>
 #include "Modules/Commutator/CommutatorManager.h"
@@ -90,54 +91,6 @@ bool SystemManager::start()
   return true;
 }
 
-bool SystemManager::freeze()
-{
-  switch (m_eClockState) {
-    case ClockState::eManualMode: {
-      m_proceedSteps.m_nTicksLeft = 0;
-      // nobreak
-    }
-    case ClockState::eRunInRealTime: {
-      m_eClockState = ClockState::eFreezed;
-      // nobreak
-    }
-    case ClockState::eFreezed: {
-      return true;
-    }
-    default:
-      return false;
-  }
-}
-
-void SystemManager::resume()
-{
-  assert(m_eClockState == ClockState::eFreezed);
-  if (m_eClockState == ClockState::eFreezed) {
-    m_eClockState = ClockState::eRunInRealTime;
-  }
-}
-
-bool SystemManager::proceedInterval(uint32_t nTickUs, uint32_t nInterval)
-{
-  if (m_eClockState != ClockState::eFreezed) {
-    return false;
-  }
-  m_eClockState                    = ClockState::eManualMode;
-  m_proceedSteps.m_nTickDurationUs = nTickUs;
-  m_proceedSteps.m_nTicksLeft      = nInterval / nTickUs;
-  return true;
-}
-
-bool SystemManager::stop()
-{
-  assert(m_eClockState != ClockState::eManualMode);
-  if (m_eClockState == ClockState::eManualMode) {
-    return false;
-  }
-  m_eClockState = ClockState::eTerminate;
-  return true;
-}
-
 void SystemManager::stopConveyor()
 {
   m_pConveyor->stop();
@@ -155,65 +108,21 @@ void SystemManager::proceedOnce(uint32_t nIntervalUs)
   m_pConveyor->proceed(nIntervalUs);
 }
 
-void SystemManager::exportStat(SystemManager::Stats &out) const
-{
-  out.m_inGameTime  = m_inGameTime;
-  out.m_freezedTime = m_freezedTime;
-}
-
 void SystemManager::proceed()
 {
-  const auto nMinTickSize = std::chrono::microseconds(100);
-  const auto nMaxTickSize = std::chrono::milliseconds(20);
-  auto       startTime    = std::chrono::high_resolution_clock::now();
+  const uint32_t nMinTickLengthUs = 100;
+  uint64_t       nTicksCounter    = 0;
 
-  while (m_eClockState != ClockState::eTerminate)
-  {
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    auto dt = std::chrono::duration_cast<std::chrono::microseconds>(
-          currentTime - (startTime + m_inGameTime + m_freezedTime));
-
-    switch (m_eClockState) {
-      case ClockState::eRunInRealTime: {
-        if (dt < nMinTickSize) {
-          std::this_thread::yield();
-          continue;
-        }
-
-        if (dt > nMaxTickSize) {
-          // Ooops, seems there is a perfomance problem
-          m_freezedTime += dt - nMaxTickSize;
-#ifdef DEBUG_MODE
-          std::cout << "Freezed for " << (dt - nMaxTickSize).count() <<
-                       " usec..." << std::endl;
-#endif // ifdef DEBUG_MODE
-          dt = nMaxTickSize;
-        }
-        break;
-      }
-      case ClockState::eFreezed: {
-        m_freezedTime += dt;
-        dt = std::chrono::microseconds(0);
-        break;
-      }
-      case ClockState::eManualMode:
-        assert(m_proceedSteps.m_nTicksLeft > 0);
-        assert(m_proceedSteps.m_nTickDurationUs > 0);
-
-        m_freezedTime += dt;
-        dt = std::chrono::microseconds(m_proceedSteps.m_nTickDurationUs);
-        m_freezedTime -= dt;
-        if (--m_proceedSteps.m_nTicksLeft == 0) {
-          m_eClockState = ClockState::eFreezed;
-        }
-        break;
-      default: {
-        assert("Unexpected state!" == nullptr);
-      }
+  while (!m_clock.isTerminated()) {
+    uint32_t nIntervalUs = m_clock.getNextInterval();
+    m_pConveyor->proceed(nIntervalUs);
+    if (nIntervalUs < nMinTickLengthUs) {
+      std::this_thread::yield();
     }
-
-    m_pConveyor->proceed(static_cast<uint32_t>(dt.count()));
-    m_inGameTime += dt;
+    ++nTicksCounter;
+    if (nTicksCounter % 1000 == 0) {
+      printTimeStat();
+    }
   }
 
   stopConveyor();
@@ -292,4 +201,41 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
   m_pConveyor->addLogicToChain(m_pShipyardManager);
   return true;
+}
+
+static std::string toTime(uint64_t nIntervalUs)
+{
+  uint64_t nIntervalMs = nIntervalUs / 1000;
+
+  uint64_t nHours    = nIntervalMs / (3600 * 1000);
+  nIntervalMs       %= 3600 * 1000;
+  uint64_t nMinutes  = nIntervalMs / (60 * 1000);
+  nIntervalMs       %= 60 * 1000;
+  uint64_t nSeconds  = nIntervalMs / 1000;
+  nIntervalMs       %= 1000;
+
+  std::stringstream ss;
+  if (nHours) {
+    ss << nHours << "h ";
+  }
+  if (nMinutes) {
+    ss << nMinutes << "m ";
+  }
+  if (nSeconds) {
+    ss << nSeconds << ".";
+  }
+  ss << nIntervalMs << "s ";
+  return ss.str();
+}
+
+void SystemManager::printTimeStat()
+{
+  utils::ClockStat stat;
+  m_clock.exportStat(stat);
+  std::cout << std::left << std::setw(12) << stat.nTicksCounter
+            << std::setw(20) << toTime(stat.nRealTimeUs)
+            << std::setw(20) << toTime(stat.nIngameTimeUs)
+            << std::setw(20) << toTime(stat.nDeviationUs)
+            << std::endl;
+
 }
