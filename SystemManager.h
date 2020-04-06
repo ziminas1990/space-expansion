@@ -1,7 +1,6 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <boost/chrono.hpp>
 #include "Utils/YamlForwardDeclarations.h"
 
 #include "ConfigDI/Containers.h"
@@ -13,9 +12,10 @@
 #include "World/PlayersStorage.h"
 #include <World/World.h>
 #include "Blueprints/BlueprintsLibrary.h"
-#include "AdministratorPanel.h"
+#include <Utils/Clock.h>
 
 #include "Newton/NewtonEngine.h"
+#include <AdministratorPanel/AdministratorPanel.h>
 #include "Ships/ShipsManager.h"
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Modules/Engine/EnginesManager.h"
@@ -36,21 +36,26 @@ public:
   bool loadWorldState(YAML::Node const& data);
 
   bool start();
-  void stop();
-
-  [[noreturn]] void proceed();
-
+  void stopConveyor();
+  void proceed();
   void proceedOnce(uint32_t nIntervalUs);
+
+  utils::Clock& getClock() { return m_clock; }
 
 private:
   bool createAllComponents();
   bool configureComponents();
   bool linkComponents();
 
+  static void printStatisticHeader();
+  void printStatistic();
+
 private:
   config::ApplicationCfg       m_configuration;
+  utils::Clock                 m_clock;
   conveyor::Conveyor*          m_pConveyor = nullptr;
-  std::chrono::microseconds    m_inGameTime;
+  std::vector<std::thread*>    m_slaves;
+
   boost::asio::io_service      m_IoService;
 
   blueprints::BlueprintsLibrary m_blueprints;

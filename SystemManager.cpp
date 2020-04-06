@@ -1,8 +1,9 @@
 #include "SystemManager.h"
 
 #include <thread>
-#include <yaml-cpp/yaml.h>
 #include <iostream>
+#include <iomanip>
+#include <yaml-cpp/yaml.h>
 
 #include <Priveledeged.pb.h>
 #include "Modules/Commutator/CommutatorManager.h"
@@ -84,14 +85,23 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
 
 bool SystemManager::start()
 {
-  for(size_t i = 1; i < m_configuration.getTotalThreads(); ++i)
-    new std::thread([this]() { m_pConveyor->joinAsSlave();} );
+  for(size_t i = 1; i < m_configuration.getTotalThreads(); ++i) {
+    m_slaves.push_back(new std::thread([this]() { m_pConveyor->joinAsSlave();} ));
+  }
+  m_clock.start();
   return true;
 }
 
-void SystemManager::stop()
+void SystemManager::stopConveyor()
 {
   m_pConveyor->stop();
+  for (std::thread* pSlaveThread : m_slaves) {
+    if (pSlaveThread->joinable()) {
+      pSlaveThread->join();
+    }
+    delete pSlaveThread;
+  }
+  m_slaves.clear();
 }
 
 void SystemManager::proceedOnce(uint32_t nIntervalUs)
@@ -101,31 +111,23 @@ void SystemManager::proceedOnce(uint32_t nIntervalUs)
 
 void SystemManager::proceed()
 {
-  const auto nMinTickSize = std::chrono::microseconds(100);
-  const auto nMaxTickSize = std::chrono::milliseconds(20);
-  auto startTime    = std::chrono::high_resolution_clock::now();
-  while (true)
-  {
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    auto dt =
-        std::chrono::duration_cast<std::chrono::microseconds>(
-          currentTime - startTime - m_inGameTime);
-    if (dt < nMinTickSize) {
+  const uint32_t nMinTickLengthUs = 100;
+  uint64_t       nTicksCounter    = 0;
+
+  printStatisticHeader();
+  while (!m_clock.isTerminated()) {
+    uint32_t nIntervalUs = m_clock.getNextInterval();
+    m_pConveyor->proceed(nIntervalUs);
+    if (nIntervalUs < nMinTickLengthUs) {
       std::this_thread::yield();
-      continue;
     }
-    if (dt > nMaxTickSize)
-      dt = nMaxTickSize;
-
-#ifdef DEBUG_MODE
-    if (dt > nMaxTickSize / 2) {
-      std::cout << "Proceeding " << dt.count() << " usec..." << std::endl;
+    ++nTicksCounter;
+    if (nTicksCounter % 1000 == 0) {
+      printStatistic();
     }
-#endif // ifdef DEBUG_MODE
-
-    m_pConveyor->proceed(static_cast<uint32_t>(dt.count()));
-    m_inGameTime += dt;
   }
+
+  stopConveyor();
 }
 
 bool SystemManager::createAllComponents()
@@ -150,12 +152,15 @@ bool SystemManager::createAllComponents()
         m_configuration.getPortsPoolcfg().end());
   m_pLoginChannel       = std::make_shared<network::PlayerChannel>();
   m_pAccessPanel        = std::make_shared<modules::AccessPanel>();
+
   if (m_configuration.getAdministratorCfg().isValid()) {
     m_pPrivilegedChannel  = std::make_shared<network::PrivilegedChannel>();
     m_pAdministratorPanel = std::make_shared<AdministratorPanel>(
           m_configuration.getAdministratorCfg(),
           std::time(nullptr));
+    m_pAdministratorPanel->attachToSystemManager(this);
   }
+
   m_pPlayersStorage     = std::make_shared<world::PlayersStorage>();
   return true;
 }
@@ -198,4 +203,55 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
   m_pConveyor->addLogicToChain(m_pShipyardManager);
   return true;
+}
+
+void SystemManager::printStatisticHeader()
+{
+  std::cout << std::right << std::setw(12) << "Ticks Total"
+            << std::right << std::setw(17) << "Real Time"
+            << std::right << std::setw(17) << "Ingame Time"
+            << std::right << std::setw(17) << "Deviation"
+            << std::right << std::setw(12) << "Avg. Tick"
+            << std::endl;
+}
+
+static std::string toTime(uint64_t nIntervalUs)
+{
+  std::stringstream ss;
+  if (nIntervalUs < 50000) {
+    // for the small time intervals (less thatn 50 ms)
+    ss << nIntervalUs << "us";
+    return ss.str();
+  }
+
+  uint64_t nIntervalMs = nIntervalUs / 1000;
+
+  uint64_t nHours    = nIntervalMs / (3600 * 1000);
+  nIntervalMs       %= 3600 * 1000;
+  uint64_t nMinutes  = nIntervalMs / (60 * 1000);
+  nIntervalMs       %= 60 * 1000;
+  uint64_t nSeconds  = nIntervalMs / 1000;
+  nIntervalMs       %= 1000;
+
+  if (nHours) {
+    ss << nHours << "h ";
+  }
+  if (nMinutes) {
+    ss << nMinutes << "m ";
+  }
+  ss << nSeconds << ".";
+  ss << nIntervalMs << "s";
+  return ss.str();
+}
+
+void SystemManager::printStatistic()
+{
+  utils::ClockStat stat;
+  m_clock.exportStat(stat);
+  std::cout << std::right << std::setw(12) << stat.nTicksCounter
+            << std::right << std::setw(17) << toTime(stat.nRealTimeUs)
+            << std::right << std::setw(17) << toTime(stat.nIngameTimeUs)
+            << std::right << std::setw(17) << toTime(stat.nDeviationUs)
+            << std::right << std::setw(12) << toTime(stat.nAvgTickDurationPerPeriod)
+            << std::endl;
 }

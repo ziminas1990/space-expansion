@@ -41,6 +41,8 @@ protected:
       m_pChannel->closeSession(nSessionId);
   }
 
+  ChannelPtr getChannel() const { return m_pChannel; }
+
 private:
   struct BufferedMessage
   {

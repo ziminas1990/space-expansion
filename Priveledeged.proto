@@ -21,12 +21,27 @@ message Access {
 }
 
 
-message TimeControl {
+message SystemClock {
 
-  oneof choice {
-    bool time = 1;
+  enum Status {
+    MODE_REAL_TIME  = 0;
+    MODE_DEBUG      = 1;
+    MODE_TERMINATED = 2;
     
-    uint64 now = 129;
+    CLOCK_IS_BUSY   = 3;
+    INTERNAL_ERROR  = 4;
+  }
+  
+  oneof choice {
+    bool    time_req             = 1;
+    bool    mode_req             = 2;
+    bool    switch_to_real_time  = 3;
+    bool    switch_to_debug_mode = 4;
+    uint32  tick_duration_us     = 5;
+    uint32  proceed_ticks        = 6;
+    
+    uint64 now    = 129;
+    Status status = 130;
   }
 }
 
@@ -37,6 +52,6 @@ message Message {
   oneof choice {
     // All possible interfaces are listed here
     Access      access       = 2;
-    TimeControl time_control = 3;
+    SystemClock system_clock = 3;
   }
 }

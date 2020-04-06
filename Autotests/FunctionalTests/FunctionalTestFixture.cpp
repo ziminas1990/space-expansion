@@ -71,7 +71,7 @@ void FunctionalTestFixture::SetUp()
 
 void FunctionalTestFixture::TearDown()
 {
-  m_application.stop();
+  m_application.stopConveyor();
   m_pRootPipe->detachDownlevel();
   m_pAccessPanel->detachChannel();
   m_pRootCommutator->detachChannel();

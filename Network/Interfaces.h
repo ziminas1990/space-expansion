@@ -9,6 +9,8 @@
 namespace network
 {
 
+const uint32_t gInvalidSessionId = uint32_t(-1);
+
 template<typename FrameType> class ITerminal;
 template<typename FrameType>
 using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;
@@ -80,8 +82,8 @@ using IPlayerChannelPtr          = std::shared_ptr<IPlayerChannel>;
 using IPlayerChannelWeakPtr      = std::weak_ptr<IPlayerChannel>;
 
 using IPrivilegedChannel         = IChannel<admin::Message>;
-using IPrivilegedChannelPtr      = std::shared_ptr<IPlayerChannel>;
-using IPrivilegedChannelWeakPtr  = std::weak_ptr<IPlayerChannel>;
+using IPrivilegedChannelPtr      = std::shared_ptr<IPrivilegedChannel>;
+using IPrivilegedChannelWeakPtr  = std::weak_ptr<IPrivilegedChannel>;
 
 using IPlayerTerminal            = ITerminal<spex::Message>;
 using IPlayerTerminalPtr         = std::shared_ptr<IPlayerTerminal>;
