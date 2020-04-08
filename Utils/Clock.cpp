@@ -100,6 +100,11 @@ bool Clock::switchToDebugMode()
   return false;
 }
 
+void Clock::terminate()
+{
+  m_eState = eTerminated;
+}
+
 bool Clock::proceedRequest(uint32_t nTicks)
 {
   if (m_eState != eDebugMode || m_nDebugTicksCounter > 0) {

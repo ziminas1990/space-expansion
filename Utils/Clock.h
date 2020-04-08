@@ -41,7 +41,7 @@ public:
 
   bool switchToRealtimeMode();
   bool switchToDebugMode();
-  void terminated()              { m_eState = eTerminated; }
+  void terminate();
   bool isInRealTimeMode()  const { return m_eState == eRealTimeMode; }
   bool isInDebugMode()     const { return m_eState == eDebugMode; }
   bool isDebugInProgress() const { return isInDebugMode() && m_nDebugTicksCounter; }

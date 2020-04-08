@@ -175,6 +175,15 @@ bool PrivilegedPipe::wait(admin::Access &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool PrivilegedPipe::wait(admin::SystemClock &out, uint16_t nTimeoutMs)
+{
+  admin::Message message;
+  if(!waitConcrete(admin::Message::kSystemClock, message, nTimeoutMs))
+    return false;
+  out = std::move(message.system_clock());
+  return true;
+}
+
 bool PrivilegedPipe::waitConcrete(admin::Message::ChoiceCase eExpectedChoice,
                                   admin::Message &out, uint16_t nTimeoutMs)
 {

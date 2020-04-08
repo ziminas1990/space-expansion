@@ -128,6 +128,7 @@ class PrivilegedPipe : public SyncPipe<admin::Message>
 public:
 
   bool wait(admin::Access &out, uint16_t nTimeoutMs = 100);
+  bool wait(admin::SystemClock &out, uint16_t nTimeoutMs = 100);
 
 private:
   bool waitConcrete(admin::Message::ChoiceCase eExpectedChoice,

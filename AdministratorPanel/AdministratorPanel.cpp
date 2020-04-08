@@ -18,6 +18,7 @@ bool AdministratorPanel::prephareStage(uint16_t nStageId)
 {
   assert(nStageId == 0);
   handleBufferedMessages();
+  m_clockControl.proceed();
   // This logic shouldn't be run in multithreading mode
   return false;
 }

@@ -35,6 +35,13 @@ void ClockControl::handleMessage(uint32_t nSessionId, admin::SystemClock message
       clock().switchToDebugMode();
       sendClockStatus(nSessionId);
       return;
+    case admin::SystemClock::kTerminate:
+      clock().terminate();
+      sendClockStatus(nSessionId);
+      if (m_nDebugSessionId != network::gInvalidSessionId) {
+        sendClockStatus(m_nDebugSessionId);
+      }
+      return;
     case admin::SystemClock::kTickDurationUs:
       if (clock().isDebugInProgress()) {
         sendStatus(nSessionId, admin::SystemClock::CLOCK_IS_BUSY);
