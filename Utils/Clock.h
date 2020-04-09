@@ -31,7 +31,7 @@ class Clock
   };
 
 public:
-  void start(bool lDebugMode = false);
+  void start(bool lColdStart = false);
 
   uint32_t now() const { return m_inGameTime; }
     // Return ingame time (not real time!)
@@ -70,8 +70,8 @@ private:
     // calculated as: m_startedAt + m_inGameTime + m_DeviationUs
 
   // This are used in debug mode only
-  uint32_t m_nDebugTickUs;
-  uint32_t m_nDebugTicksCounter;
+  uint32_t m_nDebugTickUs       = 0;
+  uint32_t m_nDebugTicksCounter = 0;
 
   // For statistic purposes only
   uint64_t         m_nTotalTicksCounter  = 0;

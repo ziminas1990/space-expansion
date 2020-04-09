@@ -11,9 +11,9 @@ inline uint64_t timeSinceUs(std::chrono::system_clock::time_point point)
         .count());
 }
 
-void Clock::start(bool lDebugMode)
+void Clock::start(bool lColdStart)
 {
-  if (lDebugMode) {
+  if (lColdStart) {
     m_eState = eDebugMode;
   }
   m_startedAt    = std::chrono::high_resolution_clock::now();
@@ -23,8 +23,7 @@ void Clock::start(bool lDebugMode)
 
 uint32_t Clock::getNextInterval()
 {
-  const uint64_t nMaxTickUs = 10000; // 10 ms
-
+  const uint64_t nMaxTickUs = 10000;
   // expected_now = m_startedAt + m_inGameTime + m_DeviationUs
   // dt = actual_now - expected_now
   uint64_t dt  = timeSinceUs(m_startedAt);
@@ -32,6 +31,7 @@ uint32_t Clock::getNextInterval()
 
   switch (m_eState) {
     case eRealTimeMode: {
+#ifndef AUTOTESTS_MODE
       if (dt > nMaxTickUs) {
         // Ooops, seems there is a perfomance problem (slip detected)
         m_nDeviationUs += dt - nMaxTickUs;
@@ -39,6 +39,9 @@ uint32_t Clock::getNextInterval()
       }
       // return instead of break to avoid extra jump
       assert(dt < uint32_t(-1));
+#else
+      dt = 5000;   // when running autotests each tick is 10 ms
+#endif
       m_inGameTime        += dt;
       m_nPeriodDurationUs += dt;
       ++m_nTotalTicksCounter;
@@ -47,8 +50,9 @@ uint32_t Clock::getNextInterval()
     }
     case eDebugMode: {
       m_nDeviationUs += dt;
-      if (m_nDebugTickUs) {
+      if (m_nDebugTicksCounter) {
         dt = m_nDebugTickUs;
+        --m_nDebugTicksCounter;
         ++m_nTotalTicksCounter;
         ++m_nPeriodTicksCounter;
       } else {
@@ -56,17 +60,16 @@ uint32_t Clock::getNextInterval()
       }
       assert(dt < uint32_t(-1));
       m_nDeviationUs -= dt;
-      --m_nDebugTicksCounter;
       // return instead of break to avoid extra jump
       m_inGameTime        += dt;
       m_nPeriodDurationUs += dt;
       return static_cast<uint32_t>(dt);
     }
-    default: {
-      assert("Unexpected state!" == nullptr);
+    case eTerminated: {
       return 0;
     }
   }
+  return 0;
 }
 
 bool Clock::switchToRealtimeMode()
@@ -120,7 +123,11 @@ void Clock::exportStat(ClockStat& out) const
   out.nRealTimeUs   = timeSinceUs(m_startedAt);
   out.nIngameTimeUs = m_inGameTime;
   out.nDeviationUs  = m_nDeviationUs;
-  out.nAvgTickDurationPerPeriod = m_nPeriodDurationUs / m_nPeriodTicksCounter;
+  if (m_nPeriodTicksCounter) {
+    out.nAvgTickDurationPerPeriod = m_nPeriodDurationUs / m_nPeriodTicksCounter;
+  } else {
+    out.nAvgTickDurationPerPeriod = 0;
+  }
 
   m_nPeriodTicksCounter = 0;
   m_nPeriodDurationUs   = 0;

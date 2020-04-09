@@ -2,6 +2,7 @@
 #include "Scenarios.h"
 
 #include <yaml-cpp/yaml.h>
+#include <Utils/Printers.h>
 
 namespace autotests
 {
@@ -41,12 +42,7 @@ void FunctionalTestFixture::SetUp()
   m_pSocket->setServerAddress(m_serverLoginAddress);
   m_pPrivilegedSocket->setServerAddress(m_serverPrivilegedAddress);
 
-  auto fProceeder = [this](){
-    if (m_lWorldFreezed)
-      proceedFreezedWorld();
-    else
-      proceedEnviroment(100, 1000);
-  };
+  auto fProceeder = [this](){ proceed(); };
 
   m_pRootPipe->setProceeder(fProceeder);
   m_pPrivilegedPipe->setProceeder(fProceeder);
@@ -66,17 +62,38 @@ void FunctionalTestFixture::SetUp()
   YAML::Node worldState;
   if (initialWorldState(worldState))
     m_application.loadWorldState(worldState);
-  m_application.start();
+
+  // Running application logic
+  m_pMainThread = new std::thread([this]() { m_application.run(true); });
+
+  // Logging admin panel (to control the time and etc)
+  m_pAdminPanel->login(m_cfg.getAdministratorCfg().getLogin(),
+                       m_cfg.getAdministratorCfg().getPassword(),
+                       m_nAdminToken);
 }
 
 void FunctionalTestFixture::TearDown()
 {
-  m_application.stopConveyor();
+  m_application.getClock().terminate();
+  m_application.nextCycle();
+  if (m_pMainThread && m_pMainThread->joinable()) {
+    m_pMainThread->join();
+    delete m_pMainThread;
+  }
+
   m_pRootPipe->detachDownlevel();
   m_pAccessPanel->detachChannel();
   m_pRootCommutator->detachChannel();
-  std::cout << "Cycles = " << m_stat.nTotalCycles << ", time = " <<
-               m_stat.nTotalTimeMs << " ms" << std::endl;
+  m_pPrivilegedPipe->detachDownlevel();
+  m_pAdminPanel->detachChannel();
+
+  utils::ClockStat stat;
+  m_application.getClock().exportStat(stat);
+
+  std::cout << "Ticks = " << stat.nTicksCounter << ", real time = " <<
+               utils::toTime(stat.nRealTimeUs) << ", ingame time = " <<
+               utils::toTime(stat.nIngameTimeUs) << std::endl;
+
 }
 
 config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
@@ -95,32 +112,39 @@ config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
         .setPassord("god"));
 }
 
-void FunctionalTestFixture::proceedFreezedWorld()
+void FunctionalTestFixture::pauseTime()
 {
-  // Time dependent logic should be almost freezed, only data exchange is allowed
+  ASSERT_TRUE(m_application.getClock().switchToDebugMode());
+}
+
+void FunctionalTestFixture::resumeTime()
+{
+  ASSERT_TRUE(m_application.getClock().switchToRealtimeMode());
+}
+
+void FunctionalTestFixture::skipTime(uint32_t nTimeMs, uint32_t nTickUs)
+{
+  uint32_t nTimeUs = nTimeMs * 1000;
+  pauseTime();
+  m_application.getClock().setDebugTickUs(nTickUs);
+  uint32_t ticks = nTimeUs / nTickUs;
+  if (ticks * nTickUs < nTimeUs) {
+    ++ticks;
+  }
+  ASSERT_TRUE(ticks * nTickUs >= nTimeUs);
+  ASSERT_TRUE(ticks * nTickUs - nTimeUs < nTickUs);
+
+  ASSERT_TRUE(m_application.getClock().proceedRequest(ticks));
+  while (m_application.getClock().isDebugInProgress()) {
+    proceed();
+  }
+}
+
+void FunctionalTestFixture::proceed()
+{
   do {
-    do {
-      m_application.proceedOnce(0);
-      ++m_stat.nTotalCycles;
-    } while(m_IoService.poll());
-    std::this_thread::yield();
+    m_application.nextCycle();
   } while(m_IoService.poll());
 }
-
-void FunctionalTestFixture::proceedEnviroment(uint32_t nMilliseconds, uint32_t nTickUs)
-{
-  proceedFreezedWorld();
-  uint32_t nRemainUs = nMilliseconds * 1000;
-  while(nRemainUs > nTickUs) {
-    m_application.proceedOnce(nTickUs);
-    nRemainUs -= nTickUs;
-    ++m_stat.nTotalCycles;
-  }
-  m_stat.nTotalTimeMs += nMilliseconds;
-  m_application.proceedOnce(nRemainUs);
-  proceedFreezedWorld();
-}
-
-
 
 } // namespace autotests

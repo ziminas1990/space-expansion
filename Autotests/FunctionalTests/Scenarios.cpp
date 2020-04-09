@@ -140,7 +140,7 @@ bool Scenarios::RunProceduresScenario::isFrontBatchComplete() const
 void Scenarios::RunProceduresScenario::proceedFrontBatch()
 {
   ProceduresBatch& batch = m_batches.front();
-  m_pEnv->proceedEnviroment(batch.m_nIntervalMs, batch.m_nTickUs);
+  m_pEnv->skipTime(batch.m_nIntervalMs, batch.m_nTickUs);
   for (client::AbstractProcedurePtr& pProcedure : batch.m_procedures) {
     if (!pProcedure->isComplete())
       pProcedure->proceed(batch.m_nIntervalMs * 1000);

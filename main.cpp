@@ -43,12 +43,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  if (!app.start()) {
-    std::cerr << "FAILED to start application!" << std::endl;
-    return 1;
-  }
-
-  app.proceed();
+  app.run();
   return 0;
 }
 

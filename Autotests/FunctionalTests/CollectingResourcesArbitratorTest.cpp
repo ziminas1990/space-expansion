@@ -112,7 +112,7 @@ protected:
 
 TEST_F(CollectingResourcesArbitratorTests, BreathTest)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -131,7 +131,7 @@ TEST_F(CollectingResourcesArbitratorTests, BreathTest)
 
 TEST_F(CollectingResourcesArbitratorTests, SuccessCase)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()

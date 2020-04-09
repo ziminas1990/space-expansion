@@ -35,10 +35,10 @@ public:
   bool initialize(config::IApplicationCfg const& cfg);
   bool loadWorldState(YAML::Node const& data);
 
-  bool start();
-  void stopConveyor();
-  void proceed();
-  void proceedOnce(uint32_t nIntervalUs);
+  void run(bool lDebugMode = false);
+
+  // for functional tests only:
+  void nextCycle();
 
   utils::Clock& getClock() { return m_clock; }
 
@@ -46,6 +46,9 @@ private:
   bool createAllComponents();
   bool configureComponents();
   bool linkComponents();
+
+  void startConveyor();
+  void stopConveyor();
 
   static void printStatisticHeader();
   void printStatistic();
@@ -55,8 +58,13 @@ private:
   utils::Clock                 m_clock;
   conveyor::Conveyor*          m_pConveyor = nullptr;
   std::vector<std::thread*>    m_slaves;
-
   boost::asio::io_service      m_IoService;
+
+#ifdef AUTOTESTS_MODE
+  boost::fibers::barrier m_barrier = boost::fibers::barrier(2);
+    // This barrier will be used to synchronize application cycles with
+    // functional tests cycles
+#endif
 
   blueprints::BlueprintsLibrary m_blueprints;
     // Blueprints of modules, that are avaliable for all players right from

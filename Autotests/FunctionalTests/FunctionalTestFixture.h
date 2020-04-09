@@ -33,15 +33,16 @@ protected:
   virtual config::ApplicationCfg prephareConfiguration();
   virtual bool initialWorldState(YAML::Node& /*state*/) { return false; }
 
-  void freezeWorld()  { m_lWorldFreezed = true; }
-  void animateWorld() { m_lWorldFreezed = false; }
+  void pauseTime();
+  void resumeTime();
+  void skipTime(uint32_t nTimeMs, uint32_t nTickUs = 10000);
 
-  void proceedFreezedWorld();
-  void proceedEnviroment(uint32_t nMilliseconds, uint32_t nTickUs = 500);
+  void proceed();
 
 protected:
   config::ApplicationCfg m_cfg;
   SystemManager          m_application;
+  std::thread*           m_pMainThread = nullptr;
 
   bool m_lWorldFreezed;
 
@@ -87,11 +88,7 @@ protected:
   client::PrivilegedSocketPtr   m_pPrivilegedSocket;
   client::PrivilegedPipePtr     m_pPrivilegedPipe;
   client::AdministratorPanelPtr m_pAdminPanel;
-
-  struct Statistic {
-    uint32_t nTotalCycles = 0;
-    uint32_t nTotalTimeMs = 0;
-  } m_stat;
+  uint64_t                      m_nAdminToken;
 };
 
 } // namespace autotests

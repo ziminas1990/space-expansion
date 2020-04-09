@@ -82,7 +82,7 @@ protected:
 
 TEST_F(ResourceContainerTests, GetContent)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -106,7 +106,7 @@ TEST_F(ResourceContainerTests, GetContent)
 
 TEST_F(ResourceContainerTests, OpenPort)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -131,7 +131,7 @@ TEST_F(ResourceContainerTests, OpenPort)
 
 TEST_F(ResourceContainerTests, ClosePort)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -159,7 +159,7 @@ TEST_F(ResourceContainerTests, ClosePort)
 
 TEST_F(ResourceContainerTests, TransferSuccessCase)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -231,7 +231,7 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
 
 TEST_F(ResourceContainerTests, TransferNonMaterialResource)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()

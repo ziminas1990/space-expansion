@@ -120,7 +120,7 @@ TEST_F(EngineControllTests, SetAndGetThrust)
   ASSERT_TRUE(engine.setThrust(thrust, 1000));
 
   // Waiting for some time
-  proceedEnviroment(200);
+  skipTime(200);
 
   // Checking current thrust
   geometry::Vector currentThrust;
@@ -155,8 +155,13 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
   thrust.setLength(100);
   ASSERT_TRUE(engine.setThrust(thrust, nIntervalSec * 1000));
 
+  // Requesting current thrust to be sure that thrust has been already changed
+  geometry::Vector currentThrust;
+  ASSERT_TRUE(engine.getThrust(currentThrust));
+  EXPECT_EQ(currentThrust, thrust);
+
   // 4. Waiting for 5 sec  
-  proceedEnviroment(nIntervalSec * 1000, 100);
+  skipTime(nIntervalSec * 1000);
 
   // 5. getting current ship's position
   geometry::Point  currentPosition;

@@ -115,7 +115,7 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
 
-  animateWorld();
+  resumeTime();
   std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
   ASSERT_TRUE(scanner.scan(1000, 5, asteroids));
   EXPECT_EQ(22, asteroids.size());
@@ -137,7 +137,7 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
   geometry::Point shipPosition;
   ASSERT_TRUE(ship.getPosition(shipPosition));
 
-  animateWorld();
+  resumeTime();
 
   for (uint32_t nScanRadiusKm = 1; nScanRadiusKm <= 31; ++nScanRadiusKm) {
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
@@ -165,7 +165,7 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
 
-  animateWorld();
+  resumeTime();
 
   for (uint32_t nMinimalRadius = 5; nMinimalRadius <= 15; ++nMinimalRadius)
   {
@@ -199,13 +199,13 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
 
   // Moving to (0, 0) and scanning it (nothing should be scanned)
   {
-    freezeWorld();
+    pauseTime();
     geometry::Point cloudCenter(0, 0);
     ASSERT_TRUE(Scenarios::RunProcedures()
                 .add(navigator.MakeMoveToProcedure(cloudCenter, 100))
                 .wait(50, 2000, 25000));
 
-    animateWorld();
+    resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(scanner.scan(31, 5, asteroids));
     EXPECT_TRUE(asteroids.empty());
@@ -213,13 +213,13 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
 
   // Moving to first cloud and scanning it
   {
-    freezeWorld();
+    pauseTime();
     geometry::Point cloudCenter(100000, 0);
     ASSERT_TRUE(Scenarios::RunProcedures()
                 .add(navigator.MakeMoveToProcedure(cloudCenter, 100))
                 .wait(50, 2000, 25000));
 
-    animateWorld();
+    resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(scanner.scan(31, 5, asteroids));
     EXPECT_EQ(11, asteroids.size());
@@ -227,13 +227,13 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
 
   // Moving to second cloud and scanning it
   {
-    freezeWorld();
+    pauseTime();
     geometry::Point cloudCenter(0, 100000);
     ASSERT_TRUE(Scenarios::RunProcedures()
                 .add(navigator.MakeMoveToProcedure(cloudCenter, 100))
                 .wait(50, 2000, 25000));
 
-    animateWorld();
+    resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(scanner.scan(31, 5, asteroids));
     EXPECT_EQ(11, asteroids.size());

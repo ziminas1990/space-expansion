@@ -121,13 +121,13 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
 
   // Moving to first asteroid and scanning it
   {
-    freezeWorld();
+    pauseTime();
     geometry::Point asteroidPosition(100000, 0);
     ASSERT_TRUE(Scenarios::RunProcedures()
                 .add(navigator.MakeMoveToProcedure(asteroidPosition, 100))
                 .wait(50, 2000, 25000));
 
-    animateWorld();
+    resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(celestialScanner.scan(1, 5, asteroids));
     EXPECT_EQ(1, asteroids.size());
@@ -142,13 +142,13 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
   }
 
   {
-    freezeWorld();
+    pauseTime();
     geometry::Point asteroidPosition(0, 100000);
     ASSERT_TRUE(Scenarios::RunProcedures()
                 .add(navigator.MakeMoveToProcedure(asteroidPosition, 100))
                 .wait(50, 2000, 25000));
 
-    animateWorld();
+    resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(celestialScanner.scan(1, 5, asteroids));
     EXPECT_EQ(1, asteroids.size());
@@ -182,7 +182,7 @@ TEST_F(AsteroidScannerTests, FailedToScanTest)
 
   // Trying to scan asteroids, that are far away
   {
-    animateWorld();
+    resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(celestialScanner.scan(200, 5, asteroids));
     EXPECT_EQ(2, asteroids.size());

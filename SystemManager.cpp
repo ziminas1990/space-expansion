@@ -11,6 +11,7 @@
 #include "Conveyor/Proceeders.h"
 #include "World/Resources.h"
 #include <Arbitrators/ArbitratorsFactory.h>
+#include <Utils/Printers.h>
 
 //========================================================================================
 // SystemManager
@@ -83,38 +84,17 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
   return true;
 }
 
-bool SystemManager::start()
-{
-  for(size_t i = 1; i < m_configuration.getTotalThreads(); ++i) {
-    m_slaves.push_back(new std::thread([this]() { m_pConveyor->joinAsSlave();} ));
-  }
-  m_clock.start();
-  return true;
-}
-
-void SystemManager::stopConveyor()
-{
-  m_pConveyor->stop();
-  for (std::thread* pSlaveThread : m_slaves) {
-    if (pSlaveThread->joinable()) {
-      pSlaveThread->join();
-    }
-    delete pSlaveThread;
-  }
-  m_slaves.clear();
-}
-
-void SystemManager::proceedOnce(uint32_t nIntervalUs)
-{
-  m_pConveyor->proceed(nIntervalUs);
-}
-
-void SystemManager::proceed()
+#ifndef AUTOTESTS_MODE
+void SystemManager::run(bool lColdStart)
 {
   const uint32_t nMinTickLengthUs = 100;
-  uint64_t       nTicksCounter    = 0;
 
+  startConveyor();
+  m_clock.start(lColdStart);
+
+  uint64_t nTicksCounter = 0;
   printStatisticHeader();
+
   while (!m_clock.isTerminated()) {
     uint32_t nIntervalUs = m_clock.getNextInterval();
     m_pConveyor->proceed(nIntervalUs);
@@ -129,6 +109,34 @@ void SystemManager::proceed()
 
   stopConveyor();
 }
+
+void SystemManager::nextCycle()
+{
+  assert("This function can be used only from autotests" == nullptr);
+}
+
+#else // #ifndef AUTOTESTS_MODE
+void SystemManager::run(bool lColdStart)
+{
+  startConveyor();
+  m_clock.start(lColdStart);
+
+  while (!m_clock.isTerminated()) {
+    m_barrier.wait();
+    uint32_t nIntervalUs = m_clock.getNextInterval();
+    m_pConveyor->proceed(nIntervalUs);
+    m_barrier.wait();
+  }
+
+  stopConveyor();
+}
+
+void SystemManager::nextCycle()
+{
+  m_barrier.wait();
+  m_barrier.wait();
+}
+#endif // #ifndef AUTOTESTS_MODE
 
 bool SystemManager::createAllComponents()
 {
@@ -205,6 +213,25 @@ bool SystemManager::linkComponents()
   return true;
 }
 
+void SystemManager::startConveyor()
+{
+  for(size_t i = 1; i < m_configuration.getTotalThreads(); ++i) {
+    m_slaves.push_back(new std::thread([this]() { m_pConveyor->joinAsSlave();} ));
+  }
+}
+
+void SystemManager::stopConveyor()
+{
+  m_pConveyor->stop();
+  for (std::thread* pSlaveThread : m_slaves) {
+    if (pSlaveThread->joinable()) {
+      pSlaveThread->join();
+    }
+    delete pSlaveThread;
+  }
+  m_slaves.clear();
+}
+
 void SystemManager::printStatisticHeader()
 {
   std::cout << std::right << std::setw(12) << "Ticks Total"
@@ -215,43 +242,14 @@ void SystemManager::printStatisticHeader()
             << std::endl;
 }
 
-static std::string toTime(uint64_t nIntervalUs)
-{
-  std::stringstream ss;
-  if (nIntervalUs < 50000) {
-    // for the small time intervals (less thatn 50 ms)
-    ss << nIntervalUs << "us";
-    return ss.str();
-  }
-
-  uint64_t nIntervalMs = nIntervalUs / 1000;
-
-  uint64_t nHours    = nIntervalMs / (3600 * 1000);
-  nIntervalMs       %= 3600 * 1000;
-  uint64_t nMinutes  = nIntervalMs / (60 * 1000);
-  nIntervalMs       %= 60 * 1000;
-  uint64_t nSeconds  = nIntervalMs / 1000;
-  nIntervalMs       %= 1000;
-
-  if (nHours) {
-    ss << nHours << "h ";
-  }
-  if (nMinutes) {
-    ss << nMinutes << "m ";
-  }
-  ss << nSeconds << ".";
-  ss << nIntervalMs << "s";
-  return ss.str();
-}
-
 void SystemManager::printStatistic()
 {
   utils::ClockStat stat;
   m_clock.exportStat(stat);
   std::cout << std::right << std::setw(12) << stat.nTicksCounter
-            << std::right << std::setw(17) << toTime(stat.nRealTimeUs)
-            << std::right << std::setw(17) << toTime(stat.nIngameTimeUs)
-            << std::right << std::setw(17) << toTime(stat.nDeviationUs)
-            << std::right << std::setw(12) << toTime(stat.nAvgTickDurationPerPeriod)
+            << std::right << std::setw(17) << utils::toTime(stat.nRealTimeUs)
+            << std::right << std::setw(17) << utils::toTime(stat.nIngameTimeUs)
+            << std::right << std::setw(17) << utils::toTime(stat.nDeviationUs)
+            << std::right << std::setw(12) << utils::toTime(stat.nAvgTickDurationPerPeriod)
             << std::endl;
 }

@@ -111,7 +111,7 @@ protected:
 
 TEST_F(ShipyardTests, BreathTest)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -127,7 +127,7 @@ TEST_F(ShipyardTests, BreathTest)
 
 TEST_F(ShipyardTests, GetSpecification)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -149,7 +149,7 @@ TEST_F(ShipyardTests, GetSpecification)
 TEST_F(ShipyardTests, BlueprintNotFound)
 {
   const std::string sBlueprintName = "Ship/MiningDrone1111";
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -169,7 +169,7 @@ TEST_F(ShipyardTests, BlueprintNotFound)
 TEST_F(ShipyardTests, BuildSuccessCase)
 {
   const std::string sBlueprintName = "Ship/MiningDrone";
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -222,7 +222,7 @@ TEST_F(ShipyardTests, BuildSuccessCase)
   ASSERT_TRUE(shipyardContainer.checkContent(empty));
 
   // Check that new ship has the same position as a shipyard
-  freezeWorld();
+  pauseTime();
   geometry::Point stationPosition;
   geometry::Vector stationVelocity;
   ASSERT_TRUE(station.getPosition(stationPosition, stationVelocity));
@@ -238,7 +238,7 @@ TEST_F(ShipyardTests, BuildSuccessCase)
 TEST_F(ShipyardTests, BuildFreezed)
 {
   const std::string sBlueprintName = "Ship/MiningDrone";
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()

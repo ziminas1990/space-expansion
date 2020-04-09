@@ -145,7 +145,7 @@ protected:
 
 TEST_F(BlueprintStorageTests, GetAllModules)
 {
-  animateWorld();
+  resumeTime();
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
@@ -186,7 +186,7 @@ TEST_F(BlueprintStorageTests, GetAllModules)
 
 TEST_F(BlueprintStorageTests, GetSomeModules)
 {
-  animateWorld();
+  resumeTime();
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
@@ -214,7 +214,7 @@ TEST_F(BlueprintStorageTests, GetSomeModules)
 
 TEST_F(BlueprintStorageTests, GetNonExistingModuleBlueprint)
 {
-  animateWorld();
+  resumeTime();
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
@@ -233,7 +233,7 @@ TEST_F(BlueprintStorageTests, GetNonExistingModuleBlueprint)
 
 TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
 {
-  animateWorld();
+  resumeTime();
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
@@ -292,7 +292,7 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
 
 TEST_F(BlueprintStorageTests, GetShipBlueprints)
 {
-  animateWorld();
+  resumeTime();
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
@@ -328,7 +328,7 @@ TEST_F(BlueprintStorageTests, GetShipBlueprints)
 
 TEST_F(BlueprintStorageTests, GetAllModulesBlueprints)
 {
-  animateWorld();
+  resumeTime();
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")

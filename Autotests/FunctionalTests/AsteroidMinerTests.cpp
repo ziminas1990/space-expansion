@@ -99,7 +99,7 @@ TEST_F(AsteroidMinerTests, GetSpecification)
 
 TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -137,7 +137,7 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
 
 TEST_F(AsteroidMinerTests, StopMining)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -170,7 +170,7 @@ TEST_F(AsteroidMinerTests, StopMining)
 
 TEST_F(AsteroidMinerTests, MiningVariousResources)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -225,7 +225,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
 
 TEST_F(AsteroidMinerTests, StartMiningFails)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
@@ -250,7 +250,7 @@ TEST_F(AsteroidMinerTests, StartMiningFails)
 
 TEST_F(AsteroidMinerTests, NoAvaliableSpace)
 {
-  animateWorld();
+  resumeTime();
 
   ASSERT_TRUE(
         Scenarios::Login()
