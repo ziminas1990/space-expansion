@@ -16,9 +16,9 @@ class SlaveTerminator : public IAbstractLogic
 {
 public:
   // overrides from IAbstractLogic interface
-  uint16_t getStagesCount()                 override { return 1; }
-  bool     prephareStage(uint16_t)          override { return true; }
-  void     proceedStage(uint16_t, uint32_t) override { gContinueSlave = false; }
+  uint16_t getStagesCount()        override { return 1; }
+  bool     prephareStage(uint16_t) override { return true; }
+  void     proceed(uint16_t, uint32_t, uint64_t) override { gContinueSlave = false; }
 };
 
 //========================================================================================
@@ -45,6 +45,7 @@ void Conveyor::addLogicToChain(IAbstractLogicPtr pLogic)
 
 void Conveyor::proceed(uint32_t nIntervalUs)
 {
+  m_now += nIntervalUs;
   m_State.nCurrentTimeUs  += nIntervalUs;
   m_State.pSelectedLogic  = nullptr;
   for(LogicContext& context : m_LogicChain)
@@ -65,7 +66,7 @@ void Conveyor::proceed(uint32_t nIntervalUs)
         continue;
       m_State.nStageId = nStageId;
       m_Barrier.wait();
-      pLogic->proceedStage(nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs));
+      pLogic->proceed(nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs), m_now);
       m_Barrier.wait();
     }
     context.m_nDoNotDisturbUntil += pLogic->getCooldownTimeUs();
@@ -78,8 +79,8 @@ void Conveyor::joinAsSlave()
   gContinueSlave = true;
   while (gContinueSlave) {
     m_Barrier.wait();
-    m_State.pSelectedLogic->proceedStage(
-          m_State.nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs));
+    m_State.pSelectedLogic->proceed(
+          m_State.nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs), m_now);
     m_Barrier.wait();
   }
 }

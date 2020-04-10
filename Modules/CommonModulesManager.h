@@ -71,7 +71,7 @@ public:
     }
   }
 
-  void proceedStage(uint16_t nStageId, uint32_t nIntervalUs)
+  void proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t)
   {
     switch (nStageId) {
       case eStageHandleMessages:

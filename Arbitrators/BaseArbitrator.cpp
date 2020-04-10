@@ -57,7 +57,7 @@ bool BaseArbitrator::prephareStage(uint16_t nStageId)
   }
 }
 
-void BaseArbitrator::proceedStage(uint16_t nStageId, uint32_t)
+void BaseArbitrator::proceed(uint16_t nStageId, uint32_t, uint64_t)
 {
   assert(nStageId == eScoring);
   size_t id = m_nNextId.fetch_add(1);

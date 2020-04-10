@@ -11,7 +11,7 @@ bool NewtonEngine::prephareStage(uint16_t)
   return true;
 }
 
-void NewtonEngine::proceedStage(uint16_t, uint32_t nIntervalUs)
+void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
 {
   double nIntervalSec = nIntervalUs / 1000000.0;
 

@@ -31,6 +31,7 @@ private:
 private:
   boost::fibers::barrier    m_Barrier;
   std::vector<LogicContext> m_LogicChain;
+  uint64_t                  m_now         = 0;
 
   struct State
   {

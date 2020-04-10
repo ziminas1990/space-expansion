@@ -23,7 +23,9 @@ void Clock::start(bool lColdStart)
 
 uint32_t Clock::getNextInterval()
 {
+#ifndef AUTOTESTS_MODE
   const uint64_t nMaxTickUs = 10000;
+#endif
   // expected_now = m_startedAt + m_inGameTime + m_DeviationUs
   // dt = actual_now - expected_now
   uint64_t dt  = timeSinceUs(m_startedAt);
