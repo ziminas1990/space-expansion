@@ -143,6 +143,7 @@ bool SystemManager::createAllComponents()
   m_pConveyor = new conveyor::Conveyor(m_configuration.getTotalThreads());
 
   m_pNewtonEngine             = std::make_shared<newton::NewtonEngine>();
+  m_pFilteringManager         = std::make_shared<tools::ObjectsFilteringManager>();
   m_pShipsManager             = std::make_shared<ships::ShipsManager>();
   m_pCommutatorsManager       = std::make_shared<modules::CommutatorManager>();
   m_pEnginesManager           = std::make_shared<modules::EngineManager>();
@@ -201,6 +202,7 @@ bool SystemManager::linkComponents()
     m_pConveyor->addLogicToChain(m_pAdministratorPanel);
   }
   m_pConveyor->addLogicToChain(m_pNewtonEngine);
+  m_pConveyor->addLogicToChain(m_pFilteringManager);
   m_pConveyor->addLogicToChain(m_pCommutatorsManager);
   m_pConveyor->addLogicToChain(m_pShipsManager);
   m_pConveyor->addLogicToChain(m_pEnginesManager);

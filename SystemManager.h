@@ -26,6 +26,7 @@
 #include "Modules/BlueprintsStorage/BlueprintsStorageManager.h"
 #include "Modules/Shipyard/ShipyardManager.h"
 #include "Arbitrators/BaseArbitrator.h"
+#include <ConveyorTools/ObjectsFilter.h>
 
 class SystemManager
 {
@@ -72,6 +73,7 @@ private:
 
   // Managers for all logics
   newton::NewtonEnginePtr              m_pNewtonEngine;
+  tools::ObjectsFilteringManagerPtr    m_pFilteringManager;
   ships::ShipsManagerPtr               m_pShipsManager;
   modules::CommutatorManagerPtr        m_pCommutatorsManager;
   modules::EngineManagerPtr            m_pEnginesManager;

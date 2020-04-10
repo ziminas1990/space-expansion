@@ -17,11 +17,16 @@ public:
   virtual uint16_t getStagesCount() = 0;
 
   // This function will be called for each stage before calling proceedStage().
-  // If function returns false, than stage will be skipped
+  // This function always run in one thread, so you do NOT need any synchronization
+  // in it's implementation. If function returns false, than stage will be skipped
   virtual bool prephareStage(uint16_t nStageId) = 0;
 
   // This function will be called for every stage, if prhephareStage() returned true
-  // nIntervalUs - in-game time (im microseconds), that passed since last proceed
+  // This function will be called from a number of threads, so you must provide thread
+  // synchronization if it is required.
+  // nStageId    - number of stage;
+  // nIntervalUs - in-game time, that passed since last proceed (in microseconds);
+  // now         - microseconds since tie world has been started;
   virtual void proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t now) = 0;
 
   // This function returns a number of microseconds (of in-game time), during wich
