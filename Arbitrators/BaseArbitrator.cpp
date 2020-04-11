@@ -38,7 +38,7 @@ bool BaseArbitrator::loadConfiguation(YAML::Node const& data)
   return reader.read("target_score", m_nTargetScore);
 }
 
-bool BaseArbitrator::prephareStage(uint16_t nStageId)
+bool BaseArbitrator::prephare(uint16_t nStageId, uint32_t, uint64_t)
 {
   switch (nStageId) {
     case eScoring:

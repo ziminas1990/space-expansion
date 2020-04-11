@@ -56,7 +56,7 @@ class CommonModulesManager : public conveyor::IAbstractLogic
 public:
   // IAbstractLogic interface
   uint16_t getStagesCount() { return eTotalStages; }
-  bool prephareStage(uint16_t nStageId)
+  bool prephare(uint16_t nStageId, uint32_t, uint64_t)
   {
     switch (nStageId) {
       case eStageHandleMessages:

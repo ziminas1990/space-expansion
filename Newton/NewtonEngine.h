@@ -14,7 +14,7 @@ class NewtonEngine : public conveyor::IAbstractLogic
 public:
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() override { return 1; }
-  bool prephareStage(uint16_t nStageId) override;
+  bool prephare(uint16_t nStageId, uint32_t nIntervalUs, uint64_t now) override;
   void proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t now) override;
   size_t getCooldownTimeUs() const override { return 0; }
 

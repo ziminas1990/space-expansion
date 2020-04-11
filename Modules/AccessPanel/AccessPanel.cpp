@@ -10,7 +10,7 @@
 
 namespace modules {
 
-bool AccessPanel::prephareStage(uint16_t)
+bool AccessPanel::prephare(uint16_t, uint32_t, uint64_t)
 {
   handleBufferedMessages();
   return false;

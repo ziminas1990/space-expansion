@@ -14,7 +14,7 @@ void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
   m_clockControl.setup(m_pSystemManager, getChannel());
 }
 
-bool AdministratorPanel::prephareStage(uint16_t nStageId)
+bool AdministratorPanel::prephare(uint16_t nStageId, uint32_t, uint64_t)
 {
   assert(nStageId == 0);
   handleBufferedMessages();

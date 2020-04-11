@@ -26,7 +26,7 @@ UdpSocketPtr UdpDispatcher::createUdpConnection(
   return pUdpSocket;
 }
 
-bool UdpDispatcher::prephareStage(uint16_t)
+bool UdpDispatcher::prephare(uint16_t, uint32_t, uint64_t)
 {
   // Move to proceedStage
   if (!m_IOContext.poll())

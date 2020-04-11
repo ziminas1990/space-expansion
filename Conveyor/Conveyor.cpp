@@ -17,7 +17,7 @@ class SlaveTerminator : public IAbstractLogic
 public:
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount()        override { return 1; }
-  bool     prephareStage(uint16_t) override { return true; }
+  bool     prephare(uint16_t, uint32_t, uint64_t) override { return true; }
   void     proceed(uint16_t, uint32_t, uint64_t) override { gContinueSlave = false; }
 };
 
@@ -62,7 +62,7 @@ void Conveyor::proceed(uint32_t nIntervalUs)
     uint16_t nTotalStages = pLogic->getStagesCount();
     for (uint16_t nStageId = 0; nStageId < nTotalStages; ++nStageId)
     {
-      if (!pLogic->prephareStage(nStageId))
+      if (!pLogic->prephare(nStageId, nIntervalUs, m_now))
         continue;
       m_State.nStageId = nStageId;
       m_Barrier.wait();

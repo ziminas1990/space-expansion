@@ -5,7 +5,7 @@
 namespace newton
 {
 
-bool NewtonEngine::prephareStage(uint16_t)
+bool NewtonEngine::prephare(uint16_t, uint32_t, uint64_t)
 {
   m_nNextObjectId.store(0);
   return true;

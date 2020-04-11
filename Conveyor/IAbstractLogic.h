@@ -19,7 +19,7 @@ public:
   // This function will be called for each stage before calling proceedStage().
   // This function always run in one thread, so you do NOT need any synchronization
   // in it's implementation. If function returns false, than stage will be skipped
-  virtual bool prephareStage(uint16_t nStageId) = 0;
+  virtual bool prephare(uint16_t nStageId, uint32_t nIntervalUs, uint64_t now) = 0;
 
   // This function will be called for every stage, if prhephareStage() returned true
   // This function will be called from a number of threads, so you must provide thread
