@@ -18,7 +18,7 @@ void ClockControl::proceed()
   m_nDebugSessionId = network::gInvalidSessionId;
 }
 
-void ClockControl::handleMessage(uint32_t nSessionId, admin::SystemClock message)
+void ClockControl::handleMessage(uint32_t nSessionId, admin::SystemClock const& message)
 {
   switch(message.choice_case()) {
     case admin::SystemClock::kNow:

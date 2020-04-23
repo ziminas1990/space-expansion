@@ -45,9 +45,9 @@ void Conveyor::addLogicToChain(IAbstractLogicPtr pLogic)
 
 void Conveyor::proceed(uint32_t nIntervalUs)
 {
-  m_now += nIntervalUs;
-  m_State.nCurrentTimeUs  += nIntervalUs;
-  m_State.pSelectedLogic  = nullptr;
+  m_now                  += nIntervalUs;
+  m_State.nCurrentTimeUs += nIntervalUs;
+  m_State.pSelectedLogic = nullptr;
   for(LogicContext& context : m_LogicChain)
   {
     if (m_State.nCurrentTimeUs < context.m_nDoNotDisturbUntil)

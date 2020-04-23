@@ -56,7 +56,6 @@ inline world::ResourceItem convert(spex::ResourceItem const& item)
   output.m_eType   = convert(item.type());
   output.m_nAmount = item.amount();
   return output;
-
 }
 
-}
+} // namespace utils

@@ -4,6 +4,26 @@ option cc_enable_arenas = true;
 
 package admin;
 
+enum ObjectType {
+  ASTEROID = 0;
+  SHIP     = 1;
+}
+
+message Object {
+  ObjectType type = 1;
+  float  r        = 2;
+  float  m        = 3;
+  double x        = 4;
+  double y        = 5;
+  float  vx       = 6;
+  float  vy       = 7;
+}
+
+message ObjectsList {
+  repeated Object object = 1;
+  uint32          left   = 2;
+}
+
 
 message Access {
 
@@ -49,6 +69,31 @@ message SystemClock {
 }
 
 
+
+message Screen {
+
+  enum Status {
+    SUCCESS = 0;
+    FAILED  = 1;
+  }
+
+  message Position {
+    double x      = 2;
+    double y      = 3;
+    double width  = 4;
+    double height = 5;
+  }
+
+  oneof choice {
+    Position    move    = 1;
+    ObjectType  show    = 2;
+    
+    Status      status  = 129;
+    ObjectsList objects = 130;
+  }
+}
+
+
 message Message {
   uint64 token = 1;
 
@@ -56,5 +101,6 @@ message Message {
     // All possible interfaces are listed here
     Access      access       = 2;
     SystemClock system_clock = 3;
+    Screen      screen       = 4;
   }
 }

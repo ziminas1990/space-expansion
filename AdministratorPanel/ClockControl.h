@@ -17,7 +17,7 @@ public:
   }
 
   void proceed();
-  void handleMessage(uint32_t nSessionId, admin::SystemClock message);
+  void handleMessage(uint32_t nSessionId, admin::SystemClock const& message);
 
 private:
   utils::Clock& clock();
