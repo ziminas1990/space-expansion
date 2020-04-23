@@ -10,81 +10,53 @@
 
 namespace tools {
 
+
 class BaseObjectFilter
 {
+  enum UpdatePolicy {
+    eUpdateNever,
+    eUpdateASAP,
+    eUpdateSceduled
+  };
+
 public:
   virtual ~BaseObjectFilter() = default;
 
   virtual void proceed() = 0;
+    // This function may be called from different threads simultaneously, so it must
+    // be thread safe. Use the 'yieldId()' call to get id of the next object to apply
+    // filter logic on it.
 
-  void     schedule(uint64_t nWhen) { m_nWhen = nWhen; }
-  uint64_t when() const { return m_nWhen; }
+  void updateAsSoonAsPossible();
+  void updateAt(uint64_t nWhenUs);
+  bool isTimeToUpdate(uint64_t now) const;
+  bool isWaitingForUpdate() const { return m_eUpdatePolicy != eUpdateNever; }
+    // Return true if update is requested but has not been done yet
 
-  void prephare() { m_nNextId.store(0); }
+  void prephare();
+    // Prephare filter to proceed and reset update policy to 'eUpdatNever'
+    // After this call the 'isTimeToUpdate()' will always return false
 
 protected:
   uint32_t yieldId() { return m_nNextId.fetch_add(1); }
 
 private:
-  uint64_t m_nWhen;
-    // When filter should be proceeded
+  UpdatePolicy m_eUpdatePolicy = eUpdateNever;
+  uint64_t     m_nUpdateAt     = 0;
+    // When filter should be updated (if policy is eUpdateSceduled)
   std::atomic_uint32_t m_nNextId = 0;
+    // Will be used by different threads from 'proceed()' call to get id of object
+    // that should be checked
 };
 
 using BaseObjectFilterPtr     = std::shared_ptr<BaseObjectFilter>;
 using BaseObjectFilterWeakPtr = std::weak_ptr<BaseObjectFilter>;
 
 
-template<typename ObjectType, typename FilterFunctor>
-class TypedObjectFilter : public BaseObjectFilter
-{
-  using Container = utils::GlobalContainer<ObjectType>;
-public:
-  TypedObjectFilter(FilterFunctor&& fFilter, size_t nReserved = 256)
-    : m_fFilter(std::move(fFilter))
-  {
-    m_filteredInstances.reserve(nReserved);
-  }
-
-  void proceed() override
-  {
-    std::array<uint32_t, 32> m_buffer;
-    size_t                   nElementsInBuffer = 0;
-
-    for (uint32_t nObjectId = yieldId();
-         nObjectId < Container::TotalInstancies();
-         nObjectId = yieldId()) {
-      ObjectType const& obj = Container::Instance(nObjectId);
-      if (!m_fFilter(obj)) {
-        continue;
-      }
-
-      m_buffer[nElementsInBuffer++] = nObjectId;
-      if (nElementsInBuffer == m_buffer.size()) {
-        std::lock_guard<std::mutex> guard(m_mutex);
-        m_filteredInstances.insert(m_filteredInstances.end(),
-                                   m_buffer.begin(), m_buffer.end());
-        nElementsInBuffer = 0;
-      }
-    }
-
-    if (nElementsInBuffer) {
-      std::lock_guard<std::mutex> guard(m_mutex);
-      m_filteredInstances.insert(m_filteredInstances.end(),
-                                 m_buffer.begin(),
-                                 m_buffer.begin() + nElementsInBuffer);
-    }
-  }
-
-  std::vector<uint32_t> const& filtered() const { return m_filteredInstances; }
-
-private:
-  FilterFunctor         m_fFilter;
-  std::mutex            m_mutex;
-  std::vector<uint32_t> m_filteredInstances;
-};
-
-
+// Class to store filters and proceed them when is is required.
+// Filters can be procceded in turns by deveral threads simultaneously and each thread may
+// switch to next filter whenever he want, so there is no any synchronization between
+// filters.
 class ObjectsFilteringManager : public conveyor::IAbstractLogic
 {
   enum Stages {
