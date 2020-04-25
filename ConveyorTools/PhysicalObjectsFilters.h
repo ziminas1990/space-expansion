@@ -18,15 +18,16 @@ public:
 
   void attachToContainer(utils::ObjectsContainerPtr<newton::PhysicalObject> pContainer)
   {
-    m_pObjectsConteiner = pContainer;
+    m_pObjectsContainer = pContainer;
   }
 
   void proceed() override
   {
-    std::vector<newton::PhysicalObject*> objects = m_pObjectsConteiner->getObjects();
+    m_filteredInstances.clear();
+    std::vector<newton::PhysicalObject*> objects = m_pObjectsContainer->getObjects();
 
-    std::array<uint32_t, 32> m_buffer;
-    size_t                   nElementsInBuffer = 0;
+    std::array<newton::PhysicalObject*, 32> m_buffer;
+    size_t nElementsInBuffer = 0;
 
     for (uint32_t nObjectId = yieldId();
          nObjectId < objects.size();
@@ -36,7 +37,7 @@ public:
         continue;
       }
 
-      m_buffer[nElementsInBuffer++] = nObjectId;
+      m_buffer[nElementsInBuffer++] = pObj;
       if (nElementsInBuffer == m_buffer.size()) {
         std::lock_guard<std::mutex> guard(m_mutex);
         m_filteredInstances.insert(m_filteredInstances.end(),
@@ -53,13 +54,18 @@ public:
     }
   }
 
+  // Return array of filtered objects
+  std::vector<newton::PhysicalObject*> const& getFiltered() const {
+    return m_filteredInstances;
+  }
+
 protected:
   virtual bool filter(newton::PhysicalObject const* pObj) = 0;
 
 private:
-  std::mutex            m_mutex;
-  std::vector<uint32_t> m_filteredInstances;
-  utils::ObjectsContainerPtr<newton::PhysicalObject> m_pObjectsConteiner;
+  std::mutex m_mutex;
+  std::vector<newton::PhysicalObject*>               m_filteredInstances;
+  utils::ObjectsContainerPtr<newton::PhysicalObject> m_pObjectsContainer;
 };
 
 

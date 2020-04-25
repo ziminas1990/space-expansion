@@ -43,6 +43,10 @@ public:
 
   utils::Clock& getClock() { return m_clock; }
 
+  tools::ObjectsFilteringManagerPtr getFilteringManager() const {
+    return m_pFilteringManager;
+  }
+
 private:
   bool createAllComponents();
   bool configureComponents();

@@ -66,7 +66,7 @@ class ObjectsFilteringManager : public conveyor::IAbstractLogic
 
 public:
 
-  void registerFilter(BaseObjectFilterPtr& pFilter);
+  void registerFilter(BaseObjectFilterPtr const& pFilter);
 
   // overrides from conveyor::IAbstractLogic
   uint16_t getStagesCount() override { return 1; }

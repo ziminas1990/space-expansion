@@ -151,7 +151,7 @@ public:
   virtual ~ObjectsContainer() = default;
 
   // Return all objects as array. Note that array may contan null pointers!
-  virtual std::vector<ObjectType*> const& getObjects() {
+  virtual std::vector<ObjectType*> const& getObjects() const {
     return GlobalContainer<ObjectType>::getAllInstancies();
   }
 };
@@ -161,8 +161,8 @@ using ObjectsContainerPtr = std::shared_ptr<ObjectsContainer<ObjectType>>;
 
 
 // This container returns all objects of type 'ConcreteObjectType' as an array of
-// pointers to 'BaseObjectType'. The 'ConcreteObjectType' must be a subclass of
-// 'BaseObjectType'.
+// pointers to 'BaseObjectType' in O(1) time. The 'ConcreteObjectType' must be a subclass
+// of 'BaseObjectType'.
 // For example:
 // The ConcreteObjectsContainer<Asteroid, PhysicalObjects> object returns
 // all asteroids (objects of type 'Asteroid') as array of pointers to 'PhysicalObject'.
@@ -194,7 +194,7 @@ public:
   }
 
   // Note that array may contain nullptr's
-  std::vector<BaseObjectType*> const& getObjects() override {
+  std::vector<BaseObjectType*> const& getObjects() const override {
     return m_baseObjects;
   }
 

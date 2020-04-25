@@ -5,32 +5,44 @@
 
 namespace world {
 
-PhysicalObjectsContainerPtr Containers::m_pPhysicalObjects;
-PhysicalObjectsContainerPtr Containers::m_pAsteroids;
-PhysicalObjectsContainerPtr Containers::m_pShips;
+PhysicalObjectsContainerWeakPtr Containers::m_pPhysicalObjects;
+PhysicalObjectsContainerWeakPtr Containers::m_pAsteroids;
+PhysicalObjectsContainerWeakPtr Containers::m_pShips;
+std::mutex                      Containers::m_mutex;
 
 PhysicalObjectsContainerPtr Containers::getContainerWith(ObjectType eObjectType)
 {
+  std::lock_guard<std::mutex> guard(m_mutex);
+
   switch (eObjectType) {
-    case ObjectType::ePhysicalObject:
-      if (!m_pPhysicalObjects) {
-        m_pPhysicalObjects = std::make_shared<PhysicalObjectsContainer>();
+    case ObjectType::ePhysicalObject: {
+      PhysicalObjectsContainerPtr pContainer = m_pPhysicalObjects.lock();
+      if (!pContainer) {
+        pContainer = std::make_shared<PhysicalObjectsContainer>();
+        m_pPhysicalObjects = pContainer;
       }
-      return m_pPhysicalObjects;
-    case ObjectType::eAsteroid:
-      if (!m_pAsteroids) {
-        m_pAsteroids =
+      return pContainer;
+    }
+    case ObjectType::eAsteroid: {
+      PhysicalObjectsContainerPtr pContainer = m_pAsteroids.lock();
+      if (!pContainer) {
+        pContainer =
             std::make_shared<utils::ConcreteObjectsContainer<
             world::Asteroid, newton::PhysicalObject>>();
+        m_pAsteroids = pContainer;
       }
-      return m_pAsteroids;
-    case ObjectType::eShip:
-      if (!m_pShips) {
-        m_pShips =
+      return pContainer;
+    }
+    case ObjectType::eShip: {
+      PhysicalObjectsContainerPtr pContainer = m_pShips.lock();
+      if (!pContainer) {
+        pContainer =
             std::make_shared<utils::ConcreteObjectsContainer<
             ships::Ship, newton::PhysicalObject>>();
+        m_pShips = pContainer;
       }
-      return m_pShips;
+      return pContainer;
+    }
     default:
       assert("Access to non existing container" == nullptr);
       return nullptr;

@@ -12,6 +12,7 @@ void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
 {
   m_pSystemManager = pSystemManager;
   m_clockControl.setup(m_pSystemManager, getChannel());
+  m_screen.setup(m_pSystemManager, getChannel());
 }
 
 bool AdministratorPanel::prephare(uint16_t nStageId, uint32_t, uint64_t)
@@ -19,6 +20,7 @@ bool AdministratorPanel::prephare(uint16_t nStageId, uint32_t, uint64_t)
   assert(nStageId == 0);
   handleBufferedMessages();
   m_clockControl.proceed();
+  m_screen.proceed();
   // This logic shouldn't be run in multithreading mode
   return false;
 }

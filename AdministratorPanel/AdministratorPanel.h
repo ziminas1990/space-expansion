@@ -10,6 +10,7 @@
 #include <Utils/RandomSequence.h>
 
 #include "ClockControl.h"
+#include "Screen.h"
 
 class SystemManager;
 
@@ -47,6 +48,7 @@ private:
   config::AdministratorCfg    m_cfg;
   SystemManager*              m_pSystemManager;
   administrator::ClockControl m_clockControl;
+  administrator::Screen       m_screen;
 
   utils::RandomSequence m_tokenGenerator;
 

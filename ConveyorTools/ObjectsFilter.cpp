@@ -2,7 +2,7 @@
 
 namespace tools {
 
-void ObjectsFilteringManager::registerFilter(BaseObjectFilterPtr &pFilter)
+void ObjectsFilteringManager::registerFilter(BaseObjectFilterPtr const& pFilter)
 {
   m_filters.push_back(pFilter);
 }
