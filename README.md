@@ -3,8 +3,8 @@
   * [space-expansion-server on Youtrack](https://space-expansion.myjetbrains.com/youtrack/issues?q=project:%20space-expansion-server)
 
 ## Docs
-  - [API Description (rus)](Doc/API.ru.md)
-  - [developing-modules (rus)](Doc/developing-modules.ru.md)
+  - [API Description (rus)](docs/API.ru.md)
+  - [developing-modules (rus)](docs/developing-modules.ru.md)
 
 ## What others tell about us
 ```А код у тебя чистый, понятный, GJ``` - [Anton SX91](https://github.com/SX91)  
