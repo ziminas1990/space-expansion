@@ -28,8 +28,8 @@ set(PROTOBUF_COMPILER ${CONAN_BIN_DIRS_PROTOC_INSTALLER}/protoc)
 set(PROTOBUF_FILES   "Protocol.proto" "Priveledeged.proto")
 set(PROTOBUF_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.cc"
                     "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.h"
-                    "${CMAKE_CURRENT_BINARY_DIR}/Priveledeged.pb.cc"
-                    "${CMAKE_CURRENT_BINARY_DIR}/Priveledeged.pb.h")
+                    "${CMAKE_CURRENT_BINARY_DIR}/Privileged.pb.cc"
+                    "${CMAKE_CURRENT_BINARY_DIR}/Privileged.pb.h")
 add_custom_command(
   OUTPUT ${PROTOBUF_OUTPUT}
   COMMAND ${PROTOBUF_COMPILER} ${PROTOBUF_FILES} --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
