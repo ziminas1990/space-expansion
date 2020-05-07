@@ -13,9 +13,12 @@ def get_message_field(message: Any, path: List[str]) -> Any:
      This function assumes, that message and all it's neted messages have
      'oneof choice' field in .proto file.
     """
+    if not message:
+        return None
+
     field = message
     for name in path:
-        if message.WhichOneof('choice') != name:
+        if field.WhichOneof('choice') != name:
             return None
-        field = getattr(message, name)
+        field = getattr(field, name)
     return field

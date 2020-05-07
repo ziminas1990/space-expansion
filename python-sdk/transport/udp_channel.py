@@ -42,7 +42,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def send(self, message: bytes):
         """Write the specified 'message' to channel"""
-        self.logger.debug(f"Sending:\n{message}")
+        self.logger.debug(f"Sending {len(message)} bytes to {self.ip_addr}:{self.port}")
         self.transport.sendto(message)
 
     async def receive(self, timeout: float = 5) -> Optional[bytes]:

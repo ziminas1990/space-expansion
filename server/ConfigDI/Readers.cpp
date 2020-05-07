@@ -32,6 +32,7 @@ AdministratorCfg AdministratorCfgReader::read(YAML::Node const& data)
   }
 
   return AdministratorCfg()
+      .setPort(nPort)
       .setLogin(sLogin)
       .setPassord(sPassword);
 }
