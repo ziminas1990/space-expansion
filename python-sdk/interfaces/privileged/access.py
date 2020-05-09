@@ -1,6 +1,6 @@
 from typing import Optional
 
-from transport import channel
+from transport.channel import Channel
 import protocol.Privileged_pb2 as privileged
 from protocol.utils import get_message_field
 
@@ -8,9 +8,9 @@ from protocol.utils import get_message_field
 class Access:
 
     def __init__(self):
-        self._channel: Optional[channel.Channel] = None
+        self._channel: Optional[Channel] = None
 
-    def attach_to_channel(self, channel: channel.Channel):
+    def attach_to_channel(self, channel: Channel):
         self._channel = channel
 
     async def login(self, login: str, password: str) -> (bool, int):
