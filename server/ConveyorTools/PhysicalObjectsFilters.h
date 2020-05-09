@@ -21,12 +21,17 @@ public:
     m_pObjectsContainer = pContainer;
   }
 
-  void proceed() override
+  void reset() override
   {
     m_filteredInstances.clear();
-    std::vector<newton::PhysicalObject*> objects = m_pObjectsContainer->getObjects();
+  }
 
-    std::array<newton::PhysicalObject*, 32> m_buffer;
+  void proceed() override
+  {
+    std::vector<newton::PhysicalObject*> const& objects =
+        m_pObjectsContainer->getObjects();
+
+    std::array<newton::PhysicalObject*, 64> buffer;
     size_t nElementsInBuffer = 0;
 
     for (uint32_t nObjectId = yieldId();
@@ -37,20 +42,24 @@ public:
         continue;
       }
 
-      m_buffer[nElementsInBuffer++] = pObj;
-      if (nElementsInBuffer == m_buffer.size()) {
+      buffer[nElementsInBuffer++] = pObj;
+      if (nElementsInBuffer == buffer.size()) {
         std::lock_guard<std::mutex> guard(m_mutex);
-        m_filteredInstances.insert(m_filteredInstances.end(),
-                                   m_buffer.begin(), m_buffer.end());
+//        m_filteredInstances.insert(m_filteredInstances.end(),
+//                                   buffer.begin(), buffer.end());
+        for (auto const& item: buffer)
+          m_filteredInstances.push_back(item);
         nElementsInBuffer = 0;
       }
     }
 
     if (nElementsInBuffer) {
       std::lock_guard<std::mutex> guard(m_mutex);
-      m_filteredInstances.insert(m_filteredInstances.end(),
-                                 m_buffer.begin(),
-                                 m_buffer.begin() + nElementsInBuffer);
+//      m_filteredInstances.insert(m_filteredInstances.end(),
+//                                 buffer.begin(),
+//                                 buffer.begin() + nElementsInBuffer);
+      for (auto const& item: buffer)
+        m_filteredInstances.push_back(item);
     }
   }
 

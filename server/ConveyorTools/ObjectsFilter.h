@@ -22,6 +22,10 @@ class BaseObjectFilter
 public:
   virtual ~BaseObjectFilter() = default;
 
+  virtual void reset() = 0;
+    // Reset all previously accumulated results. Will be always called in a single
+    // thread before the 'proceed()' call. Doesn't need to be thread safe
+
   virtual void proceed() = 0;
     // This function may be called from different threads simultaneously, so it must
     // be thread safe. Use the 'yieldId()' call to get id of the next object to apply
@@ -34,8 +38,8 @@ public:
     // Return true if update is requested but has not been done yet
 
   void prephare();
-    // Prephare filter to proceed and reset update policy to 'eUpdatNever'
-    // After this call the 'isTimeToUpdate()' will always return false
+    // Reset filter and prephare it to be proceeded. It also reset update policy
+    // to eUpdateNever, so filter won't be proceeded again until it is required
 
 protected:
   uint32_t yieldId() { return m_nNextId.fetch_add(1); }

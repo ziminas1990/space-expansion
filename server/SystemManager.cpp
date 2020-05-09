@@ -167,7 +167,6 @@ bool SystemManager::createAllComponents()
     m_pAdministratorPanel = std::make_shared<AdministratorPanel>(
           m_configuration.getAdministratorCfg(),
           std::time(nullptr));
-    m_pAdministratorPanel->attachToSystemManager(this);
   }
 
   m_pPlayersStorage     = std::make_shared<world::PlayersStorage>();
@@ -187,6 +186,7 @@ bool SystemManager::linkComponents()
           m_configuration.getAdministratorCfg().getPort());
     m_pPrivilegedChannel->attachToTerminal(m_pAdministratorPanel);
     m_pAdministratorPanel->attachToChannel(m_pPrivilegedChannel);
+    m_pAdministratorPanel->attachToSystemManager(this);
   }
 
   m_pUdpDispatcher->createUdpConnection(m_pLoginChannel,

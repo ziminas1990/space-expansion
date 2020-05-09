@@ -65,10 +65,10 @@ public:
     if (nOffset < m_nSmallArenaSize) {
       m_smallChunks.push_back(pChunk);
       return true;
-    } else if (nOffset < m_nSmallArenaSize + m_nMediumChunksSize) {
+    } else if (nOffset < m_nSmallArenaSize + m_nMediumArenaSize) {
       m_mediumChunks.push_back(pChunk);
       return true;
-    } else if (nOffset < m_nSmallArenaSize + m_nMediumChunksSize + m_nHugeArenaSize) {
+    } else if (nOffset < m_nSmallArenaSize + m_nMediumArenaSize + m_nHugeArenaSize) {
       m_hugeChunks.push_back(pChunk);
       return true;
     }

@@ -63,7 +63,8 @@ bool BaseObjectFilter::isTimeToUpdate(uint64_t now) const
 void BaseObjectFilter::prephare()
 {
   m_nNextId.store(0);
-  m_nUpdateAt = eUpdateNever;
+  m_eUpdatePolicy = eUpdateNever;
+  reset();
 }
 
 } // namespace tools

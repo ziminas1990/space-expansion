@@ -10,6 +10,8 @@ AdministratorPanel::AdministratorPanel(config::IAdministratorCfg const& cfg,
 
 void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
 {
+  assert(getChannel() != nullptr);  // must be attached to channel first!
+
   m_pSystemManager = pSystemManager;
   m_clockControl.setup(m_pSystemManager, getChannel());
   m_screen.setup(m_pSystemManager, getChannel());
@@ -45,6 +47,9 @@ void AdministratorPanel::handleMessage(uint32_t nSessionId, admin::Message const
   switch(message.choice_case()) {
     case admin::Message::kSystemClock:
       m_clockControl.handleMessage(nSessionId, message.system_clock());
+      return;
+    case admin::Message::kScreen:
+      m_screen.handleMessage(nSessionId, message.screen());
       return;
     default:
       return;

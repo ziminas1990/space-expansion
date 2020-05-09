@@ -179,6 +179,15 @@ class ConcreteObjectsContainer :
 {
 public:
 
+  ConcreteObjectsContainer()
+  {
+    std::vector<ConcreteObjectType*> const& allObjects =
+        GlobalContainer<ConcreteObjectType>::getAllInstancies();
+
+    m_baseObjects.reserve(allObjects.size() * 1.1);
+    m_baseObjects.insert(m_baseObjects.end(), allObjects.begin(), allObjects.end());
+  }
+
   void onRegistered(size_t nObjectId, ConcreteObjectType* pObject) override
   {
     if (nObjectId == m_baseObjects.size()) {
