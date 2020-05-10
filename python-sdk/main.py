@@ -32,8 +32,6 @@ async def main():
 
     # Logging in
     status, token = await access_panel.login("admin", "admin")
-    print(f"{status}: {token}")
-
     screen = PrivilegedScreen()
     screen.attach_to_channel(channel=privileged_channel, token=token)
 
