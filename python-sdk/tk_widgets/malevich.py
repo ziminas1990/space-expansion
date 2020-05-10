@@ -44,7 +44,7 @@ class RectangleArea:
         self.coordinates[1][1] = _scale(self.coordinates[1][1], center_y, factor)
 
 
-class Circle
+class Circle:
     def __init__(self, position: RectangleArea, owner: "Malevich", id: int):
         self.position = position
         self.owner = owner
@@ -74,8 +74,6 @@ class Malevich(tk.Canvas):
 
     def create_circle(self, position: RectangleArea, **kw):
         physical_coords = numpy.matmul(self._transform, position.coordinates)
-
-        print(*physical_coords[1])
         circle_id = self.create_oval(
             physical_coords[0][0], physical_coords[1][0],
             physical_coords[0][1], physical_coords[1][1],
@@ -150,7 +148,6 @@ class Malevich(tk.Canvas):
         dy = self.last_y - event.y
         factor: float = 1 + 2 * dy / self.winfo_height()
         center_x, center_y = self._to_logical_coords(self.push_x, self.push_y)
-        print(center_x, center_y)
         self.logical_view.scale(center_x, center_y, factor)
         self.last_y = event.y
         self._recalculate_transform_matrix()
