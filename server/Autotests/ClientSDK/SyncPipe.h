@@ -7,7 +7,7 @@
 
 #include "Interfaces.h"
 #include <Protocol.pb.h>
-#include <Priveledeged.pb.h>
+#include <Privileged.pb.h>
 #include <Utils/WaitingFor.h>
 
 namespace autotests { namespace client {

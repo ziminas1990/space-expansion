@@ -4,7 +4,7 @@
 #include <memory>
 
 #include <Protocol.pb.h>
-#include <Priveledeged.pb.h>
+#include <Privileged.pb.h>
 
 namespace network
 {

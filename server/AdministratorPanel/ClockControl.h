@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Network/Interfaces.h>
-#include <Priveledeged.pb.h>
+#include <Privileged.pb.h>
 
 namespace utils { class Clock; }
 class SystemManager;

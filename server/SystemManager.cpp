@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <yaml-cpp/yaml.h>
 
-#include <Priveledeged.pb.h>
+#include <Privileged.pb.h>
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Ships/ShipsManager.h"
 #include "Conveyor/Proceeders.h"

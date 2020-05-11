@@ -3,7 +3,7 @@
 #include "Interfaces.h"
 
 #include <Protocol.pb.h>
-#include <Priveledeged.pb.h>
+#include <Privileged.pb.h>
 
 #include <boost/asio.hpp>
 
