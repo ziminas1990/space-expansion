@@ -1,15 +1,23 @@
-import numpy
-from typing import List, Dict
+import numpy as np
+import math
+from typing import List, Dict, Optional
 import tkinter as tk
+
+
+class Point:
+    def __init__(self, x: float, y: float):
+        """Create point with the specified 'x' and 'y' logical(!) coordinates"""
+        self.x: float = x
+        self.y: float = y
 
 
 class RectangleArea:
     def __init__(self, left: float, right: float, top: float, bottom: float):
-        self.coordinates = numpy.array([
+        self.coordinates = np.array([
             [left, right],
             [top, bottom],
             [1,   1]
-        ], dtype=numpy.float)
+        ], dtype=np.float)
 
     def x1(self):
         return self.coordinates[0][0]
@@ -44,87 +52,118 @@ class RectangleArea:
         self.coordinates[1][1] = _scale(self.coordinates[1][1], center_y, factor)
 
 
-class Circle:
-    def __init__(self, position: RectangleArea, owner: "Malevich", id: int):
-        self.position = position
-        self.owner = owner
+class Shape:
+    def __init__(self, id: int, logical_coords: np.ndarray, physical_coords: np.ndarray):
+        assert physical_coords.shape == physical_coords.shape
+        assert logical_coords.shape[0] == 3
+
         self.id = id
+        self.consistent: bool = True
+        self.logical_coords: np.ndarray = logical_coords
+        self.physical_coords: np.ndarray = physical_coords
+
+    def unpack_physical_coordinates(self) -> List[float]:
+        """Return list of coordinates, that can be passed to tkinter's canvas.
+        This function may be overridden"""
+        unpacked: List[float] = []
+        columns = self.physical_coords.shape[1]
+        for col in range(columns):
+            unpacked.extend([self.physical_coords[0][col], self.physical_coords[1][col]])
+        return unpacked
 
 
-class Malevich(tk.Canvas):
+class Circle(Shape):
+    @staticmethod
+    def pack_coordinates(center: Point, r: float, dest: Optional[np.ndarray] = None):
+        if not dest:
+            dest = np.ones((3, 2))
+        assert dest.shape == (3, 2)
+        R = math.sqrt(r*r)
+        dest[0][0] = center.x - R / 2
+        dest[0][1] = center.x + R / 2
+        dest[1][0] = center.y - R / 2
+        dest[1][1] = center.y + R / 2
+        return dest
 
-    def __init__(self, logical_view: RectangleArea, master=None, **kw):
-        super().__init__(master, **kw)
+    def __init__(self, id: int, logical_coords: np.ndarray, physical_coords: np.ndarray):
+        super().__init__(id=id, logical_coords=logical_coords, physical_coords=physical_coords)
+        assert logical_coords.shape == (3, 2)
+        assert physical_coords.shape == (3, 2)
+
+    def move(self, center: Point, r: float):
+        Circle.pack_coordinates(center=center, r=r, dest=self.logical_coords)
+        self.consistent = False
+
+
+class Malevich():
+
+    def __init__(self, logical_view: RectangleArea, canvas: tk.Canvas):
         self.logical_view: RectangleArea = logical_view
+        self.canvas: tk.Canvas = canvas
 
-        self._transform = numpy.identity(3)
-        self._transform_inv = numpy.identity(3)
-        self._circles: List[Circle] = []
+        self._transform = np.identity(3)
+        self._transform_inv = np.identity(3)
+        self._shapes: List[Shape] = []
 
         self.push_x = 0
         self.push_y = 0
         self.last_x = 0
         self.last_y = 0
 
-        self.bind("<Button-1>",  self.mouse_down_event)
-        self.bind("<Button-3>",  self.mouse_down_event)
-        self.bind("<B1-Motion>", self.motion)
-        self.bind("<B3-Motion>", self.scroll)
-        self.bind("<Configure>", self.reconfigure)
+        self.canvas.bind("<Button-1>",  self.mouse_down_event)
+        self.canvas.bind("<Button-3>",  self.mouse_down_event)
+        self.canvas.bind("<B1-Motion>", self.motion)
+        self.canvas.bind("<B3-Motion>", self.scroll)
+        self.canvas.bind("<Configure>", self.reconfigure)
 
-    def create_circle(self, position: RectangleArea, **kw):
-        physical_coords = numpy.matmul(self._transform, position.coordinates)
-        circle_id = self.create_oval(
+    def create_circle(self, center: Point, r: float, **kw):
+        logical_coords = Circle.pack_coordinates(center, r)
+        physical_coords = np.matmul(self._transform, logical_coords)
+        circle_id = self.canvas.create_oval(
             physical_coords[0][0], physical_coords[1][0],
             physical_coords[0][1], physical_coords[1][1],
             **kw)
-        circle = Circle(position, self, circle_id)
-        self._circles.append(circle)
+        circle = Circle(id=circle_id, logical_coords=logical_coords, physical_coords=physical_coords)
+        self._shapes.append(circle)
 
-    def update(self):
-        logical_coordinates = numpy.empty((3, 2 * len(self._circles)))
-        for column, circle in enumerate(self._circles):
-            logical_coordinates[0][2 * column] = circle.position.x1()
-            logical_coordinates[1][2 * column] = circle.position.y1()
-            logical_coordinates[2][2 * column] = 1
-            logical_coordinates[0][2 * column + 1] = circle.position.x2()
-            logical_coordinates[1][2 * column + 1] = circle.position.y2()
-            logical_coordinates[2][2 * column + 1] = 1
-
-        physical_coordinates = numpy.matmul(self._transform, logical_coordinates)
-        for column, circle in enumerate(self._circles):
-            self.coords(circle.id, [
-                physical_coordinates[0][2 * column],
-                physical_coordinates[1][2 * column],
-                physical_coordinates[0][2 * column + 1],
-                physical_coordinates[1][2 * column + 1]
-            ])
+    def update(self, all: bool = False):
+        for shape in self._shapes:
+            if all or not shape.consistent:
+                shape.physical_coords = np.matmul(self._transform, shape.logical_coords)
+                shape.consistent = True
+                self.canvas.coords(shape.id, shape.unpack_physical_coordinates())
 
     def _recalculate_transform_matrix(self):
-        physical_view: RectangleArea = RectangleArea(0, self.winfo_width(), 0, self.winfo_height())
-        translate = numpy.array([
+        physical_view: RectangleArea =\
+            RectangleArea(0, self.canvas.winfo_width(), 0, self.canvas.winfo_height())
+        translate = np.array([
             [1, 0, physical_view.x1() - self.logical_view.x1()],
             [0, 1, physical_view.y1() - self.logical_view.y1()],
             [0, 0, 1],
-        ], dtype=numpy.float)
+        ], dtype=np.float)
 
         scale_x = physical_view.width() / self.logical_view.width()
         scale_y = physical_view.height() / self.logical_view.height()
-        scale = numpy.array([
+        scale = np.array([
             [scale_x, 0,       0],
             [0,       scale_y, 0],
             [0,       0,       1]
-        ], dtype=numpy.float)
-        self._transform = numpy.matmul(scale, translate)
-        self._transform_inv = numpy.linalg.inv(self._transform)
+        ], dtype=np.float)
+        self._transform = np.matmul(scale, translate)
+        self._transform_inv = np.linalg.inv(self._transform)
+
+    def _transform_shapes(self, shapes: List[Shape]):
+        """Calculate physical coordinates for the specified 'shapes'"""
+        for shape in shapes:
+            shape.physical_coords = np.matmul(self._transform, shape.physical_coords)
 
     def _to_logical_coords(self, x: float, y: float) -> (float, float):
-        logical_coordinates = numpy.array([
+        logical_coordinates = np.array([
             [x],
             [y],
             [1]
-        ], dtype=numpy.float)
-        physical_coordinates = numpy.matmul(self._transform_inv, logical_coordinates)
+        ], dtype=np.float)
+        physical_coordinates = np.matmul(self._transform_inv, logical_coordinates)
         return physical_coordinates[0][0], physical_coordinates[1][0]
 
     def mouse_down_event(self, event: tk.Event):
@@ -142,18 +181,18 @@ class Malevich(tk.Canvas):
         self.last_x = event.x
         self.last_y = event.y
         self._recalculate_transform_matrix()
-        self.update()
+        self.update(all=True)
 
     def scroll(self, event: tk.Event):
         dy = self.last_y - event.y
-        factor: float = 1 + 2 * dy / self.winfo_height()
+        factor: float = 1 + 2 * dy / self.canvas.winfo_height()
         center_x, center_y = self._to_logical_coords(self.push_x, self.push_y)
         self.logical_view.scale(center_x, center_y, factor)
         self.last_y = event.y
         self._recalculate_transform_matrix()
-        self.update()
+        self.update(all=True)
 
     def reconfigure(self, _event):
         self._recalculate_transform_matrix()
-        self.update()
+        self.update(all=True)
 

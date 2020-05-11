@@ -45,21 +45,17 @@ public:
       buffer[nElementsInBuffer++] = pObj;
       if (nElementsInBuffer == buffer.size()) {
         std::lock_guard<std::mutex> guard(m_mutex);
-//        m_filteredInstances.insert(m_filteredInstances.end(),
-//                                   buffer.begin(), buffer.end());
-        for (auto const& item: buffer)
-          m_filteredInstances.push_back(item);
+        m_filteredInstances.insert(m_filteredInstances.end(),
+                                   buffer.begin(), buffer.end());
         nElementsInBuffer = 0;
       }
     }
 
     if (nElementsInBuffer) {
       std::lock_guard<std::mutex> guard(m_mutex);
-//      m_filteredInstances.insert(m_filteredInstances.end(),
-//                                 buffer.begin(),
-//                                 buffer.begin() + nElementsInBuffer);
-      for (auto const& item: buffer)
-        m_filteredInstances.push_back(item);
+      m_filteredInstances.insert(m_filteredInstances.end(),
+                                 buffer.begin(),
+                                 buffer.begin() + nElementsInBuffer);
     }
   }
 
