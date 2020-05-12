@@ -11,12 +11,13 @@ enum ObjectType {
 
 message Object {
   ObjectType type = 1;
-  float  r        = 2;
-  float  m        = 3;
-  double x        = 4;
-  double y        = 5;
-  float  vx       = 6;
-  float  vy       = 7;
+  uint32 base_id  = 2;
+  float  r        = 3;
+  float  m        = 4;
+  double x        = 5;
+  double y        = 6;
+  float  vx       = 7;
+  float  vy       = 8;
 }
 
 message ObjectsList {

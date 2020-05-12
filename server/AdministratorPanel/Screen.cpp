@@ -26,6 +26,7 @@ static world::ObjectType convert(admin::ObjectType eType)
 
 inline void convert(newton::PhysicalObject* pFrom, admin::Object* pTo)
 {
+  pTo->set_base_id(pFrom->getInstanceId());
   pTo->set_x(pFrom->getPosition().x);
   pTo->set_y(pFrom->getPosition().y);
   pTo->set_vx(static_cast<float>(pFrom->getVelocity().getX()));

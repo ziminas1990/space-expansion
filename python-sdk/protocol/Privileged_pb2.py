@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='admin',
   syntax='proto3',
   serialized_options=_b('\370\001\001'),
-  serialized_pb=_b('\n\x10Privileged.proto\x12\x05\x61\x64min\"m\n\x06Object\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.admin.ObjectType\x12\t\n\x01r\x18\x02 \x01(\x02\x12\t\n\x01m\x18\x03 \x01(\x02\x12\t\n\x01x\x18\x04 \x01(\x01\x12\t\n\x01y\x18\x05 \x01(\x01\x12\n\n\x02vx\x18\x06 \x01(\x02\x12\n\n\x02vy\x18\x07 \x01(\x02\":\n\x0bObjectsList\x12\x1d\n\x06object\x18\x01 \x03(\x0b\x32\r.admin.Object\x12\x0c\n\x04left\x18\x02 \x01(\r\"\x87\x01\n\x06\x41\x63\x63\x65ss\x12$\n\x05login\x18\x01 \x01(\x0b\x32\x13.admin.Access.LoginH\x00\x12\x12\n\x07success\x18\x80\x01 \x01(\x04H\x00\x12\x0f\n\x04\x66\x61il\x18\x81\x01 \x01(\x08H\x00\x1a(\n\x05Login\x12\r\n\x05login\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\tB\x08\n\x06\x63hoice\"\xf0\x02\n\x0bSystemClock\x12\x12\n\x08time_req\x18\x01 \x01(\x08H\x00\x12\x12\n\x08mode_req\x18\x02 \x01(\x08H\x00\x12\x1d\n\x13switch_to_real_time\x18\x03 \x01(\x08H\x00\x12\x1e\n\x14switch_to_debug_mode\x18\x04 \x01(\x08H\x00\x12\x13\n\tterminate\x18\x05 \x01(\x08H\x00\x12\x1a\n\x10tick_duration_us\x18\x06 \x01(\rH\x00\x12\x17\n\rproceed_ticks\x18\x07 \x01(\rH\x00\x12\x0e\n\x03now\x18\x81\x01 \x01(\x04H\x00\x12,\n\x06status\x18\x82\x01 \x01(\x0e\x32\x19.admin.SystemClock.StatusH\x00\"h\n\x06Status\x12\x12\n\x0eMODE_REAL_TIME\x10\x00\x12\x0e\n\nMODE_DEBUG\x10\x01\x12\x13\n\x0fMODE_TERMINATED\x10\x02\x12\x11\n\rCLOCK_IS_BUSY\x10\x03\x12\x12\n\x0eINTERNAL_ERROR\x10\x04\x42\x08\n\x06\x63hoice\"\x92\x02\n\x06Screen\x12&\n\x04move\x18\x01 \x01(\x0b\x32\x16.admin.Screen.PositionH\x00\x12!\n\x04show\x18\x02 \x01(\x0e\x32\x11.admin.ObjectTypeH\x00\x12\'\n\x06status\x18\x81\x01 \x01(\x0e\x32\x14.admin.Screen.StatusH\x00\x12&\n\x07objects\x18\x82\x01 \x01(\x0b\x32\x12.admin.ObjectsListH\x00\x1a?\n\x08Position\x12\t\n\x01x\x18\x02 \x01(\x01\x12\t\n\x01y\x18\x03 \x01(\x01\x12\r\n\x05width\x18\x04 \x01(\x01\x12\x0e\n\x06height\x18\x05 \x01(\x01\"!\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01\x42\x08\n\x06\x63hoice\"\x90\x01\n\x07Message\x12\r\n\x05token\x18\x01 \x01(\x04\x12\x1f\n\x06\x61\x63\x63\x65ss\x18\x02 \x01(\x0b\x32\r.admin.AccessH\x00\x12*\n\x0csystem_clock\x18\x03 \x01(\x0b\x32\x12.admin.SystemClockH\x00\x12\x1f\n\x06screen\x18\x04 \x01(\x0b\x32\r.admin.ScreenH\x00\x42\x08\n\x06\x63hoice*$\n\nObjectType\x12\x0c\n\x08\x41STEROID\x10\x00\x12\x08\n\x04SHIP\x10\x01\x42\x03\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x10Privileged.proto\x12\x05\x61\x64min\"~\n\x06Object\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.admin.ObjectType\x12\x0f\n\x07\x62\x61se_id\x18\x02 \x01(\r\x12\t\n\x01r\x18\x03 \x01(\x02\x12\t\n\x01m\x18\x04 \x01(\x02\x12\t\n\x01x\x18\x05 \x01(\x01\x12\t\n\x01y\x18\x06 \x01(\x01\x12\n\n\x02vx\x18\x07 \x01(\x02\x12\n\n\x02vy\x18\x08 \x01(\x02\":\n\x0bObjectsList\x12\x1d\n\x06object\x18\x01 \x03(\x0b\x32\r.admin.Object\x12\x0c\n\x04left\x18\x02 \x01(\r\"\x87\x01\n\x06\x41\x63\x63\x65ss\x12$\n\x05login\x18\x01 \x01(\x0b\x32\x13.admin.Access.LoginH\x00\x12\x12\n\x07success\x18\x80\x01 \x01(\x04H\x00\x12\x0f\n\x04\x66\x61il\x18\x81\x01 \x01(\x08H\x00\x1a(\n\x05Login\x12\r\n\x05login\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\tB\x08\n\x06\x63hoice\"\xf0\x02\n\x0bSystemClock\x12\x12\n\x08time_req\x18\x01 \x01(\x08H\x00\x12\x12\n\x08mode_req\x18\x02 \x01(\x08H\x00\x12\x1d\n\x13switch_to_real_time\x18\x03 \x01(\x08H\x00\x12\x1e\n\x14switch_to_debug_mode\x18\x04 \x01(\x08H\x00\x12\x13\n\tterminate\x18\x05 \x01(\x08H\x00\x12\x1a\n\x10tick_duration_us\x18\x06 \x01(\rH\x00\x12\x17\n\rproceed_ticks\x18\x07 \x01(\rH\x00\x12\x0e\n\x03now\x18\x81\x01 \x01(\x04H\x00\x12,\n\x06status\x18\x82\x01 \x01(\x0e\x32\x19.admin.SystemClock.StatusH\x00\"h\n\x06Status\x12\x12\n\x0eMODE_REAL_TIME\x10\x00\x12\x0e\n\nMODE_DEBUG\x10\x01\x12\x13\n\x0fMODE_TERMINATED\x10\x02\x12\x11\n\rCLOCK_IS_BUSY\x10\x03\x12\x12\n\x0eINTERNAL_ERROR\x10\x04\x42\x08\n\x06\x63hoice\"\x92\x02\n\x06Screen\x12&\n\x04move\x18\x01 \x01(\x0b\x32\x16.admin.Screen.PositionH\x00\x12!\n\x04show\x18\x02 \x01(\x0e\x32\x11.admin.ObjectTypeH\x00\x12\'\n\x06status\x18\x81\x01 \x01(\x0e\x32\x14.admin.Screen.StatusH\x00\x12&\n\x07objects\x18\x82\x01 \x01(\x0b\x32\x12.admin.ObjectsListH\x00\x1a?\n\x08Position\x12\t\n\x01x\x18\x02 \x01(\x01\x12\t\n\x01y\x18\x03 \x01(\x01\x12\r\n\x05width\x18\x04 \x01(\x01\x12\x0e\n\x06height\x18\x05 \x01(\x01\"!\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01\x42\x08\n\x06\x63hoice\"\x90\x01\n\x07Message\x12\r\n\x05token\x18\x01 \x01(\x04\x12\x1f\n\x06\x61\x63\x63\x65ss\x18\x02 \x01(\x0b\x32\r.admin.AccessH\x00\x12*\n\x0csystem_clock\x18\x03 \x01(\x0b\x32\x12.admin.SystemClockH\x00\x12\x1f\n\x06screen\x18\x04 \x01(\x0b\x32\r.admin.ScreenH\x00\x42\x08\n\x06\x63hoice*$\n\nObjectType\x12\x0c\n\x08\x41STEROID\x10\x00\x12\x08\n\x04SHIP\x10\x01\x42\x03\xf8\x01\x01\x62\x06proto3')
 )
 
 _OBJECTTYPE = _descriptor.EnumDescriptor(
@@ -41,8 +41,8 @@ _OBJECTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1131,
-  serialized_end=1167,
+  serialized_start=1148,
+  serialized_end=1184,
 )
 _sym_db.RegisterEnumDescriptor(_OBJECTTYPE)
 
@@ -80,8 +80,8 @@ _SYSTEMCLOCK_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=591,
-  serialized_end=695,
+  serialized_start=608,
+  serialized_end=712,
 )
 _sym_db.RegisterEnumDescriptor(_SYSTEMCLOCK_STATUS)
 
@@ -102,8 +102,8 @@ _SCREEN_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=939,
-  serialized_end=972,
+  serialized_start=956,
+  serialized_end=989,
 )
 _sym_db.RegisterEnumDescriptor(_SCREEN_STATUS)
 
@@ -123,43 +123,50 @@ _OBJECT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='r', full_name='admin.Object.r', index=1,
-      number=2, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      name='base_id', full_name='admin.Object.base_id', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='m', full_name='admin.Object.m', index=2,
+      name='r', full_name='admin.Object.r', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='x', full_name='admin.Object.x', index=3,
-      number=4, type=1, cpp_type=5, label=1,
+      name='m', full_name='admin.Object.m', index=3,
+      number=4, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='y', full_name='admin.Object.y', index=4,
+      name='x', full_name='admin.Object.x', index=4,
       number=5, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='vx', full_name='admin.Object.vx', index=5,
-      number=6, type=2, cpp_type=6, label=1,
+      name='y', full_name='admin.Object.y', index=5,
+      number=6, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='vy', full_name='admin.Object.vy', index=6,
+      name='vx', full_name='admin.Object.vx', index=6,
       number=7, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='vy', full_name='admin.Object.vy', index=7,
+      number=8, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -177,7 +184,7 @@ _OBJECT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=27,
-  serialized_end=136,
+  serialized_end=153,
 )
 
 
@@ -214,8 +221,8 @@ _OBJECTSLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=138,
-  serialized_end=196,
+  serialized_start=155,
+  serialized_end=213,
 )
 
 
@@ -252,8 +259,8 @@ _ACCESS_LOGIN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=284,
-  serialized_end=324,
+  serialized_start=301,
+  serialized_end=341,
 )
 
 _ACCESS = _descriptor.Descriptor(
@@ -299,8 +306,8 @@ _ACCESS = _descriptor.Descriptor(
       name='choice', full_name='admin.Access.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=199,
-  serialized_end=334,
+  serialized_start=216,
+  serialized_end=351,
 )
 
 
@@ -390,8 +397,8 @@ _SYSTEMCLOCK = _descriptor.Descriptor(
       name='choice', full_name='admin.SystemClock.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=337,
-  serialized_end=705,
+  serialized_start=354,
+  serialized_end=722,
 )
 
 
@@ -442,8 +449,8 @@ _SCREEN_POSITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=874,
-  serialized_end=937,
+  serialized_start=891,
+  serialized_end=954,
 )
 
 _SCREEN = _descriptor.Descriptor(
@@ -497,8 +504,8 @@ _SCREEN = _descriptor.Descriptor(
       name='choice', full_name='admin.Screen.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=708,
-  serialized_end=982,
+  serialized_start=725,
+  serialized_end=999,
 )
 
 
@@ -552,8 +559,8 @@ _MESSAGE = _descriptor.Descriptor(
       name='choice', full_name='admin.Message.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=985,
-  serialized_end=1129,
+  serialized_start=1002,
+  serialized_end=1146,
 )
 
 _OBJECT.fields_by_name['type'].enum_type = _OBJECTTYPE

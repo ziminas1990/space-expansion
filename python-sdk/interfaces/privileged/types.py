@@ -19,6 +19,7 @@ class ObjectType(Enum):
 class PhysicalObject:
 
     def __init__(self):
+        self.id: int = 0
         self.x: float = 0
         self.y: float = 0
         self.r: float = 0
@@ -27,6 +28,7 @@ class PhysicalObject:
         self.vy: float = 0
 
     def from_protobuf(self, object: privileged.Object):
+        self.id = object.base_id
         self.x = object.x
         self.y = object.y
         self.r = object.r

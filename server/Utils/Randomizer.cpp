@@ -17,6 +17,13 @@ void Randomizer::yeild(geometry::Point& point,
   point.y = center.y + r * sin(alfa);
 }
 
+void Randomizer::yeild(geometry::Vector& vec, double radius)
+{
+  double alfa = std::rand() * 2 * M_PI / RAND_MAX;
+  double r    = std::rand() * radius / RAND_MAX;
+  vec.setPosition(r * cos(alfa), r * sin(alfa));
+}
+
 
 
 } // namespace utils

@@ -37,6 +37,11 @@ class RectangleArea:
     def height(self):
         return abs(self.y2() - self.y1())
 
+    def center(self) -> (float, float):
+        cx = (self.coordinates[0][0] + self.coordinates[0][1]) / 2
+        cy = (self.coordinates[1][0] + self.coordinates[1][1]) / 2
+        return (cx, cy)
+
     def move(self, dx: float, dy: float):
         self.coordinates[0][0] += dx
         self.coordinates[0][1] += dx
@@ -75,7 +80,7 @@ class Shape:
 class Circle(Shape):
     @staticmethod
     def pack_coordinates(center: Point, r: float, dest: Optional[np.ndarray] = None):
-        if not dest:
+        if dest is None:
             dest = np.ones((3, 2))
         assert dest.shape == (3, 2)
         R = math.sqrt(r*r)
@@ -90,7 +95,7 @@ class Circle(Shape):
         assert logical_coords.shape == (3, 2)
         assert physical_coords.shape == (3, 2)
 
-    def move(self, center: Point, r: float):
+    def change(self, center: Point, r: float):
         Circle.pack_coordinates(center=center, r=r, dest=self.logical_coords)
         self.consistent = False
 
@@ -116,7 +121,7 @@ class Malevich():
         self.canvas.bind("<B3-Motion>", self.scroll)
         self.canvas.bind("<Configure>", self.reconfigure)
 
-    def create_circle(self, center: Point, r: float, **kw):
+    def create_circle(self, center: Point, r: float, **kw) -> Circle:
         logical_coords = Circle.pack_coordinates(center, r)
         physical_coords = np.matmul(self._transform, logical_coords)
         circle_id = self.canvas.create_oval(
@@ -125,6 +130,10 @@ class Malevich():
             **kw)
         circle = Circle(id=circle_id, logical_coords=logical_coords, physical_coords=physical_coords)
         self._shapes.append(circle)
+        return circle
+
+    def remove(self, shape: Shape):
+        self.canvas.delete(shape.id)
 
     def update(self, all: bool = False):
         for shape in self._shapes:

@@ -4,6 +4,7 @@
 
 namespace geometry {
   struct Point;
+  struct Vector;
 } // namespace geometry
 
 namespace utils {
@@ -16,6 +17,8 @@ public:
   static void yeild(geometry::Point& point,
                     geometry::Point const& center,
                     double radius);
+
+  static void yeild(geometry::Vector& vec, double radius);
 
   template<typename Type>
   static Type yeild(Type bottom, Type top)

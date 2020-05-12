@@ -37,7 +37,7 @@ class Screen:
         status = get_message_field(response, ["screen", "status"])
         return status is not None and status == privileged.Screen.Status.SUCCESS
 
-    async def show(self, object_type: ObjectType):
+    async def show(self, object_type: ObjectType) -> List[PhysicalObject]:
         message = privileged.Message()
         message.screen.show = object_type.to_protobuf_type()
         self._send_message(message)
