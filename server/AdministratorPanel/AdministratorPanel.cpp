@@ -17,12 +17,12 @@ void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
   m_screen.setup(m_pSystemManager, getChannel());
 }
 
-bool AdministratorPanel::prephare(uint16_t nStageId, uint32_t, uint64_t)
+bool AdministratorPanel::prephare(uint16_t nStageId, uint32_t nIntervalUs, uint64_t)
 {
   assert(nStageId == 0);
   handleBufferedMessages();
   m_clockControl.proceed();
-  m_screen.proceed();
+  m_screen.proceed(nIntervalUs);
   // This logic shouldn't be run in multithreading mode
   return false;
 }

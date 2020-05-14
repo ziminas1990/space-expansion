@@ -1,10 +1,9 @@
 #pragma once
 
-#include <array>
-
 #include <Network/Interfaces.h>
 #include <World/ObjectTypes.h>
 #include <Geometry/Rectangle.h>
+#include <World/ObjectContainers.h>
 
 class SystemManager;
 
@@ -29,7 +28,7 @@ public:
 
   void setup(SystemManager* pSystemManager, network::IPrivilegedChannelPtr pChannel);
 
-  void proceed();
+  void proceed(uint32_t nIntervalUs);
   void handleMessage(uint32_t nSessionId, admin::Screen const& message);
 
 private:
@@ -45,6 +44,9 @@ private:
   tools::ObjectsFilteringManagerPtr m_pFilterManager;
     // The filter manager instance, where the 'm_pFilter' filter will be
     // registered and handled
+
+  world::ContainersCache            m_containersCache;
+    // Cache that will be used to get containers, when they are required
 
   tools::RectangeFilterPtr          m_pFilter;
     // Filter, that will be applied to objects from the 'm_pObjects'

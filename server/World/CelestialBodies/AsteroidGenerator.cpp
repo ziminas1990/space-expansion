@@ -21,10 +21,8 @@ void world::AsteroidGenerator::generate(uint32_t nCount, std::vector<AsteroidUpt
   {
     geometry::Point  position;
     double           radius;
-    geometry::Vector velocity;
     utils::Randomizer::yeild(position, m_center, m_areaRadiusKm * 1000);
     radius = utils::Randomizer::yeild(5.0, 15.0);
-    utils::Randomizer::yeild(velocity, 20);
 
     double weight = 5000 * 4 / 3 * M_PI * std::pow(radius, 3);
     AsteroidComposition composition(
@@ -35,7 +33,6 @@ void world::AsteroidGenerator::generate(uint32_t nCount, std::vector<AsteroidUpt
 
     AsteroidUptr pAsteroid = std::make_unique<Asteroid>(radius, weight, composition);
     pAsteroid->moveTo(position);
-    pAsteroid->setVelocity(velocity);
     out.emplace_back(std::move(pAsteroid));
   }
 }

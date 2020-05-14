@@ -46,8 +46,9 @@ void Screen::setup(SystemManager *pSystemManager, network::IPrivilegedChannelPtr
   m_pFilterManager->registerFilter(m_pFilter);
 }
 
-void Screen::proceed()
+void Screen::proceed(uint32_t nIntervalUs)
 {
+  m_containersCache.proceed(nIntervalUs);
   if (m_nSessionId == network::gInvalidSessionId) {
     return;
   }
@@ -111,7 +112,7 @@ void Screen::show(uint32_t nSessionId, admin::ObjectType eType)
   }
 
   world::PhysicalObjectsContainerPtr pObjects =
-      world::Containers::getContainerWith(convert(eType));
+      m_containersCache.getContainerWith(convert(eType));
   if (!pObjects) {
     sendStatus(nSessionId, admin::Screen::FAILED);
     return;

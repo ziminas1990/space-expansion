@@ -8,6 +8,8 @@ enum class ObjectType {
   eAsteroid,
   eShip,
 
+  // Service fields
+  eTotalObjectsTypes
 };
 
 

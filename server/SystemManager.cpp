@@ -92,7 +92,8 @@ void SystemManager::run(bool lColdStart)
   startConveyor();
   m_clock.start(lColdStart);
 
-  uint64_t nTicksCounter = 0;
+  uint64_t nOneSecondsTimeout  = 1000000;
+
   printStatisticHeader();
 
   while (!m_clock.isTerminated()) {
@@ -101,10 +102,12 @@ void SystemManager::run(bool lColdStart)
     if (nIntervalUs < nMinTickLengthUs) {
       std::this_thread::yield();
     }
-    ++nTicksCounter;
-    if (nTicksCounter % 1000 == 0) {
+
+    if (nOneSecondsTimeout < nIntervalUs) {
+      nOneSecondsTimeout += 1000000;
       printStatistic();
     }
+    nOneSecondsTimeout -= nIntervalUs;
   }
 
   stopConveyor();

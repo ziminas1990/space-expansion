@@ -49,4 +49,38 @@ PhysicalObjectsContainerPtr Containers::getContainerWith(ObjectType eObjectType)
   }
 }
 
+//========================================================================================
+// ContainersCache::ContainersCache
+//========================================================================================
+
+PhysicalObjectsContainerPtr ContainersCache::getContainerWith(ObjectType eObjectType)
+{
+  assert(eObjectType < world::ObjectType::eTotalObjectsTypes);
+  if (eObjectType >= world::ObjectType::eTotalObjectsTypes) {
+    return nullptr;
+  }
+
+  CachedContainer& cachedItem = m_cachedContainers[static_cast<size_t>(eObjectType)];
+  if (!cachedItem.pContainer) {
+    cachedItem.pContainer = Containers::getContainerWith(eObjectType);
+  }
+  cachedItem.nTimeToLive = 5000000; // 5 seconds
+  return cachedItem.pContainer;
+}
+
+void ContainersCache::proceed(uint32_t nTimeUs)
+{
+  for (CachedContainer& item : m_cachedContainers) {
+    if (!item.pContainer) {
+      continue;
+    }
+    if (item.nTimeToLive < nTimeUs) {
+      item.pContainer = nullptr;
+      item.nTimeToLive = 0;
+    } else {
+      item.nTimeToLive -= nTimeUs;
+    }
+  }
+}
+
 } // namespace world
