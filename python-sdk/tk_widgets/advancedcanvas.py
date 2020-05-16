@@ -1,4 +1,6 @@
 import numpy as np
+import enum
+import abc
 import math
 from typing import List, Dict, Optional
 import tkinter as tk
@@ -57,24 +59,72 @@ class RectangleArea:
         self.coordinates[1][1] = _scale(self.coordinates[1][1], center_y, factor)
 
 
-class Shape:
-    def __init__(self, id: int, logical_coords: np.ndarray, physical_coords: np.ndarray):
-        assert physical_coords.shape == physical_coords.shape
+def unpack_coordinates(coordinates: np.ndarray,
+                       columns: Optional[List[int]] = None) -> List[float]:
+    """Return coordinates from the specified 'columns' of the specified
+    'coordinates' matrix as list: [x1, y1, x2, y2 ...]. This list can be
+    passed to tk.Canvas.coords() call"""
+    unpacked: List[float] = []
+
+    if not columns:
+        columns = [i for i in range(coordinates.shape[1])]
+
+    for col in columns:
+        unpacked.extend([coordinates[0][col], coordinates[1][col]])
+    return unpacked
+
+
+class Shape(abc.ABC):
+
+    def __init__(self, logical_coords: np.ndarray):
         assert logical_coords.shape[0] == 3
-
-        self.id = id
-        self.consistent: bool = True
         self.logical_coords: np.ndarray = logical_coords
-        self.physical_coords: np.ndarray = physical_coords
+        self.physical_coords: np.ndarray = np.zeros(self.logical_coords.shape)
+        self.canvas: Optional[tk.Canvas] = None
 
-    def unpack_physical_coordinates(self) -> List[float]:
-        """Return list of coordinates, that can be passed to tkinter's canvas.
-        This function may be overridden"""
-        unpacked: List[float] = []
-        columns = self.physical_coords.shape[1]
-        for col in range(columns):
-            unpacked.extend([self.physical_coords[0][col], self.physical_coords[1][col]])
-        return unpacked
+    def transform(self, transform: np.ndarray):
+        """Update shape on attached canvas. The specified 'transform' 3x3
+        matrix should be used to calculate physical coordinates on canvas"""
+        np.matmul(transform, self.logical_coords, out=self.physical_coords)
+        if self.canvas:
+            self.update(self.canvas)
+
+    def attach(self, canvas: tk.Canvas, transform: np.ndarray):
+        """
+        Create shape on the specified 'canvas'. The specified 'transform'
+        matrix will be used to calculate shape's physical coordinates.
+        """
+        self.detach()
+        self.transform(transform)
+        self.canvas = canvas
+        self.create(self.canvas)
+
+    def detach(self):
+        """
+        If object has been attached to canvas, release all canvas
+        resources, related with this shape. Otherwise function
+        has no affect
+        """
+        if self.canvas:
+            self.destroy(self.canvas)
+        self.canvas = None
+
+    @abc.abstractmethod
+    def create(self, canvas: tk.Canvas):
+        """Create shape on the specified 'canvas'"""
+        pass
+
+    @abc.abstractmethod
+    def update(self, canvas: tk.Canvas):
+        """Update shape on the specified 'canvas'. Canvas will be
+        the same, as was passed to 'create' call"""
+        pass
+
+    @abc.abstractmethod
+    def destroy(self, canvas: tk.Canvas):
+        """Destroy shape on the specified 'canvas'. Canvas will be
+        the same, as was passed to 'create' call"""
+        pass
 
 
 class Circle(Shape):
@@ -90,25 +140,37 @@ class Circle(Shape):
         dest[1][1] = center.y + R / 2
         return dest
 
-    def __init__(self, id: int, logical_coords: np.ndarray, physical_coords: np.ndarray):
-        super().__init__(id=id, logical_coords=logical_coords, physical_coords=physical_coords)
-        assert logical_coords.shape == (3, 2)
-        assert physical_coords.shape == (3, 2)
+    def __init__(self, center: Point, r: float, **tkparams):
+        super().__init__(logical_coords=Circle.pack_coordinates(center=center, r=r))
+        self.tk_params = tkparams
+        self.circle_id: Optional[int] = None
+        # id, assigned to circle object by tk.Canvas
 
-    def change(self, center: Point, r: float):
+    def change_position(self, center: Point, r: float):
         Circle.pack_coordinates(center=center, r=r, dest=self.logical_coords)
-        self.consistent = False
+
+    def create(self, canvas: tk.Canvas):
+        self.circle_id = self.canvas.create_oval(
+            self.physical_coords[0][0], self.physical_coords[1][0],
+            self.physical_coords[0][1], self.physical_coords[1][1],
+            self.tk_params)
+
+    def update(self, canvas: tk.Canvas):
+        canvas.coords(self.circle_id, unpack_coordinates(self.physical_coords))
+
+    def destroy(self, canvas: tk.Canvas):
+        assert self.circle_id is not None
+        canvas.delete(self.circle_id)
 
 
-class Malevich():
-
+class AdvancedCanvas():
     def __init__(self, logical_view: RectangleArea, canvas: tk.Canvas):
         self.logical_view: RectangleArea = logical_view
         self.canvas: tk.Canvas = canvas
 
         self._transform = np.identity(3)
         self._transform_inv = np.identity(3)
-        self._shapes: List[Shape] = []
+        self._shapes: Dict[int, Shape] = {}
 
         self.push_x = 0
         self.push_y = 0
@@ -121,26 +183,22 @@ class Malevich():
         self.canvas.bind("<B3-Motion>", self.scroll)
         self.canvas.bind("<Configure>", self.reconfigure)
 
-    def create_circle(self, center: Point, r: float, **kw) -> Circle:
-        logical_coords = Circle.pack_coordinates(center, r)
-        physical_coords = np.matmul(self._transform, logical_coords)
-        circle_id = self.canvas.create_oval(
-            physical_coords[0][0], physical_coords[1][0],
-            physical_coords[0][1], physical_coords[1][1],
-            **kw)
-        circle = Circle(id=circle_id, logical_coords=logical_coords, physical_coords=physical_coords)
-        self._shapes.append(circle)
+    def create_circle(self, shape_id: int, center: Point, r: float, **kw) -> Optional[Circle]:
+        assert shape_id not in self._shapes, f"Shape with id={shape_id} already exists"
+
+        circle = Circle(center=center, r=r, **kw)
+        self._shapes.update({shape_id: circle})
+        circle.attach(self.canvas, self._transform)
         return circle
 
-    def remove(self, shape: Shape):
-        self.canvas.delete(shape.id)
+    def remove(self, shape_id: int):
+        assert shape_id in self._shapes, f"No shape with id={shape_id}"
+        shape = self._shapes[shape_id]
+        shape.detach()
 
-    def update(self, all: bool = False):
-        for shape in self._shapes:
-            if all or not shape.consistent:
-                shape.physical_coords = np.matmul(self._transform, shape.logical_coords)
-                shape.consistent = True
-                self.canvas.coords(shape.id, shape.unpack_physical_coordinates())
+    def update(self):
+        for shape in self._shapes.values():
+            shape.transform(self._transform)
 
     def _recalculate_transform_matrix(self):
         physical_view: RectangleArea =\
@@ -160,11 +218,6 @@ class Malevich():
         ], dtype=np.float)
         self._transform = np.matmul(scale, translate)
         self._transform_inv = np.linalg.inv(self._transform)
-
-    def _transform_shapes(self, shapes: List[Shape]):
-        """Calculate physical coordinates for the specified 'shapes'"""
-        for shape in shapes:
-            shape.physical_coords = np.matmul(self._transform, shape.physical_coords)
 
     def _to_logical_coords(self, x: float, y: float) -> (float, float):
         logical_coordinates = np.array([
@@ -190,7 +243,7 @@ class Malevich():
         self.last_x = event.x
         self.last_y = event.y
         self._recalculate_transform_matrix()
-        self.update(all=True)
+        self.update()
 
     def scroll(self, event: tk.Event):
         dy = self.last_y - event.y
@@ -199,9 +252,9 @@ class Malevich():
         self.logical_view.scale(center_x, center_y, factor)
         self.last_y = event.y
         self._recalculate_transform_matrix()
-        self.update(all=True)
+        self.update()
 
     def reconfigure(self, _event):
         self._recalculate_transform_matrix()
-        self.update(all=True)
+        self.update()
 

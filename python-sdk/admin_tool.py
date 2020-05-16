@@ -6,14 +6,14 @@ import time
 
 from transport.udp_channel import UdpChannel
 from transport.protobuf_channel import ProtobufChannel
-from tk_widgets import malevich
+from tk_widgets import advancedcanvas
 from protocol.Privileged_pb2 import Message as PrivilegedMessage
 from interfaces.privileged.access import Access as PrivilegedAccess
 from interfaces.privileged.screen import Screen as PrivilegedScreen
 import interfaces.privileged.types as privileged_types
 
 
-async def screen_update_loop(advanced_canvas: malevich.Malevich,
+async def screen_update_loop(advanced_canvas: advancedcanvas.AdvancedCanvas,
                              remote_screen: PrivilegedScreen):
     """
     This task periodically requests all objects, that are covered by
@@ -21,7 +21,7 @@ async def screen_update_loop(advanced_canvas: malevich.Malevich,
     'remote_screen" will be used to retrieve data from server
     """
     try:
-        circles: Dict[int, malevich.Circle] = {}
+        circles: Dict[int, advancedcanvas.Circle] = {}
 
         while True:
             # Get all asteroids
@@ -29,19 +29,21 @@ async def screen_update_loop(advanced_canvas: malevich.Malevich,
             width = advanced_canvas.logical_view.width()
             height = advanced_canvas.logical_view.height()
             await remote_screen.set_position(center_x=cx, center_y=cy, width=width, height=height)
+
             objects = await remote_screen.show(privileged_types.ObjectType.ASTEROID)
             for object in objects:
                 circle = circles[object.id] if object.id in circles else None
                 if circle is None:
                     circle = advanced_canvas.create_circle(
-                        center=malevich.Point(object.x, object.y),
+                        shape_id=object.id,
+                        center=advancedcanvas.Point(object.x, object.y),
                         r=object.r,
                         outline="red", fill="green", width=3
                     )
-                    circles.update({circle.id: circle})
+                    circles.update({object.id: circle})
                 else:
-                    circle.change(
-                        center=malevich.Point(object.x, object.y),
+                    circle.change_position(
+                        center=advancedcanvas.Point(object.x, object.y),
                         r=object.r
                     )
             advanced_canvas.update()
@@ -83,8 +85,9 @@ async def main():
     canvas = tk.Canvas(master=root)
     canvas.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
 
-    objects_map = malevich.Malevich(logical_view=malevich.RectangleArea(-150000, 150000, -150000, 150000),
-                                    canvas=canvas)
+    objects_map = advancedcanvas.AdvancedCanvas(
+        logical_view=advancedcanvas.RectangleArea(-150000, 150000, -150000, 150000),
+        canvas=canvas)
 
     asyncio.create_task(
         screen_update_loop(objects_map, screen)
