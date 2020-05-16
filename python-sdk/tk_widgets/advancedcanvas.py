@@ -163,6 +163,46 @@ class Circle(Shape):
         canvas.delete(self.circle_id)
 
 
+class SquareMark(Shape):
+    @staticmethod
+    def pack_coordinates(position: Point, dest: Optional[np.ndarray] = None):
+        if dest is None:
+            dest = np.ones((3, 1))
+        assert dest.shape == (3, 1)
+        dest[0][0] = position.x
+        dest[1][0] = position.y
+        return dest
+
+    def unpack_coordinates(self) -> List[float]:
+        """Return list: [x1, y1, x2, y2]"""
+        return [
+            self.physical_coords[0][0] - self.half_size,
+            self.physical_coords[1][0] - self.half_size,
+            self.physical_coords[0][0] + self.half_size,
+            self.physical_coords[1][0] + self.half_size,
+        ]
+
+    def __init__(self, position: Point, size: float, **tkparams):
+        super().__init__(logical_coords=SquareMark.pack_coordinates(position=position))
+        self.tk_params = tkparams
+        self.square_id: Optional[int] = None
+        self.half_size: float = size/2
+
+    def change_position(self, position: Point):
+        SquareMark.pack_coordinates(position=position, dest=self.logical_coords)
+
+    def create(self, canvas: tk.Canvas):
+        tk_position: List[float] = self.unpack_coordinates()
+        self.square_id = self.canvas.create_rectangle(*tk_position, self.tk_params)
+
+    def update(self, canvas: tk.Canvas):
+        canvas.coords(self.square_id, self.unpack_coordinates())
+
+    def destroy(self, canvas: tk.Canvas):
+        assert self.square_id is not None
+        canvas.delete(self.square_id)
+
+
 class AdvancedCanvas():
     def __init__(self, logical_view: RectangleArea, canvas: tk.Canvas):
         self.logical_view: RectangleArea = logical_view
@@ -190,6 +230,14 @@ class AdvancedCanvas():
         self._shapes.update({shape_id: circle})
         circle.attach(self.canvas, self._transform)
         return circle
+
+    def create_square_mark(self, shape_id: int, position: Point, size: float, **kw) -> Optional[Circle]:
+        assert shape_id not in self._shapes, f"Shape with id={shape_id} already exists"
+
+        mark = SquareMark(position=position, size=size, **kw)
+        self._shapes.update({shape_id: mark})
+        mark.attach(self.canvas, self._transform)
+        return mark
 
     def remove(self, shape_id: int):
         assert shape_id in self._shapes, f"No shape with id={shape_id}"
