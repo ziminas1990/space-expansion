@@ -29,15 +29,7 @@ public:
   bool     prephare(uint16_t nStageId, uint32_t nIntervalUs, uint64_t now) override;
   void     proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t) override;
 
-  size_t   getCooldownTimeUs() const override {
-#ifndef AUTOTESTS_MODE
-    return 3000;
-#else
-    // In autotests mode we can't afford to let logics to sleep for unpredictable period
-    // of time
-    return 0;
-#endif
-  }
+  size_t   getCooldownTimeUs() const override { return 0; }
 
 private:
   void addConnection(IBinaryChannelPtr pChannel, BufferedTerminalPtr pTerminal);

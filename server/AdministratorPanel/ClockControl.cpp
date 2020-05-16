@@ -21,7 +21,7 @@ void ClockControl::proceed()
 void ClockControl::handleMessage(uint32_t nSessionId, admin::SystemClock const& message)
 {
   switch(message.choice_case()) {
-    case admin::SystemClock::kNow:
+    case admin::SystemClock::kTimeReq:
       sendNow(nSessionId);
       return;
     case admin::SystemClock::kModeReq:
