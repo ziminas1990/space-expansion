@@ -1,5 +1,6 @@
 #include "Clock.h"
 #include <assert.h>
+#include <iostream>
 
 namespace utils {
 
@@ -25,29 +26,36 @@ uint32_t Clock::getNextInterval()
 {
 #ifndef AUTOTESTS_MODE
   const uint64_t nMaxTickUs = 10000;
+#else
+  // when running autotests each tick is 5 ms
+  const uint64_t nDebugDefaultTickUs = 5000;
 #endif
   // expected_now = m_startedAt + m_inGameTime + m_DeviationUs
   // dt = actual_now - expected_now
+  uint64_t expectedRealeTime = static_cast<uint64_t>(
+        static_cast<int64_t>(m_inGameTime) + m_nDeviationUs);
   uint64_t dt  = timeSinceUs(m_startedAt);
-  dt          -= m_inGameTime + m_nDeviationUs;
+  assert(dt >= expectedRealeTime);
+  dt -= expectedRealeTime;
 
   switch (m_eState) {
     case eRealTimeMode: {
 #ifndef AUTOTESTS_MODE
+      assert(dt < uint32_t(-1));
       if (dt > nMaxTickUs) {
         // Ooops, seems there is a perfomance problem (slip detected)
         m_nDeviationUs += dt - nMaxTickUs;
         dt = nMaxTickUs;
       }
-      // return instead of break to avoid extra jump
-      assert(dt < uint32_t(-1));
 #else
-      dt = 5000;   // when running autotests each tick is 10 ms
+      m_nDeviationUs += dt - nDebugDefaultTickUs;
+      dt = nDebugDefaultTickUs;
 #endif
-      m_inGameTime        += dt;
-      m_nPeriodDurationUs += dt;
       ++m_nTotalTicksCounter;
       ++m_nPeriodTicksCounter;
+      // return instead of break to avoid extra jump
+      m_inGameTime        += dt;
+      m_nPeriodDurationUs += dt;
       return static_cast<uint32_t>(dt);
     }
     case eDebugMode: {

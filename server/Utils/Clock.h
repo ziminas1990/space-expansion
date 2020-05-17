@@ -9,7 +9,7 @@ struct ClockStat {
   uint64_t nTicksCounter = 0;
   uint64_t nRealTimeUs   = 0;
   uint64_t nIngameTimeUs = 0;
-  uint64_t nDeviationUs  = 0;
+  int64_t  nDeviationUs   = 0;
   uint64_t nAvgTickDurationPerPeriod = 0;
 };
 
@@ -33,7 +33,7 @@ class Clock
 public:
   void start(bool lColdStart = false);
 
-  uint32_t now() const { return m_inGameTime; }
+  uint64_t now() const { return m_inGameTime; }
     // Return ingame time (not real time!)
 
   uint32_t getNextInterval();
@@ -63,11 +63,13 @@ private:
 
   std::chrono::system_clock::time_point m_startedAt;
     // Time when the clock has been started
-  uint32_t m_inGameTime   = 0;
+  uint64_t m_inGameTime   = 0;
     // How much time has passed in the game's world since it has been run
-  uint32_t m_nDeviationUs = 0;
+  int64_t m_nDeviationUs = 0;
     // How much the real time differs from the ingame time. Real time can be
     // calculated as: m_startedAt + m_inGameTime + m_DeviationUs
+    // Negative value means, that ingame time flowed faster then real time
+    // (it is possible when system clock is controlled manually)
 
   // This are used in debug mode only
   uint32_t m_nDebugTickUs       = 0;

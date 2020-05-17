@@ -8,7 +8,7 @@ std::string toTime(uint64_t nIntervalUs)
 {
   std::stringstream ss;
   if (nIntervalUs < 50000) {
-    // for the small time intervals (less thatn 50 ms)
+    // for the small time intervals (less than 50 ms)
     ss << nIntervalUs << "us";
     return ss.str();
   }
@@ -30,6 +30,16 @@ std::string toTime(uint64_t nIntervalUs)
   }
   ss << nSeconds << ".";
   ss << nIntervalMs << "s";
+  return ss.str();
+}
+
+std::string toTime(int64_t nIntervalUs)
+{
+  std::stringstream ss;
+  if (nIntervalUs < 0) {
+    ss << '-';
+  }
+  ss << toTime(static_cast<uint64_t>(std::abs(nIntervalUs)));
   return ss.str();
 }
 
