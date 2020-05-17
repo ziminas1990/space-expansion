@@ -1,5 +1,5 @@
 from enum import Enum
-import protocol.Privileged_pb2 as privileged
+import expansion.protocol.Privileged_pb2 as privileged
 
 
 class ObjectType(Enum):

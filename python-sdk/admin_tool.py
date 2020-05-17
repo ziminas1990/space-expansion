@@ -1,16 +1,14 @@
 import tkinter as tk
-from typing import Dict, Set
+from typing import Dict
 import asyncio
-import logging.config
-import time
 
-from transport.udp_channel import UdpChannel
-from transport.protobuf_channel import ProtobufChannel
+from expansion.transport.udp_channel import UdpChannel
+from expansion.transport.protobuf_channel import ProtobufChannel
 from tk_widgets import advancedcanvas
-from protocol.Privileged_pb2 import Message as PrivilegedMessage
-from interfaces.privileged.access import Access as PrivilegedAccess
-from interfaces.privileged.screen import Screen as PrivilegedScreen
-import interfaces.privileged.types as privileged_types
+from expansion.protocol.Privileged_pb2 import Message as PrivilegedMessage
+from expansion.interfaces.privileged.access import Access as PrivilegedAccess
+from expansion.interfaces.privileged.screen import Screen as PrivilegedScreen
+import expansion.interfaces.privileged.types as privileged_types
 
 
 async def screen_update_loop(advanced_canvas: advancedcanvas.AdvancedCanvas,

@@ -1,8 +1,8 @@
 from typing import Optional, List
 
-from transport.channel import Channel
-import protocol.Privileged_pb2 as privileged
-from protocol.utils import get_message_field
+from expansion.transport.channel import Channel
+import expansion.protocol.Privileged_pb2 as privileged
+from expansion.protocol.utils import get_message_field
 from .types import ObjectType, PhysicalObject
 
 

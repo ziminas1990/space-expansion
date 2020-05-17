@@ -1,8 +1,8 @@
-from typing import Optional, Union
+from typing import Optional
 
-from transport import channel
-from protocol.Protocol_pb2 import Message as PlayerMessage
-from protocol.utils import get_message_field
+from expansion.transport import channel
+from expansion.protocol.Protocol_pb2 import Message as PlayerMessage
+from expansion.protocol.utils import get_message_field
 
 class IAccessPanel:
 
