@@ -4,6 +4,7 @@ from expansion.transport import channel
 from expansion.protocol.Protocol_pb2 import Message as PlayerMessage
 from expansion.protocol.utils import get_message_field
 
+
 class IAccessPanel:
 
     def __init__(self):

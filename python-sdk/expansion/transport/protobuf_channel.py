@@ -31,10 +31,10 @@ class ProtobufChannel(Channel):
         channel should operate with 'bytes' messages"""
         self._downlevel = channel
 
-    def send(self, message: Message):
+    def send(self, message: Message) -> bool:
         """Write the specified 'message' to channel"""
         self._logger.debug(f"Sending:\n{message}")
-        self._downlevel.send(message.SerializeToString())
+        return self._downlevel.send(message.SerializeToString())
 
     async def receive(self, timeout: float = 5) -> Optional[Message]:
         """Await for the message, but not more than 'timeout' seconds"""
@@ -45,3 +45,7 @@ class ProtobufChannel(Channel):
         message.ParseFromString(data)
         self._logger.debug(f"Got:\n{message}")
         return message
+
+    async def close(self):
+        if self._downlevel:
+            await self._downlevel.close()

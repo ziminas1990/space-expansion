@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from typing import Callable, Any, Optional
+import socket
+from typing import Callable, Any, Optional, Tuple
 
 from .channel import Channel
 
@@ -14,11 +15,11 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         connection is closed. The specified 'channel_name' will be used in
         logs"""
 
-        self.ip_addr: Optional[str] = None
-        # IP address to connect to
-        self.port: int = 0
-        # UDO port to connect to
-        self.transport: asyncio.DatagramTransport = None
+        self.remote: Optional[Tuple[str, int]] = None
+        # Pair, that holds IP and port of the server
+        self.local_addr: Optional[Tuple[str, int]] = None
+        # Pair, that holds socket's local IP and port
+        self.transport: Optional[asyncio.DatagramTransport] = None
         # Object, that returned by asyncio. Will be used to send data
         self.queue: asyncio.Queue = asyncio.Queue()
         # Queue for all received messages
@@ -28,22 +29,44 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         # callback, that will be called if connection is closed/lost
         self.logger = logging.getLogger(f"{__name__} '{channel_name}'")
 
-    async def open(self, ip_addr: str, port: int) -> bool:
-        """Open connection to the specified 'ip_addr' and 'port'"""
-        self.ip_addr = ip_addr
-        self.port = port
+    async def bind(self, local_addr: Tuple[str, int]) -> bool:
+        self.local_addr = local_addr
 
         loop = asyncio.get_running_loop()
         self.transport, _ = await loop.create_datagram_endpoint(
             protocol_factory=lambda: self,
-            remote_addr=(self.ip_addr, self.port),
+            local_addr=self.local_addr,
+            family=socket.AF_INET
         )
         return self.transport is not None
 
-    def send(self, message: bytes):
+    async def open(self, remote_ip: str, remote_port: int) -> bool:
+        self.remote = (remote_ip, remote_port)
+
+        loop = asyncio.get_running_loop()
+        self.transport, _ = await loop.create_datagram_endpoint(
+            protocol_factory=lambda: self,
+            remote_addr=self.remote,
+        )
+        return self.transport is not None
+
+    def set_remote(self, ip: str, port: int):
+        assert self.remote is None, f"Remote is already set to {self.remote}"
+        self.remote=(ip, port)
+
+    def get_local_address(self) -> Optional[Tuple[str, int]]:
+        """Return IP and port of the local socket or None"""
+        if not self.transport:
+            return None
+        if not self.local_addr:
+            self.local_addr = self.transport.get_extra_info("peername")
+        return self.local_addr
+
+    def send(self, message: bytes) -> bool:
         """Write the specified 'message' to channel"""
-        self.logger.debug(f"Sending {len(message)} bytes to {self.ip_addr}:{self.port}")
-        self.transport.sendto(message)
+        self.logger.debug(f"Sending {len(message)} bytes to {self.remote}")
+        self.transport.sendto(message, addr=self.remote)
+        return True
 
     async def receive(self, timeout: float = 5) -> Optional[bytes]:
         """Await for the message, but not more than 'timeout' seconds"""
@@ -52,8 +75,12 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         except asyncio.TimeoutError:
             return None
 
+    async def close(self):
+        # UDP channel don't need to be closed
+        pass
+
     def connection_made(self, transport):
-        self.logger.info(f"Connection established to {self.ip_addr}:{self.port}")
+        self.logger.info(f"Connection established to {self.remote}")
 
     def datagram_received(self, data: bytes, addr):
         self.logger.debug(f"Received {len(data)} bytes from {addr}")
@@ -63,4 +90,4 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         self.logger.error(f"Got error: {exc}")
 
     def connection_lost(self, exc):
-        self.logger.warning(f"Connection to {self.ip_addr}:{self.port} has been LOST: {exc}")
+        self.logger.warning(f"Connection to {self.remote} has been LOST: {exc}")
