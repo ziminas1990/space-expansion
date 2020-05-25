@@ -8,8 +8,8 @@ class InversedChannel(Channel):
     """The inversed channel doesn't provide 'receive()' function, but
     reading channel and deliver all received message to terminal."""
 
-    def __init__(self, channel: Channel):
-        self.channel = channel
+    def __init__(self, donwlevel: Channel):
+        self.donwlevel = donwlevel
         self.terminal: Optional[Terminal] = None
         self.closed = False
 
@@ -17,11 +17,11 @@ class InversedChannel(Channel):
         self.terminal = terminal
 
     def send(self, message: Any) -> bool:
-        return self.channel.send(message)
+        return self.donwlevel.send(message)
 
     async def run(self):
         while not self.closed:
-            message = await self.channel.receive()
+            message = await self.donwlevel.receive()
             if self.terminal:
                 self.terminal.on_receive(message)
 
@@ -30,4 +30,4 @@ class InversedChannel(Channel):
 
     async def close(self):
         self.closed = True
-        await self.channel.close()
+        await self.donwlevel.close()

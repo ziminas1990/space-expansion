@@ -1,10 +1,11 @@
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict, List, NamedTuple
 import logging
 
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport.terminal import Terminal, BufferedTerminal
+from expansion.transport.inversed_channel import InversedChannel
 from expansion.transport.channel import Channel
 
 
@@ -41,6 +42,18 @@ class Tunnel(Channel):
         self.client.on_receive(message.encapsulated)
 
 
+class ModuleInfo(NamedTuple):
+    slot_id: int
+    type: str
+    name: str
+
+    @staticmethod
+    def from_protubuf(info: public.ICommutator.ModuleInfo) -> 'ModuleInfo':
+        return ModuleInfo(slot_id=info.slot_id,
+                          type=info.module_type,
+                          name=info.module_name)
+
+
 class Commutator(BufferedTerminal):
 
     def __init__(self, name: str = __name__):
@@ -58,6 +71,64 @@ class Commutator(BufferedTerminal):
             return False, 0
         total_slots = get_message_field(response, ["commutator", "total_slots"])
         return total_slots is not None, total_slots
+
+    async def get_module_info(self, slot_id: int) -> Optional[ModuleInfo]:
+        """Return information about module, installed into the specified
+        'slot_id'"""
+        request = public.Message()
+        request.commutator.module_info_req = slot_id
+        self.send(request)
+        response = await self.wait_message()
+        if not response:
+            return None
+        module_info = get_message_field(response, ["commutator", "module_info"])
+        if not module_info:
+            return None
+        return ModuleInfo.from_protubuf(module_info)
+
+    async def get_all_modules(self) -> Optional[List[ModuleInfo]]:
+        """Return all modules, attached to commutator"""
+        success, total_slots = self.get_total_slots()
+        if not success:
+            return None
+        request = public.Message()
+        request.commutator.all_modules_info_req = True
+        self.send(request)
+
+        all_modules = []
+        for i in range(total_slots):
+            response = await self.wait_message()
+            module_info = get_message_field(response, ["commutator", "module_info"])
+            if not module_info:
+                return None
+            all_modules.append(ModuleInfo.from_protubuf(module_info))
+        return all_modules
+
+    async def open_tunnel(self, port: int, terminal: Terminal) -> Optional[str]:
+        """Open tunnel to the specified 'port' and attach the specified
+        'terminal' to it. Return None on success, or error string on fail."""
+        request = public.Message()
+        request.commutator.open_tunnel = port
+        self.send(request)
+
+        response = await self.wait_message()
+        if not response:
+            return None
+        tunnel_id = get_message_field(response, ["commutator", "open_tunnel_report"])
+        if not tunnel_id:
+            error = get_message_field(response, ["commutator", "open_tunnel_failed"])
+            if not error:
+                error = "unexpected message received"
+            self._logger.warning(f"Failed to open tunnel to port #{port}: error")
+            return error
+
+        tunnel: Tunnel = Tunnel(tunnel_id=tunnel_id,
+                                client=terminal,
+                                commutator=self)
+        terminal.attach_channel(tunnel)
+
+        self.tunnels.update({tunnel_id: tunnel})
+        return None  # No errors
 
     def on_receive(self, message: Any):
         if message.WhichOneof('choice') == 'encapsulated':
@@ -77,3 +148,24 @@ class Commutator(BufferedTerminal):
         else:
             super().on_receive(message)
 
+
+class RootCommutator(Commutator):
+
+    def __init__(self):
+        super().__init__(name="Root")
+        self.inversed_channel: Optional[InversedChannel] = None
+
+    def attach_channel(self, channel: InversedChannel):
+        """Attach terminal to the specified 'channel'. This channel will be
+        used to send messages"""
+        assert isinstance(channel, InversedChannel),\
+            "Root commutator may be attached only to the inversed channel"
+        self.inversed_channel = channel
+        super().attach_channel(channel)
+
+    async def run(self):
+        """Run commutator. Should be run in separate task"""
+        await self.inversed_channel.run()
+
+    async def stop(self):
+        await self.inversed_channel.close()
