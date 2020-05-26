@@ -31,11 +31,15 @@ class Tunnel(Channel):
         """Encapsulate message in tunnel container and send it"""
         container = public.Message()
         container.tunnelId = self.tunnel_id
-        container.encapsulated = message
-        return self.commutator.send(message)
+        container.encapsulated.CopyFrom(message)
+        return self.commutator.send(container)
 
     async def receive(self, timeout: float = 5) -> Any:
         assert False, "Tunnel can't be used to get messages on demand!"
+
+    async def close(self):
+        """Inherited from Channel"""
+        assert False, "Not implemented yet"
 
     def on_receive(self, message: Any):
         """De-encapsulate message and pass it to client"""
@@ -88,7 +92,7 @@ class Commutator(BufferedTerminal):
 
     async def get_all_modules(self) -> Optional[List[ModuleInfo]]:
         """Return all modules, attached to commutator"""
-        success, total_slots = self.get_total_slots()
+        success, total_slots = await self.get_total_slots()
         if not success:
             return None
         request = public.Message()
@@ -115,11 +119,11 @@ class Commutator(BufferedTerminal):
         if not response:
             return None
         tunnel_id = get_message_field(response, ["commutator", "open_tunnel_report"])
-        if not tunnel_id:
+        if tunnel_id is None:
             error = get_message_field(response, ["commutator", "open_tunnel_failed"])
             if not error:
                 error = "unexpected message received"
-            self._logger.warning(f"Failed to open tunnel to port #{port}: error")
+            self._logger.warning(f"Failed to open tunnel to port #{port}: {error}")
             return error
 
         tunnel: Tunnel = Tunnel(tunnel_id=tunnel_id,

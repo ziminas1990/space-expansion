@@ -7,7 +7,7 @@ from expansion.transport.inversed_channel import InversedChannel
 from expansion.procedures.login import login as login_procedure
 
 import expansion.protocol.Protocol_pb2 as public
-from expansion.interfaces.public.commutator import RootCommutator
+from expansion.interfaces.public.commutator import Commutator, RootCommutator
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -25,8 +25,14 @@ async def main():
 
     asyncio.create_task(commutator.run())
 
-    total_slots = await commutator.get_total_slots()
-    print(total_slots)
+    modules = await commutator.get_all_modules()
+    ship_commutator: Commutator = Commutator("ship")
+    error = await commutator.open_tunnel(1, ship_commutator)
+    if error:
+        print(error)
+
+    print(await ship_commutator.get_all_modules())
+
     await commutator.stop()
 
 asyncio.run(main())
