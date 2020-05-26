@@ -85,7 +85,7 @@ private:
 private:
   // index - Slot Id, value - connected module
   std::vector<BaseModulePtr> m_Slots;
-  // index - Tunnel Id, value - { Session Id, Slot Id }
+  // index - Tunnel Id, value - Tunnel
   std::vector<Tunnel>   m_Tunnels;
   std::stack<uint32_t>  m_ReusableTunnels;
   // all sessions

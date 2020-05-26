@@ -1,14 +1,19 @@
 #include "Commutator.h"
-#include<Protocol.pb.h>
+
+#include <assert.h>
+#include <Protocol.pb.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
 
 namespace modules
 {
 
-Commutator::Commutator() : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
+Commutator::Commutator()
+  : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
 {
   GlobalContainer<Commutator>::registerSelf(this);
+  // Slot #0 should not be used. It make
+  m_Tunnels.emplace_back();
 }
 
 uint32_t Commutator::attachModule(BaseModulePtr pModule)
@@ -48,7 +53,9 @@ BaseModulePtr Commutator::findModuleByType(std::string const& sType) const
 
 void Commutator::detachFromModules()
 {
-  for (Tunnel& tunnel : m_Tunnels) {
+  for (uint32_t nTunnelId = 1; nTunnelId < m_Tunnels.size(); ++nTunnelId)
+  {
+    Tunnel& tunnel = m_Tunnels[nTunnelId];
     m_Slots[tunnel.m_nSlotId]->onSessionClosed(tunnel.m_nFather);
     tunnel.m_lUp = false;
   }
@@ -60,7 +67,7 @@ void Commutator::detachFromModules()
 
 void Commutator::checkSlotsAndTunnels()
 {
-  for (uint32_t nTunnelId = 0; nTunnelId < m_Tunnels.size(); ++nTunnelId)
+  for (uint32_t nTunnelId = 1; nTunnelId < m_Tunnels.size(); ++nTunnelId)
   {
     Tunnel& tunnel = m_Tunnels[nTunnelId];
     if (!tunnel.m_lUp)
@@ -102,7 +109,7 @@ bool Commutator::openSession(uint32_t nSessionId)
 void Commutator::onSessionClosed(uint32_t nSessionId)
 {
   m_OpenedSessions.erase(nSessionId);
-  for (uint32_t nTunnelId = 0; nTunnelId <= m_Tunnels.size(); ++nTunnelId)
+  for (uint32_t nTunnelId = 1; nTunnelId <= m_Tunnels.size(); ++nTunnelId)
   {
     Tunnel& tunnel = m_Tunnels[nTunnelId];
     if (tunnel.m_nFather == nSessionId) {
@@ -119,6 +126,7 @@ void Commutator::onSessionClosed(uint32_t nSessionId)
 bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
 {
   // in this context, sessionId (we got it from terminal) is a tunnelId
+  assert(nTunnelId > 0);
   spex::Message tunnelPDU;
   tunnelPDU.set_tunnelid(nTunnelId);
   *tunnelPDU.mutable_encapsulated() = message;
@@ -129,7 +137,7 @@ bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
 void Commutator::closeSession(uint32_t nTunnelId)
 {
   // in this context, sessionId (we got it from terminal) is a tunnelId
-  if (nTunnelId >= m_Tunnels.size())
+  if (nTunnelId >= m_Tunnels.size() || nTunnelId == 0)
     return;
 
   Tunnel& tunnel = m_Tunnels[nTunnelId];
@@ -239,10 +247,10 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
     return;
   }
 
-  Tunnel& tunnel      = m_Tunnels[nTunnelId];
-  tunnel.m_nSlotId    = nSlot;
+  Tunnel& tunnel   = m_Tunnels[nTunnelId];
+  tunnel.m_nSlotId = nSlot;
   tunnel.m_nFather = nSessionId;
-  tunnel.m_lUp        = true;
+  tunnel.m_lUp     = true;
 
   spex::ICommutator message;
   message.set_open_tunnel_report(nTunnelId);
@@ -251,7 +259,7 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
 
 void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
 {
-  if (nTunnelId >= m_Tunnels.size()) {
+  if (nTunnelId >= m_Tunnels.size() || nTunnelId == 0) {
     sendCloseTunnelFailed(nSessionId, spex::ICommutator::INVALID_TUNNEL);
     return;
   }
@@ -275,7 +283,7 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
 
 void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message const& message)
 {
-  if (nTunnelId >= m_Tunnels.size())
+  if (nTunnelId >= m_Tunnels.size() || nTunnelId == 0)
     return;
   Tunnel& tunnel = m_Tunnels[nTunnelId];
   if (!tunnel.m_lUp || tunnel.m_nSlotId >= m_Slots.size())
@@ -291,7 +299,7 @@ void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
   m_Slots[nSlotId] = nullptr;
   // We assume, that this operation is rather rare therefore we can afford to
   // execute it in O(N) time
-  for (uint32_t nTunnelId = 0; nTunnelId < m_Tunnels.size(); ++nTunnelId) {
+  for (uint32_t nTunnelId = 1; nTunnelId < m_Tunnels.size(); ++nTunnelId) {
     if (m_Tunnels[nTunnelId].m_nSlotId == nSlotId) {
       spex::ICommutator message;
       message.set_close_tunnel_report(nTunnelId);

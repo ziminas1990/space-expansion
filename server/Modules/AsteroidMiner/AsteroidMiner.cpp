@@ -116,6 +116,7 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
   }
 
   m_nAsteroidId   = task.asteroid_id();
+  m_nTunnelId     = nTunnelId;
   m_eResourceType = utils::convert(task.resource());
   switchToActiveState();
   sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
