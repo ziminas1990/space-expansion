@@ -1,51 +1,32 @@
-
 from typing import Optional, Any
-import logging
 
 from google.protobuf.message import Message
-from .channel import Channel
+from .proxy_channel import ProxyChannel
+from .channel import ChannelMode
 
 
-class ProtobufChannel(Channel):
+class ProtobufChannel(ProxyChannel):
     """Implement protobuf channel, to exchange protobuf messages
      with remote side.
-    Note that this class does NOT implement network communication! It
-    uses another channel as downlevel to send and receive bytes messages.
-    You should call the 'attach_to_channel()' method, before perform any
-    'send()' or 'receive()' calls. The attached channel should operate with
-    'bytes' messages. You may use the 'UdpChannel' for example"""
+     Class does not implement network communication. It acts as proxy channel
+     and implement encoding/decoding protobuf channel. It should be attached
+     to another channel, that operates with 'bytes' messages (like UDP
+     channel)"""
 
-    def __init__(self, name: str, toplevel_message_type: Any):
-        """Create protobuf channel. It uses downlevel channel to send/receive
-        bytes messages (see the 'attach_to_channel()' method). The specified
-        'toplevel_message_type' class will be instantiated as top level
-        message, when decoding received message. The specified 'name' will
-        be used to log messages."""
-        self._downlevel: Optional[Channel] = None
-        self._name = name
-        self._toplevel_message_type = toplevel_message_type
-        self._logger = logging.getLogger(f"{__name__} {self._name}")
+    def __init__(self, message_type: Any,
+                 mode: ChannelMode=ChannelMode.PASSIVE,
+                 channel_name: Optional[str] = None):
+        super().__init__(mode=mode, channel_name=channel_name)
+        self._message_type = message_type
 
-    def attach_to_channel(self, channel: Channel):
-        """Attach channel to the specified 'channel' as downlevel. Specified
-        channel should operate with 'bytes' messages"""
-        self._downlevel = channel
+    # Override from Channel
+    def encode(self, message: Message) -> bool:
+        return message.SerializeToString()
 
-    def send(self, message: Message) -> bool:
-        """Write the specified 'message' to channel"""
-        self._logger.debug(f"Sending:\n{message}")
-        return self._downlevel.send(message.SerializeToString())
-
-    async def receive(self, timeout: float = 5) -> Optional[Message]:
-        """Await for the message, but not more than 'timeout' seconds"""
-        data: bytes = await self._downlevel.receive(timeout)
+    # overridden from ProxyChannel
+    def decode(self, data: bytes) -> Optional[Message]:
         if not data:
             return None
-        message = self._toplevel_message_type()
+        message = self._message_type()
         message.ParseFromString(data)
-        self._logger.debug(f"Got:\n{message}")
         return message
-
-    async def close(self):
-        if self._downlevel:
-            await self._downlevel.close()

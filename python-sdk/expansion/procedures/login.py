@@ -2,20 +2,20 @@ import asyncio
 import logging.config
 from typing import Optional
 
+from expansion.transport.channel import ChannelMode
 from expansion.transport.udp_channel import UdpChannel
 from expansion.transport.protobuf_channel import ProtobufChannel
-from expansion.transport.inversed_channel import InversedChannel
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.interfaces.public.IAccessPanel import IAccessPanel
-from expansion.interfaces.public.commutator import RootCommutator
+from expansion.interfaces.public.commutator import Commutator
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 async def login(server_ip: str, login_port: int,
                 login: str, password: str,
-                local_ip: str, local_port: int) -> (Optional[RootCommutator], str):
+                local_ip: str, local_port: int) -> (Optional[Commutator], str):
     """Login on server and return root commutator.
     On success return (Commutator, None) pair. Otherwise return (None, error).
     This procedure will send login request to the specified 'server_ip' and
@@ -44,9 +44,9 @@ async def login(server_ip: str, login_port: int,
 
     # Creating protobuf channel, that will be used for login procedure (first)
     # and further communication (after Login)
-    protobuf_channel = ProtobufChannel(name="Login",
-                                       toplevel_message_type=public.Message)
-    protobuf_channel.attach_to_channel(login_udp_channel)
+    protobuf_channel = ProtobufChannel(channel_name="Main",
+                                       message_type=public.Message)
+    protobuf_channel.attach_channel(login_udp_channel)
 
     # Creating access panel instance and login in
     access_panel = IAccessPanel()
@@ -60,15 +60,14 @@ async def login(server_ip: str, login_port: int,
 
     player_channel.set_remote(server_ip, player_port)
 
-    # Switch protobuf channel to new socket
-    protobuf_channel.attach_to_channel(player_channel)
+    # Switch protobuf channel to a new socket + ACTIVE mode
+    protobuf_channel.attach_channel(player_channel)
+    player_channel.attach_to_terminal(protobuf_channel)
+    player_channel.propagate_mode(ChannelMode.ACTIVE)
 
-    # Creating InversedChannel
-    inversed_channel: InversedChannel = InversedChannel(donwlevel=protobuf_channel)
-
-    # Creating root commutator and attach it to inversed channel
-    commutator: RootCommutator = RootCommutator()
-    commutator.attach_channel(inversed_channel)
-    inversed_channel.attach_to_terminal(commutator)
+    # Creating root commutator and attach it to channel
+    commutator: Commutator = Commutator()
+    commutator.attach_channel(protobuf_channel)
+    protobuf_channel.attach_to_terminal(commutator)
 
     return commutator, None

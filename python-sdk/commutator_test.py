@@ -3,17 +3,16 @@ import logging.config
 from typing import Optional
 
 from expansion.transport.protobuf_channel import ProtobufChannel
-from expansion.transport.inversed_channel import InversedChannel
 from expansion.procedures.login import login as login_procedure
 
 import expansion.protocol.Protocol_pb2 as public
-from expansion.interfaces.public.commutator import Commutator, RootCommutator
+from expansion.interfaces.public.commutator import Commutator
 
 logging.basicConfig(level=logging.DEBUG)
 
 async def main():
     # Creating channels
-    commutator: Optional[RootCommutator] = None
+    commutator: Optional[Commutator] = None
     commutator, error =\
         await login_procedure(server_ip="127.0.0.1", login_port=6842,
                               login="Olenoid", password="admin",
@@ -23,8 +22,6 @@ async def main():
         print(f"Failed to open UDP connection: {error}")
         return
 
-    asyncio.create_task(commutator.run())
-
     modules = await commutator.get_all_modules()
     ship_commutator: Commutator = Commutator("ship")
     error = await commutator.open_tunnel(1, ship_commutator)
@@ -32,7 +29,5 @@ async def main():
         print(error)
 
     print(await ship_commutator.get_all_modules())
-
-    await commutator.stop()
 
 asyncio.run(main())

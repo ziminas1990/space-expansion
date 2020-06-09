@@ -3,17 +3,18 @@ import logging
 import socket
 from typing import Callable, Any, Optional, Tuple
 
-from .channel import Channel
+from .channel import Channel, ChannelMode
 
 
 class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def __init__(self,
                  on_closed_cb: Callable[[], Any],
-                 channel_name: str):
+                 channel_name: Optional[str] = None):
         """Create UDP channel. The specified 'on_closed_cb' will be called when
         connection is closed. The specified 'channel_name' will be used in
         logs"""
+        super().__init__(mode=ChannelMode.PASSIVE)
 
         self.remote: Optional[Tuple[str, int]] = None
         # Pair, that holds IP and port of the server
@@ -21,13 +22,10 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         # Pair, that holds socket's local IP and port
         self.transport: Optional[asyncio.DatagramTransport] = None
         # Object, that returned by asyncio. Will be used to send data
-        self.queue: asyncio.Queue = asyncio.Queue()
-        # Queue for all received messages
-        self.channel_name: str = channel_name
-        # Name, that will be used to print logs
         self.on_closed_cb: Callable[[], Any] = on_closed_cb
         # callback, that will be called if connection is closed/lost
-        self.logger = logging.getLogger(f"{__name__} '{channel_name}'")
+        self.logger = logging.getLogger(f"{__name__} '{channel_name}'") \
+            if channel_name else None
 
     async def bind(self, local_addr: Tuple[str, int]) -> bool:
         self.local_addr = local_addr
@@ -62,19 +60,14 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
             self.local_addr = self.transport.get_extra_info("peername")
         return self.local_addr
 
+    # Override from Channel
     def send(self, message: bytes) -> bool:
         """Write the specified 'message' to channel"""
         self.logger.debug(f"Sending {len(message)} bytes to {self.remote}")
         self.transport.sendto(message, addr=self.remote)
         return True
 
-    async def receive(self, timeout: float = 5) -> Optional[bytes]:
-        """Await for the message, but not more than 'timeout' seconds"""
-        try:
-            return await asyncio.wait_for(self.queue.get(), timeout=timeout)
-        except asyncio.TimeoutError:
-            return None
-
+    # Override from Channel
     async def close(self):
         # UDP channel don't need to be closed
         pass
@@ -84,7 +77,14 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def datagram_received(self, data: bytes, addr):
         self.logger.debug(f"Received {len(data)} bytes from {addr}")
-        self.queue.put_nowait(data)
+        if self.is_active_mode():
+            if self.terminal:
+                self.terminal.on_receive(data)
+            else:
+                self.logger.warning(f"Ignoring {len(data)} bytes message:"
+                                    f" not attached to terminal!")
+        else:
+            self.on_message(message=data)
 
     def error_received(self, exc):
         self.logger.error(f"Got error: {exc}")

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from expansion.transport import channel
+from expansion.transport.channel import ChannelMode, Channel
 from expansion.protocol.Protocol_pb2 import Message as PlayerMessage
 from expansion.protocol.utils import get_message_field
 
@@ -8,10 +8,11 @@ from expansion.protocol.utils import get_message_field
 class IAccessPanel:
 
     def __init__(self):
-        self._channel: Optional[channel.Channel] = None
+        self._channel: Optional[Channel] = None
 
-    def attach_to_channel(self, channel: channel.Channel):
+    def attach_to_channel(self, channel: Channel):
         self._channel = channel
+        self._channel.set_mode(ChannelMode.PASSIVE)
 
     async def login(self, login: str, password: str,
                     local_ip: str, local_port: int) -> (int, Optional[str]):
