@@ -7,13 +7,19 @@ from expansion.transport.terminal import Terminal
 
 
 class BaseModule(Terminal):
-    def __init__(self, module_name:str=__name__, *args, **kwargs):
+    next_module_instance_id: int = 0
+
+    def __init__(self, module_name: str = "BaseModule", *args, **kwargs):
         """
         Create new BaseModule instance.
         All channels, that will be attached to this module, will be switched into
         the specified 'preferable_channel_mode' mode.
         """
-        super().__init__(terminal_name=f"{module_name}::terminal")
+        self.module_instance_id = BaseModule.next_module_instance_id
+        BaseModule.next_module_instance_id += 1
+        self.module_name = f"{module_name}_{self.module_instance_id}"
+
+        super().__init__(terminal_name=f"{self.module_name}::terminal")
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
 
@@ -26,6 +32,10 @@ class BaseModule(Terminal):
     def attach_channel(self, channel: Channel):
         super().attach_channel(channel)  # For logging
         self.channel = channel
+
+    # Override from Terminal
+    def on_channel_mode_changed(self, mode: 'ChannelMode'):
+        super().on_channel_mode_changed(mode)  # For logging
 
     # Override from Terminal
     def on_channel_detached(self):

@@ -9,7 +9,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def __init__(self,
                  on_closed_cb: Callable[[], Any],
-                 channel_name: Optional[str] = None):
+                 channel_name: Optional[str] = "Transport.UDP_Channel"):
         """Create UDP channel. The specified 'on_closed_cb' will be called when
         connection is closed. The specified 'channel_name' will be used in
         logs"""

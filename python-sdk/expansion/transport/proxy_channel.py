@@ -15,7 +15,7 @@ class ProxyChannel(Channel, Terminal):
     """
 
     def __init__(self, mode: ChannelMode,
-                 proxy_name: Optional[str] = __name__,
+                 proxy_name: Optional[str] = "Transport.Proxy",
                  *args, **kwargs):
         super().__init__(mode=mode,
                          channel_name=f"{proxy_name}::channel",

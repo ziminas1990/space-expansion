@@ -6,11 +6,11 @@ import logging
 class Terminal(abc.ABC):
     next_terminal_id: int = 0
 
-    def __init__(self, terminal_name: str = __name__, *args, **kwargs):
+    def __init__(self, terminal_name: str = "Transport.Terminal", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.terminal_id = Terminal.next_terminal_id
         Terminal.next_terminal_id += 1
-        self.terminal_name = f"{terminal_name} #{self.terminal_id}"
+        self.terminal_name = f"{terminal_name}_{self.terminal_id}"
         self.terminal_logger = logging.getLogger(self.terminal_name)
 
     @abc.abstractmethod

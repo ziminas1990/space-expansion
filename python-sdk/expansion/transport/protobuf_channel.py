@@ -15,7 +15,7 @@ class ProtobufChannel(ProxyChannel):
 
     def __init__(self, message_type: Any,
                  mode: ChannelMode=ChannelMode.PASSIVE,
-                 channel_name: Optional[str] = None):
+                 channel_name: Optional[str] = "Transport.ProtobufChannel"):
         super().__init__(mode=mode, proxy_name=channel_name)
         self._message_type = message_type
 

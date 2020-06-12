@@ -5,27 +5,6 @@ import asyncio
 import logging
 
 
-class IChannel(abc.ABC):
-    """Base abstraction for channel, that can be used to send and receive
-    messages"""
-    @abc.abstractmethod
-    def send(self, message: Any) -> bool:
-        """Write the specified 'message' to channel. Return true on success,
-        otherwise return false"""
-        pass
-
-    @abc.abstractmethod
-    async def close(self):
-        """Close channel"""
-        pass
-
-    @abc.abstractmethod
-    async def receive(self, timeout: float = 5) -> Any:
-        """Awaits message, received from remote side, but not more
-        than the specified 'timeout' seconds"""
-        pass
-
-
 class ChannelMode(Enum):
     PASSIVE = 2
     # Passive channel will never pass received data to the terminal. They will
@@ -36,7 +15,7 @@ class ChannelMode(Enum):
     # through terminal's 'on_receive()' call.
 
 
-class Channel(IChannel):
+class Channel(abc.ABC):
     """Channel is abstraction, that provide interface to exchange with some
     messages. Messages may have any type, depending on channel implementation.
     Channel may work in two modes: passive and active.
@@ -58,12 +37,12 @@ class Channel(IChannel):
 
     next_channel_id: int = 0
 
-    def __init__(self, mode: ChannelMode, channel_name=__name__, *args, **kwargs):
+    def __init__(self, mode: ChannelMode, channel_name="Transport.Channel", *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.channel_id = Channel.next_channel_id
         Channel.next_channel_id += 1
-        self.channel_name = f"{channel_name} #{Channel.next_channel_id}"
+        self.channel_name = f"{channel_name}_{Channel.next_channel_id}"
         self.channel_logger = logging.getLogger(self.channel_name)
 
         self.mode: ChannelMode = mode

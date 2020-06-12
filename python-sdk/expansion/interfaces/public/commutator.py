@@ -17,17 +17,22 @@ class Tunnel(ProxyChannel):
     Every message, sent by client, will be encapsulated to toplevel Message
     with some 'tunnel_id'.
     """
+    next_tunnel_instance_id: int = 0
 
     def __init__(self, tunnel_id: int,
                  client: Terminal,
                  commutator: 'Commutator',
                  mode: ChannelMode = ChannelMode.PASSIVE,
-                 tunnel_name: str = __name__,
+                 tunnel_name: str = "Tunnel",
                  *args, ** kwargs):
         """Create tunnel for the specified 'client' with the specified
         'tunnel_id'. The specified 'channel' will be used by tunnel to send
         messages."""
-        super().__init__(mode=mode, proxy_name=tunnel_name, *args, **kwargs)
+        self.tunnel_instance_id = Tunnel.next_tunnel_instance_id
+        Tunnel.next_tunnel_instance_id += 1
+        self.tunnel_name: str = f"{tunnel_name}_{self.tunnel_instance_id}"
+
+        super().__init__(mode=mode, proxy_name=self.tunnel_name, *args, **kwargs)
         self.tunnel_id: int = tunnel_id
         self.client: Terminal = client
         self.commutator: 'Commutator' = commutator
