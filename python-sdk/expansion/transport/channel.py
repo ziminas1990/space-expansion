@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any, Optional
 import abc
 import asyncio
+import logging
 
 
 class IChannel(abc.ABC):
@@ -55,8 +56,16 @@ class Channel(IChannel):
      3. implement 'close()' function
      """
 
-    def __init__(self, mode: ChannelMode, *args, **kwargs):
+    next_channel_id: int = 0
+
+    def __init__(self, mode: ChannelMode, channel_name=__name__, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.channel_id = Channel.next_channel_id
+        Channel.next_channel_id += 1
+        self.channel_name = f"{channel_name} #{Channel.next_channel_id}"
+        self.channel_logger = logging.getLogger(self.channel_name)
+
         self.mode: ChannelMode = mode
         self.queue: asyncio.Queue = asyncio.Queue()
         # Queue for all received messages
@@ -64,6 +73,8 @@ class Channel(IChannel):
 
     def set_mode(self, mode: ChannelMode):
         """Set new mode for the channel"""
+        if self.mode != mode:
+            self.channel_logger.info(f"Changing mode: {self.mode} -> {mode}")
         self.mode: ChannelMode = mode
         if self.mode == ChannelMode.ACTIVE:
             # reset queue, cause we are not going to use it in active mode
@@ -80,6 +91,7 @@ class Channel(IChannel):
         return self.mode == ChannelMode.ACTIVE
 
     def on_message(self, message: Any):
+        self.channel_logger.debug(f"Got {message}")
         if self.is_active_mode():
             if self.terminal:
                 self.terminal.on_receive(message)
@@ -91,12 +103,14 @@ class Channel(IChannel):
         all messages to attached terminal. Otherwise, attaching terminal has
         no sense."""
         self.terminal = terminal
+        self.channel_logger.info(f"Attached to terminal {self.terminal.terminal_name}")
 
     def detach_terminal(self):
         """Detach channel from terminal.
         Note that if channel is in ACTIVE mode, but is not attached to
         terminal, than all received messages will be dropped."""
         self.terminal = None
+        self.channel_logger.info(f"Terminal detached")
 
     @abc.abstractmethod
     def send(self, message: Any) -> bool:
@@ -122,4 +136,5 @@ class Channel(IChannel):
             else:
                 return self.queue.get_nowait()
         except asyncio.TimeoutError:
+            self.channel_logger.warning(f"Receive timeout occurred!")
             return None

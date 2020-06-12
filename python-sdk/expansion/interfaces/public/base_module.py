@@ -7,25 +7,29 @@ from expansion.transport.terminal import Terminal
 
 
 class BaseModule(Terminal):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, module_name:str=__name__, *args, **kwargs):
         """
         Create new BaseModule instance.
         All channels, that will be attached to this module, will be switched into
         the specified 'preferable_channel_mode' mode.
         """
+        super().__init__(terminal_name=f"{module_name}::terminal")
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
 
     # Override from Terminal
     def on_receive(self, message: Any):
+        super().on_receive(message)  # For logging
         self.queue.put_nowait(message)
 
     # Override from Terminal
     def attach_channel(self, channel: Channel):
+        super().attach_channel(channel)  # For logging
         self.channel = channel
 
     # Override from Terminal
     def on_channel_detached(self):
+        super().on_channel_detached()  # For logging
         self.channel = None
 
     async def wait_message(self, timeout: float = 1.0) -> Optional[Any]:

@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import socket
 from typing import Callable, Any, Optional, Tuple
 
@@ -14,7 +13,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         """Create UDP channel. The specified 'on_closed_cb' will be called when
         connection is closed. The specified 'channel_name' will be used in
         logs"""
-        super().__init__(mode=ChannelMode.PASSIVE)
+        super().__init__(channel_name=channel_name, mode=ChannelMode.PASSIVE)
 
         self.remote: Optional[Tuple[str, int]] = None
         # Pair, that holds IP and port of the server
@@ -24,8 +23,6 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         # Object, that returned by asyncio. Will be used to send data
         self.on_closed_cb: Callable[[], Any] = on_closed_cb
         # callback, that will be called if connection is closed/lost
-        self.logger = logging.getLogger(f"{__name__} '{channel_name}'") \
-            if channel_name else None
 
     async def bind(self, local_addr: Tuple[str, int]) -> bool:
         self.local_addr = local_addr
@@ -63,31 +60,31 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     # Override from Channel
     def send(self, message: bytes) -> bool:
         """Write the specified 'message' to channel"""
-        self.logger.debug(f"Sending {len(message)} bytes to {self.remote}")
+        self.channel_logger.debug(f"Sending {len(message)} bytes to {self.remote}")
         self.transport.sendto(message, addr=self.remote)
         return True
 
     # Override from Channel
     async def close(self):
         # UDP channel don't need to be closed
-        pass
+        self.channel_logger.info("Closed")
 
     def connection_made(self, transport):
-        self.logger.info(f"Connection established to {self.remote}")
+        self.channel_logger.info(f"Connection established to {self.remote}")
 
     def datagram_received(self, data: bytes, addr):
-        self.logger.debug(f"Received {len(data)} bytes from {addr}")
+        self.channel_logger.debug(f"Received {len(data)} bytes from {addr}")
         if self.is_active_mode():
             if self.terminal:
                 self.terminal.on_receive(data)
             else:
-                self.logger.warning(f"Ignoring {len(data)} bytes message:"
-                                    f" not attached to terminal!")
+                self.channel_logger.warning(
+                    f"Ignoring {len(data)} bytes message: not attached to the terminal!")
         else:
             self.on_message(message=data)
 
     def error_received(self, exc):
-        self.logger.error(f"Got error: {exc}")
+        self.channel_logger.error(f"Got error: {exc}")
 
     def connection_lost(self, exc):
-        self.logger.warning(f"Connection to {self.remote} has been LOST: {exc}")
+        self.channel_logger.warning(f"Connection to {self.remote} has been LOST: {exc}")

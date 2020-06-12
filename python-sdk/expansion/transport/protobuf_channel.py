@@ -16,7 +16,7 @@ class ProtobufChannel(ProxyChannel):
     def __init__(self, message_type: Any,
                  mode: ChannelMode=ChannelMode.PASSIVE,
                  channel_name: Optional[str] = None):
-        super().__init__(mode=mode, channel_name=channel_name)
+        super().__init__(mode=mode, proxy_name=channel_name)
         self._message_type = message_type
 
     # Override from Channel

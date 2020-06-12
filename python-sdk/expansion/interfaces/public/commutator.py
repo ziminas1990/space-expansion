@@ -22,12 +22,12 @@ class Tunnel(ProxyChannel):
                  client: Terminal,
                  commutator: 'Commutator',
                  mode: ChannelMode = ChannelMode.PASSIVE,
-                 channel_name: Optional[str] = None,
+                 tunnel_name: str = __name__,
                  *args, ** kwargs):
         """Create tunnel for the specified 'client' with the specified
         'tunnel_id'. The specified 'channel' will be used by tunnel to send
         messages."""
-        super().__init__(mode=mode, channel_name=channel_name, *args, **kwargs)
+        super().__init__(mode=mode, proxy_name=tunnel_name, *args, **kwargs)
         self.tunnel_id: int = tunnel_id
         self.client: Terminal = client
         self.commutator: 'Commutator' = commutator
@@ -36,8 +36,7 @@ class Tunnel(ProxyChannel):
     def decode(self, data: public.Message) -> Optional[Any]:
         """De-encapsulate message and pass it to client"""
         if data.tunnelId != self.tunnel_id:
-            if self.logger:
-                self.logger.warning(f"Tunnel_id mismatch! {data.tunnelId} != {self.tunnel_id}")
+            self.terminal_logger.warning(f"Tunnel_id mismatch! {data.tunnelId} != {self.tunnel_id}")
             return None
         return data.encapsulated
 

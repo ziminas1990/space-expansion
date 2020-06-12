@@ -15,11 +15,12 @@ class ProxyChannel(Channel, Terminal):
     """
 
     def __init__(self, mode: ChannelMode,
-                 channel_name: Optional[str] = None,
+                 proxy_name: Optional[str] = __name__,
                  *args, **kwargs):
-        super().__init__(mode=mode, *args, **kwargs)
-        self.logger = logging.getLogger(f"{__name__} '{channel_name}'") \
-            if channel_name else None
+        super().__init__(mode=mode,
+                         channel_name=f"{proxy_name}::channel",
+                         terminal_name=f"{proxy_name}::terminal",
+                         *args, **kwargs)
         self.downlevel: Optional[Channel] = None
 
     @abc.abstractmethod
@@ -39,26 +40,32 @@ class ProxyChannel(Channel, Terminal):
     # Override from Terminal
     def attach_channel(self, channel: 'Channel'):
         assert channel
+        super().attach_channel(channel)  # For logging
+        if self.mode == ChannelMode.ACTIVE:
+            assert channel.mode == ChannelMode.ACTIVE,\
+                "Proxy channel is in Active mode, so downlevel channel must" \
+                " be in Active mode too!"
         self.downlevel = channel
-        assert channel.mode == self.mode,\
-            "Downlevel must be in the same mode as proxy channel"
 
     # Override from Terminal
     def on_channel_mode_changed(self, mode: 'ChannelMode'):
         """Downlevel channel has changed mode, so proxy channel should
         also change its mode and propagate mode to uplevel terminal"""
         self.propagate_mode(mode)
+        # For logging:
+        super().on_channel_mode_changed(mode)
 
     # Override from Terminal
     def on_channel_detached(self):
+        super().on_channel_detached()  # For logging
         self.downlevel = None
 
     # Override from Terminal
     def on_receive(self, message: Any):
+        # For logging:
+        super().on_receive(message)
         decoded_message = self.decode(message)
         if decoded_message:
-            if self.logger:
-                self.logger.debug(f"Received:\n{decoded_message}")
             self.on_message(decoded_message)
 
     # Override from Channel
@@ -73,13 +80,14 @@ class ProxyChannel(Channel, Terminal):
 
     # Override from Channel
     def send(self, message: Any) -> bool:
+        self.channel_logger.debug(f"Sending {message}")
         if not self.downlevel:
+            self.channel_logger.warning(f"Not attached to channel!")
             return False
         data = self.encode(message)
         if not data:
+            self.channel_logger.warning(f"Failed to encode message!")
             return False
-        if self.logger:
-            self.logger.debug(f"Send:\n{message}")
         return self.downlevel.send(data)
 
     # Override from Channel
@@ -90,11 +98,11 @@ class ProxyChannel(Channel, Terminal):
         if not data:
             return None
         message = self.decode(data=data)
-        if message and self.logger:
-            self.logger.debug(f"Received:\n{message}")
+        self.channel_logger.debug(f"Received message: {message}")
         return message
 
     # Override from Channel
     async def close(self):
+        self.channel_logger.info("Closing channel...")
         if self.downlevel:
             await self.downlevel.close()
