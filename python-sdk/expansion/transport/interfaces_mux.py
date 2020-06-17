@@ -1,11 +1,12 @@
 from typing import Optional, Dict
 from enum import Enum
-import logging
 
 from .terminal import Terminal
 import expansion.protocol.Protocol_pb2 as public
 from .channel import Channel, ChannelMode
 from .channel_adapter import ChannelAdapter
+
+from expansion import utils
 
 
 class Interfaces(Enum):
@@ -25,14 +26,11 @@ class Interfaces(Enum):
 
 
 class InterfacesMux(Terminal):
-    next_interface_mux_instance_id = 0
 
-    def __init__(self, name: str = "MUX"):
-        self.interface_mux_instance_id = InterfacesMux.next_interface_mux_instance_id
-        InterfacesMux.next_interface_mux_instance_id += 1
-        self.name: str = f"{name}_{self.interface_mux_instance_id}"
+    def __init__(self, name: Optional[str] = None):
+        self.name: str = name or utils.generate_name(InterfacesMux)
 
-        super().__init__(terminal_name=f"{self.name}::Terminal")
+        super().__init__(terminal_name=self.name)
         self.downlevel: Optional[Channel] = None
         self.interfaces: Dict[Interfaces, ChannelAdapter] = {}
 
@@ -75,7 +73,7 @@ class InterfacesMux(Terminal):
             send_fn=lambda message: self.downlevel.send(message=message),
             close_fn=lambda: None,
             receive_fn=None,
-            name=f"{self.name}::{interface}"
+            channel_name=f"{self.name}::{interface}"
         )
         self.interfaces[interface.value] = channel
         return channel
