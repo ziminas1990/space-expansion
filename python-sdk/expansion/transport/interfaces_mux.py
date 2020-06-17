@@ -49,7 +49,7 @@ class InterfacesMux(Terminal):
     # Override from Terminal
     def attach_channel(self, channel: 'Channel'):
         super().attach_channel(channel=channel)  # for logging
-        assert channel.mode == ChannelMode.ACTIVE
+        channel.set_mode(ChannelMode.ACTIVE)
         self.downlevel = channel
 
     # Override from Terminal
@@ -73,7 +73,7 @@ class InterfacesMux(Terminal):
             send_fn=lambda message: self.downlevel.send(message=message),
             close_fn=lambda: None,
             receive_fn=None,
-            channel_name=f"{self.name}::{interface}"
+            channel_name=f"{self.name}/{interface.value}"
         )
         self.interfaces[interface.value] = channel
         return channel

@@ -7,6 +7,7 @@ from expansion.procedures.login import login as login_procedure
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.interfaces.public.commutator import Commutator
+from expansion.interfaces.public.ship import Ship
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -23,11 +24,12 @@ async def main():
         return
 
     modules = await commutator.get_all_modules()
-    ship_commutator: Commutator = Commutator("ship")
-    error = await commutator.open_tunnel(1, ship_commutator)
+    ship: Ship = Ship(ship_name=f"{commutator.get_name()}::ship#1")
+    error = await commutator.open_tunnel(1, ship)
     if error:
         print(error)
 
-    print(await ship_commutator.get_all_modules())
+    print(await ship.get_commutator().get_all_modules())
+    print(await ship.get_navigation().get_position())
 
 asyncio.run(main())

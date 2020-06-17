@@ -20,8 +20,8 @@ class ProxyChannel(Channel, Terminal):
                  *args, **kwargs):
         self.proxy_name: str = proxy_name or utils.generate_name(ProxyChannel)
         super().__init__(mode=mode,
-                         channel_name=f"{self.proxy_name}::channel",
-                         terminal_name=f"{self.proxy_name}::terminal",
+                         channel_name=f"{self.proxy_name}/channel",
+                         terminal_name=f"{self.proxy_name}/terminal",
                          *args, **kwargs)
         self.downlevel: Optional[Channel] = None
 
