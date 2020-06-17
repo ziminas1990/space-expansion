@@ -1,6 +1,8 @@
 from .channel import Channel, ChannelMode
 from typing import Callable, Awaitable, Any, Optional
 
+from expansion import utils
+
 
 class ChannelAdapter(Channel):
     SendCall = Callable[[Any], bool]
@@ -11,10 +13,11 @@ class ChannelAdapter(Channel):
                  send_fn: SendCall,
                  close_fn: CloseCall,
                  receive_fn: ReceiveCall,
-                 channel_name: str = "ChannelAdapter",
+                 channel_name: Optional[str] = None,
                  mode: ChannelMode = ChannelMode.PASSIVE,
                  *args, **kwargs):
-        super().__init__(mode=mode, channel_name=channel_name, *args, **kwargs)
+        name: str = channel_name or utils.generate_name(ChannelAdapter)
+        super().__init__(mode=mode, channel_name=name, *args, **kwargs)
         self.send_fn: ChannelAdapter.SendCall = send_fn
         self.close_fn: ChannelAdapter.CloseCall = close_fn
         self.receive_fn: ChannelAdapter.ReceiveCall = receive_fn

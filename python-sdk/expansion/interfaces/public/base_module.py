@@ -7,7 +7,6 @@ from expansion.transport.terminal import Terminal
 
 
 class BaseModule(Terminal):
-    next_module_instance_id: int = 0
 
     def __init__(self, module_name: str = "BaseModule", *args, **kwargs):
         """
@@ -15,13 +14,12 @@ class BaseModule(Terminal):
         All channels, that will be attached to this module, will be switched into
         the specified 'preferable_channel_mode' mode.
         """
-        self.module_instance_id = BaseModule.next_module_instance_id
-        BaseModule.next_module_instance_id += 1
-        self.module_name = f"{module_name}_{self.module_instance_id}"
-
-        super().__init__(terminal_name=f"{self.module_name}::terminal")
+        super().__init__(terminal_name=f"{module_name}")
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
+
+    def get_name(self) -> str:
+        return super(BaseModule, self).get_name()
 
     # Override from Terminal
     def on_receive(self, message: Any):

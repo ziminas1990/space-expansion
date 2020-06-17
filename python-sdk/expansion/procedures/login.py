@@ -66,7 +66,7 @@ async def login(server_ip: str, login_port: int,
     player_channel.propagate_mode(ChannelMode.ACTIVE)
 
     # Creating root commutator and attach it to channel
-    commutator: Commutator = Commutator()
+    commutator: Commutator = Commutator(name=f"{local_ip}:{local_port}::Root")
     commutator.attach_channel(protobuf_channel)
     protobuf_channel.attach_to_terminal(commutator)
 

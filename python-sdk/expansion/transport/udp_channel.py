@@ -2,6 +2,7 @@ import asyncio
 import socket
 from typing import Callable, Any, Optional, Tuple
 
+from expansion import utils
 from .channel import Channel, ChannelMode
 
 
@@ -9,11 +10,12 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def __init__(self,
                  on_closed_cb: Callable[[], Any],
-                 channel_name: Optional[str] = "Transport.UDP_Channel"):
+                 channel_name: Optional[str] = None):
         """Create UDP channel. The specified 'on_closed_cb' will be called when
         connection is closed. The specified 'channel_name' will be used in
         logs"""
-        super().__init__(channel_name=channel_name, mode=ChannelMode.PASSIVE)
+        super().__init__(channel_name=channel_name or utils.generate_name(type(self)),
+                         mode=ChannelMode.PASSIVE)
 
         self.remote: Optional[Tuple[str, int]] = None
         # Pair, that holds IP and port of the server
@@ -60,7 +62,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     # Override from Channel
     def send(self, message: bytes) -> bool:
         """Write the specified 'message' to channel"""
-        self.channel_logger.debug(f"Sending {len(message)} bytes to {self.remote}")
+        self.channel_logger.debug(f"Sending:\n{len(message)} bytes to {self.remote}")
         self.transport.sendto(message, addr=self.remote)
         return True
 

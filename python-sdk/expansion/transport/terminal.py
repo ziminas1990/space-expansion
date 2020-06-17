@@ -2,22 +2,24 @@ from typing import Any, Optional
 import abc
 import logging
 
+from expansion import utils
+
 
 class Terminal(abc.ABC):
-    next_terminal_id: int = 0
 
-    def __init__(self, terminal_name: str = "Transport.Terminal", *args, **kwargs):
+    def __init__(self, terminal_name: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.terminal_id = Terminal.next_terminal_id
-        Terminal.next_terminal_id += 1
-        self.terminal_name = f"{terminal_name}_{self.terminal_id}"
+        self.terminal_name = terminal_name or utils.generate_name(type(self))
         self.terminal_logger = logging.getLogger(self.terminal_name)
+
+    def get_name(self) -> str:
+        return self.terminal_name
 
     @abc.abstractmethod
     def on_receive(self, message: Any):
         """This callback will be called to pass received message, that was
         addressed to this terminal"""
-        self.terminal_logger.debug(f"got {message}")
+        self.terminal_logger.debug(f"Got\n{message}")
 
     @abc.abstractmethod
     def attach_channel(self, channel: 'Channel'):

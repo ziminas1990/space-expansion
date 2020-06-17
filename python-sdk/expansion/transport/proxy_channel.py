@@ -1,8 +1,9 @@
 from .channel import Channel, ChannelMode
 from .terminal import Terminal
 from typing import Optional, Any
-import logging
 import abc
+
+from expansion import utils
 
 
 class ProxyChannel(Channel, Terminal):
@@ -15,13 +16,17 @@ class ProxyChannel(Channel, Terminal):
     """
 
     def __init__(self, mode: ChannelMode,
-                 proxy_name: Optional[str] = "Transport.Proxy",
+                 proxy_name: Optional[str] = None,
                  *args, **kwargs):
+        self.proxy_name: str = proxy_name or utils.generate_name(ProxyChannel)
         super().__init__(mode=mode,
-                         channel_name=f"{proxy_name}::channel",
-                         terminal_name=f"{proxy_name}::terminal",
+                         channel_name=f"{self.proxy_name}::channel",
+                         terminal_name=f"{self.proxy_name}::terminal",
                          *args, **kwargs)
         self.downlevel: Optional[Channel] = None
+
+    def get_name(self) -> str:
+        return self.proxy_name
 
     @abc.abstractmethod
     def decode(self, data: Any) -> Optional[Any]:
@@ -42,7 +47,7 @@ class ProxyChannel(Channel, Terminal):
         assert channel
         super().attach_channel(channel)  # For logging
         if self.mode == ChannelMode.ACTIVE:
-            assert channel.mode == ChannelMode.ACTIVE,\
+            assert channel.mode == ChannelMode.ACTIVE, \
                 "Proxy channel is in Active mode, so downlevel channel must" \
                 " be in Active mode too!"
         self.downlevel = channel
@@ -73,14 +78,14 @@ class ProxyChannel(Channel, Terminal):
         """Set new mode for the channel"""
         if self.downlevel:
             if mode == ChannelMode.ACTIVE:
-                assert self.downlevel.mode == ChannelMode.ACTIVE,\
-                    "Can't switch proxy channel to Active mode, while"\
+                assert self.downlevel.mode == ChannelMode.ACTIVE, \
+                    "Can't switch proxy channel to Active mode, while" \
                     " downlevel channel is not in Active mode"
         super().set_mode(mode=mode)
 
     # Override from Channel
     def send(self, message: Any) -> bool:
-        self.channel_logger.debug(f"Sending {message}")
+        self.channel_logger.debug(f"Sending:\n{message}")
         if not self.downlevel:
             self.channel_logger.warning(f"Not attached to channel!")
             return False
@@ -98,7 +103,7 @@ class ProxyChannel(Channel, Terminal):
         if not data:
             return None
         message = self.decode(data=data)
-        self.channel_logger.debug(f"Received message: {message}")
+        self.channel_logger.debug(f"Received message:\n{message}")
         return message
 
     # Override from Channel

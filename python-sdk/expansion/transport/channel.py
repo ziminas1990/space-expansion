@@ -4,6 +4,8 @@ import abc
 import asyncio
 import logging
 
+from expansion import utils
+
 
 class ChannelMode(Enum):
     PASSIVE = 2
@@ -37,18 +39,18 @@ class Channel(abc.ABC):
 
     next_channel_id: int = 0
 
-    def __init__(self, mode: ChannelMode, channel_name="Transport.Channel", *args, **kwargs):
+    def __init__(self, mode: ChannelMode, channel_name=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.channel_id = Channel.next_channel_id
-        Channel.next_channel_id += 1
-        self.channel_name = f"{channel_name}_{Channel.next_channel_id}"
+        self.channel_name = channel_name or utils.generate_name(type(self))
         self.channel_logger = logging.getLogger(self.channel_name)
 
         self.mode: ChannelMode = mode
         self.queue: asyncio.Queue = asyncio.Queue()
         # Queue for all received messages
         self.terminal: Optional['Terminal'] = None
+
+    def get_name(self) -> str:
+        return self.channel_name
 
     def set_mode(self, mode: ChannelMode):
         """Set new mode for the channel"""
@@ -70,7 +72,7 @@ class Channel(abc.ABC):
         return self.mode == ChannelMode.ACTIVE
 
     def on_message(self, message: Any):
-        self.channel_logger.debug(f"Got {message}")
+        self.channel_logger.debug(f"Got:\n{message}")
         if self.is_active_mode():
             if self.terminal:
                 self.terminal.on_receive(message)
