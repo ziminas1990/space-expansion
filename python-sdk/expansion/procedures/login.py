@@ -7,7 +7,7 @@ from expansion.transport.udp_channel import UdpChannel
 from expansion.transport.protobuf_channel import ProtobufChannel
 
 import expansion.protocol.Protocol_pb2 as public
-from expansion.interfaces.public.IAccessPanel import IAccessPanel
+from expansion.interfaces.public.access_panel import IAccessPanel
 from expansion.interfaces.public.commutator import Commutator
 
 logging.basicConfig(level=logging.DEBUG)
