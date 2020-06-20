@@ -1,11 +1,17 @@
-from typing import Any, Optional
+from typing import Any, Optional, NamedTuple
 import logging
 
 from .commutator import Commutator
 from .navigation import INavigation
-from expansion.transport.terminal import Terminal
+from expansion.transport.queued_terminal import Terminal
 from expansion.transport.channel import Channel, ChannelMode
 from expansion.transport.interfaces_mux import InterfacesMux, Interfaces
+from expansion.protocol.utils import get_message_field
+import expansion.protocol.Protocol_pb2 as public
+
+
+class State(NamedTuple):
+    weight: float
 
 
 class Ship(Terminal):
@@ -21,11 +27,14 @@ class Ship(Terminal):
         self.commutator: Commutator = Commutator()
         self.commutator.attach_channel(self.mux.get_interface(Interfaces.COMMUTATOR))
         self.mux.get_interface(Interfaces.COMMUTATOR).attach_to_terminal(self.commutator)
+        self.mux.get_interface(Interfaces.ENCAPSULATED, ).attach_to_terminal(self.commutator)
 
         self.navigation: INavigation = INavigation()
         self.navigation.attach_channel(self.mux.get_interface(Interfaces.NAVIGATION))
         self.mux.get_interface(Interfaces.NAVIGATION).attach_to_terminal(self.navigation)
 
+        self.ship_tunnel = self.mux.get_interface(interface=Interfaces.SHIP,
+                                                  mode=ChannelMode.PASSIVE)
         self.ship_logger = logging.getLogger()
 
     def get_navigation(self) -> INavigation:
@@ -33,6 +42,20 @@ class Ship(Terminal):
 
     def get_commutator(self) -> Commutator:
         return self.commutator
+
+    async def get_state(self) -> Optional[State]:
+        """Return current ship's state"""
+        request = public.Message()
+        request.ship.state_req = True
+        if not self.ship_tunnel.send(message=request):
+            return None
+        response = await self.ship_tunnel.receive(timeout=0.5)
+        if not response:
+            return None
+        spec = get_message_field(response, ["ship", "state"])
+        if not spec:
+            return None
+        return State(weight=spec.weight)
 
     # Overrides Terminal's implementation
     def on_receive(self, message: Any):
