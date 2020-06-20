@@ -46,8 +46,8 @@ class ProxyChannel(Channel, Terminal):
     def attach_channel(self, channel: 'Channel'):
         assert channel
         super().attach_channel(channel)  # For logging
-        if self.mode == ChannelMode.ACTIVE:
-            assert channel.mode == ChannelMode.ACTIVE, \
+        if self._mode == ChannelMode.ACTIVE:
+            assert channel._mode == ChannelMode.ACTIVE, \
                 "Proxy channel is in Active mode, so downlevel channel must" \
                 " be in Active mode too!"
         self.downlevel = channel
@@ -78,7 +78,7 @@ class ProxyChannel(Channel, Terminal):
         """Set new mode for the channel"""
         if self.downlevel:
             if mode == ChannelMode.ACTIVE:
-                assert self.downlevel.mode == ChannelMode.ACTIVE, \
+                assert self.downlevel._mode == ChannelMode.ACTIVE, \
                     "Can't switch proxy channel to Active mode, while" \
                     " downlevel channel is not in Active mode"
         super().set_mode(mode=mode)

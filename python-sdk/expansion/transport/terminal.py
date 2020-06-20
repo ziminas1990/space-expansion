@@ -8,7 +8,6 @@ from expansion import utils
 class Terminal(abc.ABC):
 
     def __init__(self, terminal_name: str = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.terminal_name = terminal_name or utils.generate_name(type(self))
         self.terminal_logger = logging.getLogger(self.terminal_name)
 

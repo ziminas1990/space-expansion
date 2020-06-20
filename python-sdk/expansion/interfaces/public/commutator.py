@@ -5,9 +5,9 @@ import logging
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport.terminal import Terminal
+from expansion.transport.queued_terminal import QueuedTerminal
 from expansion.transport.proxy_channel import ProxyChannel
 from expansion.transport.channel import Channel, ChannelMode
-from .base_module import BaseModule
 
 
 class Tunnel(ProxyChannel):
@@ -65,7 +65,7 @@ class ModuleInfo(NamedTuple):
                           name=info.module_name)
 
 
-class Commutator(BaseModule):
+class Commutator(QueuedTerminal):
     """Commutator is a:
     - BaseModule, because it represent a corresponding commutator module on
       the server;
@@ -78,6 +78,9 @@ class Commutator(BaseModule):
         # to the corresponding tunnels as soon as possible. See 'on_receive'
         # function for more details
         self.tunnels: Dict[int, Tunnel] = {}
+        # All opened tunnels
+        self.modules_cache: Dict[int, ModuleInfo] = {}
+        # Key - slot_id, value - ModuleInfo
         self._logger = logging.getLogger(f"{name}")
 
     # Override from Channel
@@ -87,7 +90,7 @@ class Commutator(BaseModule):
 
     # Override from BaseModule->Terminal
     def attach_channel(self, channel: Channel):
-        if channel.mode != ChannelMode.ACTIVE:
+        if not channel.is_active_mode():
             try:
                 channel.set_mode(ChannelMode.ACTIVE)
             except AssertionError:
@@ -95,17 +98,17 @@ class Commutator(BaseModule):
                               " active downlevel channel"
         super().attach_channel(channel=channel)
 
-    # Override from BaseModule->Terminal
+    # Override from QueuedTerminal->Terminal
     def on_channel_mode_changed(self, mode: 'ChannelMode'):
         # No need in further propagation
         assert mode == ChannelMode.ACTIVE,\
             "Commutator may work properly only with active downlevel channel!"
 
-    # Override from BaseModule->Terminal
+    # Override from QueuedTerminal->Terminal
     async def close(self):
         assert False, "Operation is not supported for commutators"
 
-    # Override from BaseModule->Terminal
+    # Override from QueuedTerminal->Terminal
     def on_receive(self, message: public.Message):
         if message.WhichOneof('choice') == 'encapsulated':
             try:
@@ -135,9 +138,14 @@ class Commutator(BaseModule):
         total_slots = get_message_field(response, ["commutator", "total_slots"])
         return total_slots is not None, total_slots
 
-    async def get_module_info(self, slot_id: int) -> Optional[ModuleInfo]:
+    async def get_module_info(self, slot_id: int,  use_cache: bool = True)\
+            -> Optional[ModuleInfo]:
         """Return information about module, installed into the specified
-        'slot_id'"""
+        'slot_id'. If an internal cache is initialized, than data will be
+        retrieved from it, unless 'use_cache' is False.
+        """
+        if use_cache and slot_id in self.modules_cache:
+            return self.modules_cache[slot_id]
         request = public.Message()
         request.commutator.module_info_req = slot_id
         self.send_message(request)
@@ -147,10 +155,21 @@ class Commutator(BaseModule):
         module_info = get_message_field(response, ["commutator", "module_info"])
         if not module_info:
             return None
-        return ModuleInfo.from_protubuf(module_info)
+        info = ModuleInfo.from_protubuf(module_info)
+        self.modules_cache.update({slot_id: info})
+        return info
 
-    async def get_all_modules(self) -> Optional[List[ModuleInfo]]:
-        """Return all modules, attached to commutator"""
+    async def get_all_modules(self, reset_cache: bool = False)\
+            -> Optional[List[ModuleInfo]]:
+        """Return all modules, attached to commutator. Modules received will
+        be stored to a local cache. If the specified 'reset_cache' flag is
+        true, then the cache will be cleared and a request will be sent to
+        the server anyway"""
+        if reset_cache:
+            self.modules_cache.clear()
+        if self.modules_cache:
+            return list(self.modules_cache.values())
+
         success, total_slots = await self.get_total_slots()
         if not success:
             return None
@@ -158,14 +177,14 @@ class Commutator(BaseModule):
         request.commutator.all_modules_info_req = True
         self.send_message(request)
 
-        all_modules = []
         for i in range(total_slots):
             response = await self.wait_message()
             module_info = get_message_field(response, ["commutator", "module_info"])
             if not module_info:
                 return None
-            all_modules.append(ModuleInfo.from_protubuf(module_info))
-        return all_modules
+            info = ModuleInfo.from_protubuf(module_info)
+            self.modules_cache.update({info.slot_id: info})
+        return list(self.modules_cache.values())
 
     async def open_tunnel(self, port: int, terminal: Terminal) -> Optional[str]:
         """Open tunnel to the specified 'port' and attach the specified

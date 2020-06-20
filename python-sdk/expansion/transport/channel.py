@@ -44,7 +44,7 @@ class Channel(abc.ABC):
         self.channel_name = channel_name or utils.generate_name(type(self))
         self.channel_logger = logging.getLogger(self.channel_name)
 
-        self.mode: ChannelMode = mode
+        self._mode: ChannelMode = mode
         self.queue: asyncio.Queue = asyncio.Queue()
         # Queue for all received messages
         self.terminal: Optional['Terminal'] = None
@@ -54,10 +54,10 @@ class Channel(abc.ABC):
 
     def set_mode(self, mode: ChannelMode):
         """Set new mode for the channel"""
-        if self.mode != mode:
-            self.channel_logger.info(f"Changing mode: {self.mode} -> {mode}")
-        self.mode: ChannelMode = mode
-        if self.mode == ChannelMode.ACTIVE:
+        if self._mode != mode:
+            self.channel_logger.info(f"Changing mode: {self._mode} -> {mode}")
+        self._mode: ChannelMode = mode
+        if self._mode == ChannelMode.ACTIVE:
             # reset queue, cause we are not going to use it in active mode
             self.queue = asyncio.Queue()
 
@@ -66,10 +66,10 @@ class Channel(abc.ABC):
         terminal."""
         self.set_mode(mode)
         if self.terminal:
-            self.terminal.on_channel_mode_changed(self.mode)
+            self.terminal.on_channel_mode_changed(self._mode)
 
     def is_active_mode(self):
-        return self.mode == ChannelMode.ACTIVE
+        return self._mode == ChannelMode.ACTIVE
 
     def on_message(self, message: Any):
         self.channel_logger.debug(f"Got:\n{message}")
