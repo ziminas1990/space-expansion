@@ -3,7 +3,7 @@ from typing import Optional, Any
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport.queued_terminal import QueuedTerminal
-from .types import Position
+from .types import Position, Vector
 
 import expansion.utils as utils
 
@@ -24,4 +24,5 @@ class INavigation(QueuedTerminal):
         position = get_message_field(response, ["navigation", "position"])
         if not position:
             return None
-        return Position(x=position.x, y=position.y, vx=position.vx, vy=position.vy)
+        return Position(x=position.x, y=position.y,
+                        velocity=Vector(x=position.vx, y=position.vy))
