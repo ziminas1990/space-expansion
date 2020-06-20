@@ -49,7 +49,7 @@ class InterfacesMux(Terminal):
     # Override from Terminal
     def attach_channel(self, channel: 'Channel'):
         super().attach_channel(channel=channel)  # for logging
-        channel.set_mode(ChannelMode.ACTIVE)
+        assert channel.is_active_mode()
         self.downlevel = channel
 
     # Override from Terminal
@@ -62,7 +62,8 @@ class InterfacesMux(Terminal):
         super().on_channel_detached()  # for logging
         self.downlevel = None
 
-    def get_interface(self, interface: Interfaces) -> Channel:
+    def get_interface(self, interface: Interfaces,
+                      mode: ChannelMode = ChannelMode.ACTIVE) -> Channel:
         """
         Return a channel for the specified 'interface'. If the channel is not
         been created yet, it will be created.
@@ -73,7 +74,8 @@ class InterfacesMux(Terminal):
             send_fn=lambda message: self.downlevel.send(message=message),
             close_fn=lambda: None,
             receive_fn=None,
-            channel_name=f"{self.name}/{interface.value}"
+            channel_name=f"{self.name}/{interface.value}",
+            mode=mode
         )
         self.interfaces[interface.value] = channel
         return channel

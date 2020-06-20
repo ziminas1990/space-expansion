@@ -90,12 +90,8 @@ class Commutator(QueuedTerminal):
 
     # Override from BaseModule->Terminal
     def attach_channel(self, channel: Channel):
-        if not channel.is_active_mode():
-            try:
-                channel.set_mode(ChannelMode.ACTIVE)
-            except AssertionError:
-                assert False, "Commutator may work properly only with " \
-                              " active downlevel channel"
+        assert channel.is_active_mode(), "Commutator may work properly only with " \
+                                         "active downlevel channel"
         super().attach_channel(channel=channel)
 
     # Override from QueuedTerminal->Terminal
@@ -113,17 +109,18 @@ class Commutator(QueuedTerminal):
         if message.WhichOneof('choice') == 'encapsulated':
             try:
                 tunnel = self.tunnels[message.tunnelId]
-                if tunnel:
-                    tunnel.on_receive(message)
-                else:
-                    self._logger.warning(
-                        f"Ignore message for invalid tunnel"
-                        f" #{message.tunnelId}:\n {message}")
             except KeyError:
                 self._logger.warning(
                     f"Ignore message for invalid tunnel"
                     f" #{message.tunnelId}:\n {message}")
                 return
+
+            if tunnel:
+                tunnel.on_receive(message)
+            else:
+                self._logger.warning(
+                    f"Ignore message for invalid tunnel"
+                    f" #{message.tunnelId}:\n {message}")
         else:
             super().on_receive(message)
 
@@ -186,7 +183,8 @@ class Commutator(QueuedTerminal):
             self.modules_cache.update({info.slot_id: info})
         return list(self.modules_cache.values())
 
-    async def open_tunnel(self, port: int, terminal: Terminal) -> Optional[str]:
+    async def open_tunnel(self, port: int, terminal: Terminal,
+                          mode: ChannelMode = ChannelMode.ACTIVE) -> Optional[str]:
         """Open tunnel to the specified 'port' and attach the specified
         'terminal' to it. Return None on success, or error string on fail."""
         request = public.Message()
@@ -206,7 +204,7 @@ class Commutator(QueuedTerminal):
 
         tunnel: Tunnel = Tunnel(tunnel_id=tunnel_id,
                                 client=terminal,
-                                mode=ChannelMode.PASSIVE,
+                                mode=mode,
                                 commutator=self)
         terminal.attach_channel(tunnel)
         # A channel is attached to the commutator, but tunnels are attached

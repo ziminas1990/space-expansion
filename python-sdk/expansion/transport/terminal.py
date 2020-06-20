@@ -6,6 +6,9 @@ from expansion import utils
 
 
 class Terminal(abc.ABC):
+    """Terminal is an entity that handles incoming messages.
+    Terminal should be attached to channel so that it can send messages over
+    channel."""
 
     def __init__(self, terminal_name: str = None, *args, **kwargs):
         self.terminal_name = terminal_name or utils.generate_name(type(self))
