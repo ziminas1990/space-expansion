@@ -59,9 +59,9 @@ class Engine(QueuedTerminal):
         Return true if a request has been sent
         """
         request = public.Message()
-        thrust_req = request.engine.thrust_req
+        thrust_req = request.engine.change_thrust
         thrust_req.x = thrust.x
         thrust_req.y = thrust.y
-        thrust_req.thrust = thrust.abs()
+        thrust_req.thrust = int(thrust.abs())
         thrust_req.duration_ms = duration_ms
         return self.channel.send(message=request)

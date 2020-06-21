@@ -1,10 +1,12 @@
-from typing import NamedTuple
+from typing import NamedTuple, Union
 import math
 
 
-class Vector(NamedTuple):
-    x: float
-    y: float
+class Vector():
+
+    def __init__(self, x: float, y: float):
+        self.x: float = x
+        self.y: float = y
 
     def abs(self) -> float:
         return math.sqrt(self.x ** 2 + self.y ** 2)
@@ -24,11 +26,22 @@ class Vector(NamedTuple):
     def __mul__(self, mult: float) -> 'Vector':
         return Vector(x=self.x * mult, y=self.y * mult)
 
+    def scalar_mult(self, mult: 'Vector') -> float:
+        return self.x * mult.x + self.y * mult.y
+
     def set_length(self, length: float) -> 'Vector':
         k = length / self.abs()
         self.x *= k
         self.y *= k
         return self
+
+    def mult_self(self, k: float) -> 'Vector':
+        self.x *= k
+        self.y *= k
+        return self
+
+    def __repr__(self):
+        return f"{{{self.x}, {self.y}}}"
 
 
 class Position(NamedTuple):
