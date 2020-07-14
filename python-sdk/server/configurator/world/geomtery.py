@@ -2,7 +2,9 @@ from typing import Optional
 
 
 class Vector:
-    def __init__(self, x: Optional[float] = None, y: Optional[float] = None):
+    def __init__(self,
+                 x: Optional[float] = None,
+                 y: Optional[float] = None):
         self.x: Optional[float] = x
         self.y: Optional[float] = y
 
@@ -19,10 +21,13 @@ class Vector:
 
 
 class Position:
-    def __init__(self):
-        self.x: Optional[float] = None
-        self.y: Optional[float] = None
-        self.velocity: Vector = Vector(x=0, y=0)
+    def __init__(self,
+                 x: Optional[float] = None,
+                 y: Optional[float] = None,
+                 velocity: Vector = Vector(x=0, y=0)):
+        self.x: Optional[float] = x
+        self.y: Optional[float] = y
+        self.velocity: Vector = velocity
 
     def set_position(self, x: float, y: float, velocity: Vector) -> 'Position':
         self.x = x
