@@ -14,22 +14,22 @@ sudo pip3 install conan
 Note: you can install conan without sudo, but in this case you'll have to manually add conan to the your PATH environment.
 
 ## Prepharing conan
-This step may be skipped, but it is highly recommended to go do it attentively.
+This step may be skipped, but it is highly recommended to do it attentively.
 
-Conan profile specifies, which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
+Conan profile specifies which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
 
 If you have already run conan, you may want to remove the conan cache first. It can be done with the following command:
 ```
 rm -rf $HOME/.conan
 ```
-Now, let's create default profile:
+Now, let's create a default profile:
 ```
 conan profile new default --detect
 
 Found gcc 9
 gcc>=5, using the major as version
 ```
-In this case, conan detected only gcco 16 compiler. If you have installed other compilers, conan may find them too. Also conan may print a warning:
+In this case, conan detected only gcc 9 compiler. If you have installed other compilers, conan may find them too. Also conan may print a warning:
 ```bash
 ************************* WARNING: GCC OLD ABI COMPATIBILITY ***********************
 ```
@@ -38,12 +38,12 @@ It is highly recommended to fix it with the following command:
 conan profile update settings.compiler.libcxx=libstdc++11 default
 ```
 
-Now let's take a look at profile:
+Now let's take a look at the profile:
 ```
 cat $HOME/.conan/profiles/default
 ```
 
-You may see the following file:
+You may see the following lines:
 ```
 [settings]
 os=Linux
@@ -58,9 +58,9 @@ build_type=Release
 [build_requires]
 [env]
 ```
-This means, thatthe gcc9 compiler will be used to build dependencies in Release 64-bit mode.
+This means, that a gcc9 compiler will be used to build dependencies in Release 64-bit mode.
 
-**In general**, if you have some error and suspect that it is because something wrong with conan, you can clear conan cache, check conan profiile and rebuild all dependencies again
+**In general**, if you have some error and suspect that it is because something wrong with conan, you can clear conan cache, check conan profile and rebuild all dependencies again
 
 ## Building server
 Let's assume, that you have two environment variables:
@@ -85,18 +85,18 @@ cd $SPEX_BUILD_DIR
 Now, to build release build run the following commands:
 ```bash
 # Building dependencies
-conan install $SPEX_SOURCE_DIR/conanfile.txt --build=missing -s build_type=Release
+conan install $SPEX_SOURCE_DIR/server/conanfile.txt --build=missing -s build_type=Release
 # Building server
-cmake $SPEX_SOURCE_DIR
+cmake $SPEX_SOURCE_DIR/server
 cmake --build . -- -j6
 ```
 
 If you want to build development build with autotests, run the following commands:
 ```bash
 # Building dependencies
-conan install $SPEX_SOURCE_DIR/conanfile.txt --build=missing -s build_type=Debug
+conan install $SPEX_SOURCE_DIR/server/conanfile.txt --build=missing -s build_type=Debug
 # Building server
-cmake $SPEX_SOURCE_DIR -Dautotests-mode=ON -Dbuild-debug=ON
+cmake $SPEX_SOURCE_DIR/server -Dautotests-mode=ON -Dbuild-debug=ON
 cmake --build . -- -j6
 ```
 

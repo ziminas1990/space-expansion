@@ -50,7 +50,7 @@ Conan version 1.23.0
 ```
 
 ## Prepharing conan (optional)
-This step can be skipped, but it can be usefull if you got some error and trying to figure out what was wrong.
+This step can be skipped, but it can be usefull if you encountered some error and trying to figure out what was wrong.
 Conan profile specifies, which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
 
 If you have already run conan, you may want to remove the conan cache first. It can be done with the following command:
@@ -69,7 +69,7 @@ In this case, conan detect only Visual Studio 16 compiler. If you have installed
 notepad.exe $HOME/.conan/profiles/default
 ```
 
-You may see the following file:
+You may see the following lines:
 ```
 [settings]
 os=Windows
@@ -113,13 +113,13 @@ cd $SPEX_BUILD_DIR
 
 Run conan to build all required dependencies:
 ```powershell
-conan install $SPEX_SOURCE_DIR/conanfile.txt --build=missing
+conan install $SPEX_SOURCE_DIR/server/conanfile.txt --build=missing
 ```
 **Hint:** after you have run conan, you may want to check if it used proper compiler and build configuration. Please, refer to "Conan profile" for details.
 
 Start building with cmake:
 ```
-cmake $SPEX_SOURCE_DIR
+cmake $SPEX_SOURCE_DIR/server
 cmake --build . --config Release
 ```
 
