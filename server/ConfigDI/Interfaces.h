@@ -34,6 +34,7 @@ public:
   virtual uint16_t                 getLoginUdpPort()     const = 0;
   virtual IPortsPoolCfg const&     getPortsPoolcfg()     const = 0;
   virtual IAdministratorCfg const& getAdministratorCfg() const = 0;
+  virtual bool                     isClockFreezed()      const = 0;
 };
 
 } // namespace config

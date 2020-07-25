@@ -5,7 +5,7 @@ from enum import Enum
 class ApplicationMode(Enum):
     e_RUN = "run"
     # In the run state an in-game time is running fluently
-    e_FREEZE = 'freezed',
+    e_FREEZE = 'freezed'
     # In the 'freezed' state an in-game time is controlled via a privileged
     # interface
 
@@ -68,7 +68,7 @@ class General:
         exception if something is wrong"""
         assert self.total_threads and self.total_threads > 0
         assert self.login_udp_port and 0 < self.login_udp_port < 65535
-        assert  self.initial_state
+        assert self.initial_state
         assert self.ports_pool and 0 < self.ports_pool[0] < self.ports_pool[1] < 65535
         assert self.login_udp_port < self.ports_pool[0] or \
                self.login_udp_port > self.ports_pool[1]

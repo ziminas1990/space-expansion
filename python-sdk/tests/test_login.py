@@ -1,4 +1,4 @@
-from .test_fixture import BaseTestFixture
+from .base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 import server.configurator.modules.default_ships as default_ships
@@ -36,10 +36,11 @@ class TestLogin(BaseTestFixture):
             }
         )
 
-    @BaseTestFixture.async_test
+    def get_configuration(self) -> Configuration:
+        return self.configuration
+
+    @BaseTestFixture.run_as_sync
     async def test_login(self):
-        self.run_server(self.configuration)
         commutator, error = await self.login('spy007')
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
-        pass

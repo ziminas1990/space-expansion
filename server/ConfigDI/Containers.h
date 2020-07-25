@@ -76,11 +76,13 @@ public:
   ApplicationCfg& setLoginUdpPort(uint16_t nLoginUdpPort);
   ApplicationCfg& setPortsPool(IPortsPoolCfg const& cfg);
   ApplicationCfg& setAdministratorCfg(IAdministratorCfg const& cfg);
+  ApplicationCfg& setClockInitialState(bool lFreezed);
 
   // IApplicationCfg interface
   uint16_t             getTotalThreads() const override { return m_nTotalThreads; }
   uint16_t             getLoginUdpPort() const override { return m_nLoginUdpPort; }
   IPortsPoolCfg const& getPortsPoolcfg() const override { return m_portsPool; }
+  bool                 isClockFreezed()  const override { return m_lIsClockFreezed; }
   AdministratorCfg const& getAdministratorCfg() const override {
     return m_administratorCfg;
   }
@@ -89,6 +91,7 @@ private:
   uint16_t         m_nTotalThreads;
   uint16_t         m_nLoginUdpPort;
   PortsPoolCfg     m_portsPool;
+  bool             m_lIsClockFreezed;
   AdministratorCfg m_administratorCfg;
 };
 

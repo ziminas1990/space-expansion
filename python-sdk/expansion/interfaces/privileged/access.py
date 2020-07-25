@@ -13,7 +13,7 @@ class Access:
     def attach_to_channel(self, channel: Channel):
         self._channel = channel
 
-    async def login(self, login: str, password: str) -> (bool, int):
+    async def login(self, login: str, password: str) -> (bool, Optional[int]):
         """Try to open privileged session as user with the
         specified 'login' and 'password'. Return tuple (status, token)"""
         message = privileged.Message()
