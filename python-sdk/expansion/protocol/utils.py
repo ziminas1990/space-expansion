@@ -1,6 +1,7 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
-def get_message_field(message: Any, path: List[str]) -> Any:
+
+def get_message_field(message: Any, path: List[str]) -> Optional[Any]:
     """Check the the specified protobuf 'message' has a field
      with the specified 'path'. Example:
 

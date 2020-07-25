@@ -80,4 +80,10 @@ ApplicationCfg &ApplicationCfg::setAdministratorCfg(IAdministratorCfg const& cfg
   return *this;
 }
 
+ApplicationCfg &ApplicationCfg::setClockInitialState(bool lFreezed)
+{
+  m_lIsClockFreezed = lFreezed;
+  return *this;
+}
+
 } // namespace config

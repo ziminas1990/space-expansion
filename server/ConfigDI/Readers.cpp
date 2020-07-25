@@ -39,20 +39,25 @@ AdministratorCfg AdministratorCfgReader::read(YAML::Node const& data)
 
 ApplicationCfg ApplicationCfgReader::read(YAML::Node const& data)
 {
-  uint16_t nTotalThreads = 0;
-  uint16_t nLoginUdpPort = 0;
+  uint16_t    nTotalThreads = 0;
+  uint16_t    nLoginUdpPort = 0;
+  std::string sInitialState;
   if (!utils::YamlReader(data)
       .read("total-threads", nTotalThreads)
       .read("login-udp-port", nLoginUdpPort)
+      .read("initial-state", sInitialState)
       .isOk()) {
     return ApplicationCfg();
   }
+
+  bool isClockFreezed = sInitialState == "freezed";
 
   return ApplicationCfg()
       .setLoginUdpPort(nLoginUdpPort)
       .setTotalThreads(nTotalThreads)
       .setAdministratorCfg(
         AdministratorCfgReader::read(data["administrator"]))
+      .setClockInitialState(isClockFreezed)
       .setPortsPool(
         PortsPoolCfgReader::read(data["ports-pool"]));
 }
