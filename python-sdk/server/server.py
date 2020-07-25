@@ -1,7 +1,7 @@
 from typing import Optional
 import subprocess
 import tempfile
-import sys
+import time
 import yaml
 
 from server.configurator.configuration import Configuration
@@ -22,8 +22,12 @@ class Server:
         self.config_file.flush()
 
         self.server_process = subprocess.Popen(
-                ["space-expansion-server", self.config_file.name],
-                stdout=sys.stdout)
+                ["space-expansion-server", self.config_file.name])
+        time.sleep(0.1)
+
+    def is_running(self) -> bool:
+        return self.server_process is not None
 
     def stop(self):
-        self.server_process.kill()
+        if self.server_process:
+            self.server_process.kill()

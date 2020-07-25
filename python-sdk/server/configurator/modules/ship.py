@@ -6,11 +6,14 @@ from server.configurator.modules.base_module import BaseModule
 
 class ShipBlueprint(BaseBlueprint):
 
-    def __init__(self, name: str):
+    def __init__(self, name: str,
+                 radius: Optional[float] = None,
+                 weight: Optional[float] = None,
+                 modules: Dict[str, BlueprintId] = {}):
         super().__init__(blueprint_id=BlueprintId(ModuleType.e_SHIP, name))
-        self.radius: Optional[float] = None
-        self.weight: Optional[float] = None
-        self.modules: Dict[str, BlueprintId] = {}
+        self.radius: Optional[float] = radius
+        self.weight: Optional[float] = weight
+        self.modules: Dict[str, BlueprintId] = modules
         # The 'self.modules' stores all modules, that should be installed on the
         # ship. A key is module name (unique for the ship), a value is a module
         # blueprint's id
@@ -41,10 +44,15 @@ class ShipBlueprint(BaseBlueprint):
 
 
 class Ship:
-    def __init__(self, ship_type: str):
+    def __init__(self,
+                 name: str,
+                 ship_type: str,
+                 position: Optional[Position] = None,
+                 modules: Dict[str, BaseModule] = {}):
+        self.ship_name: str = name
         self.ship_type: str = ship_type
-        self.position: Optional[Position] = None
-        self.modules: Dict[str, BaseModule] = {}
+        self.position: Optional[Position] = position
+        self.modules: Dict[str, BaseModule] = modules
 
     def set_position(self, position: Position) -> 'Ship':
         self.position = position
@@ -57,6 +65,7 @@ class Ship:
 
     def verify(self):
         assert self.position
+        assert self.ship_name and len(self.ship_name) > 0
         assert self.ship_type and len(self.ship_type) > 0
         self.position.verify()
 

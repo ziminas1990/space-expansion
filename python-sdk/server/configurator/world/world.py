@@ -4,8 +4,8 @@ from .asteroids import Asteroids
 
 
 class World:
-    def __init__(self):
-        self.asteroids: Optional[Asteroids] = None
+    def __init__(self, asteroids: Optional[Asteroids] = None):
+        self.asteroids: Optional[Asteroids] = asteroids
 
     def set_steroids(self, asteroids: Asteroids) -> 'World':
         self.asteroids = asteroids

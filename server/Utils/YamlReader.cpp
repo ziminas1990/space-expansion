@@ -15,11 +15,15 @@ namespace utils
 template<typename T>
 inline bool readSomeValue(YAML::Node const& node, char const* pName, T& value)
 {
-  YAML::Node const& container = node[pName];
-  if (!container.IsDefined())
+  try {
+    YAML::Node const& container = node[pName];
+    if (!container.IsDefined())
+      return false;
+    value = container.as<T>();
+    return true;
+  } catch (YAML::InvalidNode exc) {
     return false;
-  value = container.as<T>();
-  return true;
+  }
 }
 
 //========================================================================================

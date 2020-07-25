@@ -43,8 +43,8 @@ class Asteroid:
 
 
 class Asteroids:
-    def __init__(self):
-        self.asteroids: List[Asteroid] = []
+    def __init__(self, asteroids: List[Asteroid] = []):
+        self.asteroids: List[Asteroid] = asteroids
 
     def add_asteroid(self, asteroid: Asteroid) -> 'Asteroids':
         self.asteroids.append(asteroid)

@@ -8,11 +8,15 @@ from server.configurator.world.world import World
 
 
 class Configuration:
-    def __init__(self):
-        self.general: Optional[General] = None
-        self.blueprints: Optional[BlueprintsDB] = None
-        self.world: Optional[World] = None
-        self.players: Dict[str, Player] = {}
+    def __init__(self,
+                 general: Optional[General] = None,
+                 blueprints: Optional[BlueprintsDB] = None,
+                 world: Optional[World] = None,
+                 players: Dict[str, Player] = {}):
+        self.general: Optional[General] = general
+        self.blueprints: Optional[BlueprintsDB] = blueprints
+        self.world: Optional[World] = world
+        self.players: Dict[str, Player] = players
 
     def set_general(self, general: General) -> 'Configuration':
         self.general = general
