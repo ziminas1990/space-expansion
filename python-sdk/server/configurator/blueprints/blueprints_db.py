@@ -25,8 +25,8 @@ class BlueprintsDict:
 
 
 class BlueprintsDB:
-    def __init__(self):
-        self.blueprints: Dict[BlueprintId, BaseBlueprint] = {}
+    def __init__(self, blueprints: Dict[BlueprintId, BaseBlueprint] = {}):
+        self.blueprints: Dict[BlueprintId, BaseBlueprint] = blueprints
 
     def add_blueprint(self, blueprint: BaseBlueprint):
         self.blueprints.update({blueprint.id: blueprint})

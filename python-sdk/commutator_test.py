@@ -11,6 +11,7 @@ from expansion.interfaces.public.ship import Ship
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 async def main():
     # Creating channels
     commutator: Optional[Commutator] = None

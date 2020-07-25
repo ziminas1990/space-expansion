@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 async def login(server_ip: str, login_port: int,
                 login: str, password: str,
-                local_ip: str, local_port: int) -> (Optional[Commutator], str):
+                local_ip: str, local_port: int) -> (Optional[Commutator], Optional[str]):
     """Login on server and return root commutator.
     On success return (Commutator, None) pair. Otherwise return (None, error).
     This procedure will send login request to the specified 'server_ip' and

@@ -1,13 +1,17 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from server.configurator.modules.ship import Ship
 
 
 class Player:
-    def __init__(self):
-        self.login: Optional[str] = None
-        self.password: Optional[str] = None
-        self.ships: Dict[str, Ship] = {}
+    def __init__(self,
+                 login: Optional[str] = None,
+                 password: Optional[str] = None,
+                 ships: List[Ship] = []):
+        self.login: Optional[str] = login
+        self.password: Optional[str] = password
+        self.ships: Dict[str, Ship] = {
+            f"{ship.ship_type}/{ship.ship_name}": ship for ship in ships}
 
     def set_credentials(self, login: str, password: str) -> 'Player':
         self.login = login

@@ -21,12 +21,17 @@ class General:
     Value-semantic class for the 'application' section
     """
 
-    def __init__(self):
-        self.total_threads: Optional[int] = None
-        self.login_udp_port: Optional[int] = None
-        self.initial_state: Optional[ApplicationMode] = None
-        self.ports_pool: Optional[Tuple[int, int]] = None
-        self.administrator_cfg: Optional[AdministratorCfg] = None
+    def __init__(self,
+                 total_threads: Optional[int] = None,
+                 login_udp_port: Optional[int] = None,
+                 initial_state: Optional[ApplicationMode] = None,
+                 ports_pool: Optional[Tuple[int, int]] = None,
+                 administrator_cfg: Optional[AdministratorCfg] = None):
+        self.total_threads: Optional[int] = total_threads
+        self.login_udp_port: Optional[int] = login_udp_port
+        self.initial_state: Optional[ApplicationMode] = initial_state
+        self.ports_pool: Optional[Tuple[int, int]] = ports_pool
+        self.administrator_cfg: Optional[AdministratorCfg] = administrator_cfg
 
     def set_total_threads(self, total_thread: int) -> 'General':
         """Set total number of threads, that should be used. This value should be

@@ -5,9 +5,9 @@ from server.configurator.world.geomtery import Vector
 
 
 class EngineBlueprint(BaseBlueprint):
-    def __init__(self, name: str):
+    def __init__(self, name: str, max_thrust: Optional[int] = None):
         super().__init__(blueprint_id=BlueprintId(ModuleType.e_ENGINE, name))
-        self.max_thrust: Optional[int] = None
+        self.max_thrust: Optional[int] = max_thrust
 
     def set_max_thrust(self, max_thrust: int) -> 'EngineBlueprint':
         self.max_thrust = max_thrust
@@ -28,9 +28,9 @@ class EngineBlueprint(BaseBlueprint):
 
 
 class Engine(BaseModule):
-    def __init__(self):
+    def __init__(self, thrust: Vector = Vector(x=0, y=0)):
         super(Engine, self).__init__()
-        self.thrust: Vector = Vector(x=0, y=0)
+        self.thrust: Vector = thrust
 
     def set_thrust(self, thrust: Vector) -> 'Engine':
         self.thrust = thrust
