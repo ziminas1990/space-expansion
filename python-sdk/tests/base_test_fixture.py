@@ -109,6 +109,39 @@ class BaseTestFixture(unittest.TestCase):
             ticks += 1  # excessively is better than insufficiently
         return await self.administrator.get_clock().proceed_ticks(ticks, timeout_sec)
 
+    async def fast_forward(self,
+                           proceed_milliseconds: int,
+                           timeout_sec: float,
+                           tick_duration_usec: int = 1000):
+        """Same as 'proceed_time', but assumes that system clock is in
+        REAL_TIME mode"""
+        # Switching system clock to the debug mode, proceeding time and
+        # switching clock back to the real-time mode
+        success, time = await self.freeze()
+        self.assertTrue(success)
+
+        success, new_time = await self.proceed_time(proceed_milliseconds,
+                                                    timeout_sec,
+                                                    tick_duration_usec)
+        self.assertTrue(success)
+        # +- tick error is ok
+        self.assertAlmostEqual(time + proceed_milliseconds * 1000, new_time,
+                               delta=tick_duration_usec)
+
+        success, _ = await self.continue_in_real_time()
+        self.assertTrue(success)
+
+    async def sleep_in_game(self, time_sec: float):
+        """Same as 'fast_forward', but requires only a single parameter.
+        May be passed as a 'sleep' callback"""
+        time_milliseconds = int(time_sec * 1000)
+        # Assume that fast-forward should be at least 25 times faster
+        timeout_sec: float = time_sec / 25
+        if timeout_sec < 1:
+            timeout_sec = 1
+        await self.fast_forward(proceed_milliseconds=time_milliseconds,
+                                timeout_sec=timeout_sec)
+
     @staticmethod
     def run_as_sync(test_func):
         """This decorator turns coroutine in a regular method, that can be called
