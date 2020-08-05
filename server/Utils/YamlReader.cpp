@@ -21,7 +21,7 @@ inline bool readSomeValue(YAML::Node const& node, char const* pName, T& value)
       return false;
     value = container.as<T>();
     return true;
-  } catch (YAML::InvalidNode exc) {
+  } catch (YAML::InvalidNode const&) {
     return false;
   }
 }

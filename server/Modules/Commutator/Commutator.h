@@ -44,11 +44,14 @@ public:
   // Channels, that were opened to commutator's modules will NOT be used to send message.
   void broadcast(spex::Message const& message);
 
+  // overrides from BaseModule->ITerminal
+  void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
+
   // overrides from network::IPrutubufTerminal
   bool openSession(uint32_t nSessionId) override;
   void onSessionClosed(uint32_t nSessionId) override;
 
-  // overrides from network::IProtobufChannel
+  // overrides from network::IPlayerChannel
   bool send(uint32_t nSessionId, spex::Message const& message) const override;
   void closeSession(uint32_t nSessionId) override;
   bool isValid() const override { return channelIsValid(); }
