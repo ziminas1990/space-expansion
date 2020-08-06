@@ -44,6 +44,9 @@ public:
   // Channels, that were opened to commutator's modules will NOT be used to send message.
   void broadcast(spex::Message const& message);
 
+  // overrides from BaseModule
+  void proceed(uint32_t nIntervalUs) override;
+
   // overrides from BaseModule->ITerminal
   void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
 
@@ -94,6 +97,15 @@ private:
   // all sessions
   std::set<uint32_t>    m_OpenedSessions;
 
+  // Messages, that a waiting for exact time to be transferred next
+  struct StoredMessage {
+    StoredMessage(uint32_t nSessionId, spex::Message const& message)
+      : m_nSessionId(nSessionId), m_message(message)
+    {}
+    uint32_t      m_nSessionId;
+    spex::Message m_message;
+  };
+  std::vector<StoredMessage> m_delayedMessages;
 };
 
 using CommutatorPtr     = std::shared_ptr<Commutator>;

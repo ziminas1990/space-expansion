@@ -391,21 +391,22 @@ message IGame {
 
 message Message {
   uint32 tunnelId = 1;
+  uint64 timestamp = 2;
 
   oneof choice {
     // All possible interfaces are listed here
-    Message            encapsulated       = 2;
-    IAccessPanel       accessPanel        = 3;
-    ICommutator        commutator         = 4;
-    IShip              ship               = 5;
-    INavigation        navigation         = 6;
-    IEngine            engine             = 7;
-    ICelestialScanner  celestial_scanner  = 8;
-    IAsteroidScanner   asteroid_scanner   = 9;
-    IResourceContainer resource_container = 10;
-    IAsteroidMiner     asteroid_miner     = 11;
-    IBlueprintsLibrary blueprints_library = 12;
-    IShipyard          shipyard           = 13;
-    IGame              game               = 14;
+    Message            encapsulated       = 12;
+    IAccessPanel       accessPanel        = 13;
+    ICommutator        commutator         = 14;
+    IShip              ship               = 15;
+    INavigation        navigation         = 16;
+    IEngine            engine             = 17;
+    ICelestialScanner  celestial_scanner  = 18;
+    IAsteroidScanner   asteroid_scanner   = 19;
+    IResourceContainer resource_container = 20;
+    IAsteroidMiner     asteroid_miner     = 21;
+    IBlueprintsLibrary blueprints_library = 22;
+    IShipyard          shipyard           = 23;
+    IGame              game               = 24;
   }
 }

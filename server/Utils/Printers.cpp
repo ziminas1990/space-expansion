@@ -29,6 +29,12 @@ std::string toTime(uint64_t nIntervalUs)
     ss << nMinutes << "m ";
   }
   ss << nSeconds << ".";
+  if (nIntervalMs < 100) {
+    ss << '0';
+    if (nIntervalMs < 10) {
+      ss << '0';
+    }
+  }
   ss << nIntervalMs << "s";
   return ss.str();
 }

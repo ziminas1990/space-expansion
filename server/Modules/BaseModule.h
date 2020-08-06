@@ -106,10 +106,16 @@ protected:
   bool sendToClient(uint32_t nSessionId, spex::IEngine const& message) const;
 
   void switchToIdleState() {
-    m_eState = (m_eState == State::eActive) ? State::eDeactivating : State::eIdle;
+    if (m_eState == State::eIdle)
+      return;
+    assert(m_eState == State::eActive || m_eState == State::eDeactivating);
+    m_eState = State::eDeactivating;
   }
   void switchToActiveState() {
-    m_eState = (m_eState == State::eIdle) ? State::eActivating : State::eActive;
+    if (m_eState == State::eActive)
+      return;
+    assert(m_eState == State::eIdle || m_eState == State::eActivating);
+    m_eState = State::eActivating;
   }
 
 private:

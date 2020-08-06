@@ -13,6 +13,7 @@ namespace modules
 
 #ifndef AUTOTESTS_MODE
 enum class Cooldown {
+  eCommutator        = 1100,
   eDefault           = 10100,
   eShip              = 10200,
   eEngine            = 50300,
@@ -27,6 +28,7 @@ enum class Cooldown {
 // In autotests mode we can't afford to let logics to sleep for unpredictable period
 // of time
 enum class Cooldown {
+  eCommutator        = 0,
   eDefault           = 0,
   eShip              = 0,
   eEngine            = 0,

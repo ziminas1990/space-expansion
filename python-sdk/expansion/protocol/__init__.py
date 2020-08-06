@@ -5,3 +5,5 @@ from .Privileged_pb2 import (
 from .Protocol_pb2 import (
     Message
 )
+
+from .utils import get_message_field

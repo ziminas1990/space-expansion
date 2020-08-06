@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <Protocol.pb.h>
 
+#include <SystemManager.h>
+
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
 
 namespace modules
@@ -98,9 +100,31 @@ void Commutator::broadcast(spex::Message const& message)
   }
 }
 
+void Commutator::proceed(uint32_t)
+{
+  uint64_t nNow = SystemManager::getIngameTime();
+  for(size_t i = 0; i < m_delayedMessages.size(); ++i) {
+    StoredMessage& message = m_delayedMessages[i];
+    if(message.m_message.timestamp() < nNow) {
+      onMessageReceived(message.m_nSessionId, message.m_message);
+      // Removing this message from array (swap with last element and pop last element):
+      if (i + 1 < m_delayedMessages.size()) {
+        std::swap(m_delayedMessages[i], m_delayedMessages.back());
+      }
+      m_delayedMessages.pop_back();
+    }
+  }
+  if (m_delayedMessages.empty()) {
+    switchToIdleState();
+  }
+}
+
 void Commutator::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
 {
-  if (message.choice_case() == spex::Message::kEncapsulated) {
+  if (message.timestamp() && message.timestamp() > SystemManager::getIngameTime()) {
+    m_delayedMessages.emplace_back(nSessionId, message);
+    switchToActiveState();
+  } else if (message.choice_case() == spex::Message::kEncapsulated) {
     // This exception is done to prevent loosing time for tunneling
     commutateMessage(message.tunnelid(), message.encapsulated());
   } else {
@@ -139,7 +163,14 @@ bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
   assert(nTunnelId > 0);
   spex::Message tunnelPDU;
   tunnelPDU.set_tunnelid(nTunnelId);
-  *tunnelPDU.mutable_encapsulated() = message;
+
+  spex::Message* encapsulated = tunnelPDU.mutable_encapsulated();
+  *encapsulated = message;
+  if (encapsulated->choice_case() != spex::Message::kEncapsulated) {
+    // If we are the top-level commutator for this message, then we should add
+    // timestamp to it
+    encapsulated->set_timestamp(SystemManager::getIngameTime());
+  }
   return nTunnelId < m_Tunnels.size()
       && sendToClient(m_Tunnels[nTunnelId].m_nFather, tunnelPDU);
 }
