@@ -21,7 +21,7 @@ class INavigation(QueuedTerminal):
         response = await self.wait_message(timeout=0.5)
         if not response:
             return None
-        position = get_message_field(response, ["navigation", "position"])
+        position = get_message_field(response, "navigation.position")
         if not position:
             return None
         return Position(x=position.x, y=position.y,

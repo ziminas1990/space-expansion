@@ -132,7 +132,7 @@ class Commutator(QueuedTerminal):
         response = await self.wait_message()
         if not response:
             return False, 0
-        total_slots = get_message_field(response, ["commutator", "total_slots"])
+        total_slots = get_message_field(response, "commutator.total_slots")
         return total_slots is not None, total_slots
 
     async def get_module_info(self, slot_id: int,  use_cache: bool = True)\
@@ -149,7 +149,7 @@ class Commutator(QueuedTerminal):
         response = await self.wait_message()
         if not response:
             return None
-        module_info = get_message_field(response, ["commutator", "module_info"])
+        module_info = get_message_field(response, "commutator.module_info")
         if not module_info:
             return None
         info = ModuleInfo.from_protubuf(module_info)
@@ -176,7 +176,7 @@ class Commutator(QueuedTerminal):
 
         for i in range(total_slots):
             response = await self.wait_message()
-            module_info = get_message_field(response, ["commutator", "module_info"])
+            module_info = get_message_field(response, "commutator.module_info")
             if not module_info:
                 return None
             info = ModuleInfo.from_protubuf(module_info)
@@ -194,9 +194,9 @@ class Commutator(QueuedTerminal):
         response = await self.wait_message()
         if not response:
             return None
-        tunnel_id = get_message_field(response, ["commutator", "open_tunnel_report"])
+        tunnel_id = get_message_field(response, "commutator.open_tunnel_report")
         if tunnel_id is None:
-            error = get_message_field(response, ["commutator", "open_tunnel_failed"])
+            error = get_message_field(response, "commutator.open_tunnel_failed")
             if not error:
                 error = "unexpected message received"
             self._logger.warning(f"Failed to open tunnel to port #{port}: {error}")

@@ -28,9 +28,9 @@ class IAccessPanel:
         self._channel.send(message)
 
         response = await self._channel.receive()
-        port: Optional[int] = get_message_field(response, ['accessPanel', 'access_granted'])
+        port: Optional[int] = get_message_field(response, 'accessPanel.access_granted')
         if port:
             return port, None
 
-        error: Optional[str] = get_message_field(response, ['accessPanel', 'access_rejected'])
+        error: Optional[str] = get_message_field(response, 'accessPanel.access_rejected')
         return 0, error if error is not None else "Unexpected response"
