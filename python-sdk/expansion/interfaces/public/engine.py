@@ -31,7 +31,7 @@ class Engine(QueuedTerminal):
         response = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        spec = get_message_field(response, ["engine", "specification"])
+        spec = get_message_field(response, "engine.specification")
         if not spec:
             return None
         self.specification = Specification(max_thrust=spec.max_thrust)
@@ -46,7 +46,7 @@ class Engine(QueuedTerminal):
         response = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        thrust = get_message_field(response, ["engine", "thrust"])
+        thrust = get_message_field(response, "engine.thrust")
         if not thrust:
             return None
         return Vector(x=thrust.x, y=thrust.y).set_length(thrust.thrust)

@@ -23,5 +23,5 @@ class Access:
         self._channel.send(message)
 
         response = await self._channel.receive()
-        token: Optional[int] = get_message_field(response, ['access', 'success'])
+        token: Optional[int] = get_message_field(response, 'access.success')
         return token is not None, token

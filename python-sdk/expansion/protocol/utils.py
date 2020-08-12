@@ -1,24 +1,24 @@
 from typing import Any, List, Optional
 
 
-def get_message_field(message: Any, path: List[str]) -> Optional[Any]:
-    """Check the the specified protobuf 'message' has a field
-     with the specified 'path'. Example:
+def get_message_field(message: Any, path: str) -> Optional[Any]:
+    """Read a field with the specified 'path' in the specified 'message'
 
-     login_response = extract_message(response, ["access", "login"])
+     login_response = extract_message(response, "access.login")
 
-     In this case function will check, that 'respnse' has 'access' field,
+     In this case function will check, that 'response' has 'access' field,
      and 'access' field has 'login' field. If all is Ture, it will return
      'login' field. Otherwise, 'None' will be returned.
 
-     This function assumes, that message and all it's neted messages have
+     This function assumes, that message and all it's nested messages have
      'oneof choice' field in .proto file.
     """
     if not message:
         return None
 
+    field_names = path.split('.')
     field = message
-    for name in path:
+    for name in field_names:
         if field.WhichOneof('choice') != name:
             return None
         field = getattr(field, name)

@@ -52,7 +52,7 @@ class Ship(Terminal):
         response = await self.ship_tunnel.receive(timeout=0.5)
         if not response:
             return None
-        spec = get_message_field(response, ["ship", "state"])
+        spec = get_message_field(response, "ship.state")
         if not spec:
             return None
         return State(weight=spec.weight)

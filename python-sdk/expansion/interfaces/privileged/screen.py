@@ -34,7 +34,7 @@ class Screen:
         self._send_message(message)
 
         response = await self._channel.receive()
-        status = get_message_field(response, ["screen", "status"])
+        status = get_message_field(response, "screen.status")
         return status is not None and status == privileged.Screen.Status.SUCCESS
 
     async def show(self, object_type: ObjectType) -> List[PhysicalObject]:
@@ -46,7 +46,7 @@ class Screen:
 
         while True:
             response = await self._channel.receive()
-            items = get_message_field(response, ["screen", "objects"])
+            items = get_message_field(response, "screen.objects")
             if not items:
                 break
             for item in items.object:
