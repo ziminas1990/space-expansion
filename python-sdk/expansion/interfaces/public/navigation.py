@@ -1,9 +1,9 @@
-from typing import Optional, Any
+from typing import Optional
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport.queued_terminal import QueuedTerminal
-from .types import Position, Vector
+from expansion.types.geometry import Position, Vector
 
 import expansion.utils as utils
 

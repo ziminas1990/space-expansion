@@ -4,7 +4,7 @@ import asyncio
 
 from expansion.interfaces.public.engine import Engine, Specification as EngineSpec
 from expansion.interfaces.public.ship import Ship
-from expansion.interfaces.public.types import Position
+from expansion.types.geometry import Position
 
 
 async def move_to(ship: Ship, engine: Engine,
