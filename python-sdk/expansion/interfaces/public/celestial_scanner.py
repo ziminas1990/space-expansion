@@ -41,7 +41,7 @@ class CelestialScanner(transport.QueuedTerminal):
         response = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        spec = protocol.get_message_field(response, ["celestial_scanner", "specification"])
+        spec = protocol.get_message_field(response, "celestial_scanner.specification")
         if not spec:
             return None
         self.specification = Specification(max_radius_km=spec.max_radius_km,
@@ -69,7 +69,7 @@ class CelestialScanner(transport.QueuedTerminal):
             otherwise return (0, error)"""
             timestamp: Optional[int] = response.timestamp or None
 
-            report = protocol.get_message_field(response, ["celestial_scanner", "scanning_report"])
+            report = protocol.get_message_field(response, "celestial_scanner.scanning_report")
             if report:
                 for body in response.scanning_report.asteroids:
                     scanned_objects.append(
@@ -84,7 +84,7 @@ class CelestialScanner(transport.QueuedTerminal):
                     )
                 return report.left, None
 
-            fail = protocol.get_message_field(response, ["celestial_scanner", "scanning_failed"])
+            fail = protocol.get_message_field(response, "celestial_scanner.scanning_failed")
             if fail:
                 return 0, str(fail)
             return 0, f"Got unexpected response '{response.WhichOneof('choice')}'"
