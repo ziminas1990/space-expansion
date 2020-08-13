@@ -13,6 +13,7 @@ class EngineType(Enum):
 class EngineSize(Enum):
     TINY = 'Tiny'
     SMALL = 'Small'
+    REGULAR = 'Regular'
 
 
 engine_parameters: Dict[EngineType, Dict[EngineSize, Dict[str, Any]]] = {
@@ -22,11 +23,13 @@ engine_parameters: Dict[EngineType, Dict[EngineSize, Dict[str, Any]]] = {
     },
     EngineType.ION: {
         EngineSize.TINY: {'max_thrust': 100},
-        EngineSize.SMALL: {'max_thrust': 500}
+        EngineSize.SMALL: {'max_thrust': 500},
+        EngineSize.REGULAR: {'max_thrust': 2000}
     },
     EngineType.NUCLEAR: {
         EngineSize.TINY: {'max_thrust': 3000},
-        EngineSize.SMALL: {'max_thrust': 30000}
+        EngineSize.SMALL: {'max_thrust': 30000},
+        EngineSize.REGULAR: {'max_thrust': 400000}
     },
 }
 

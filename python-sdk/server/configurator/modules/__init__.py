@@ -1,6 +1,8 @@
 
-from .base_module import BaseModule
-from .engine import Engine, EngineBlueprint
-from .ship import Ship, ShipBlueprint
-from .default_engines import engine_blueprints as default_engines_blueprints
-from .default_ships import ships_blueprints as default_ships_blueprints
+from server.configurator.modules.base_module import BaseModule
+from server.configurator.modules.engine import Engine, EngineBlueprint
+from server.configurator.modules.ship import Ship, ShipBlueprint
+
+from server.configurator.modules.default_engines import engine_blueprints, EngineType, EngineSize
+from server.configurator.modules.default_celestial_scanners import celestial_scanners_blueprints
+from server.configurator.modules.default_ships import ships_blueprints, ShipType

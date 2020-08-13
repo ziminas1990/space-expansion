@@ -20,12 +20,10 @@ class CelestialScanner(transport.QueuedTerminal):
     def expected_scanning_time(self, scanning_radius_km: int, minimal_radius_m: int) -> float:
         """Return time, that should be required by scanner to finish scanning
         request with the specified 'scanning_radius_km' and 'minimal_radius_m'"""
+        assert self.specification  # Should be initialized
         resolution = (1000 * scanning_radius_km) / minimal_radius_m
         c_km_per_sec = 300000
-        spec = self.specification or await self.get_specification()
-        if not spec:
-            return 0
-        total_processing_time = (resolution * spec.processing_time_us) / 1000000
+        total_processing_time = (resolution * self.specification.processing_time_us) / 1000000
         return 0.1 + 2 * scanning_radius_km / c_km_per_sec + total_processing_time
 
     async def get_specification(self, timeout: float = 0.5, reset_cached=False)\
@@ -45,7 +43,7 @@ class CelestialScanner(transport.QueuedTerminal):
         if not spec:
             return None
         self.specification = Specification(max_radius_km=spec.max_radius_km,
-                                           processing_time_us=spec.max_radius_km)
+                                           processing_time_us=spec.processing_time_us)
         return self.specification
 
     async def scan(self, scanning_radius_km: int, minimal_radius_m: int) -> \

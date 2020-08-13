@@ -1,11 +1,11 @@
 
-from .configuration import Configuration
-from .general import General, ApplicationMode, AdministratorCfg
-from .blueprints.blueprints_db import BlueprintsDB, BlueprintId, ModuleType
-from .expenses import Expenses, ResourceType
+from server.configurator.configuration import Configuration
+from server.configurator.general import General, ApplicationMode, AdministratorCfg
+from server.configurator.blueprints.blueprints_db import BlueprintsDB, BlueprintId, ModuleType
+from server.configurator.expenses import Expenses, ResourceType
 
-from .modules import (
+from server.configurator.modules import (
     BaseModule,
-    Engine, EngineBlueprint, default_engines_blueprints,
-    Ship, ShipBlueprint, default_ships_blueprints)
+    Engine, EngineBlueprint, engine_blueprints,
+    Ship, ShipBlueprint, ships_blueprints)
 
