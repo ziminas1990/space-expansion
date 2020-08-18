@@ -88,6 +88,7 @@ protected:
   virtual void handleAsteroidMinerMessage(uint32_t, spex::IAsteroidMiner const&) {}
   virtual void handleBlueprintsStorageMessage(uint32_t, spex::IBlueprintsLibrary const&) {}
   virtual void handleShipyardMessage(uint32_t, spex::IShipyard const&) {}
+  virtual void handleSystemClockMessage(uint32_t, spex::ISystemClock const&) {}
 
   // Will be called once, when module is installed on some ship
   virtual void onInstalled(ships::Ship* /*pPlatform*/) {}

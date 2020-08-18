@@ -25,6 +25,7 @@
 #include "Modules/AsteroidMiner/AsteroidMinerManager.h"
 #include "Modules/BlueprintsStorage/BlueprintsStorageManager.h"
 #include "Modules/Shipyard/ShipyardManager.h"
+#include "Modules/SystemClock/SystemClockManager.h"
 #include "Arbitrators/BaseArbitrator.h"
 #include <ConveyorTools/ObjectsFilter.h>
 
@@ -91,6 +92,7 @@ private:
   modules::AsteroidMinerManagerPtr     m_pAsteroidMinerManager;
   modules::BlueprintsStorageManagerPtr m_pBlueprintsStorageManager;
   modules::ShipyardManagerPtr          m_pShipyardManager;
+  modules::SystemClockManagerPtr       m_pSystemClockManager;
 
   network::UdpDispatcherPtr     m_pUdpDispatcher;
   network::PlayerChannelPtr     m_pLoginChannel;

@@ -7,6 +7,7 @@
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/Ship.h>
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
+#include <Modules/SystemClock/SystemClock.h>
 #include <Blueprints/BlueprintsLibrary.h>
 
 namespace world
@@ -17,7 +18,8 @@ using PlayerPtr = std::shared_ptr<Player>;
 
 class Player
 {
-  Player(std::string&& sLogin, blueprints::BlueprintsLibrary&& blueprints);
+  Player(std::string&& sLogin,
+         blueprints::BlueprintsLibrary&& blueprints);
 
 public:
 
@@ -39,8 +41,9 @@ private:
   std::string const m_sLogin;
   std::string       m_sPassword;
 
-  network::PlayerChannelPtr   m_pChannel;
+  network::PlayerChannelPtr     m_pChannel;
   modules::CommutatorPtr        m_pEntryPoint;
+  modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
 
   blueprints::BlueprintsLibrary m_blueprints;

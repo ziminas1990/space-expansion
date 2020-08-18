@@ -8,14 +8,15 @@
 namespace world
 {
 
-Player::Player(std::string&& sLogin, blueprints::BlueprintsLibrary&& blueprints)
+Player::Player(std::string&& sLogin,
+               blueprints::BlueprintsLibrary&& blueprints)
   : m_sLogin(std::move(sLogin)),
     m_blueprints(std::move(blueprints))
 {}
 
 PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary blueprints,
                        YAML::Node const& state)
-{
+{ 
   PlayerPtr pPlayer =
       std::shared_ptr<Player>(
         new Player(std::move(sLogin), std::move(blueprints)));
@@ -25,10 +26,15 @@ PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary bluepri
     return PlayerPtr();
   }
 
-  pPlayer->m_pBlueprintsExplorer =
-      std::make_shared<modules::BlueprintsStorage>(pPlayer);
   pPlayer->m_pEntryPoint = std::make_shared<modules::Commutator>();
 
+  pPlayer->m_pSystemClock =
+      std::make_shared<modules::SystemClock>("SystemClock", pPlayer);
+  pPlayer->m_pSystemClock->attachToChannel(pPlayer->m_pEntryPoint);
+  pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pSystemClock);
+
+  pPlayer->m_pBlueprintsExplorer =
+      std::make_shared<modules::BlueprintsStorage>(pPlayer);
   pPlayer->m_pBlueprintsExplorer->attachToChannel(pPlayer->m_pEntryPoint);
   pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pBlueprintsExplorer);
 
