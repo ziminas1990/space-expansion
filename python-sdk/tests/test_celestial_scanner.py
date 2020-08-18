@@ -7,15 +7,16 @@ from server.configurator import Configuration, General, ApplicationMode
 
 import expansion.procedures as procedures
 
-class TestNavigation(BaseTestFixture):
+
+class TestCase(BaseTestFixture):
 
     def __init__(self, *args, **kwargs):
-        super(TestNavigation, self).__init__(*args, **kwargs)
+        super(TestCase, self).__init__(*args, **kwargs)
 
         self.configuration = Configuration(
             general=General(total_threads=1,
                             login_udp_port=7456,
-                            initial_state=ApplicationMode.e_RUN,
+                            initial_state=ApplicationMode.e_FREEZE,
                             ports_pool=(12000, 12100)),
             blueprints=blueprints.DefaultBlueprints(),
             players={
@@ -45,6 +46,8 @@ class TestNavigation(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_get_specification(self):
+        await self.system_clock_fast_forward(speed_multiplier=20)
+
         commutator, error = await self.login('oreman')
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
@@ -61,4 +64,24 @@ class TestNavigation(BaseTestFixture):
         self.assertEqual(1000, spec.max_radius_km)
         self.assertEqual(10000, spec.processing_time_us)
 
+    @BaseTestFixture.run_as_sync
+    async def test_scanning(self):
+        await self.system_clock_fast_forward(speed_multiplier=20)
 
+        commutator, error = await self.login('oreman')
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        miner = await procedures.connect_to_ship("Miner", "miner-1", commutator)
+        self.assertIsNotNone(miner)
+
+        scanner = await procedures.connect_to_celestial_scanner("scanner", miner)
+        self.assertIsNotNone(scanner)
+
+        result, error = await scanner.scan(scanning_radius_km=20, minimal_radius_m=300)
+        self.assertIsNone(error)
+        self.assertEqual([], result)
+
+        result, error = await scanner.scan(scanning_radius_km=20, minimal_radius_m=200)
+        self.assertIsNone(error)
+        self.assertEqual(1, len(result))

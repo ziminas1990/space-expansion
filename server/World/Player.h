@@ -39,7 +39,7 @@ private:
   std::string const m_sLogin;
   std::string       m_sPassword;
 
-  network::PlayerChannelPtr   m_pChannel;
+  network::PlayerChannelPtr     m_pChannel;
   modules::CommutatorPtr        m_pEntryPoint;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
 

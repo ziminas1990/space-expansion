@@ -17,13 +17,15 @@ class CelestialScanner(transport.QueuedTerminal):
         super().__init__(terminal_name=name or utils.generate_name(CelestialScanner))
         self.specification: Optional[Specification] = None
 
-    def expected_scanning_time(self, scanning_radius_km: int, minimal_radius_m: int) -> float:
+    async def expected_scanning_time(self, scanning_radius_km: int, minimal_radius_m: int) -> float:
         """Return time, that should be required by scanner to finish scanning
         request with the specified 'scanning_radius_km' and 'minimal_radius_m'"""
-        assert self.specification  # Should be initialized
+        spec = await self.get_specification()
+        if not spec:
+            return 0
         resolution = (1000 * scanning_radius_km) / minimal_radius_m
         c_km_per_sec = 300000
-        total_processing_time = (resolution * self.specification.processing_time_us) / 1000000
+        total_processing_time = (resolution * spec.processing_time_us) / 1000000
         return 0.1 + 2 * scanning_radius_km / c_km_per_sec + total_processing_time
 
     async def get_specification(self, timeout: float = 0.5, reset_cached=False)\
@@ -52,6 +54,11 @@ class CelestialScanner(transport.QueuedTerminal):
         within a 'scanning_radius_km' radius.
         On success return (asteroid_list, None). Otherwise return (None, error_string)
         """
+        timeout = 2 * await self.expected_scanning_time(
+            scanning_radius_km=scanning_radius_km,
+            minimal_radius_m=minimal_radius_m)
+        if timeout == 0:
+            return 0, "Can't calculate expected timeout"
 
         request = protocol.Message()
         scan_req = request.celestial_scanner.scan
@@ -69,7 +76,7 @@ class CelestialScanner(transport.QueuedTerminal):
 
             report = protocol.get_message_field(response, "celestial_scanner.scanning_report")
             if report:
-                for body in response.scanning_report.asteroids:
+                for body in report.asteroids:
                     scanned_objects.append(
                         types.PhysicalObject(
                             object_id=body.id,
@@ -86,8 +93,6 @@ class CelestialScanner(transport.QueuedTerminal):
             if fail:
                 return 0, str(fail)
             return 0, f"Got unexpected response '{response.WhichOneof('choice')}'"
-
-        timeout = self.expected_scanning_time() * 2
 
         while True:
             response = await self.wait_message(timeout=timeout)

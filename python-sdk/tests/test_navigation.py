@@ -63,7 +63,7 @@ class TestNavigation(BaseTestFixture):
                                  position=target,
                                  max_distance_error=5,
                                  max_velocity_error=1,
-                                 cb_sleep=self.sleep_in_game)
+                                 cb_sleep=self.ingame_sleep)
 
         scout_1_position = await scout_1.get_navigation().get_position()
         scout_2_position = await scout_2.get_navigation().get_position()
