@@ -28,6 +28,10 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       handleShipMessage(nSessionId, message.ship());
       return;
     }
+    case spex::Message::kSystemClock: {
+      handleSystemClockMessage(nSessionId, message.system_clock());
+      return;
+    }
     case spex::Message::kCelestialScanner: {
       handleCelestialScannerMessage(nSessionId, message.celestial_scanner());
       return;
