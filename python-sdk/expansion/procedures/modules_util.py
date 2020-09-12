@@ -88,12 +88,12 @@ async def connect_to_celestial_scanner(
 
     if not owner_name:
         owner_name = ship.get_name()
-    scanner: CelestialScanner = CelestialScanner(name=f"{owner_name}::engine_{name}")
+    scanner: CelestialScanner = CelestialScanner(name=f"{owner_name}::scaner_{name}")
 
     error = await ship.get_commutator().open_tunnel(candidate.slot_id, scanner)
     if error:
         logging.getLogger(__name__).warning(
-            f"Failed to connect to the engine '{name}' on the ship '{ship.get_name()}': "
+            f"Failed to connect to the celestial scaner '{name}' on the ship '{ship.get_name()}': "
             f"{error}")
     return scanner
 
