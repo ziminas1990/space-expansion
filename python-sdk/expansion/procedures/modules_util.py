@@ -1,7 +1,7 @@
 from typing import Optional
 import logging
 
-from expansion.interfaces.public import Ship, Commutator, ModuleInfo, Engine
+from expansion.interfaces.public import Ship, Commutator, ModuleInfo, Engine, SystemClock
 
 
 async def find_module(type: str, name: str, commutator: Commutator) -> Optional[ModuleInfo]:
@@ -62,3 +62,18 @@ async def connect_to_engine(name: str, ship: Ship,
             f"Failed to connect to the engine '{name}' on the ship '{ship.get_name()}': "
             f"{error}")
     return engine
+
+
+async def connect_to_system_clock(commutator: Commutator) -> Optional[SystemClock]:
+    """Find and open tunnel to the SystemClock instance"""
+    candidate = await find_module(type="SystemClock", name="SystemClock", commutator=commutator)
+    if not candidate:
+        return None
+
+    system_clock: SystemClock = SystemClock("SystemClock")
+
+    error = await commutator.open_tunnel(candidate.slot_id, system_clock)
+    if error:
+        logging.getLogger(__name__).warning(
+            f"Failed to connect to the system clock!': {error}")
+    return system_clock

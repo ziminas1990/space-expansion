@@ -39,7 +39,7 @@ private:
   };
 
   // Array of all rings, that should be sent. Array is sorted in
-  // desending ring time
+  // desending ring time (first element has the biggest timestamp)
   std::vector<Ring> m_rings;
 
 };

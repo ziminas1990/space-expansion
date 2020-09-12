@@ -16,7 +16,7 @@ void SystemClock::proceed(uint32_t)
 {
   uint64_t const now = SystemManager::getIngameTime();
   while (!m_rings.empty()) {
-    if (m_rings.back().nWhen < now) {
+    if (m_rings.back().nWhen <= now) {
       sendRing(m_rings.back().nSessionId, now);
       m_rings.pop_back();
     } else {
@@ -41,7 +41,7 @@ void SystemClock::handleSystemClockMessage(
       waitFor(nSessionId, message.wait_for());
       return;
     case spex::ISystemClock::kWaitUntil:
-      waitFor(nSessionId, message.wait_until());
+      waitUntil(nSessionId, message.wait_until());
       return;
     default:
       return;
@@ -81,8 +81,8 @@ void SystemClock::sendRing(uint32_t nSessionId, uint64_t time)
 void SystemClock::drawnLastRing()
 {
   size_t const length = m_rings.size();
-  for (size_t i = length; i > 0; ++i) {
-    if (m_rings[i-1].nWhen < m_rings[i].nWhen) {
+  for (size_t i = length - 1; i > 0; --i) {
+    if (m_rings[i-1].nWhen > m_rings[i].nWhen) {
       break;
     }
     std::swap(m_rings[i-1], m_rings[i]);
