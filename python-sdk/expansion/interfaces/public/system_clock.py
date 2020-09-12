@@ -23,7 +23,7 @@ class SystemClock(QueuedTerminal):
             return None
         return get_message_field(response, "system_clock.time")
 
-    async def wait_until(self, time: int, timeout: float):
+    async def wait_until(self, time: int, timeout: float) -> Optional[int]:
         """Wait until server time reaches the specified 'time'"""
         request = public.Message()
         request.system_clock.wait_until = time
@@ -34,10 +34,10 @@ class SystemClock(QueuedTerminal):
             return None
         return get_message_field(response, "system_clock.ring")
 
-    async def wait_for(self, period: int, timeout: float):
+    async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
         request = public.Message()
-        request.system_clock.wait_for = period
+        request.system_clock.wait_for = period_us
         if not self.channel.send(message=request):
             return None
         response = await self.wait_message(timeout=timeout)

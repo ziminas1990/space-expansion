@@ -1,7 +1,14 @@
 from typing import Optional
 import logging
 
-from expansion.interfaces.public import Ship, Commutator, ModuleInfo, Engine, SystemClock
+from expansion.interfaces.public import (
+    Ship,
+    Commutator,
+    ModuleInfo,
+    Engine,
+    SystemClock,
+    CelestialScanner
+)
 
 
 async def find_module(type: str, name: str, commutator: Commutator) -> Optional[ModuleInfo]:
@@ -62,6 +69,33 @@ async def connect_to_engine(name: str, ship: Ship,
             f"Failed to connect to the engine '{name}' on the ship '{ship.get_name()}': "
             f"{error}")
     return engine
+
+
+async def connect_to_celestial_scanner(
+        name: str,
+        ship: Ship,
+        owner_name: Optional[str] = None) -> Optional[CelestialScanner]:
+    """Find celestial scanner with the specified 'name' on the specified 'ship'
+    and return scanner instance. The optionally specified 'owner_name' will be
+    used, to assign name to the module, otherwise the ship's name will be used
+    instead.
+    """
+    candidate = await find_module(type="CelestialScanner",
+                                  name=name,
+                                  commutator=ship.get_commutator())
+    if not candidate:
+        return None
+
+    if not owner_name:
+        owner_name = ship.get_name()
+    scanner: CelestialScanner = CelestialScanner(name=f"{owner_name}::scaner_{name}")
+
+    error = await ship.get_commutator().open_tunnel(candidate.slot_id, scanner)
+    if error:
+        logging.getLogger(__name__).warning(
+            f"Failed to connect to the celestial scaner '{name}' on the ship '{ship.get_name()}': "
+            f"{error}")
+    return scanner
 
 
 async def connect_to_system_clock(commutator: Commutator) -> Optional[SystemClock]:

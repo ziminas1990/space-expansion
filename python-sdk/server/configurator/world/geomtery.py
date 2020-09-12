@@ -36,9 +36,10 @@ class Position:
         return self
 
     def verify(self):
-        assert self.x
-        assert self.y
+        assert self.x is not None
+        assert self.y is not None
         assert self.velocity
+        self.velocity.verify()
 
     def to_pod(self):
         self.verify()

@@ -7,7 +7,7 @@ from expansion.procedures.login import login as login_procedure
 from expansion.interfaces.public.commutator import Commutator
 from expansion.interfaces.public.ship import Ship
 from expansion.interfaces.public.engine import Engine
-from expansion.interfaces.public.types import Position, Vector
+from expansion.types import Position, Vector
 import expansion.procedures.modules_util as modules_util
 import expansion.procedures.navigation as navigation
 

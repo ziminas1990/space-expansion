@@ -9,11 +9,11 @@ class ShipBlueprint(BaseBlueprint):
     def __init__(self, name: str,
                  radius: Optional[float] = None,
                  weight: Optional[float] = None,
-                 modules: Dict[str, BlueprintId] = {}):
+                 modules: Optional[Dict[str, BlueprintId]] = None):
         super().__init__(blueprint_id=BlueprintId(ModuleType.e_SHIP, name))
         self.radius: Optional[float] = radius
         self.weight: Optional[float] = weight
-        self.modules: Dict[str, BlueprintId] = modules
+        self.modules: Dict[str, BlueprintId] = modules or {}
         # The 'self.modules' stores all modules, that should be installed on the
         # ship. A key is module name (unique for the ship), a value is a module
         # blueprint's id
