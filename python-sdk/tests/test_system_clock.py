@@ -9,10 +9,10 @@ from server.configurator import Configuration, General, ApplicationMode
 import expansion.procedures as procedures
 
 
-class TestNavigation(BaseTestFixture):
+class TestSystemClock(BaseTestFixture):
 
     def __init__(self, *args, **kwargs):
-        super(TestNavigation, self).__init__(*args, **kwargs)
+        super(TestSystemClock, self).__init__(*args, **kwargs)
 
         self.configuration = Configuration(
             general=General(total_threads=1,
@@ -71,7 +71,7 @@ class TestNavigation(BaseTestFixture):
 
         # Checking wait_for feature
         task = asyncio.get_running_loop().create_task(
-            system_clock.wait_for(period=wait_delta_ms * 1000, timeout=1)
+            system_clock.wait_for(period_us=wait_delta_ms * 1000, timeout=1)
         )
 
         success, time = await self.system_clock_proceed(wait_delta_ms - 1, timeout_s=1)
@@ -103,7 +103,7 @@ class TestNavigation(BaseTestFixture):
         self.assertTrue(success)
 
         task_1 = asyncio.get_running_loop().create_task(
-            system_clock_2.wait_for(period=20000, timeout=1))
+            system_clock_2.wait_for(period_us=20000, timeout=1))
         task_2 = asyncio.get_running_loop().create_task(
             system_clock_3.wait_until(time=time + 100000, timeout=1))
         task_3 = asyncio.get_running_loop().create_task(
@@ -111,14 +111,13 @@ class TestNavigation(BaseTestFixture):
         task_4 = asyncio.get_running_loop().create_task(
             system_clock_4.wait_for(500000, timeout=1))
 
-
         success, time = await self.system_clock_proceed(20, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_1.done())
 
         task_1 = asyncio.get_running_loop().create_task(
-            system_clock_2.wait_for(period=30000, timeout=1))
+            system_clock_2.wait_for(period_us=30000, timeout=1))
 
         success, time = await self.system_clock_proceed(30, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
