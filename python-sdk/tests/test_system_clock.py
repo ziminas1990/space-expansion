@@ -43,12 +43,12 @@ class TestNavigation(BaseTestFixture):
         self.assertIsNotNone(system_clock)
 
         # Checking time_req function
-        success, time = await self.freeze()
+        success, time = await self.system_clock_stop()
         self.assertTrue(success)
         current_time = await system_clock.time()
         self.assertEqual(time, current_time)
 
-        success, time = await self.proceed_time(1000, 0.2)
+        success, time = await self.system_clock_proceed(1000, timeout_s=0.2)
         self.assertTrue(success)
         current_time = await system_clock.time()
         self.assertEqual(time, current_time)
@@ -59,13 +59,12 @@ class TestNavigation(BaseTestFixture):
         task = asyncio.get_running_loop().create_task(
             system_clock.wait_until(time=current_time + wait_delta_ms * 1000, timeout=1))
 
-        success, time = await self.proceed_time(proceed_milliseconds=wait_delta_ms - 1,
-                                                timeout_sec=1)
+        success, time = await self.system_clock_proceed(wait_delta_ms - 1, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertFalse(task.done())
 
-        success, time = await self.proceed_time(proceed_milliseconds=1, timeout_sec=1)
+        success, time = await self.system_clock_proceed(1, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task.done())
@@ -75,13 +74,12 @@ class TestNavigation(BaseTestFixture):
             system_clock.wait_for(period=wait_delta_ms * 1000, timeout=1)
         )
 
-        success, time = await self.proceed_time(proceed_milliseconds=wait_delta_ms - 1,
-                                                timeout_sec=1)
+        success, time = await self.system_clock_proceed(wait_delta_ms - 1, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertFalse(task.done())
 
-        success, time = await self.proceed_time(proceed_milliseconds=1, timeout_sec=1)
+        success, time = await self.system_clock_proceed(1, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task.done())
@@ -101,7 +99,7 @@ class TestNavigation(BaseTestFixture):
         system_clock_4 = await procedures.connect_to_system_clock(commutator)
         self.assertIsNotNone(system_clock_4)
 
-        success, time = await self.freeze()
+        success, time = await self.system_clock_stop()
         self.assertTrue(success)
 
         task_1 = asyncio.get_running_loop().create_task(
@@ -114,7 +112,7 @@ class TestNavigation(BaseTestFixture):
             system_clock_4.wait_for(500000, timeout=1))
 
 
-        success, time = await self.proceed_time(proceed_milliseconds=20, timeout_sec=1)
+        success, time = await self.system_clock_proceed(20, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_1.done())
@@ -122,18 +120,18 @@ class TestNavigation(BaseTestFixture):
         task_1 = asyncio.get_running_loop().create_task(
             system_clock_2.wait_for(period=30000, timeout=1))
 
-        success, time = await self.proceed_time(proceed_milliseconds=30, timeout_sec=1)
+        success, time = await self.system_clock_proceed(30, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_3.done())
         self.assertTrue(task_1.done())
 
-        success, time = await self.proceed_time(proceed_milliseconds=50, timeout_sec=1)
+        success, time = await self.system_clock_proceed(50, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_2.done())
 
-        success, time = await self.proceed_time(proceed_milliseconds=400, timeout_sec=1)
+        success, time = await self.system_clock_proceed(400, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_4.done())

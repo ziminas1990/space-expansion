@@ -1,24 +1,23 @@
 from typing import Callable, Awaitable
 import math
-import asyncio
 
 from expansion.interfaces.public.engine import Engine, Specification as EngineSpec
+from expansion.interfaces.public.system_clock import SystemClock
 from expansion.interfaces.public.ship import Ship
 from expansion.types.geometry import Position
 
 
 async def move_to(ship: Ship, engine: Engine,
                   position: Callable[[], Awaitable[Position]],
+                  system_clock: SystemClock,
                   max_distance_error: float = 5,
                   max_velocity_error: float = 0.5,
-                  max_thrust_k_limit: float = 1,
-                  cb_sleep: Callable[[float], Awaitable[None]] = asyncio.sleep) -> bool:
+                  max_thrust_k_limit: float = 1) -> bool:
     """Move the specified 'ship' to the specified 'position' using the
-    specified 'engine'. Procedure will complete when a distance between ship
+    specified 'engine'. Ths specified 'system_clock' will be used to track the
+    server's time. Procedure will complete when a distance between ship
     and 'position' is not more than the specified 'max_distance_error' meters
     AND the ship's speed is not more than the specified 'max_velocity_error'.
-    The specified 'cb_sleep' will be called every time, when procedure needs to
-    await for some in-game time
     """
     iterations = 0
 
@@ -62,7 +61,10 @@ async def move_to(ship: Ship, engine: Engine,
         sleep_time = burn_time / 2
         if sleep_time > 2:
             sleep_time = 2
-        await cb_sleep(sleep_time)
+        now = await system_clock.wait_for(int(sleep_time * 1000000), 2 * sleep_time)
+        if now is None:
+            # Something went wrong on server (may be lags?)
+            return False
 
         # Getting actual data:
         # TODO: send to requests in parallel!

@@ -110,10 +110,7 @@ class BaseTestFixture(unittest.TestCase):
             proceed_interval_ms = self.time_multiplier * delta_ms - ingame_delta_ms
             if proceed_interval_ms < 1:
                 await asyncio.sleep(0.01)
-                print(f"Sleeping... ({proceed_interval_ms})")
                 continue
-
-            print(f"Proceeding {proceed_interval_ms} ms")
 
             success, ingame_now_us = await self._proceed_time(
                 proceed_ms=proceed_interval_ms,
@@ -129,7 +126,7 @@ class BaseTestFixture(unittest.TestCase):
         if self.time_manual_control_flag is True:
             assert self.time_wheel_task
             self.time_manual_control_flag = False
-            assert await asyncio.wait(self.time_wheel_task)
+            assert await asyncio.wait([self.time_wheel_task])
             self.time_wheel_task = None
         if not await self.administrator.get_clock().switch_to_debug_mode():
             return False, None

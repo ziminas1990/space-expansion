@@ -1,10 +1,39 @@
+from typing import Optional, Callable, Awaitable
+
 from tests.base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 import server.configurator.modules.default_ships as default_ships
 from server.configurator import Configuration, General, ApplicationMode
+from expansion.interfaces.public import SystemClock
 
 import expansion.procedures as procedures
+
+
+class FastForwardSystemClock(SystemClock):
+    def __init__(self, system_clock: SystemClock,
+                 switch_to_real_time: Callable[[], Awaitable[bool]],
+                 fast_forward: Callable[[int, int], Awaitable[None]],
+                 fast_forward_multiplier: int):
+        super().__init__(name="FastForwardSystemClock")
+        self.system_clock = system_clock
+        self.switch_to_real_time = switch_to_real_time
+        self.fast_forward = fast_forward
+        self.fast_forward_multiplier = fast_forward_multiplier
+
+    async def wait_until(self, time: int, timeout: float) -> Optional[int]:
+        """Wait until server time reaches the specified 'time'"""
+        await self.fast_forward(self.fast_forward_multiplier)
+        result = await self.system_clock.wait_until(time, timeout)
+        await self.switch_to_real_time()
+        return result
+
+    async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
+        """Wait for the specified 'period' microseconds"""
+        await self.fast_forward(self.fast_forward_multiplier)
+        result = await self.system_clock.wait_for(period_us, timeout)
+        await self.switch_to_real_time()
+        return result
 
 
 class TestNavigation(BaseTestFixture):
@@ -46,6 +75,14 @@ class TestNavigation(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
+        system_clock = await procedures.connect_to_system_clock(commutator)
+        self.assertIsNotNone(system_clock)
+        fast_forward_clock = FastForwardSystemClock(
+            system_clock=system_clock,
+            switch_to_real_time=self.system_clock_play,
+            fast_forward=self.system_clock_fast_forward,
+            fast_forward_multiplier=50)
+
         scout_1 = await procedures.connect_to_ship("Probe", "scout-1", commutator)
         self.assertIsNotNone(scout_1)
 
@@ -58,14 +95,16 @@ class TestNavigation(BaseTestFixture):
         async def target() -> world.Position:
             return await scout_2.get_navigation().get_position()
 
-        await procedures.move_to(ship=scout_1,
-                                 engine=engine,
-                                 position=target,
-                                 max_distance_error=5,
-                                 max_velocity_error=1,
-                                 cb_sleep=self.ingame_sleep)
+        success = await procedures.move_to(
+            ship=scout_1,
+            engine=engine,
+            position=target,
+            system_clock=fast_forward_clock,
+            max_distance_error=5,
+            max_velocity_error=1)
 
+        self.assertTrue(success)
         scout_1_position = await scout_1.get_navigation().get_position()
         scout_2_position = await scout_2.get_navigation().get_position()
         delta = scout_1_position.distance_to(scout_2_position)
-        self.assertTrue(delta < 10)
+        self.assertTrue(delta < 5)

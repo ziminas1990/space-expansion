@@ -1,11 +1,14 @@
 from typing import Optional
 import logging
 
-<<<<<<< HEAD
-from expansion.interfaces.public import Ship, Commutator, ModuleInfo, Engine, CelestialScanner
-=======
-from expansion.interfaces.public import Ship, Commutator, ModuleInfo, Engine, SystemClock
->>>>>>> master
+from expansion.interfaces.public import (
+    Ship,
+    Commutator,
+    ModuleInfo,
+    Engine,
+    SystemClock,
+    CelestialScanner
+)
 
 
 async def find_module(type: str, name: str, commutator: Commutator) -> Optional[ModuleInfo]:
