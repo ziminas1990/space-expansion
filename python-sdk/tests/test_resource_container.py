@@ -62,3 +62,25 @@ class TestCase(BaseTestFixture):
         self.assertAlmostEqual(20000, content.resources[ResourceType.e_SILICATES])
         self.assertAlmostEqual(50000, content.resources[ResourceType.e_METALS])
         self.assertAlmostEqual(15000, content.resources[ResourceType.e_ICE])
+
+    @BaseTestFixture.run_as_sync
+    async def test_open_close_port(self):
+        commutator, error = await self.login('player')
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
+        self.assertIsNotNone(miner_1)
+
+        cargo = await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        self.assertIsNotNone(cargo)
+
+        self.assertIsNone(cargo.get_opened_port())
+
+        access_key = 12456
+        status, port = await cargo.open_port(access_key=access_key)
+        self.assertTrue(status.is_ok())
+        self.assertNotEqual(0, port)
+
+        self.assertEqual(port, cargo.get_opened_port()[0])
+        self.assertEqual(access_key, cargo.get_opened_port()[1])

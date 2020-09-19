@@ -1,4 +1,5 @@
-from typing import Optional, NamedTuple, Dict
+from typing import Optional, NamedTuple, Dict, Tuple
+from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
@@ -10,6 +11,42 @@ import expansion.utils as utils
 
 class ResourceContainer(QueuedTerminal):
 
+    class Status(Enum):
+        SUCCESS = "success"
+        INTERNAL_ERROR = "internal server error"
+        PORT_ALREADY_OPEN = "port is already opened"
+        PORT_DOESNT_EXIST = "port doesn't exist"
+        PORT_IS_NOT_OPENED = "port is not opened"
+        PORT_HAS_BEEN_CLOSED = "port has been closed"
+        INVALID_ACCESS_KEY = "invalid access key"
+        PORT_TOO_FAR = "receiver is too far"
+        TRANSFER_IN_PROGRESS = "transfer in progress"
+        NOT_ENOUGH_RESOURCES = "not enough resources"
+        # Internal SDK statuses:
+        FAILED_TO_SEND_REQUEST = "failed to send request"
+        RESPONSE_TIMEOUT = "response timeout"
+        UNEXPECTED_RESPONSE = "unexpected response"
+
+        def is_ok(self):
+            return self == ResourceContainer.Status.SUCCESS
+
+        @staticmethod
+        def convert(status: public.IResourceContainer.Status) -> "ResourceContainer.Status":
+            ProtobufStatus = public.IResourceContainer.Status
+            ModuleStatus = ResourceContainer.Status
+            return {
+                ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
+                ProtobufStatus.INTERNAL_ERROR: ModuleStatus.INTERNAL_ERROR,
+                ProtobufStatus.PORT_ALREADY_OPEN: ModuleStatus.PORT_ALREADY_OPEN,
+                ProtobufStatus.PORT_DOESNT_EXIST: ModuleStatus.PORT_DOESNT_EXIST,
+                ProtobufStatus.PORT_IS_NOT_OPENED: ModuleStatus.PORT_IS_NOT_OPENED,
+                ProtobufStatus.PORT_HAS_BEEN_CLOSED: ModuleStatus.PORT_HAS_BEEN_CLOSED,
+                ProtobufStatus.INVALID_ACCESS_KEY: ModuleStatus.INVALID_ACCESS_KEY,
+                ProtobufStatus.PORT_TOO_FAR: ModuleStatus.PORT_TOO_FAR,
+                ProtobufStatus.TRANSFER_IN_PROGRESS: ModuleStatus.TRANSFER_IN_PROGRESS,
+                ProtobufStatus.NOT_ENOUGH_RESOURCES: ModuleStatus.NOT_ENOUGH_RESOURCES,
+            } [status]
+
     class Content(NamedTuple):
         volume: int
         used: float
@@ -20,6 +57,8 @@ class ResourceContainer(QueuedTerminal):
         data without requesting a server"""
         def __init__(self):
             self.content: Optional["ResourceContainer.Content"] = None
+            # Stores information about port, that has been opened (portId, accessKey)
+            self.opened_port: Optional[Tuple[int, int]] = None
 
         def update_content(self, content: public.IResourceContainer.Content):
             self.content = ResourceContainer.Content(
@@ -36,6 +75,11 @@ class ResourceContainer(QueuedTerminal):
     def cache(self) -> 'ResourceContainer.Cache':
         return self._cache
 
+    def get_opened_port(self) -> Optional[Tuple[int, int]]:
+        """Return (port_d, accessKey) pair, if port is opened. Otherwise
+        return None"""
+        return self._cache.opened_port
+
     async def get_content(self, timeout: float = 0.5) -> Optional[Content]:
         request = public.Message()
         request.resource_container.content_req = True
@@ -49,3 +93,25 @@ class ResourceContainer(QueuedTerminal):
             return None
         self._cache.update_content(content)
         return self._cache.content
+
+    async def open_port(self, access_key: int, timeout: int = 0.5) -> \
+            ("ResourceContainer.Status", int):
+        """Open a new port with the specified 'access_key'. Return port number
+        or error string."""
+        request = public.Message()
+        request.resource_container.open_port = access_key
+        if not self.send_message(message=request):
+            return ResourceContainer.Status.SUCCESS, 0
+        response = await self.wait_message(timeout=timeout)
+        if not response:
+            return 0, ResourceContainer.Status.RESPONSE_TIMEOUT
+        port_id = get_message_field(response, "resource_container.port_opened")
+        if port_id is not None:
+            # Success case
+            self._cache.opened_port = (port_id, access_key)
+            return ResourceContainer.Status.SUCCESS, port_id
+
+        error_status = get_message_field(response, "resource_container.open_port_failed")
+        if error_status is not None:
+            return ResourceContainer.Status.convert(error_status), 0
+        return ResourceContainer.Status.UNEXPECTED_RESPONSE, 0
