@@ -1,6 +1,6 @@
 from typing import Optional, Dict, List
 from server.configurator.world.geomtery import Position, Vector
-from server.configurator.expenses import ResourceType
+from server.configurator.resources import ResourceType
 
 
 class Asteroid:

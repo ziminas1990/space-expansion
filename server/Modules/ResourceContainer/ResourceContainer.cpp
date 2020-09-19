@@ -190,7 +190,7 @@ void ResourceContainer::sendClosePortStatus(
 void ResourceContainer::sendContent(uint32_t nTunnelId)
 {
   static std::vector<std::pair<world::Resource::Type, spex::ResourceType> > types = {
-    {world::Resource::eMetal,   spex::ResourceType::RESOURCE_METALS},
+    {world::Resource::eMetal,    spex::ResourceType::RESOURCE_METALS},
     {world::Resource::eIce,      spex::ResourceType::RESOURCE_ICE},
     {world::Resource::eSilicate, spex::ResourceType::RESOURCE_SILICATES}
   };

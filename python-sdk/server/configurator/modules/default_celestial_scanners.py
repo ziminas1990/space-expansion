@@ -1,6 +1,6 @@
 from typing import Dict
 
-from server.configurator.modules.celestial_scanner import CelestialScannerBlueprint
+from .celestial_scanner import CelestialScannerBlueprint
 
 
 celestial_scanners_blueprints: Dict[str, CelestialScannerBlueprint] = {

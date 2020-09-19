@@ -1,5 +1,3 @@
-from typing import Optional
-
 
 class BaseModule:
     def __init__(self):
