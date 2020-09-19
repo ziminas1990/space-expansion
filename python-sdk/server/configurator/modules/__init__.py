@@ -1,9 +1,9 @@
 
 from .base_module import BaseModule
-from .engine import Engine, EngineBlueprint
+from .engine import EngineState, EngineBlueprint
 from .ship import Ship, ShipBlueprint
 from .resource_container import (
-    ResourceContainer,
+    ResourceContainerState,
     ResourceContainerBlueprint
 )
 

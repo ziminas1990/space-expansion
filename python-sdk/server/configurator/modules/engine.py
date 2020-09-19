@@ -27,17 +27,19 @@ class EngineBlueprint(BaseBlueprint):
         return data
 
 
-class Engine(BaseModule):
+class EngineState(BaseModule):
+    """Describes an initial state of the engine module"""
+
     def __init__(self, thrust: Vector = Vector(x=0, y=0)):
-        super(Engine, self).__init__()
+        super(EngineState, self).__init__()
         self.thrust: Vector = thrust
 
-    def set_thrust(self, thrust: Vector) -> 'Engine':
+    def set_thrust(self, thrust: Vector) -> 'EngineState':
         self.thrust = thrust
         return self
         
     def verify(self):
-        super(Engine, self).verify()
+        super(EngineState, self).verify()
         self.thrust.verify()
 
     def to_pod(self):

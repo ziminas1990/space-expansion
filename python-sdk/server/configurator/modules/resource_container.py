@@ -24,13 +24,14 @@ class ResourceContainerBlueprint(BaseBlueprint):
         return data
 
 
-class ResourceContainer(BaseModule):
+class ResourceContainerState(BaseModule):
+    """Describes an initial state of the resource container"""
     def __init__(self, content: Optional[Dict[ResourceType, float]] = None):
-        super(ResourceContainer, self).__init__()
+        super(ResourceContainerState, self).__init__()
         self.content = PhysicalResources(content)
 
     def verify(self):
-        super(ResourceContainer, self).verify()
+        super(ResourceContainerState, self).verify()
         self.content.verify()
 
     def to_pod(self):

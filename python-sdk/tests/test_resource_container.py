@@ -1,12 +1,19 @@
+from typing import Optional
+
 from tests.base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 
-from server.configurator.modules import default_ships, ResourceContainer, ShipType
+from server.configurator.modules import (
+    default_ships,
+    ResourceContainerState,
+    ShipType
+)
 from server.configurator import Configuration, General, ApplicationMode
 
 import expansion.procedures as procedures
 from expansion.types import ResourceType
+from expansion.interfaces.public import ResourceContainer
 
 
 class TestCase(BaseTestFixture):
@@ -30,7 +37,7 @@ class TestCase(BaseTestFixture):
                             name="miner-1",
                             position=world.Position(
                                 x=0, y=0, velocity=world.Vector(0, 0)),
-                            cargo=ResourceContainer(
+                            cargo=ResourceContainerState(
                                 content={
                                     ResourceType.e_SILICATES: 20000,
                                     ResourceType.e_METALS: 50000,
@@ -72,7 +79,8 @@ class TestCase(BaseTestFixture):
         miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
         self.assertIsNotNone(miner_1)
 
-        cargo = await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        cargo: Optional[ResourceContainer] =\
+            await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
         self.assertIsNotNone(cargo)
 
         self.assertIsNone(cargo.get_opened_port())
@@ -84,3 +92,7 @@ class TestCase(BaseTestFixture):
 
         self.assertEqual(port, cargo.get_opened_port()[0])
         self.assertEqual(access_key, cargo.get_opened_port()[1])
+
+        status, port = await cargo.open_port(access_key=access_key*2)
+        self.assertEqual(ResourceContainer.Status.PORT_ALREADY_OPEN, status)
+        self.assertEqual(0, port)

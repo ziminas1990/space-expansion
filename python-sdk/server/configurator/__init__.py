@@ -6,6 +6,6 @@ from server.configurator.resources import ResourcesList, ResourceType
 
 from server.configurator.modules import (
     BaseModule,
-    Engine, EngineBlueprint, engine_blueprints,
+    EngineState, EngineBlueprint, engine_blueprints,
     Ship, ShipBlueprint, ships_blueprints)
 

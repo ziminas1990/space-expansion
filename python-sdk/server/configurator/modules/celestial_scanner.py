@@ -1,7 +1,5 @@
 from typing import Optional
 from server.configurator.blueprints.base_blueprint import BaseBlueprint, BlueprintId, ModuleType
-from .base_module import BaseModule
-from server.configurator.world.geomtery import Vector
 
 
 class CelestialScannerBlueprint(BaseBlueprint):

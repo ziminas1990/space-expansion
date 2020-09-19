@@ -3,8 +3,8 @@ from typing import Dict
 
 import server.configurator.world as world
 
-from .engine import Engine
-from .resource_container import ResourceContainer
+from .engine import EngineState
+from .resource_container import ResourceContainerState
 from .default_resource_containers import resource_containers_blueprints
 from .ship import ShipBlueprint, Ship
 from .default_engines import engine_blueprints, EngineType, EngineSize
@@ -42,8 +42,8 @@ ships_blueprints: Dict[ShipType, ShipBlueprint] = {
 
 
 def make_probe(name: str, position: world.Position,
-               main_engine: Engine = Engine(),
-               additional_engine: Engine = Engine()):
+               main_engine: EngineState = EngineState(),
+               additional_engine: EngineState = EngineState()):
     """Create configuration of the 'PROBE' ship"""
     return Ship(name=name,
                 ship_type=ShipType.PROBE.value,
@@ -53,9 +53,9 @@ def make_probe(name: str, position: world.Position,
 
 
 def make_miner(name: str, position: world.Position,
-               main_engine: Engine = Engine(),
-               additional_engine: Engine = Engine(),
-               cargo: ResourceContainer = ResourceContainer()):
+               main_engine: EngineState = EngineState(),
+               additional_engine: EngineState = EngineState(),
+               cargo: ResourceContainerState = ResourceContainerState()):
     """Create configuration of the 'MINER' ship"""
     return Ship(name=name,
                 ship_type=ShipType.MINER.value,
