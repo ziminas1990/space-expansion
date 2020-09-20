@@ -249,7 +249,6 @@ void ResourceContainer::terminateActiveTransfer(spex::IResourceContainer::Status
 void ResourceContainer::openPort(uint32_t nTunnelId, uint32_t nAccessKey)
 {
   if (m_nOpenedPortId != m_freePortsIds.getInvalidValue()) {
-    m_nOpenedPortId = m_freePortsIds.getInvalidValue();
     sendOpenPortFailed(nTunnelId, spex::IResourceContainer::PORT_ALREADY_OPEN);
     return;
   }

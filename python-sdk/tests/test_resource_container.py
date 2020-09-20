@@ -85,6 +85,11 @@ class TestCase(BaseTestFixture):
 
         self.assertIsNone(cargo.get_opened_port())
 
+        # Trying to close a port, that has not been opened
+        status = await cargo.close_port()
+        self.assertEqual(ResourceContainer.Status.PORT_IS_NOT_OPENED, status)
+
+        # Opening a port
         access_key = 12456
         status, port = await cargo.open_port(access_key=access_key)
         self.assertTrue(status.is_ok())
@@ -93,6 +98,18 @@ class TestCase(BaseTestFixture):
         self.assertEqual(port, cargo.get_opened_port()[0])
         self.assertEqual(access_key, cargo.get_opened_port()[1])
 
+        # Trying to open yet another port
         status, port = await cargo.open_port(access_key=access_key*2)
         self.assertEqual(ResourceContainer.Status.PORT_ALREADY_OPEN, status)
         self.assertEqual(0, port)
+
+        # Closing port (twice)
+        status = await cargo.close_port()
+        self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+        status = await cargo.close_port()
+        self.assertEqual(ResourceContainer.Status.PORT_IS_NOT_OPENED, status)
+
+        # Opening a port again
+        status, port = await cargo.open_port(access_key=access_key)
+        self.assertTrue(status.is_ok())
+        self.assertNotEqual(0, port)

@@ -101,10 +101,10 @@ class ResourceContainer(QueuedTerminal):
         request = public.Message()
         request.resource_container.open_port = access_key
         if not self.send_message(message=request):
-            return ResourceContainer.Status.SUCCESS, 0
+            return ResourceContainer.Status.FAILED_TO_SEND_REQUEST, 0
         response = await self.wait_message(timeout=timeout)
         if not response:
-            return 0, ResourceContainer.Status.RESPONSE_TIMEOUT
+            return ResourceContainer.Status.RESPONSE_TIMEOUT, 0
         port_id = get_message_field(response, "resource_container.port_opened")
         if port_id is not None:
             # Success case
@@ -115,3 +115,18 @@ class ResourceContainer(QueuedTerminal):
         if error_status is not None:
             return ResourceContainer.Status.convert(error_status), 0
         return ResourceContainer.Status.UNEXPECTED_RESPONSE, 0
+
+    async def close_port(self, timeout: int = 0.5) -> "ResourceContainer.Status":
+        """Close an existing opened port"""
+        request = public.Message()
+        request.resource_container.close_port = True
+        if not self.send_message(message=request):
+            return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
+        response = await self.wait_message(timeout=timeout)
+        if not response:
+            return ResourceContainer.Status.RESPONSE_TIMEOUT
+        status = get_message_field(response, "resource_container.close_port_status")
+        if status is not None:
+            # Success case
+            self._cache.opened_port = None
+            return ResourceContainer.Status.convert(status)

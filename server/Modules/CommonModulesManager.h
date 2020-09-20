@@ -13,17 +13,17 @@ namespace modules
 
 #ifndef AUTOTESTS_MODE
 enum class Cooldown {
-  eSystemClock       = 0,
-  eCommutator        = 0,
-  eDefault           = 10100,
-  eShip              = 10200,
-  eEngine            = 50300,
-  eAsteroidMiner     = 254000,
-  eAsteroidScanner   = 305000,
-  eCelestialScanner  = 506000,
-  eResourceContainer = 307000,
-  eBlueprintsStorage = 308000,
-  eShipYard          = 609000,
+  eSystemClock       =      0,
+  eCommutator        =      0,
+  eDefault           =  10100,
+  eShip              =  10200,
+  eEngine            =  30300,
+  eAsteroidMiner     = 154000,
+  eAsteroidScanner   = 155000,
+  eCelestialScanner  = 206000,
+  eResourceContainer = 207000,
+  eBlueprintsStorage = 208000,
+  eShipYard          = 309000,
 };
 #else
 // In autotests mode we can't afford to let logics to sleep for unpredictable period
