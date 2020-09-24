@@ -1,10 +1,10 @@
-from typing import Optional, NamedTuple, Dict, Tuple
+from typing import Optional, NamedTuple, Dict, Tuple, Callable
 from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport.queued_terminal import QueuedTerminal
-from expansion.types import ResourceType
+from expansion.types import ResourceType, ResourceItem
 
 import expansion.utils as utils
 
@@ -64,7 +64,7 @@ class ResourceContainer(QueuedTerminal):
             self.content = ResourceContainer.Content(
                 volume=content.volume,
                 used=content.used,
-                resources={ResourceType.convert(item.type): item.amount
+                resources={ResourceType.from_protobuf(item.type): item.amount
                            for item in content.resources}
             )
 
@@ -130,3 +130,41 @@ class ResourceContainer(QueuedTerminal):
             # Success case
             self._cache.opened_port = None
             return ResourceContainer.Status.convert(status)
+
+    async def transfer(self, port: int, access_key: int,
+                       resource: ResourceItem,
+                       progress_cb: Optional[Callable[[ResourceItem], None]] = None,
+                       timeout: int = 0.5):
+        """Transfer the specified 'resource' to the specified 'port' with the
+        specified 'access_key'. The optionally specified 'progress_cb' will be
+        called to report transferring status (a total amount of transferred
+        resources)."""
+        request = public.Message()
+        req_body = request.resource_container.transfer
+        req_body.port_id = port
+        req_body.access_key = access_key
+        resource_item = req_body.resource
+        resource.to_protobuf(resource_item)
+
+        if not self.send_message(message=request):
+            return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
+        response = await self.wait_message(timeout=timeout)
+        if not response:
+            return ResourceContainer.Status.RESPONSE_TIMEOUT
+        status = get_message_field(response, "resource_container.transfer_status")
+        if status is None:
+            return ResourceContainer.Status.UNEXPECTED_RESPONSE
+        if status != public.IResourceContainer.Status.SUCCESS:
+            return ResourceContainer.Status.convert(status)
+        # Status is success. Waiting for reports
+        while True:
+            response = await self.wait_message(timeout=2)
+            report = get_message_field(response, "resource_container.transfer_report")
+            if not report:
+                # May be complete status is received:
+                status = get_message_field(response, "resource_container.transfer_finished")
+                return ResourceContainer.Status.convert(status) \
+                    if status is not None else ResourceContainer.Status.UNEXPECTED_RESPONSE
+            # Got transfer report:
+            if progress_cb is not None:
+                progress_cb(ResourceItem.from_protobuf(report))

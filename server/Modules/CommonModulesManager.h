@@ -21,8 +21,8 @@ enum class Cooldown {
   eAsteroidMiner     = 154000,
   eAsteroidScanner   = 155000,
   eCelestialScanner  = 206000,
-  eResourceContainer = 207000,
-  eBlueprintsStorage = 208000,
+  eResourceContainer = 307000,
+  eBlueprintsStorage = 308000,
   eShipYard          = 309000,
 };
 #else

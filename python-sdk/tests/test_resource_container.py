@@ -12,7 +12,7 @@ from server.configurator.modules import (
 from server.configurator import Configuration, General, ApplicationMode
 
 import expansion.procedures as procedures
-from expansion.types import ResourceType
+from expansion.types import ResourceType, ResourceItem
 from expansion.interfaces.public import ResourceContainer
 
 
@@ -45,6 +45,18 @@ class TestCase(BaseTestFixture):
                                 }
                             )
                         ),
+                        default_ships.make_miner(
+                            name="miner-2",
+                            position=world.Position(
+                                x=10, y=10, velocity=world.Vector(0, 0)),
+                            cargo=ResourceContainerState(
+                                content={
+                                    ResourceType.e_SILICATES: 5000,
+                                    ResourceType.e_METALS: 5000,
+                                    ResourceType.e_ICE: 10000,
+                                }
+                            )
+                        ),
                     ]
                 )
             },
@@ -55,6 +67,8 @@ class TestCase(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_get_content(self):
+        await self.system_clock_fast_forward(speed_multiplier=25)
+
         commutator, error = await self.login('player')
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
@@ -72,6 +86,8 @@ class TestCase(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_open_close_port(self):
+        await self.system_clock_fast_forward(speed_multiplier=25)
+
         commutator, error = await self.login('player')
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
@@ -113,3 +129,94 @@ class TestCase(BaseTestFixture):
         status, port = await cargo.open_port(access_key=access_key)
         self.assertTrue(status.is_ok())
         self.assertNotEqual(0, port)
+
+    @BaseTestFixture.run_as_sync
+    async def test_transfer_success_case(self):
+        await self.system_clock_fast_forward(speed_multiplier=25)
+
+        commutator, error = await self.login('player')
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
+        self.assertIsNotNone(miner_1)
+
+        miner_1_cargo: Optional[ResourceContainer] =\
+            await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        self.assertIsNotNone(miner_1_cargo)
+
+        miner_2 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-2", commutator)
+        self.assertIsNotNone(miner_1)
+
+        miner_2_cargo: Optional[ResourceContainer] = \
+            await procedures.connect_to_resource_container(name='cargo', ship=miner_2)
+        self.assertIsNotNone(miner_1_cargo)
+
+        # Opening a port on miner_2
+        access_key = 12456
+        status, port = await miner_2_cargo.open_port(access_key=access_key)
+        self.assertTrue(status.is_ok())
+        self.assertNotEqual(0, port)
+
+        total_transferred_amount: float = 0.0  # Will be accumulated in progress callback
+
+        def cb_progress_report(item: ResourceItem):
+            self.assertEqual(ResourceType.e_METALS, item.resource_type)
+            nonlocal total_transferred_amount
+            total_transferred_amount += item.amount
+
+        # Transferring resources from miner_1 to miner_2
+        status = await miner_1_cargo.transfer(port=port, access_key=access_key,
+                                              progress_cb=cb_progress_report,
+                                              resource=ResourceItem(ResourceType.e_METALS, 30000))
+        self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+        self.assertAlmostEqual(30000, total_transferred_amount)
+
+        # Check resources in containers
+        content = await miner_1_cargo.get_content()
+        self.assertAlmostEqual(20000, content.resources[ResourceType.e_METALS])
+        self.assertAlmostEqual(20000, content.resources[ResourceType.e_SILICATES])
+        self.assertAlmostEqual(15000, content.resources[ResourceType.e_ICE])
+
+        content = await miner_2_cargo.get_content()
+        self.assertAlmostEqual(35000, content.resources[ResourceType.e_METALS])
+        self.assertAlmostEqual(5000, content.resources[ResourceType.e_SILICATES])
+        self.assertAlmostEqual(10000, content.resources[ResourceType.e_ICE])
+
+    @BaseTestFixture.run_as_sync
+    async def test_transfer_fails_cases(self):
+        await self.system_clock_fast_forward(speed_multiplier=25)
+
+        commutator, error = await self.login('player')
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
+        self.assertIsNotNone(miner_1)
+
+        miner_1_cargo: Optional[ResourceContainer] = \
+            await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        self.assertIsNotNone(miner_1_cargo)
+
+        miner_2 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-2", commutator)
+        self.assertIsNotNone(miner_1)
+
+        miner_2_cargo: Optional[ResourceContainer] = \
+            await procedures.connect_to_resource_container(name='cargo', ship=miner_2)
+        self.assertIsNotNone(miner_1_cargo)
+
+        # Port is not opened error:
+        status = await miner_1_cargo.transfer(port=4, access_key=123456,
+                                              resource=ResourceItem(ResourceType.e_METALS, 30000))
+        self.assertEqual(ResourceContainer.Status.PORT_IS_NOT_OPENED, status)
+
+        # Opening a port on miner_2
+        access_key = 12456
+        status, port = await miner_2_cargo.open_port(access_key=access_key)
+        self.assertTrue(status.is_ok())
+        self.assertNotEqual(0, port)
+
+        # Invalid access key
+        status = await miner_1_cargo.transfer(port=port, access_key=access_key-1,
+                                              resource=ResourceItem(ResourceType.e_METALS, 30000))
+        self.assertEqual(ResourceContainer.Status.INVALID_ACCESS_KEY, status)
