@@ -45,7 +45,7 @@ class ResourceContainer(QueuedTerminal):
                 ProtobufStatus.PORT_TOO_FAR: ModuleStatus.PORT_TOO_FAR,
                 ProtobufStatus.TRANSFER_IN_PROGRESS: ModuleStatus.TRANSFER_IN_PROGRESS,
                 ProtobufStatus.NOT_ENOUGH_RESOURCES: ModuleStatus.NOT_ENOUGH_RESOURCES,
-            } [status]
+            }[status]
 
     class Content(NamedTuple):
         volume: int
