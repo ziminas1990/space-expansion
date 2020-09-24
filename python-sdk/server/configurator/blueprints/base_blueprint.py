@@ -1,13 +1,14 @@
 from typing import  NamedTuple
 from enum import Enum
 
-from server.configurator.expenses import Expenses
+from server.configurator.resources import ResourcesList
 
 
 class ModuleType(Enum):
     e_SHIP = "Ship"
     e_ENGINE = "Engine"
     e_CELESTIAL_SCANNER = "CelestialScanner"
+    e_RESOURCE_CONTAINER = "ResourceContainer"
 
 
 class BlueprintId(NamedTuple):
@@ -32,9 +33,9 @@ class BlueprintId(NamedTuple):
 class BaseBlueprint:
     def __init__(self, blueprint_id: BlueprintId):
         self.id: BlueprintId = blueprint_id
-        self.expenses: Expenses = Expenses()
+        self.expenses: ResourcesList = ResourcesList()
 
-    def set_expenses(self, expenses: Expenses):
+    def set_expenses(self, expenses: ResourcesList):
         self.expenses = expenses
         return self
 

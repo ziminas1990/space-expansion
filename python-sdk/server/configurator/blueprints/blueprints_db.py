@@ -43,7 +43,8 @@ class BlueprintsDB:
                 assert isinstance(blueprint, ShipBlueprint)
                 for ships_module_blueprint in blueprint.modules.values():
                     assert ships_module_blueprint.type != ModuleType.e_SHIP
-                    assert ships_module_blueprint in self.blueprints
+                    assert ships_module_blueprint in self.blueprints, \
+                        f"Blueprint '{ships_module_blueprint}' doesn't exist!"
 
     def to_pod(self):
         self.verify()

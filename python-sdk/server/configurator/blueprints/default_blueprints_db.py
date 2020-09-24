@@ -5,7 +5,8 @@ from .base_blueprint import BaseBlueprint, BlueprintId
 from server.configurator.modules import (
     engine_blueprints,
     ships_blueprints,
-    celestial_scanners_blueprints
+    celestial_scanners_blueprints,
+    resource_containers_blueprints
 )
 
 
@@ -21,8 +22,10 @@ class DefaultBlueprints(BlueprintsDB):
         # CelestialScanner
         for scanner_blueprint in celestial_scanners_blueprints.values():
             blueprints.update({scanner_blueprint.id: scanner_blueprint})
+        # ResourceContainer
+        for blueprint in resource_containers_blueprints.values():
+            blueprints.update({blueprint.id: blueprint})
         # Ships
         for ship_blueprint in ships_blueprints.values():
             blueprints.update({ship_blueprint.id: ship_blueprint})
-
         super(DefaultBlueprints, self).__init__(blueprints=blueprints)

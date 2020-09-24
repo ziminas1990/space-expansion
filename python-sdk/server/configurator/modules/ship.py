@@ -1,7 +1,7 @@
 from typing import Optional, Dict
 from server.configurator.blueprints.base_blueprint import BaseBlueprint, BlueprintId, ModuleType
 from server.configurator.world.geomtery import Position
-from server.configurator.modules.base_module import BaseModule
+from .base_module import BaseModule
 
 
 class ShipBlueprint(BaseBlueprint):

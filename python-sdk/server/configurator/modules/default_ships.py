@@ -2,13 +2,13 @@ from enum import Enum
 from typing import Dict
 
 import server.configurator.world as world
-import server.configurator.modules as modules
 
-from server.configurator.modules import (
-    ShipBlueprint, Ship,
-    engine_blueprints, EngineType, EngineSize,
-    celestial_scanners_blueprints
-)
+from .engine import EngineState
+from .resource_container import ResourceContainerState
+from .default_resource_containers import resource_containers_blueprints
+from .ship import ShipBlueprint, Ship
+from .default_engines import engine_blueprints, EngineType, EngineSize
+from .default_celestial_scanners import celestial_scanners_blueprints
 
 
 class ShipType(Enum):
@@ -34,15 +34,16 @@ ships_blueprints: Dict[ShipType, ShipBlueprint] = {
         modules={
             'main_engine': engine_blueprints[EngineType.NUCLEAR][EngineSize.REGULAR].id,
             'additional_engine': engine_blueprints[EngineType.ION][EngineSize.REGULAR].id,
-            'scanner': celestial_scanners_blueprints["basic"].id
+            'scanner': celestial_scanners_blueprints["basic"].id,
+            'cargo': resource_containers_blueprints["small"].id
         }
     )
 }
 
 
 def make_probe(name: str, position: world.Position,
-               main_engine: modules.Engine = modules.Engine(),
-               additional_engine: modules.Engine = modules.Engine()):
+               main_engine: EngineState = EngineState(),
+               additional_engine: EngineState = EngineState()):
     """Create configuration of the 'PROBE' ship"""
     return Ship(name=name,
                 ship_type=ShipType.PROBE.value,
@@ -52,11 +53,13 @@ def make_probe(name: str, position: world.Position,
 
 
 def make_miner(name: str, position: world.Position,
-               main_engine: modules.Engine = modules.Engine(),
-               additional_engine: modules.Engine = modules.Engine()):
-    """Create configuration of the 'PROBE' ship"""
+               main_engine: EngineState = EngineState(),
+               additional_engine: EngineState = EngineState(),
+               cargo: ResourceContainerState = ResourceContainerState()):
+    """Create configuration of the 'MINER' ship"""
     return Ship(name=name,
                 ship_type=ShipType.MINER.value,
                 position=position,
-                modules={'main_engine': main_engine,
-                         'additional_engine': additional_engine})
+                modules={"main_engine": main_engine,
+                         "additional_engine": additional_engine,
+                         "cargo": cargo})

@@ -7,7 +7,8 @@ from expansion.interfaces.public import (
     ModuleInfo,
     Engine,
     SystemClock,
-    CelestialScanner
+    CelestialScanner,
+    ResourceContainer
 )
 
 
@@ -111,3 +112,30 @@ async def connect_to_system_clock(commutator: Commutator) -> Optional[SystemCloc
         logging.getLogger(__name__).warning(
             f"Failed to connect to the system clock!': {error}")
     return system_clock
+
+
+async def connect_to_resource_container(
+        name: str,
+        ship: Ship,
+        owner_name: Optional[str] = None) -> Optional[ResourceContainer]:
+    """Find a resource container with the specified 'name' on the specified 'ship'
+    and return scanner instance. The optionally specified 'owner_name' will be
+    used, to assign name to the module, otherwise the ship's name will be used
+    instead.
+    """
+    candidate = await find_module(type="ResourceContainer",
+                                  name=name,
+                                  commutator=ship.get_commutator())
+    if not candidate:
+        return None
+
+    if not owner_name:
+        owner_name = ship.get_name()
+    container: ResourceContainer = ResourceContainer(name=f"{owner_name}::cargo_{name}")
+
+    error = await ship.get_commutator().open_tunnel(candidate.slot_id, container)
+    if error:
+        logging.getLogger(__name__).warning(
+            f"Failed to connect to the resource container '{name}' on the ship "
+            f"'{ship.get_name()}': {error}")
+    return container
