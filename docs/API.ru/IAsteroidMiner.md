@@ -19,6 +19,7 @@ message IAsteroidMiner {
     MINER_IS_IDLE         = 4;
     ASTEROID_TOO_FAR      = 5;
     NO_SPACE_AVALIABLE    = 6;
+    NOT_BINT_TO_CARGO     = 7;
   }
 
   message Specification {
@@ -34,14 +35,16 @@ message IAsteroidMiner {
 
   oneof choice {
     bool          specification_req = 1;
-    MiningTask    start_mining      = 2;
-    bool          stop_mining       = 3;
+    string        bind_to_cargo     = 2;
+    MiningTask    start_mining      = 3;
+    bool          stop_mining       = 4;
 
-    Specification specification       = 21;
-    Status        start_mining_status = 22;
-    ResourceItem  mining_report       = 23;
-    Status        stop_mining_status  = 24;
-    Status        on_error            = 25;
+    Specification specification        = 21;
+    Status        bind_to_cargo_status = 22;
+    Status        start_mining_status  = 23;
+    ResourceItem  mining_report        = 24;
+    Status        stop_mining_status   = 25;
+    Status        on_error             = 26;
   }
 }
 ```
@@ -55,11 +58,22 @@ message Specification {
   uint32 yeild_pre_cycle = 3;
 }
 ```
+
+## Как подключить бур к контейнеру?
+Чтобы добыча ресурсов была возможна, бур должен быть подключен к одному из контейнеров, расположенных на корабле. Изначально бур не подключен ни к одному из них, поэтому добыча ресурсов невозможна. Чтобы подключить бур к контейнеру, необходимо отправить команду **bind_to_cargo**. Тело команды - это строка, в которой указано имя контейнера.
+
+В ответ поступит сообщение **bind_to_cargo_status**, в котором передаётся статус выполнения команды:
+  * **SUCCESS** - модуль успешно подключен к контейнеру;
+  * **NOT_BINT_TO_CARGO** - не удалось подключить майнер к контейнеру; возможно, что контейнер с таким именем не установлен на корабле.
+
+Модуль может быть переподключен к другому контейнеру в процессе добычи.
+
 ## Как запустить добычу?
 Для того, чтобы запустить добычу на астероиде, необходимо:
-1. обнаружить астероид и определить его уникальный идентификатор (с помощью модуля AsteroidScanner).
-2. приблизиться к астероиду на расстояние не более чем **max_distance** метров;
-3. отправить команду **start_mining**, указав идентификатор астероида и тип ресурса, который требуется добывать.
+1. подключить бур к контейнеру;
+2. обнаружить астероид и определить его уникальный идентификатор (с помощью модуля AsteroidScanner).
+3. приблизиться к астероиду на расстояние не более чем **max_distance** метров;
+4. отправить команду **start_mining**, указав идентификатор астероида и тип ресурса, который требуется добывать.
 
 Команда **start_mining** имеет следующий формат:
 ```protobuf
