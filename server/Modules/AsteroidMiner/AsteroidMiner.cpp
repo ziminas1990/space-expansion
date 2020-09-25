@@ -15,18 +15,13 @@ namespace modules
 
 AsteroidMiner::AsteroidMiner(std::string sName, world::PlayerWeakPtr pOwner,
                              uint32_t nMaxDistance, uint32_t nCycleTimeMs,
-                             uint32_t nYieldPerCycle, std::string sContainerName)
+                             uint32_t nYieldPerCycle)
   : BaseModule("AsteroidMiner", std::move(sName), std::move(pOwner)),
     m_nMaxDistance(nMaxDistance), m_nCycleTimeMs(nCycleTimeMs),
-    m_nYeildPerCycle(nYieldPerCycle), m_sContainerName(std::move(sContainerName)),
+    m_nYeildPerCycle(nYieldPerCycle),
     m_nCycleProgressUs(0), m_nTunnelId(0)
 {
   GlobalContainer<AsteroidMiner>::registerSelf(this);
-}
-
-void AsteroidMiner::attachToResourceContainer(ResourceContainerPtr pContainer)
-{
-  m_pContainer = pContainer;
 }
 
 void AsteroidMiner::proceed(uint32_t nIntervalUs)
@@ -46,6 +41,12 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
     return;
   }
 
+  if (!m_pContainer) {
+    sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    onDeactivated();
+    return;
+  }
+
   uint64_t nCycleTimeUs = m_nCycleTimeMs * 1000;
   m_nCycleProgressUs += nIntervalUs;
   if (m_nCycleProgressUs < nCycleTimeUs) {
@@ -55,8 +56,8 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   m_nCycleProgressUs -= nCycleTimeUs;
 
   double percentage = pAsteroid->getComposition().percents[m_eResourceType];
-  double amount = pAsteroid->yield(m_eResourceType, m_nYeildPerCycle * percentage);
-  double put = m_pContainer->putResource(m_eResourceType, amount);
+  double amount     = pAsteroid->yield(m_eResourceType, m_nYeildPerCycle * percentage);
+  double put        = m_pContainer->putResource(m_eResourceType, amount);
 
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
@@ -81,12 +82,30 @@ void AsteroidMiner::handleAsteroidMinerMessage(
     case spex::IAsteroidMiner::kStopMining: {
       stopMiningRequest(nTunnelId);
     } break;
+    case spex::IAsteroidMiner::kBindToCargo: {
+      bindToCargoRequest(nTunnelId, message.bind_to_cargo());
+      break;
+    }
     case spex::IAsteroidMiner::kSpecificationReq: {
       onSpecificationRequest(nTunnelId);
     } break;
     default:
       return;
   }
+}
+
+void AsteroidMiner::bindToCargoRequest(uint32_t nTunnelId, std::string const& sCargoName)
+{
+  m_sContainerName = sCargoName;
+
+  BaseModulePtr pModule = getPlatform()->getModuleByName(m_sContainerName);
+  ResourceContainerPtr pContainer = std::dynamic_pointer_cast<ResourceContainer>(pModule);
+  if (!pContainer) {
+    sendBindingStatus(nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    return;
+  }
+  m_pContainer = std::move(pContainer);
+  sendBindingStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
 }
 
 void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
@@ -97,10 +116,8 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
     return;
   }
 
-  BaseModulePtr pModule = getPlatform()->getModuleByName(m_sContainerName);
-  m_pContainer = std::dynamic_pointer_cast<ResourceContainer>(pModule);
   if (!m_pContainer) {
-    sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::INTERNAL_ERROR);
+    sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
     return;
   }
 
@@ -155,6 +172,17 @@ bool AsteroidMiner::isInRange(world::Asteroid *pAsteroid) const
 {
   double distance = getPlatform()->getPosition().distance(pAsteroid->getPosition());
   return distance <= m_nMaxDistance;
+}
+
+void AsteroidMiner::sendBindingStatus(uint32_t nTunnelId,
+                                      spex::IAsteroidMiner::Status status)
+{
+  assert(status == spex::IAsteroidMiner::SUCCESS ||
+         status == spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+  spex::Message message;
+  spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
+  pResponse->set_bind_to_cargo_status(status);
+  sendToClient(nTunnelId, message);
 }
 
 void AsteroidMiner::sendStartMiningStatus(uint32_t nTunnelId,
