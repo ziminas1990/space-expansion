@@ -139,11 +139,11 @@ void AsteroidMiner::onSpecificationRequest(uint32_t nTunnelId)
       response.mutable_asteroid_miner()->mutable_specification();
   body->set_max_distance(m_nMaxDistance);
   body->set_cycle_time_ms(m_nCycleTimeMs);
-  body->set_yeild_pre_cycle(m_nYeildPerCycle);
+  body->set_yield_per_cycle(m_nYeildPerCycle);
   sendToClient(nTunnelId, response);
 }
 
-world::Asteroid *AsteroidMiner::getAsteroid(uint32_t nAsteroidId)
+world::Asteroid* AsteroidMiner::getAsteroid(uint32_t nAsteroidId)
 {
   if (nAsteroidId >= world::AsteroidsContainer::TotalInstancies()) {
     return nullptr;

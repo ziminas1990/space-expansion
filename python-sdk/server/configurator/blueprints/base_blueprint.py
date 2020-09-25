@@ -9,6 +9,7 @@ class ModuleType(Enum):
     e_ENGINE = "Engine"
     e_CELESTIAL_SCANNER = "CelestialScanner"
     e_RESOURCE_CONTAINER = "ResourceContainer"
+    e_ASTEROID_MINER = "AsteroidMiner"
 
 
 class BlueprintId(NamedTuple):

@@ -252,7 +252,7 @@ message IAsteroidMiner {
   message Specification {
     uint32 max_distance    = 1;
     uint32 cycle_time_ms   = 2;
-    uint32 yeild_pre_cycle = 3;
+    uint32 yield_per_cycle = 3;
   }
 
   message MiningTask {

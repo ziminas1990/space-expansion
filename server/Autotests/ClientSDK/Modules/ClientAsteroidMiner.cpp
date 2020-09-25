@@ -39,7 +39,7 @@ bool AsteroidMiner::getSpecification(AsteroidMinerSpecification &specification)
 
   specification.m_nMaxDistance   = response.specification().max_distance();
   specification.m_nCycleTimeMs   = response.specification().cycle_time_ms();
-  specification.m_nYieldPerCycle = response.specification().yeild_pre_cycle();
+  specification.m_nYieldPerCycle = response.specification().yield_per_cycle();
   return true;
 }
 
