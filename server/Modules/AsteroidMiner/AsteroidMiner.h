@@ -20,10 +20,7 @@ class AsteroidMiner :
 {
 public:
   AsteroidMiner(std::string sName, world::PlayerWeakPtr pOwner,
-                uint32_t nMaxDistance, uint32_t nCycleTimeMs, uint32_t nYieldPerCycle,
-                std::string sContainerName);
-
-  void attachToResourceContainer(ResourceContainerPtr pContainer);
+                uint32_t nMaxDistance, uint32_t nCycleTimeMs, uint32_t nYieldPerCycle);
 
   void proceed(uint32_t nIntervalUs) override;
 
@@ -32,6 +29,7 @@ private:
       uint32_t nTunnelId, spex::IAsteroidMiner const& message) override;
   void yiedlAsteroidAndSendReport(world::Asteroid* pAsteroid);
 
+  void bindToCargoRequest(uint32_t nTunnelId, std::string const& sCargoName);
   void startMiningRequest(uint32_t nTunnelId,
                           spex::IAsteroidMiner::MiningTask const& task);
   void stopMiningRequest(uint32_t nTunnelId);
@@ -40,6 +38,7 @@ private:
   world::Asteroid* getAsteroid(uint32_t nAsteroidId);
   bool isInRange(world::Asteroid* pAsteroid) const;
 
+  void sendBindingStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
   void sendStartMiningStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
   void sendStopMiningStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
   void sendError(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);

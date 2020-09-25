@@ -28,7 +28,6 @@ protected:
       "        max_distance:     2000",
       "        cycle_time_ms:    1000",
       "        yield_per_cycle:  1000",
-      "        container:        cargo",
       "        expenses:",
       "          labor: 100",
       "    Engine:",
@@ -97,6 +96,30 @@ TEST_F(AsteroidMinerTests, GetSpecification)
   EXPECT_EQ(1000, specification.m_nYieldPerCycle);
 }
 
+TEST_F(AsteroidMinerTests, BindingToCargo)
+{
+  resumeTime();
+
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("mega_miner", "unabtainable")
+        .expectSuccess());
+
+  client::Ship ship;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+
+  client::AsteroidMiner miner;
+  ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
+
+  client::ResourceContainer cargo;
+  ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
+
+  ASSERT_EQ(client::AsteroidMiner::eNotBintToCargo,
+            miner.bindToCargo("NonExistingCargo"));
+
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
+}
+
 TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
 {
   resumeTime();
@@ -114,6 +137,13 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
 
   client::ResourceContainer cargo;
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
+
+  // The miner has not been bint to cargo
+  ASSERT_EQ(client::AsteroidMiner::eNotBintToCargo,
+            miner.startMining(0, world::Resource::eMetal));
+
+  // Binding mining to the cargo and trying again (should be ok)
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess,
             miner.startMining(0, world::Resource::eMetal));
@@ -149,6 +179,7 @@ TEST_F(AsteroidMinerTests, StopMining)
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
 
   ASSERT_EQ(client::AsteroidMiner::eMinerIsIdle, miner.stopMining());
 
@@ -182,6 +213,7 @@ TEST_F(AsteroidMinerTests, MiningVariousResources)
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
 
   double nTotalMetals    = 0;
   double nTotalSilicates = 0;
@@ -237,6 +269,7 @@ TEST_F(AsteroidMinerTests, StartMiningFails)
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
 
   ASSERT_EQ(client::AsteroidMiner::eAsteroidDoesntExist,
             miner.startMining(42, world::Resource::eMetal));
@@ -262,6 +295,7 @@ TEST_F(AsteroidMinerTests, NoAvaliableSpace)
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
 
   client::ResourceContainer cargo;
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));

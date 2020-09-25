@@ -27,11 +27,13 @@ public:
     eMinerIsIdle,
     eAsteroidDoesntExist,
     eAsteroidTooFar,
-    eNoSpaceAvaliable
+    eNoSpaceAvaliable,
+    eNotBintToCargo
   };
 
   bool getSpecification(AsteroidMinerSpecification& specification);
 
+  Status bindToCargo(std::string const& sCargoName);
   Status startMining(uint32_t nAsteroidId, world::Resource::Type eResourceType);
   Status stopMining();
 

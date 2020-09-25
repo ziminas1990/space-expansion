@@ -19,6 +19,8 @@ static AsteroidMiner::Status convert(spex::IAsteroidMiner::Status eStatus) {
       return AsteroidMiner::eMinerIsIdle;
     case spex::IAsteroidMiner::NO_SPACE_AVALIABLE:
       return AsteroidMiner::eNoSpaceAvaliable;
+    case spex::IAsteroidMiner::NOT_BINT_TO_CARGO:
+      return AsteroidMiner::eNotBintToCargo;
     default:
       assert(nullptr == "Unexpected status");
   }
@@ -41,6 +43,22 @@ bool AsteroidMiner::getSpecification(AsteroidMinerSpecification &specification)
   specification.m_nCycleTimeMs   = response.specification().cycle_time_ms();
   specification.m_nYieldPerCycle = response.specification().yeild_pre_cycle();
   return true;
+}
+
+AsteroidMiner::Status AsteroidMiner::bindToCargo(std::string const& sCargoName)
+{
+  spex::Message request;
+  request.mutable_asteroid_miner()->set_bind_to_cargo(sCargoName);
+  if (!send(request))
+    return eTransportError;
+
+  spex::IAsteroidMiner response;
+  if (!wait(response))
+    return eTimeout;
+  if (response.choice_case() != spex::IAsteroidMiner::kBindToCargoStatus)
+    return eUnexpectedMessage;
+
+  return convert(response.bind_to_cargo_status());
 }
 
 AsteroidMiner::Status AsteroidMiner::startMining(
