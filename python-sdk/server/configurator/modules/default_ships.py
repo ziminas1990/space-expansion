@@ -9,6 +9,7 @@ from .default_resource_containers import resource_containers_blueprints
 from .ship import ShipBlueprint, Ship
 from .default_engines import engine_blueprints, EngineType, EngineSize
 from .default_celestial_scanners import celestial_scanners_blueprints
+from .default_asteroid_miners import asteroid_miner_blueprints
 
 
 class ShipType(Enum):
@@ -35,7 +36,8 @@ ships_blueprints: Dict[ShipType, ShipBlueprint] = {
             'main_engine': engine_blueprints[EngineType.NUCLEAR][EngineSize.REGULAR].id,
             'additional_engine': engine_blueprints[EngineType.ION][EngineSize.REGULAR].id,
             'scanner': celestial_scanners_blueprints["basic"].id,
-            'cargo': resource_containers_blueprints["small"].id
+            'cargo': resource_containers_blueprints["small"].id,
+            'miner': asteroid_miner_blueprints["basic"].id
         }
     )
 }

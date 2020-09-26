@@ -8,7 +8,8 @@ from expansion.interfaces.public import (
     Engine,
     SystemClock,
     CelestialScanner,
-    ResourceContainer
+    ResourceContainer,
+    AsteroidMiner
 )
 
 
@@ -139,3 +140,31 @@ async def connect_to_resource_container(
             f"Failed to connect to the resource container '{name}' on the ship "
             f"'{ship.get_name()}': {error}")
     return container
+
+
+async def connect_to_asteroid_miner(
+        name: str,
+        ship: Ship,
+        owner_name: Optional[str] = None) -> Optional[AsteroidMiner]:
+    """Find a asteroid miner with the specified 'name' on the specified 'ship'
+    and return scanner instance. The optionally specified 'owner_name' will be
+    used, to assign name to the module, otherwise the ship's name will be used
+    instead.
+    """
+    module_type_name = "AsteroidMiner"
+    candidate = await find_module(type=module_type_name,
+                                  name=name,
+                                  commutator=ship.get_commutator())
+    if not candidate:
+        return None
+
+    if not owner_name:
+        owner_name = ship.get_name()
+    miner: AsteroidMiner = AsteroidMiner(name=f"{owner_name}::miner_{name}")
+
+    error = await ship.get_commutator().open_tunnel(candidate.slot_id, miner)
+    if error:
+        logging.getLogger(__name__).warning(
+            f"Failed to connect to the {module_type_name} '{name}' on the ship "
+            f"'{ship.get_name()}': {error}")
+    return miner

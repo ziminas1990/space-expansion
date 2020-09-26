@@ -27,8 +27,8 @@ public:
     eMinerIsIdle,
     eAsteroidDoesntExist,
     eAsteroidTooFar,
-    eNoSpaceAvaliable,
-    eNotBintToCargo
+    eNoSpaceAvailable,
+    eNotBoundToCargo
   };
 
   bool getSpecification(AsteroidMinerSpecification& specification);

@@ -59,6 +59,8 @@ class CelestialScanner(transport.QueuedTerminal):
             minimal_radius_m=minimal_radius_m)
         if timeout == 0:
             return 0, "Can't calculate expected timeout"
+        if timeout < 0.2:
+            timeout = 0.2
 
         request = protocol.Message()
         scan_req = request.celestial_scanner.scan

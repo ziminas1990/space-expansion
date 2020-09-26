@@ -26,7 +26,7 @@ class Asteroid:
 
     def verify(self):
         assert self.position
-        assert self.radius and self.radius > 10
+        assert self.radius and self.radius > 5
         total_density: float = 0
         for density in self.composition.values():
             total_density += density

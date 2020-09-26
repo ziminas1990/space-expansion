@@ -246,8 +246,8 @@ message IAsteroidMiner {
     MINER_IS_BUSY         = 3;
     MINER_IS_IDLE         = 4;
     ASTEROID_TOO_FAR      = 5;
-    NO_SPACE_AVALIABLE    = 6;
-    NOT_BINT_TO_CARGO     = 7;
+    NO_SPACE_AVAILABLE    = 6;
+    NOT_BOUND_TO_CARGO    = 7;
   }
 
   message Specification {

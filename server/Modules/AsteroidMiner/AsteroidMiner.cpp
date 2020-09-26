@@ -42,7 +42,7 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   }
 
   if (!m_pContainer) {
-    sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
     onDeactivated();
     return;
   }
@@ -67,7 +67,7 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   sendToClient(m_nTunnelId, message);
 
   if (put < amount) {
-    sendError(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVALIABLE);
+    sendError(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
     onDeactivated();
   }
 }
@@ -101,7 +101,7 @@ void AsteroidMiner::bindToCargoRequest(uint32_t nTunnelId, std::string const& sC
   BaseModulePtr pModule = getPlatform()->getModuleByName(m_sContainerName);
   ResourceContainerPtr pContainer = std::dynamic_pointer_cast<ResourceContainer>(pModule);
   if (!pContainer) {
-    sendBindingStatus(nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    sendBindingStatus(nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
     return;
   }
   m_pContainer = std::move(pContainer);
@@ -117,7 +117,7 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
   }
 
   if (!m_pContainer) {
-    sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
     return;
   }
 
@@ -178,7 +178,7 @@ void AsteroidMiner::sendBindingStatus(uint32_t nTunnelId,
                                       spex::IAsteroidMiner::Status status)
 {
   assert(status == spex::IAsteroidMiner::SUCCESS ||
-         status == spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+         status == spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
   pResponse->set_bind_to_cargo_status(status);

@@ -17,10 +17,10 @@ static AsteroidMiner::Status convert(spex::IAsteroidMiner::Status eStatus) {
       return AsteroidMiner::eAsteroidTooFar;
     case spex::IAsteroidMiner::MINER_IS_IDLE:
       return AsteroidMiner::eMinerIsIdle;
-    case spex::IAsteroidMiner::NO_SPACE_AVALIABLE:
-      return AsteroidMiner::eNoSpaceAvaliable;
-    case spex::IAsteroidMiner::NOT_BINT_TO_CARGO:
-      return AsteroidMiner::eNotBintToCargo;
+    case spex::IAsteroidMiner::NO_SPACE_AVAILABLE:
+      return AsteroidMiner::eNoSpaceAvailable;
+    case spex::IAsteroidMiner::NOT_BOUND_TO_CARGO:
+      return AsteroidMiner::eNotBoundToCargo;
     default:
       assert(nullptr == "Unexpected status");
   }

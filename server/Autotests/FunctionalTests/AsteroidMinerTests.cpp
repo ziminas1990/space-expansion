@@ -114,7 +114,7 @@ TEST_F(AsteroidMinerTests, BindingToCargo)
   client::ResourceContainer cargo;
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
 
-  ASSERT_EQ(client::AsteroidMiner::eNotBintToCargo,
+  ASSERT_EQ(client::AsteroidMiner::eNotBoundToCargo,
             miner.bindToCargo("NonExistingCargo"));
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
@@ -139,7 +139,7 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
 
   // The miner has not been bint to cargo
-  ASSERT_EQ(client::AsteroidMiner::eNotBintToCargo,
+  ASSERT_EQ(client::AsteroidMiner::eNotBoundToCargo,
             miner.startMining(0, world::Resource::eMetal));
 
   // Binding mining to the cargo and trying again (should be ok)
@@ -311,7 +311,7 @@ TEST_F(AsteroidMinerTests, NoAvaliableSpace)
     cargo.getContent(content);
   }
 
-  ASSERT_TRUE(miner.waitError(client::AsteroidMiner::eNoSpaceAvaliable));
+  ASSERT_TRUE(miner.waitError(client::AsteroidMiner::eNoSpaceAvailable));
 }
 
 } // namespace autotests
