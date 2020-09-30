@@ -1,5 +1,6 @@
 from typing import Any, Optional
 import asyncio
+import threading
 
 from .channel import Channel, ChannelMode
 from .terminal import Terminal
@@ -21,6 +22,7 @@ class QueuedTerminal(Terminal):
         super().__init__(terminal_name=terminal_name, *args, **kwargs)
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
+        self.wait_lock: threading.Lock = threading.Lock()
 
     def get_name(self) -> str:
         return super(QueuedTerminal, self).get_name()
@@ -51,13 +53,14 @@ class QueuedTerminal(Terminal):
     async def wait_message(self, timeout: float = 1.0) -> Optional[Any]:
         # If attached channel is in PASSIVE mode, just recall its 'receive'
         # method. Otherwise, await for a message on the internal queue.
-        if self.channel and not self.channel.is_active_mode():
-            return await self.channel.receive(timeout)
-
-        try:
-            return await asyncio.wait_for(self.queue.get(), timeout=timeout)
-        except asyncio.TimeoutError:
-            return None
+        assert not self.wait_lock.locked()  # Multithreading wait is not what you want!
+        with self.wait_lock:
+            if self.channel and not self.channel.is_active_mode():
+                return await self.channel.receive(timeout)
+            try:
+                return await asyncio.wait_for(self.queue.get(), timeout=timeout)
+            except asyncio.TimeoutError:
+                return None
 
     def send_message(self, message: Any) -> bool:
         return self.channel is not None and self.channel.send(message=message)

@@ -246,14 +246,15 @@ message IAsteroidMiner {
     MINER_IS_BUSY         = 3;
     MINER_IS_IDLE         = 4;
     ASTEROID_TOO_FAR      = 5;
-    NO_SPACE_AVALIABLE    = 6;
-    NOT_BINT_TO_CARGO     = 7;
+    NO_SPACE_AVAILABLE    = 6;
+    NOT_BOUND_TO_CARGO    = 7;
+    INTERRUPTED_BY_USER   = 8;
   }
 
   message Specification {
     uint32 max_distance    = 1;
     uint32 cycle_time_ms   = 2;
-    uint32 yeild_pre_cycle = 3;
+    uint32 yield_per_cycle = 3;
   }
 
   message MiningTask {
@@ -271,8 +272,8 @@ message IAsteroidMiner {
     Status        bind_to_cargo_status = 22;
     Status        start_mining_status  = 23;
     ResourceItem  mining_report        = 24;
-    Status        stop_mining_status   = 25;
-    Status        on_error             = 26;
+    Status        mining_is_stopped    = 25;
+    Status        stop_mining_status   = 26;
   }
 
 }

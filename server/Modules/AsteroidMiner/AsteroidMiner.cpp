@@ -42,7 +42,7 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   }
 
   if (!m_pContainer) {
-    sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
     onDeactivated();
     return;
   }
@@ -67,7 +67,7 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   sendToClient(m_nTunnelId, message);
 
   if (put < amount) {
-    sendError(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVALIABLE);
+    sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
     onDeactivated();
   }
 }
@@ -101,7 +101,7 @@ void AsteroidMiner::bindToCargoRequest(uint32_t nTunnelId, std::string const& sC
   BaseModulePtr pModule = getPlatform()->getModuleByName(m_sContainerName);
   ResourceContainerPtr pContainer = std::dynamic_pointer_cast<ResourceContainer>(pModule);
   if (!pContainer) {
-    sendBindingStatus(nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    sendBindingStatus(nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
     return;
   }
   m_pContainer = std::move(pContainer);
@@ -117,7 +117,7 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
   }
 
   if (!m_pContainer) {
-    sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+    sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
     return;
   }
 
@@ -146,6 +146,7 @@ void AsteroidMiner::stopMiningRequest(uint32_t nTunnelId)
     return;
   }
   sendStopMiningStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
+  sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::INTERRUPTED_BY_USER);
   switchToIdleState();
 }
 
@@ -156,11 +157,11 @@ void AsteroidMiner::onSpecificationRequest(uint32_t nTunnelId)
       response.mutable_asteroid_miner()->mutable_specification();
   body->set_max_distance(m_nMaxDistance);
   body->set_cycle_time_ms(m_nCycleTimeMs);
-  body->set_yeild_pre_cycle(m_nYeildPerCycle);
+  body->set_yield_per_cycle(m_nYeildPerCycle);
   sendToClient(nTunnelId, response);
 }
 
-world::Asteroid *AsteroidMiner::getAsteroid(uint32_t nAsteroidId)
+world::Asteroid* AsteroidMiner::getAsteroid(uint32_t nAsteroidId)
 {
   if (nAsteroidId >= world::AsteroidsContainer::TotalInstancies()) {
     return nullptr;
@@ -178,7 +179,7 @@ void AsteroidMiner::sendBindingStatus(uint32_t nTunnelId,
                                       spex::IAsteroidMiner::Status status)
 {
   assert(status == spex::IAsteroidMiner::SUCCESS ||
-         status == spex::IAsteroidMiner::NOT_BINT_TO_CARGO);
+         status == spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
   pResponse->set_bind_to_cargo_status(status);
@@ -203,11 +204,12 @@ void AsteroidMiner::sendStopMiningStatus(uint32_t nTunnelId,
   sendToClient(nTunnelId, message);
 }
 
-void AsteroidMiner::sendError(uint32_t nTunnelId, spex::IAsteroidMiner::Status error)
+void AsteroidMiner::sendMiningIsStopped(uint32_t nTunnelId,
+                                        spex::IAsteroidMiner::Status status)
 {
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
-  pResponse->set_on_error(error);
+  pResponse->set_mining_is_stopped(status);
   sendToClient(nTunnelId, message);
 }
 

@@ -31,7 +31,7 @@ class TestCase(BaseTestFixture):
                     ]
                 )
             },
-            world = world.World(
+            world=world.World(
                 asteroids=world.Asteroids(asteroids=[
                     world.Asteroid(position=world.Position(x=10000, y=10000),
                                    radius=200,

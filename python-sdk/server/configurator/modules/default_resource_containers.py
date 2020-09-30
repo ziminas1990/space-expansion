@@ -5,7 +5,7 @@ from .resource_container import ResourceContainerBlueprint
 
 resource_containers_blueprints: Dict[str, ResourceContainerBlueprint] = {
     "tiny": ResourceContainerBlueprint(name="Tiny Resource Container",
-                                       volume=30),
+                                       volume=20),
     "small": ResourceContainerBlueprint(name="Small Resource Container",
                                         volume=125),
     "medium": ResourceContainerBlueprint(name="Medium Resource Container",

@@ -23,7 +23,7 @@ class Server:
 
         self.server_process = subprocess.Popen(
                 ["space-expansion-server", self.config_file.name])
-        time.sleep(0.1)
+        time.sleep(0.01)
 
     def is_running(self) -> bool:
         return self.server_process is not None
