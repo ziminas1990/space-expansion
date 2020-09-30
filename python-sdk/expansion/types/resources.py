@@ -48,7 +48,7 @@ class ResourceType(Enum):
         return volume
 
     @staticmethod
-    def calculate_amount(self, resource_type: 'ResourceType', volume: float) -> float:
+    def calculate_amount(resource_type: 'ResourceType', volume: float) -> float:
         """Calculate amount of resource with the specified 'resource_type',
         fitted into the specified 'volume'"""
         return volume * ResourceType.density(resource_type)

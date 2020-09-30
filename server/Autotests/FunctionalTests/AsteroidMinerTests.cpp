@@ -163,6 +163,7 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
     cargo.getContent(content);
     EXPECT_DOUBLE_EQ(content.metals(), nYieldTotal);
   }
+
 }
 
 TEST_F(AsteroidMinerTests, StopMining)
@@ -311,7 +312,9 @@ TEST_F(AsteroidMinerTests, NoAvaliableSpace)
     cargo.getContent(content);
   }
 
-  ASSERT_TRUE(miner.waitError(client::AsteroidMiner::eNoSpaceAvailable));
+  client::AsteroidMiner::Status eStatus;
+  ASSERT_TRUE(miner.waitMiningIsStoppedInd(eStatus));
+  ASSERT_EQ(client::AsteroidMiner::eNoSpaceAvailable, eStatus);
 }
 
 } // namespace autotests

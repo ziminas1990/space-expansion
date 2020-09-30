@@ -21,6 +21,8 @@ static AsteroidMiner::Status convert(spex::IAsteroidMiner::Status eStatus) {
       return AsteroidMiner::eNoSpaceAvailable;
     case spex::IAsteroidMiner::NOT_BOUND_TO_CARGO:
       return AsteroidMiner::eNotBoundToCargo;
+    case spex::IAsteroidMiner::INTERRUPTED_BY_USER:
+      return AsteroidMiner::eInterruptedByUser;
     default:
       assert(nullptr == "Unexpected status");
   }
@@ -95,7 +97,11 @@ AsteroidMiner::Status AsteroidMiner::stopMining()
   if (response.choice_case() != spex::IAsteroidMiner::kStopMiningStatus)
     return eUnexpectedMessage;
 
-  return convert(response.stop_mining_status());
+  Status eStopStatus = convert(response.stop_mining_status());
+  if (eStopStatus != Status::eSuccess)
+    return eStopStatus;
+
+  return waitMiningIsStoppedInd(eStopStatus) ? Status::eSuccess : Status::eTimeout;
 }
 
 bool AsteroidMiner::waitMiningReport(double& nAmount, uint16_t nTimeout)
@@ -110,15 +116,15 @@ bool AsteroidMiner::waitMiningReport(double& nAmount, uint16_t nTimeout)
   return true;
 }
 
-bool AsteroidMiner::waitError(AsteroidMiner::Status eExpectedStatus)
+bool AsteroidMiner::waitMiningIsStoppedInd(Status& eStatus, uint16_t nTimeout)
 {
   spex::IAsteroidMiner response;
-  if (!wait(response))
+  if (!wait(response, nTimeout))
     return false;
-  if (response.choice_case() != spex::IAsteroidMiner::kOnError)
+  if (response.choice_case() != spex::IAsteroidMiner::kMiningIsStopped)
     return false;
-
-  return convert(response.on_error()) == eExpectedStatus;
+  eStatus = convert(response.mining_is_stopped());
+  return true;
 }
 
 }}  // namespace aytitests::client

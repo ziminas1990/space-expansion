@@ -67,7 +67,7 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   sendToClient(m_nTunnelId, message);
 
   if (put < amount) {
-    sendError(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
+    sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
     onDeactivated();
   }
 }
@@ -146,6 +146,7 @@ void AsteroidMiner::stopMiningRequest(uint32_t nTunnelId)
     return;
   }
   sendStopMiningStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
+  sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::INTERRUPTED_BY_USER);
   switchToIdleState();
 }
 
@@ -203,11 +204,12 @@ void AsteroidMiner::sendStopMiningStatus(uint32_t nTunnelId,
   sendToClient(nTunnelId, message);
 }
 
-void AsteroidMiner::sendError(uint32_t nTunnelId, spex::IAsteroidMiner::Status error)
+void AsteroidMiner::sendMiningIsStopped(uint32_t nTunnelId,
+                                        spex::IAsteroidMiner::Status status)
 {
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
-  pResponse->set_on_error(error);
+  pResponse->set_mining_is_stopped(status);
   sendToClient(nTunnelId, message);
 }
 

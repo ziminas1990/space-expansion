@@ -248,6 +248,7 @@ message IAsteroidMiner {
     ASTEROID_TOO_FAR      = 5;
     NO_SPACE_AVAILABLE    = 6;
     NOT_BOUND_TO_CARGO    = 7;
+    INTERRUPTED_BY_USER   = 8;
   }
 
   message Specification {
@@ -271,8 +272,8 @@ message IAsteroidMiner {
     Status        bind_to_cargo_status = 22;
     Status        start_mining_status  = 23;
     ResourceItem  mining_report        = 24;
-    Status        stop_mining_status   = 25;
-    Status        on_error             = 26;
+    Status        mining_is_stopped    = 25;
+    Status        stop_mining_status   = 26;
   }
 
 }

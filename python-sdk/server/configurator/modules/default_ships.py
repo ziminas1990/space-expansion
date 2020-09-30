@@ -37,6 +37,7 @@ ships_blueprints: Dict[ShipType, ShipBlueprint] = {
             'additional_engine': engine_blueprints[EngineType.ION][EngineSize.REGULAR].id,
             'scanner': celestial_scanners_blueprints["basic"].id,
             'cargo': resource_containers_blueprints["small"].id,
+            'tiny_cargo': resource_containers_blueprints["tiny"].id,
             'miner': asteroid_miner_blueprints["basic"].id
         }
     )
@@ -57,11 +58,13 @@ def make_probe(name: str, position: world.Position,
 def make_miner(name: str, position: world.Position,
                main_engine: EngineState = EngineState(),
                additional_engine: EngineState = EngineState(),
-               cargo: ResourceContainerState = ResourceContainerState()):
+               cargo: ResourceContainerState = ResourceContainerState(),
+               tiny_cargo: ResourceContainerState = ResourceContainerState()):
     """Create configuration of the 'MINER' ship"""
     return Ship(name=name,
                 ship_type=ShipType.MINER.value,
                 position=position,
                 modules={"main_engine": main_engine,
                          "additional_engine": additional_engine,
-                         "cargo": cargo})
+                         "cargo": cargo,
+                         "tiny_cargo": tiny_cargo})

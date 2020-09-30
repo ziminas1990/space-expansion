@@ -48,6 +48,7 @@ async def connect_to_ship(ship_type: str,
         logging.getLogger(__name__).warning(
             f"Failed to connect to the ship '{name}' on the '{commutator.get_name()}': "
             f"{error}")
+        return None
     return ship
 
 
@@ -70,6 +71,7 @@ async def connect_to_engine(name: str, ship: Ship,
         logging.getLogger(__name__).warning(
             f"Failed to connect to the engine '{name}' on the ship '{ship.get_name()}': "
             f"{error}")
+        return None
     return engine
 
 
@@ -97,6 +99,7 @@ async def connect_to_celestial_scanner(
         logging.getLogger(__name__).warning(
             f"Failed to connect to the celestial scaner '{name}' on the ship '{ship.get_name()}': "
             f"{error}")
+        return None
     return scanner
 
 
@@ -112,6 +115,7 @@ async def connect_to_system_clock(commutator: Commutator) -> Optional[SystemCloc
     if error:
         logging.getLogger(__name__).warning(
             f"Failed to connect to the system clock!': {error}")
+        return None
     return system_clock
 
 
@@ -139,6 +143,7 @@ async def connect_to_resource_container(
         logging.getLogger(__name__).warning(
             f"Failed to connect to the resource container '{name}' on the ship "
             f"'{ship.get_name()}': {error}")
+        return None
     return container
 
 
@@ -162,9 +167,18 @@ async def connect_to_asteroid_miner(
         owner_name = ship.get_name()
     miner: AsteroidMiner = AsteroidMiner(name=f"{owner_name}::miner_{name}")
 
-    error = await ship.get_commutator().open_tunnel(candidate.slot_id, miner)
+    error = await ship.get_commutator().open_tunnel(candidate.slot_id, miner.control_channel)
     if error:
         logging.getLogger(__name__).warning(
             f"Failed to connect to the {module_type_name} '{name}' on the ship "
             f"'{ship.get_name()}': {error}")
+        return None
+
+    error = await ship.get_commutator().open_tunnel(candidate.slot_id, miner.mining_channel)
+    if error:
+        logging.getLogger(__name__).warning(
+            f"Failed to connect to the {module_type_name} '{name}' on the ship "
+            f"'{ship.get_name()}': {error}")
+        miner.control_channel.channel.close()
+        return None
     return miner

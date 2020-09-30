@@ -28,7 +28,8 @@ public:
     eAsteroidDoesntExist,
     eAsteroidTooFar,
     eNoSpaceAvailable,
-    eNotBoundToCargo
+    eNotBoundToCargo,
+    eInterruptedByUser,
   };
 
   bool getSpecification(AsteroidMinerSpecification& specification);
@@ -38,7 +39,7 @@ public:
   Status stopMining();
 
   bool waitMiningReport(double& nAmount, uint16_t nTimeout = 500);
-  bool waitError(Status eExpectedStatus);
+  bool waitMiningIsStoppedInd(Status& eStatus, uint16_t nTimeout = 500);
 
 };
 

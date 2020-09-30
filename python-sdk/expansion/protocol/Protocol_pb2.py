@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='spex',
   syntax='proto3',
   serialized_options=_b('\370\001\001'),
-  serialized_pb=_b('\n\x0eProtocol.proto\x12\x04spex\"(\n\tNamesList\x12\x0c\n\x04left\x18\x01 \x01(\r\x12\r\n\x05names\x18\x02 \x03(\t\"@\n\x0cResourceItem\x12 \n\x04type\x18\x01 \x01(\x0e\x32\x12.spex.ResourceType\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x01\"G\n\x08Property\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x1e\n\x06nested\x18\x03 \x03(\x0b\x32\x0e.spex.Property\"c\n\tBlueprint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\"\n\nproperties\x18\x02 \x03(\x0b\x32\x0e.spex.Property\x12$\n\x08\x65xpenses\x18\x03 \x03(\x0b\x32\x12.spex.ResourceItem\"8\n\x08Position\x12\t\n\x01x\x18\x01 \x01(\x01\x12\t\n\x01y\x18\x02 \x01(\x01\x12\n\n\x02vx\x18\x04 \x01(\x01\x12\n\n\x02vy\x18\x05 \x01(\x01\"\xca\x01\n\x0cIAccessPanel\x12\x30\n\x05login\x18\x01 \x01(\x0b\x32\x1f.spex.IAccessPanel.LoginRequestH\x00\x12\x18\n\x0e\x61\x63\x63\x65ss_granted\x18\x15 \x01(\rH\x00\x12\x19\n\x0f\x61\x63\x63\x65ss_rejected\x18\x16 \x01(\tH\x00\x1aI\n\x0cLoginRequest\x12\r\n\x05login\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\rB\x08\n\x06\x63hoice\"\x87\x03\n\x07IEngine\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x33\n\rchange_thrust\x18\x02 \x01(\x0b\x32\x1a.spex.IEngine.ChangeThrustH\x00\x12\x14\n\nthrust_req\x18\x03 \x01(\x08H\x00\x12\x34\n\rspecification\x18\x15 \x01(\x0b\x32\x1b.spex.IEngine.SpecificationH\x00\x12-\n\x06thrust\x18\x16 \x01(\x0b\x32\x1b.spex.IEngine.CurrentThrustH\x00\x1a#\n\rSpecification\x12\x12\n\nmax_thrust\x18\x01 \x01(\r\x1aI\n\x0c\x43hangeThrust\x12\t\n\x01x\x18\x01 \x01(\x01\x12\t\n\x01y\x18\x02 \x01(\x01\x12\x0e\n\x06thrust\x18\x04 \x01(\r\x12\x13\n\x0b\x64uration_ms\x18\x05 \x01(\r\x1a\x35\n\rCurrentThrust\x12\t\n\x01x\x18\x01 \x01(\x01\x12\t\n\x01y\x18\x02 \x01(\x01\x12\x0e\n\x06thrust\x18\x04 \x01(\rB\x08\n\x06\x63hoice\"c\n\x05IShip\x12\x13\n\tstate_req\x18\x01 \x01(\x08H\x00\x12\"\n\x05state\x18\x15 \x01(\x0b\x32\x11.spex.IShip.StateH\x00\x1a\x17\n\x05State\x12\x0e\n\x06weight\x18\x01 \x01(\x01\x42\x08\n\x06\x63hoice\"S\n\x0bINavigation\x12\x16\n\x0cposition_req\x18\x01 \x01(\x08H\x00\x12\"\n\x08position\x18\x15 \x01(\x0b\x32\x0e.spex.PositionH\x00\x42\x08\n\x06\x63hoice\"\xf9\x04\n\x11ICelestialScanner\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12,\n\x04scan\x18\x02 \x01(\x0b\x32\x1c.spex.ICelestialScanner.ScanH\x00\x12>\n\rspecification\x18\x15 \x01(\x0b\x32%.spex.ICelestialScanner.SpecificationH\x00\x12>\n\x0fscanning_report\x18\x16 \x01(\x0b\x32#.spex.ICelestialScanner.ScanResultsH\x00\x12\x39\n\x0fscanning_failed\x18\x17 \x01(\x0e\x32\x1e.spex.ICelestialScanner.StatusH\x00\x1a\x42\n\rSpecification\x12\x15\n\rmax_radius_km\x18\x01 \x01(\r\x12\x1a\n\x12processing_time_us\x18\x02 \x01(\r\x1a<\n\x04Scan\x12\x1a\n\x12scanning_radius_km\x18\x01 \x01(\r\x12\x18\n\x10minimal_radius_m\x18\x02 \x01(\r\x1aS\n\x0c\x41steroidInfo\x12\n\n\x02id\x18\x01 \x01(\r\x12\t\n\x01x\x18\x02 \x01(\x01\x12\t\n\x01y\x18\x03 \x01(\x01\x12\n\n\x02vx\x18\x04 \x01(\x01\x12\n\n\x02vy\x18\x05 \x01(\x01\x12\t\n\x01r\x18\x06 \x01(\x01\x1aT\n\x0bScanResults\x12\x37\n\tasteroids\x18\x01 \x03(\x0b\x32$.spex.ICelestialScanner.AsteroidInfo\x12\x0c\n\x04left\x18\x02 \x01(\r\"\'\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x10\n\x0cSCANNER_BUSY\x10\x01\x42\x08\n\x06\x63hoice\"\x8a\x04\n\x10IAsteroidScanner\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x17\n\rscan_asteroid\x18\x02 \x01(\rH\x00\x12=\n\rspecification\x18\x15 \x01(\x0b\x32$.spex.IAsteroidScanner.SpecificationH\x00\x12\x38\n\x0fscanning_status\x18\x16 \x01(\x0e\x32\x1d.spex.IAsteroidScanner.StatusH\x00\x12>\n\x11scanning_finished\x18\x17 \x01(\x0b\x32!.spex.IAsteroidScanner.ScanResultH\x00\x1a?\n\rSpecification\x12\x14\n\x0cmax_distance\x18\x01 \x01(\r\x12\x18\n\x10scanning_time_ms\x18\x02 \x01(\r\x1ay\n\nScanResult\x12\x13\n\x0b\x61steroid_id\x18\x01 \x01(\r\x12\x0e\n\x06weight\x18\x02 \x01(\x01\x12\x16\n\x0emetals_percent\x18\x03 \x01(\x01\x12\x13\n\x0bice_percent\x18\x04 \x01(\x01\x12\x19\n\x11silicates_percent\x18\x05 \x01(\x01\"A\n\x06Status\x12\x0f\n\x0bIN_PROGRESS\x10\x00\x12\x10\n\x0cSCANNER_BUSY\x10\x01\x12\x14\n\x10\x41STEROID_TOO_FAR\x10\x02\x42\x08\n\x06\x63hoice\"\xb3\x07\n\x12IResourceContainer\x12\x15\n\x0b\x63ontent_req\x18\x01 \x01(\x08H\x00\x12\x13\n\topen_port\x18\x02 \x01(\rH\x00\x12\x14\n\nclose_port\x18\x03 \x01(\x08H\x00\x12\x35\n\x08transfer\x18\x04 \x01(\x0b\x32!.spex.IResourceContainer.TransferH\x00\x12\x33\n\x07\x63ontent\x18\x15 \x01(\x0b\x32 .spex.IResourceContainer.ContentH\x00\x12\x15\n\x0bport_opened\x18\x16 \x01(\rH\x00\x12;\n\x10open_port_failed\x18\x17 \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x12<\n\x11\x63lose_port_status\x18\x18 \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x12:\n\x0ftransfer_status\x18\x19 \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x12-\n\x0ftransfer_report\x18\x1a \x01(\x0b\x32\x12.spex.ResourceItemH\x00\x12<\n\x11transfer_finished\x18\x1b \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x1aN\n\x07\x43ontent\x12\x0e\n\x06volume\x18\x01 \x01(\r\x12\x0c\n\x04used\x18\x02 \x01(\x01\x12%\n\tresources\x18\x03 \x03(\x0b\x32\x12.spex.ResourceItem\x1aU\n\x08Transfer\x12\x0f\n\x07port_id\x18\x01 \x01(\r\x12\x12\n\naccess_key\x18\x02 \x01(\r\x12$\n\x08resource\x18\x03 \x01(\x0b\x32\x12.spex.ResourceItem\"\x82\x02\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x15\n\x11PORT_ALREADY_OPEN\x10\x02\x12\x15\n\x11PORT_DOESNT_EXIST\x10\x03\x12\x16\n\x12PORT_IS_NOT_OPENED\x10\x04\x12\x18\n\x14PORT_HAS_BEEN_CLOSED\x10\x05\x12\x16\n\x12INVALID_ACCESS_KEY\x10\x06\x12\x19\n\x15INVALID_RESOURCE_TYPE\x10\x07\x12\x10\n\x0cPORT_TOO_FAR\x10\x08\x12\x18\n\x14TRANSFER_IN_PROGRESS\x10\t\x12\x18\n\x14NOT_ENOUGH_RESOURCES\x10\nB\x08\n\x06\x63hoice\"\xc2\x06\n\x0eIAsteroidMiner\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x17\n\rbind_to_cargo\x18\x02 \x01(\tH\x00\x12\x37\n\x0cstart_mining\x18\x03 \x01(\x0b\x32\x1f.spex.IAsteroidMiner.MiningTaskH\x00\x12\x15\n\x0bstop_mining\x18\x04 \x01(\x08H\x00\x12;\n\rspecification\x18\x15 \x01(\x0b\x32\".spex.IAsteroidMiner.SpecificationH\x00\x12;\n\x14\x62ind_to_cargo_status\x18\x16 \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x12:\n\x13start_mining_status\x18\x17 \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x12+\n\rmining_report\x18\x18 \x01(\x0b\x32\x12.spex.ResourceItemH\x00\x12\x39\n\x12stop_mining_status\x18\x19 \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x12/\n\x08on_error\x18\x1a \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x1aU\n\rSpecification\x12\x14\n\x0cmax_distance\x18\x01 \x01(\r\x12\x15\n\rcycle_time_ms\x18\x02 \x01(\r\x12\x17\n\x0fyield_per_cycle\x18\x03 \x01(\r\x1aG\n\nMiningTask\x12\x13\n\x0b\x61steroid_id\x18\x01 \x01(\r\x12$\n\x08resource\x18\x02 \x01(\x0e\x32\x12.spex.ResourceType\"\xb0\x01\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x19\n\x15\x41STEROID_DOESNT_EXIST\x10\x02\x12\x11\n\rMINER_IS_BUSY\x10\x03\x12\x11\n\rMINER_IS_IDLE\x10\x04\x12\x14\n\x10\x41STEROID_TOO_FAR\x10\x05\x12\x16\n\x12NO_SPACE_AVAILABLE\x10\x06\x12\x16\n\x12NOT_BOUND_TO_CARGO\x10\x07\x42\x08\n\x06\x63hoice\"\xa7\x02\n\x12IBlueprintsLibrary\x12\x1d\n\x13\x62lueprints_list_req\x18\x01 \x01(\tH\x00\x12\x17\n\rblueprint_req\x18\x02 \x01(\tH\x00\x12*\n\x0f\x62lueprints_list\x18\x14 \x01(\x0b\x32\x0f.spex.NamesListH\x00\x12$\n\tblueprint\x18\x15 \x01(\x0b\x32\x0f.spex.BlueprintH\x00\x12\x39\n\x0e\x62lueprint_fail\x18\x16 \x01(\x0e\x32\x1f.spex.IBlueprintsLibrary.StatusH\x00\"B\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x17\n\x13\x42LUEPRINT_NOT_FOUND\x10\x02\x42\x08\n\x06\x63hoice\"\xf6\x04\n\tIShipyard\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x31\n\x0bstart_build\x18\x02 \x01(\x0b\x32\x1a.spex.IShipyard.StartBuildH\x00\x12\x16\n\x0c\x63\x61ncel_build\x18\x03 \x01(\x08H\x00\x12\x36\n\rspecification\x18\x14 \x01(\x0b\x32\x1d.spex.IShipyard.SpecificationH\x00\x12\x31\n\x0f\x62uilding_status\x18\x15 \x01(\x0e\x32\x16.spex.IShipyard.StatusH\x00\x12\x1b\n\x11\x62uilding_progress\x18\x16 \x01(\x01H\x00\x12\x36\n\x11\x62uilding_complete\x18\x17 \x01(\x0b\x32\x19.spex.IShipyard.ShipBuiltH\x00\x1a&\n\rSpecification\x12\x15\n\rlabor_per_sec\x18\x01 \x01(\x01\x1a\x37\n\nStartBuild\x12\x16\n\x0e\x62lueprint_name\x18\x01 \x01(\t\x12\x11\n\tship_name\x18\x02 \x01(\t\x1a/\n\tShipBuilt\x12\x11\n\tship_name\x18\x01 \x01(\t\x12\x0f\n\x07slot_id\x18\x02 \x01(\r\"\xa4\x01\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x11\n\rBUILD_STARTED\x10\x02\x12\x12\n\x0e\x42UILD_CANCELED\x10\x03\x12\x11\n\rBUILD_FREEZED\x10\x04\x12\x10\n\x0c\x42UILD_FAILED\x10\x05\x12\x17\n\x13\x42LUEPRINT_NOT_FOUND\x10\x06\x12\x14\n\x10SHIPYARD_IS_BUSY\x10\x07\x42\x08\n\x06\x63hoice\"\xc8\x04\n\x0bICommutator\x12\x19\n\x0ftotal_slots_req\x18\x01 \x01(\x08H\x00\x12\x19\n\x0fmodule_info_req\x18\x02 \x01(\rH\x00\x12\x1e\n\x14\x61ll_modules_info_req\x18\x03 \x01(\x08H\x00\x12\x15\n\x0bopen_tunnel\x18\x04 \x01(\rH\x00\x12\x16\n\x0c\x63lose_tunnel\x18\x05 \x01(\rH\x00\x12\x15\n\x0btotal_slots\x18\x15 \x01(\rH\x00\x12\x33\n\x0bmodule_info\x18\x16 \x01(\x0b\x32\x1c.spex.ICommutator.ModuleInfoH\x00\x12\x1c\n\x12open_tunnel_report\x18\x17 \x01(\rH\x00\x12\x36\n\x12open_tunnel_failed\x18\x18 \x01(\x0e\x32\x18.spex.ICommutator.StatusH\x00\x12\x1d\n\x13\x63lose_tunnel_report\x18\x19 \x01(\rH\x00\x12\x37\n\x13\x63lose_tunnel_failed\x18\x1a \x01(\x0e\x32\x18.spex.ICommutator.StatusH\x00\x1aG\n\nModuleInfo\x12\x0f\n\x07slot_id\x18\x01 \x01(\r\x12\x13\n\x0bmodule_type\x18\x02 \x01(\t\x12\x13\n\x0bmodule_name\x18\x03 \x01(\t\"g\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x10\n\x0cINVALID_SLOT\x10\x01\x12\x12\n\x0eMODULE_OFFLINE\x10\x02\x12\x16\n\x12REJECTED_BY_MODULE\x10\x03\x12\x12\n\x0eINVALID_TUNNEL\x10\x04\x42\x08\n\x06\x63hoice\"\x9b\x01\n\x05IGame\x12\x30\n\x10game_over_report\x18\x15 \x01(\x0b\x32\x14.spex.IGame.GameOverH\x00\x1a&\n\x05Score\x12\x0e\n\x06player\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\r\x1a.\n\x08GameOver\x12\"\n\x07leaders\x18\x01 \x03(\x0b\x32\x11.spex.IGame.ScoreB\x08\n\x06\x63hoice\"v\n\x0cISystemClock\x12\x12\n\x08time_req\x18\x01 \x01(\x08H\x00\x12\x14\n\nwait_until\x18\x02 \x01(\x04H\x00\x12\x12\n\x08wait_for\x18\x03 \x01(\x04H\x00\x12\x0e\n\x04time\x18\x15 \x01(\x04H\x00\x12\x0e\n\x04ring\x18\x16 \x01(\x04H\x00\x42\x08\n\x06\x63hoice\"\x92\x05\n\x07Message\x12\x10\n\x08tunnelId\x18\x01 \x01(\r\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12%\n\x0c\x65ncapsulated\x18\x0c \x01(\x0b\x32\r.spex.MessageH\x00\x12)\n\x0b\x61\x63\x63\x65ssPanel\x18\r \x01(\x0b\x32\x12.spex.IAccessPanelH\x00\x12\'\n\ncommutator\x18\x0e \x01(\x0b\x32\x11.spex.ICommutatorH\x00\x12\x1b\n\x04ship\x18\x0f \x01(\x0b\x32\x0b.spex.IShipH\x00\x12\'\n\nnavigation\x18\x10 \x01(\x0b\x32\x11.spex.INavigationH\x00\x12\x1f\n\x06\x65ngine\x18\x11 \x01(\x0b\x32\r.spex.IEngineH\x00\x12\x34\n\x11\x63\x65lestial_scanner\x18\x12 \x01(\x0b\x32\x17.spex.ICelestialScannerH\x00\x12\x32\n\x10\x61steroid_scanner\x18\x13 \x01(\x0b\x32\x16.spex.IAsteroidScannerH\x00\x12\x36\n\x12resource_container\x18\x14 \x01(\x0b\x32\x18.spex.IResourceContainerH\x00\x12.\n\x0e\x61steroid_miner\x18\x15 \x01(\x0b\x32\x14.spex.IAsteroidMinerH\x00\x12\x36\n\x12\x62lueprints_library\x18\x16 \x01(\x0b\x32\x18.spex.IBlueprintsLibraryH\x00\x12#\n\x08shipyard\x18\x17 \x01(\x0b\x32\x0f.spex.IShipyardH\x00\x12\x1b\n\x04game\x18\x18 \x01(\x0b\x32\x0b.spex.IGameH\x00\x12*\n\x0csystem_clock\x18\x19 \x01(\x0b\x32\x12.spex.ISystemClockH\x00\x42\x08\n\x06\x63hoice*w\n\x0cResourceType\x12\x14\n\x10RESOURCE_UNKNOWN\x10\x00\x12\x13\n\x0fRESOURCE_METALS\x10\x01\x12\x16\n\x12RESOURCE_SILICATES\x10\x02\x12\x10\n\x0cRESOURCE_ICE\x10\x03\x12\x12\n\x0eRESOURCE_LABOR\x10\x65\x42\x03\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x0eProtocol.proto\x12\x04spex\"(\n\tNamesList\x12\x0c\n\x04left\x18\x01 \x01(\r\x12\r\n\x05names\x18\x02 \x03(\t\"@\n\x0cResourceItem\x12 \n\x04type\x18\x01 \x01(\x0e\x32\x12.spex.ResourceType\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x01\"G\n\x08Property\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x1e\n\x06nested\x18\x03 \x03(\x0b\x32\x0e.spex.Property\"c\n\tBlueprint\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\"\n\nproperties\x18\x02 \x03(\x0b\x32\x0e.spex.Property\x12$\n\x08\x65xpenses\x18\x03 \x03(\x0b\x32\x12.spex.ResourceItem\"8\n\x08Position\x12\t\n\x01x\x18\x01 \x01(\x01\x12\t\n\x01y\x18\x02 \x01(\x01\x12\n\n\x02vx\x18\x04 \x01(\x01\x12\n\n\x02vy\x18\x05 \x01(\x01\"\xca\x01\n\x0cIAccessPanel\x12\x30\n\x05login\x18\x01 \x01(\x0b\x32\x1f.spex.IAccessPanel.LoginRequestH\x00\x12\x18\n\x0e\x61\x63\x63\x65ss_granted\x18\x15 \x01(\rH\x00\x12\x19\n\x0f\x61\x63\x63\x65ss_rejected\x18\x16 \x01(\tH\x00\x1aI\n\x0cLoginRequest\x12\r\n\x05login\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\rB\x08\n\x06\x63hoice\"\x87\x03\n\x07IEngine\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x33\n\rchange_thrust\x18\x02 \x01(\x0b\x32\x1a.spex.IEngine.ChangeThrustH\x00\x12\x14\n\nthrust_req\x18\x03 \x01(\x08H\x00\x12\x34\n\rspecification\x18\x15 \x01(\x0b\x32\x1b.spex.IEngine.SpecificationH\x00\x12-\n\x06thrust\x18\x16 \x01(\x0b\x32\x1b.spex.IEngine.CurrentThrustH\x00\x1a#\n\rSpecification\x12\x12\n\nmax_thrust\x18\x01 \x01(\r\x1aI\n\x0c\x43hangeThrust\x12\t\n\x01x\x18\x01 \x01(\x01\x12\t\n\x01y\x18\x02 \x01(\x01\x12\x0e\n\x06thrust\x18\x04 \x01(\r\x12\x13\n\x0b\x64uration_ms\x18\x05 \x01(\r\x1a\x35\n\rCurrentThrust\x12\t\n\x01x\x18\x01 \x01(\x01\x12\t\n\x01y\x18\x02 \x01(\x01\x12\x0e\n\x06thrust\x18\x04 \x01(\rB\x08\n\x06\x63hoice\"c\n\x05IShip\x12\x13\n\tstate_req\x18\x01 \x01(\x08H\x00\x12\"\n\x05state\x18\x15 \x01(\x0b\x32\x11.spex.IShip.StateH\x00\x1a\x17\n\x05State\x12\x0e\n\x06weight\x18\x01 \x01(\x01\x42\x08\n\x06\x63hoice\"S\n\x0bINavigation\x12\x16\n\x0cposition_req\x18\x01 \x01(\x08H\x00\x12\"\n\x08position\x18\x15 \x01(\x0b\x32\x0e.spex.PositionH\x00\x42\x08\n\x06\x63hoice\"\xf9\x04\n\x11ICelestialScanner\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12,\n\x04scan\x18\x02 \x01(\x0b\x32\x1c.spex.ICelestialScanner.ScanH\x00\x12>\n\rspecification\x18\x15 \x01(\x0b\x32%.spex.ICelestialScanner.SpecificationH\x00\x12>\n\x0fscanning_report\x18\x16 \x01(\x0b\x32#.spex.ICelestialScanner.ScanResultsH\x00\x12\x39\n\x0fscanning_failed\x18\x17 \x01(\x0e\x32\x1e.spex.ICelestialScanner.StatusH\x00\x1a\x42\n\rSpecification\x12\x15\n\rmax_radius_km\x18\x01 \x01(\r\x12\x1a\n\x12processing_time_us\x18\x02 \x01(\r\x1a<\n\x04Scan\x12\x1a\n\x12scanning_radius_km\x18\x01 \x01(\r\x12\x18\n\x10minimal_radius_m\x18\x02 \x01(\r\x1aS\n\x0c\x41steroidInfo\x12\n\n\x02id\x18\x01 \x01(\r\x12\t\n\x01x\x18\x02 \x01(\x01\x12\t\n\x01y\x18\x03 \x01(\x01\x12\n\n\x02vx\x18\x04 \x01(\x01\x12\n\n\x02vy\x18\x05 \x01(\x01\x12\t\n\x01r\x18\x06 \x01(\x01\x1aT\n\x0bScanResults\x12\x37\n\tasteroids\x18\x01 \x03(\x0b\x32$.spex.ICelestialScanner.AsteroidInfo\x12\x0c\n\x04left\x18\x02 \x01(\r\"\'\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x10\n\x0cSCANNER_BUSY\x10\x01\x42\x08\n\x06\x63hoice\"\x8a\x04\n\x10IAsteroidScanner\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x17\n\rscan_asteroid\x18\x02 \x01(\rH\x00\x12=\n\rspecification\x18\x15 \x01(\x0b\x32$.spex.IAsteroidScanner.SpecificationH\x00\x12\x38\n\x0fscanning_status\x18\x16 \x01(\x0e\x32\x1d.spex.IAsteroidScanner.StatusH\x00\x12>\n\x11scanning_finished\x18\x17 \x01(\x0b\x32!.spex.IAsteroidScanner.ScanResultH\x00\x1a?\n\rSpecification\x12\x14\n\x0cmax_distance\x18\x01 \x01(\r\x12\x18\n\x10scanning_time_ms\x18\x02 \x01(\r\x1ay\n\nScanResult\x12\x13\n\x0b\x61steroid_id\x18\x01 \x01(\r\x12\x0e\n\x06weight\x18\x02 \x01(\x01\x12\x16\n\x0emetals_percent\x18\x03 \x01(\x01\x12\x13\n\x0bice_percent\x18\x04 \x01(\x01\x12\x19\n\x11silicates_percent\x18\x05 \x01(\x01\"A\n\x06Status\x12\x0f\n\x0bIN_PROGRESS\x10\x00\x12\x10\n\x0cSCANNER_BUSY\x10\x01\x12\x14\n\x10\x41STEROID_TOO_FAR\x10\x02\x42\x08\n\x06\x63hoice\"\xb3\x07\n\x12IResourceContainer\x12\x15\n\x0b\x63ontent_req\x18\x01 \x01(\x08H\x00\x12\x13\n\topen_port\x18\x02 \x01(\rH\x00\x12\x14\n\nclose_port\x18\x03 \x01(\x08H\x00\x12\x35\n\x08transfer\x18\x04 \x01(\x0b\x32!.spex.IResourceContainer.TransferH\x00\x12\x33\n\x07\x63ontent\x18\x15 \x01(\x0b\x32 .spex.IResourceContainer.ContentH\x00\x12\x15\n\x0bport_opened\x18\x16 \x01(\rH\x00\x12;\n\x10open_port_failed\x18\x17 \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x12<\n\x11\x63lose_port_status\x18\x18 \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x12:\n\x0ftransfer_status\x18\x19 \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x12-\n\x0ftransfer_report\x18\x1a \x01(\x0b\x32\x12.spex.ResourceItemH\x00\x12<\n\x11transfer_finished\x18\x1b \x01(\x0e\x32\x1f.spex.IResourceContainer.StatusH\x00\x1aN\n\x07\x43ontent\x12\x0e\n\x06volume\x18\x01 \x01(\r\x12\x0c\n\x04used\x18\x02 \x01(\x01\x12%\n\tresources\x18\x03 \x03(\x0b\x32\x12.spex.ResourceItem\x1aU\n\x08Transfer\x12\x0f\n\x07port_id\x18\x01 \x01(\r\x12\x12\n\naccess_key\x18\x02 \x01(\r\x12$\n\x08resource\x18\x03 \x01(\x0b\x32\x12.spex.ResourceItem\"\x82\x02\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x15\n\x11PORT_ALREADY_OPEN\x10\x02\x12\x15\n\x11PORT_DOESNT_EXIST\x10\x03\x12\x16\n\x12PORT_IS_NOT_OPENED\x10\x04\x12\x18\n\x14PORT_HAS_BEEN_CLOSED\x10\x05\x12\x16\n\x12INVALID_ACCESS_KEY\x10\x06\x12\x19\n\x15INVALID_RESOURCE_TYPE\x10\x07\x12\x10\n\x0cPORT_TOO_FAR\x10\x08\x12\x18\n\x14TRANSFER_IN_PROGRESS\x10\t\x12\x18\n\x14NOT_ENOUGH_RESOURCES\x10\nB\x08\n\x06\x63hoice\"\xe4\x06\n\x0eIAsteroidMiner\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x17\n\rbind_to_cargo\x18\x02 \x01(\tH\x00\x12\x37\n\x0cstart_mining\x18\x03 \x01(\x0b\x32\x1f.spex.IAsteroidMiner.MiningTaskH\x00\x12\x15\n\x0bstop_mining\x18\x04 \x01(\x08H\x00\x12;\n\rspecification\x18\x15 \x01(\x0b\x32\".spex.IAsteroidMiner.SpecificationH\x00\x12;\n\x14\x62ind_to_cargo_status\x18\x16 \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x12:\n\x13start_mining_status\x18\x17 \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x12+\n\rmining_report\x18\x18 \x01(\x0b\x32\x12.spex.ResourceItemH\x00\x12\x38\n\x11mining_is_stopped\x18\x19 \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x12\x39\n\x12stop_mining_status\x18\x1a \x01(\x0e\x32\x1b.spex.IAsteroidMiner.StatusH\x00\x1aU\n\rSpecification\x12\x14\n\x0cmax_distance\x18\x01 \x01(\r\x12\x15\n\rcycle_time_ms\x18\x02 \x01(\r\x12\x17\n\x0fyield_per_cycle\x18\x03 \x01(\r\x1aG\n\nMiningTask\x12\x13\n\x0b\x61steroid_id\x18\x01 \x01(\r\x12$\n\x08resource\x18\x02 \x01(\x0e\x32\x12.spex.ResourceType\"\xc9\x01\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x19\n\x15\x41STEROID_DOESNT_EXIST\x10\x02\x12\x11\n\rMINER_IS_BUSY\x10\x03\x12\x11\n\rMINER_IS_IDLE\x10\x04\x12\x14\n\x10\x41STEROID_TOO_FAR\x10\x05\x12\x16\n\x12NO_SPACE_AVAILABLE\x10\x06\x12\x16\n\x12NOT_BOUND_TO_CARGO\x10\x07\x12\x17\n\x13INTERRUPTED_BY_USER\x10\x08\x42\x08\n\x06\x63hoice\"\xa7\x02\n\x12IBlueprintsLibrary\x12\x1d\n\x13\x62lueprints_list_req\x18\x01 \x01(\tH\x00\x12\x17\n\rblueprint_req\x18\x02 \x01(\tH\x00\x12*\n\x0f\x62lueprints_list\x18\x14 \x01(\x0b\x32\x0f.spex.NamesListH\x00\x12$\n\tblueprint\x18\x15 \x01(\x0b\x32\x0f.spex.BlueprintH\x00\x12\x39\n\x0e\x62lueprint_fail\x18\x16 \x01(\x0e\x32\x1f.spex.IBlueprintsLibrary.StatusH\x00\"B\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x17\n\x13\x42LUEPRINT_NOT_FOUND\x10\x02\x42\x08\n\x06\x63hoice\"\xf6\x04\n\tIShipyard\x12\x1b\n\x11specification_req\x18\x01 \x01(\x08H\x00\x12\x31\n\x0bstart_build\x18\x02 \x01(\x0b\x32\x1a.spex.IShipyard.StartBuildH\x00\x12\x16\n\x0c\x63\x61ncel_build\x18\x03 \x01(\x08H\x00\x12\x36\n\rspecification\x18\x14 \x01(\x0b\x32\x1d.spex.IShipyard.SpecificationH\x00\x12\x31\n\x0f\x62uilding_status\x18\x15 \x01(\x0e\x32\x16.spex.IShipyard.StatusH\x00\x12\x1b\n\x11\x62uilding_progress\x18\x16 \x01(\x01H\x00\x12\x36\n\x11\x62uilding_complete\x18\x17 \x01(\x0b\x32\x19.spex.IShipyard.ShipBuiltH\x00\x1a&\n\rSpecification\x12\x15\n\rlabor_per_sec\x18\x01 \x01(\x01\x1a\x37\n\nStartBuild\x12\x16\n\x0e\x62lueprint_name\x18\x01 \x01(\t\x12\x11\n\tship_name\x18\x02 \x01(\t\x1a/\n\tShipBuilt\x12\x11\n\tship_name\x18\x01 \x01(\t\x12\x0f\n\x07slot_id\x18\x02 \x01(\r\"\xa4\x01\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x12\n\x0eINTERNAL_ERROR\x10\x01\x12\x11\n\rBUILD_STARTED\x10\x02\x12\x12\n\x0e\x42UILD_CANCELED\x10\x03\x12\x11\n\rBUILD_FREEZED\x10\x04\x12\x10\n\x0c\x42UILD_FAILED\x10\x05\x12\x17\n\x13\x42LUEPRINT_NOT_FOUND\x10\x06\x12\x14\n\x10SHIPYARD_IS_BUSY\x10\x07\x42\x08\n\x06\x63hoice\"\xc8\x04\n\x0bICommutator\x12\x19\n\x0ftotal_slots_req\x18\x01 \x01(\x08H\x00\x12\x19\n\x0fmodule_info_req\x18\x02 \x01(\rH\x00\x12\x1e\n\x14\x61ll_modules_info_req\x18\x03 \x01(\x08H\x00\x12\x15\n\x0bopen_tunnel\x18\x04 \x01(\rH\x00\x12\x16\n\x0c\x63lose_tunnel\x18\x05 \x01(\rH\x00\x12\x15\n\x0btotal_slots\x18\x15 \x01(\rH\x00\x12\x33\n\x0bmodule_info\x18\x16 \x01(\x0b\x32\x1c.spex.ICommutator.ModuleInfoH\x00\x12\x1c\n\x12open_tunnel_report\x18\x17 \x01(\rH\x00\x12\x36\n\x12open_tunnel_failed\x18\x18 \x01(\x0e\x32\x18.spex.ICommutator.StatusH\x00\x12\x1d\n\x13\x63lose_tunnel_report\x18\x19 \x01(\rH\x00\x12\x37\n\x13\x63lose_tunnel_failed\x18\x1a \x01(\x0e\x32\x18.spex.ICommutator.StatusH\x00\x1aG\n\nModuleInfo\x12\x0f\n\x07slot_id\x18\x01 \x01(\r\x12\x13\n\x0bmodule_type\x18\x02 \x01(\t\x12\x13\n\x0bmodule_name\x18\x03 \x01(\t\"g\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x10\n\x0cINVALID_SLOT\x10\x01\x12\x12\n\x0eMODULE_OFFLINE\x10\x02\x12\x16\n\x12REJECTED_BY_MODULE\x10\x03\x12\x12\n\x0eINVALID_TUNNEL\x10\x04\x42\x08\n\x06\x63hoice\"\x9b\x01\n\x05IGame\x12\x30\n\x10game_over_report\x18\x15 \x01(\x0b\x32\x14.spex.IGame.GameOverH\x00\x1a&\n\x05Score\x12\x0e\n\x06player\x18\x01 \x01(\t\x12\r\n\x05score\x18\x02 \x01(\r\x1a.\n\x08GameOver\x12\"\n\x07leaders\x18\x01 \x03(\x0b\x32\x11.spex.IGame.ScoreB\x08\n\x06\x63hoice\"v\n\x0cISystemClock\x12\x12\n\x08time_req\x18\x01 \x01(\x08H\x00\x12\x14\n\nwait_until\x18\x02 \x01(\x04H\x00\x12\x12\n\x08wait_for\x18\x03 \x01(\x04H\x00\x12\x0e\n\x04time\x18\x15 \x01(\x04H\x00\x12\x0e\n\x04ring\x18\x16 \x01(\x04H\x00\x42\x08\n\x06\x63hoice\"\x92\x05\n\x07Message\x12\x10\n\x08tunnelId\x18\x01 \x01(\r\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12%\n\x0c\x65ncapsulated\x18\x0c \x01(\x0b\x32\r.spex.MessageH\x00\x12)\n\x0b\x61\x63\x63\x65ssPanel\x18\r \x01(\x0b\x32\x12.spex.IAccessPanelH\x00\x12\'\n\ncommutator\x18\x0e \x01(\x0b\x32\x11.spex.ICommutatorH\x00\x12\x1b\n\x04ship\x18\x0f \x01(\x0b\x32\x0b.spex.IShipH\x00\x12\'\n\nnavigation\x18\x10 \x01(\x0b\x32\x11.spex.INavigationH\x00\x12\x1f\n\x06\x65ngine\x18\x11 \x01(\x0b\x32\r.spex.IEngineH\x00\x12\x34\n\x11\x63\x65lestial_scanner\x18\x12 \x01(\x0b\x32\x17.spex.ICelestialScannerH\x00\x12\x32\n\x10\x61steroid_scanner\x18\x13 \x01(\x0b\x32\x16.spex.IAsteroidScannerH\x00\x12\x36\n\x12resource_container\x18\x14 \x01(\x0b\x32\x18.spex.IResourceContainerH\x00\x12.\n\x0e\x61steroid_miner\x18\x15 \x01(\x0b\x32\x14.spex.IAsteroidMinerH\x00\x12\x36\n\x12\x62lueprints_library\x18\x16 \x01(\x0b\x32\x18.spex.IBlueprintsLibraryH\x00\x12#\n\x08shipyard\x18\x17 \x01(\x0b\x32\x0f.spex.IShipyardH\x00\x12\x1b\n\x04game\x18\x18 \x01(\x0b\x32\x0b.spex.IGameH\x00\x12*\n\x0csystem_clock\x18\x19 \x01(\x0b\x32\x12.spex.ISystemClockH\x00\x42\x08\n\x06\x63hoice*w\n\x0cResourceType\x12\x14\n\x10RESOURCE_UNKNOWN\x10\x00\x12\x13\n\x0fRESOURCE_METALS\x10\x01\x12\x16\n\x12RESOURCE_SILICATES\x10\x02\x12\x10\n\x0cRESOURCE_ICE\x10\x03\x12\x12\n\x0eRESOURCE_LABOR\x10\x65\x42\x03\xf8\x01\x01\x62\x06proto3')
 )
 
 _RESOURCETYPE = _descriptor.EnumDescriptor(
@@ -53,8 +53,8 @@ _RESOURCETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=6554,
-  serialized_end=6673,
+  serialized_start=6588,
+  serialized_end=6707,
 )
 _sym_db.RegisterEnumDescriptor(_RESOURCETYPE)
 
@@ -210,11 +210,15 @@ _IASTEROIDMINER_STATUS = _descriptor.EnumDescriptor(
       name='NOT_BOUND_TO_CARGO', index=7, number=7,
       serialized_options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='INTERRUPTED_BY_USER', index=8, number=8,
+      serialized_options=None,
+      type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3909,
-  serialized_end=4085,
+  serialized_start=3918,
+  serialized_end=4119,
 )
 _sym_db.RegisterEnumDescriptor(_IASTEROIDMINER_STATUS)
 
@@ -239,8 +243,8 @@ _IBLUEPRINTSLIBRARY_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4317,
-  serialized_end=4383,
+  serialized_start=4351,
+  serialized_end=4417,
 )
 _sym_db.RegisterEnumDescriptor(_IBLUEPRINTSLIBRARY_STATUS)
 
@@ -285,8 +289,8 @@ _ISHIPYARD_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4852,
-  serialized_end=5016,
+  serialized_start=4886,
+  serialized_end=5050,
 )
 _sym_db.RegisterEnumDescriptor(_ISHIPYARD_STATUS)
 
@@ -319,8 +323,8 @@ _ICOMMUTATOR_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=5500,
-  serialized_end=5603,
+  serialized_start=5534,
+  serialized_end=5637,
 )
 _sym_db.RegisterEnumDescriptor(_ICOMMUTATOR_STATUS)
 
@@ -1571,8 +1575,8 @@ _IASTEROIDMINER_SPECIFICATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3748,
-  serialized_end=3833,
+  serialized_start=3757,
+  serialized_end=3842,
 )
 
 _IASTEROIDMINER_MININGTASK = _descriptor.Descriptor(
@@ -1608,8 +1612,8 @@ _IASTEROIDMINER_MININGTASK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3835,
-  serialized_end=3906,
+  serialized_start=3844,
+  serialized_end=3915,
 )
 
 _IASTEROIDMINER = _descriptor.Descriptor(
@@ -1676,14 +1680,14 @@ _IASTEROIDMINER = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='stop_mining_status', full_name='spex.IAsteroidMiner.stop_mining_status', index=8,
+      name='mining_is_stopped', full_name='spex.IAsteroidMiner.mining_is_stopped', index=8,
       number=25, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='on_error', full_name='spex.IAsteroidMiner.on_error', index=9,
+      name='stop_mining_status', full_name='spex.IAsteroidMiner.stop_mining_status', index=9,
       number=26, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -1706,7 +1710,7 @@ _IASTEROIDMINER = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=3261,
-  serialized_end=4095,
+  serialized_end=4129,
 )
 
 
@@ -1768,8 +1772,8 @@ _IBLUEPRINTSLIBRARY = _descriptor.Descriptor(
       name='choice', full_name='spex.IBlueprintsLibrary.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=4098,
-  serialized_end=4393,
+  serialized_start=4132,
+  serialized_end=4427,
 )
 
 
@@ -1799,8 +1803,8 @@ _ISHIPYARD_SPECIFICATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4705,
-  serialized_end=4743,
+  serialized_start=4739,
+  serialized_end=4777,
 )
 
 _ISHIPYARD_STARTBUILD = _descriptor.Descriptor(
@@ -1836,8 +1840,8 @@ _ISHIPYARD_STARTBUILD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4745,
-  serialized_end=4800,
+  serialized_start=4779,
+  serialized_end=4834,
 )
 
 _ISHIPYARD_SHIPBUILT = _descriptor.Descriptor(
@@ -1873,8 +1877,8 @@ _ISHIPYARD_SHIPBUILT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4802,
-  serialized_end=4849,
+  serialized_start=4836,
+  serialized_end=4883,
 )
 
 _ISHIPYARD = _descriptor.Descriptor(
@@ -1949,8 +1953,8 @@ _ISHIPYARD = _descriptor.Descriptor(
       name='choice', full_name='spex.IShipyard.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=4396,
-  serialized_end=5026,
+  serialized_start=4430,
+  serialized_end=5060,
 )
 
 
@@ -1994,8 +1998,8 @@ _ICOMMUTATOR_MODULEINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5427,
-  serialized_end=5498,
+  serialized_start=5461,
+  serialized_end=5532,
 )
 
 _ICOMMUTATOR = _descriptor.Descriptor(
@@ -2098,8 +2102,8 @@ _ICOMMUTATOR = _descriptor.Descriptor(
       name='choice', full_name='spex.ICommutator.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=5029,
-  serialized_end=5613,
+  serialized_start=5063,
+  serialized_end=5647,
 )
 
 
@@ -2136,8 +2140,8 @@ _IGAME_SCORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5675,
-  serialized_end=5713,
+  serialized_start=5709,
+  serialized_end=5747,
 )
 
 _IGAME_GAMEOVER = _descriptor.Descriptor(
@@ -2166,8 +2170,8 @@ _IGAME_GAMEOVER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5715,
-  serialized_end=5761,
+  serialized_start=5749,
+  serialized_end=5795,
 )
 
 _IGAME = _descriptor.Descriptor(
@@ -2199,8 +2203,8 @@ _IGAME = _descriptor.Descriptor(
       name='choice', full_name='spex.IGame.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=5616,
-  serialized_end=5771,
+  serialized_start=5650,
+  serialized_end=5805,
 )
 
 
@@ -2261,8 +2265,8 @@ _ISYSTEMCLOCK = _descriptor.Descriptor(
       name='choice', full_name='spex.ISystemClock.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=5773,
-  serialized_end=5891,
+  serialized_start=5807,
+  serialized_end=5925,
 )
 
 
@@ -2400,8 +2404,8 @@ _MESSAGE = _descriptor.Descriptor(
       name='choice', full_name='spex.Message.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=5894,
-  serialized_end=6552,
+  serialized_start=5928,
+  serialized_end=6586,
 )
 
 _RESOURCEITEM.fields_by_name['type'].enum_type = _RESOURCETYPE
@@ -2554,8 +2558,8 @@ _IASTEROIDMINER.fields_by_name['specification'].message_type = _IASTEROIDMINER_S
 _IASTEROIDMINER.fields_by_name['bind_to_cargo_status'].enum_type = _IASTEROIDMINER_STATUS
 _IASTEROIDMINER.fields_by_name['start_mining_status'].enum_type = _IASTEROIDMINER_STATUS
 _IASTEROIDMINER.fields_by_name['mining_report'].message_type = _RESOURCEITEM
+_IASTEROIDMINER.fields_by_name['mining_is_stopped'].enum_type = _IASTEROIDMINER_STATUS
 _IASTEROIDMINER.fields_by_name['stop_mining_status'].enum_type = _IASTEROIDMINER_STATUS
-_IASTEROIDMINER.fields_by_name['on_error'].enum_type = _IASTEROIDMINER_STATUS
 _IASTEROIDMINER_STATUS.containing_type = _IASTEROIDMINER
 _IASTEROIDMINER.oneofs_by_name['choice'].fields.append(
   _IASTEROIDMINER.fields_by_name['specification_req'])
@@ -2582,11 +2586,11 @@ _IASTEROIDMINER.oneofs_by_name['choice'].fields.append(
   _IASTEROIDMINER.fields_by_name['mining_report'])
 _IASTEROIDMINER.fields_by_name['mining_report'].containing_oneof = _IASTEROIDMINER.oneofs_by_name['choice']
 _IASTEROIDMINER.oneofs_by_name['choice'].fields.append(
+  _IASTEROIDMINER.fields_by_name['mining_is_stopped'])
+_IASTEROIDMINER.fields_by_name['mining_is_stopped'].containing_oneof = _IASTEROIDMINER.oneofs_by_name['choice']
+_IASTEROIDMINER.oneofs_by_name['choice'].fields.append(
   _IASTEROIDMINER.fields_by_name['stop_mining_status'])
 _IASTEROIDMINER.fields_by_name['stop_mining_status'].containing_oneof = _IASTEROIDMINER.oneofs_by_name['choice']
-_IASTEROIDMINER.oneofs_by_name['choice'].fields.append(
-  _IASTEROIDMINER.fields_by_name['on_error'])
-_IASTEROIDMINER.fields_by_name['on_error'].containing_oneof = _IASTEROIDMINER.oneofs_by_name['choice']
 _IBLUEPRINTSLIBRARY.fields_by_name['blueprints_list'].message_type = _NAMESLIST
 _IBLUEPRINTSLIBRARY.fields_by_name['blueprint'].message_type = _BLUEPRINT
 _IBLUEPRINTSLIBRARY.fields_by_name['blueprint_fail'].enum_type = _IBLUEPRINTSLIBRARY_STATUS

@@ -41,7 +41,7 @@ private:
   void sendBindingStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
   void sendStartMiningStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
   void sendStopMiningStatus(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
-  void sendError(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
+  void sendMiningIsStopped(uint32_t nTunnelId, spex::IAsteroidMiner::Status status);
 
 private:
   uint32_t    m_nMaxDistance;
@@ -53,7 +53,7 @@ private:
   uint32_t               m_nAsteroidId;
   uint64_t               m_nCycleProgressUs;
   uint32_t               m_nTunnelId;
-  world::Resource::Type m_eResourceType;
+  world::Resource::Type  m_eResourceType;
 };
 
 } // namespace modules
