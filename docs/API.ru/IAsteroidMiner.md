@@ -1,4 +1,3 @@
-
 # Модуль "AsteroidMiner"
 Данный интерфейс позволяет управлять добычей ресурсов на астероидах.
 Модули, реализующий данный интерфейс, имеет следующие параметры:
@@ -18,13 +17,15 @@ message IAsteroidMiner {
     MINER_IS_BUSY         = 3;
     MINER_IS_IDLE         = 4;
     ASTEROID_TOO_FAR      = 5;
-    NO_SPACE_AVALIABLE    = 6;
+    NO_SPACE_AVAILABLE    = 6;
+    NOT_BOUND_TO_CARGO    = 7;
+    INTERRUPTED_BY_USER   = 8;
   }
 
   message Specification {
     uint32 max_distance    = 1;
     uint32 cycle_time_ms   = 2;
-    uint32 yeild_pre_cycle = 3;
+    uint32 yield_per_cycle = 3;
   }
 
   message MiningTask {
@@ -34,17 +35,23 @@ message IAsteroidMiner {
 
   oneof choice {
     bool          specification_req = 1;
-    MiningTask    start_mining      = 2;
-    bool          stop_mining       = 3;
+    string        bind_to_cargo     = 2;
+    MiningTask    start_mining      = 3;
+    bool          stop_mining       = 4;
 
-    Specification specification       = 21;
-    Status        start_mining_status = 22;
-    ResourceItem  mining_report       = 23;
-    Status        stop_mining_status  = 24;
-    Status        on_error            = 25;
+    Specification specification        = 21;
+    Status        bind_to_cargo_status = 22;
+    Status        start_mining_status  = 23;
+    ResourceItem  mining_report        = 24;
+    Status        mining_is_stopped    = 25;
+    Status        stop_mining_status   = 26;
   }
+
 }
 ```
+## Два канала?
+При работе с данным модулем настоятельно рекомендуется открывать к нему два туннеля: один для команды **start_mining**, а второй - для всех остальных команд.
+Это связано с тем, что команда **start_mining** имеет неопределённое время завершения (пока процесс не будет прерван). В то же время, отправлять по одному и тому же каналу команду на фоне выполнения другой команды - очень плохая идея, которая сильно усложнит обработку ответов.
 
 ## Как получить параметры бура?
 Чтобы получить параметры бура, нужно отправить запрос **specification_req **. В ответ поступит сообщение **specification**, содержащее значения параметров устройства:
@@ -81,7 +88,8 @@ message MiningTask {
 ## Мониторинг процесса добычи
 В процессе добычи, устройство периодически отправляет отчёты (report) после каждого цикла. Отчёт передаётся как сообщение **mining_report**, которое имеет тип **ResourceItem**. В нём указан тип добытого ресурса и его масса.
 
-Так же, устройство может отправить сообщение об ошибке **on_error** в случае, если процесс добычи был прерван. Сообщение может содержать следующие причины прерывания:
+Так же, устройство может отправить сообщение **mining_is_stopped** в случае, если процесс добычи был прерван. Сообщение может содержать следующие причины прерывания:
+  * **INTERRUPTED_BY_USER** - процесс прерван пользователем (командой **stop_mining**)
   * **ASTEROID_DOESNT_EXIST** - астероид больше не существует (был уничтожен?);
   * **ASTEROID_TOO_FAR** - корабль удалился от астероида на расстояние, превышающее максимально допустимое;
   * **NO_SPACE_AVALIABLE** - в контейнере закончилось место.
@@ -91,4 +99,6 @@ message MiningTask {
 В ответ на команду устройство отправит сообщение **stop_mining_status**, которое может содержать одно из следующих значений:
   * **SUCCESS** - процесс добычи остановлен;
   * **MINER_IS_IDLE** - команда проигнорирована, т.к. процесс добычи не был запущен.
+
+Кроме того, по каналу, в котором была отправлена команда **start_mining**, будет передано сообщение **mining_is_stopped** со статусом **INTERRUPTED_BY_USER**. Поэтому важно чтобы команды **start_mining** и **stop_mining** были отправлены устройству в разных каналах.
 
