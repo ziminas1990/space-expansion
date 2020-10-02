@@ -1,7 +1,16 @@
+
 # Building on Linux
 This manual describes building on linuex Ubuntu. Th Ubuntu 19.10 was used to write this guide.
 
 ## Prepharing system
+In this article let's assume that you have the following environment variables:
+```bash
+SPEX_SOURCE_DIR=$HOME/dev/space-expansion
+SPEX_BUILD_DIR=$HOME/dev/space-expansion-build
+SPEX_VENV_DIR=$HOME/dev/space-expansion-venv
+```
+Feel free to specify another paths.
+
 Install the following packages:
 ```bash
 sudo apt install cmake git python3 python3-pip
@@ -13,10 +22,11 @@ sudo pip3 install conan
 ```
 Note: you can install conan without sudo, but in this case you'll have to manually add conan to the your PATH environment.
 
+
 ## Prepharing conan
 This step may be skipped, but it is highly recommended to do it attentively.
 
-Conan profile specifies which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
+Conan profile specifies which compiler, bitness, options and other significant parameters will be used to build the dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
 
 If you have already run conan, you may want to remove the conan cache first. It can be done with the following command:
 ```
@@ -63,14 +73,7 @@ This means, that a gcc9 compiler will be used to build dependencies in Release 6
 **In general**, if you have some error and suspect that it is because something wrong with conan, you can clear conan cache, check conan profile and rebuild all dependencies again
 
 ## Building server
-Let's assume, that you have two environment variables:
-```bash
-SPEX_SOURCE_DIR=$HOME/dev/space-expansion
-SPEX_BUILD_DIR=$HOME/dev/space-expansion-build
-```
-Feel free to specify another paths.
-
-Prepharing to build:
+Preparing to build:
 ```bash
 # Clone the sources
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
@@ -103,3 +106,19 @@ cmake --build . -- -j6
 If you want to force 32-bit build, you should:
 1. add `-s arch=x86` to the `conan install` command, to build all dependencies in 32-bit mode;
 2. add `-Dbuild-32bit=ON` to the first cmake command, to configure 32-bit build.
+
+## Run integration tests
+It is highly recommended to use [python venv](https://docs.python.org/3/library/venv.html)! Let's create and activate a new virtual environment with all required dependencies:
+```bash
+python3  -m venv $SPEX_VENV_DIR
+source $SPEX_VENV_DIR/bin/activate
+pip install protobuf pyaml
+```
+
+To run tests execute the following script:
+```bash
+# Directory with the server's executable
+export PATH=$PATH:$SPEX_BUILD_DIR/bin
+export PYTHONPATH=$SPEX_SOURCE_DIR/python-sdk
+cd $SPEX_SOURCE_DIR/tests
+python -m unittest discover

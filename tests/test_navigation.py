@@ -1,6 +1,6 @@
 from typing import Optional, Callable, Awaitable
 
-from tests.base_test_fixture import BaseTestFixture
+from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 import server.configurator.modules.default_ships as default_ships

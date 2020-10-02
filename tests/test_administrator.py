@@ -1,6 +1,6 @@
 import time
 
-from .base_test_fixture import BaseTestFixture
+from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 from server.configurator import (Configuration, General, ApplicationMode)

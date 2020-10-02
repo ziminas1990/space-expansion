@@ -231,7 +231,8 @@ class AdvancedCanvas():
         circle.attach(self.canvas, self._transform)
         return circle
 
-    def create_square_mark(self, shape_id: int, position: Point, size: float, **kw) -> Optional[Circle]:
+    def create_square_mark(self, shape_id: int, position: Point, size: float, **kw) \
+            -> Optional[SquareMark]:
         assert shape_id not in self._shapes, f"Shape with id={shape_id} already exists"
 
         mark = SquareMark(position=position, size=size, **kw)
