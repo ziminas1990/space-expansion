@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
@@ -7,6 +6,7 @@ import server.configurator.world as world
 from server.configurator import Configuration, General, ApplicationMode
 
 import expansion.procedures as procedures
+from expansion.interfaces.public import SystemClock
 
 
 class TestSystemClock(BaseTestFixture):
@@ -134,3 +134,25 @@ class TestSystemClock(BaseTestFixture):
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_4.done())
+
+    @BaseTestFixture.run_as_sync
+    async def test_generator(self):
+        await self.system_clock_fast_forward(10)
+
+        commutator, error = await self.login('player')
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        system_clock = await procedures.connect_to_system_clock(commutator)
+        self.assertIsNotNone(system_clock)
+
+        counter: int = 0
+
+        def time_cb(time: int) -> bool:
+            nonlocal counter
+            counter += 1
+            return counter < 10
+
+        status = await system_clock.attach_to_generator(time_cb)
+        self.assertEqual(status, SystemClock.Status.GENERATOR_DETACHED)
+        self.assertEqual(10, counter)

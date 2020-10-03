@@ -394,13 +394,22 @@ message IGame {
 
 message ISystemClock {
 
-  oneof choice {
-    bool   time_req   = 1;
-    uint64 wait_until = 2;
-    uint64 wait_for   = 3;
+  enum Status {
+    SUCCESS            = 0;
+    GENERATOR_ATTACHED = 1;
+    GENERATOR_DETACHED = 2;
+  }
 
-    uint64 time = 21;
-    uint64 ring = 22;
+  oneof choice {
+    bool   time_req         = 1;
+    uint64 wait_until       = 2;
+    uint64 wait_for         = 3;
+    bool   attach_generator = 4;
+    bool   detach_generator = 5;
+
+    uint64 time             = 21;
+    uint64 ring             = 22;
+    Status generator_status = 23;
   }
 
 }
