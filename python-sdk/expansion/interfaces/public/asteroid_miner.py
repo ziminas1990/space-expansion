@@ -58,8 +58,8 @@ class AsteroidMiner:
         self.specification: Optional[Specification] = None
         self.cargo_name: Optional[str] = None
         # A name of the resource container, to which the miner is attached
-        self.control_channel = transport.QueuedTerminal(terminal_name=f"{name}.C")
-        self.mining_channel = transport.QueuedTerminal(terminal_name=f"{name}.M")
+        self.control_channel = transport.QueuedSocket(terminal_name=f"{name}.C")
+        self.mining_channel = transport.QueuedSocket(terminal_name=f"{name}.M")
         # The 'mining_channel' is used for 'start_mining' command only
         # For all other commands the 'control_channel' is used
 

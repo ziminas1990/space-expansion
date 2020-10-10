@@ -4,6 +4,8 @@
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::SystemClock);
 
+const uint32_t generator_tick_us = 20000;
+
 namespace modules {
 
 SystemClock::SystemClock(std::string&& sName, world::PlayerWeakPtr pOwner)
@@ -15,8 +17,6 @@ SystemClock::SystemClock(std::string&& sName, world::PlayerWeakPtr pOwner)
 
 void SystemClock::proceed(uint32_t)
 {
-  const uint64_t generatorCycle = 20000;
-
   uint64_t const now = SystemManager::getIngameTime();
   while (!m_rings.empty()) {
     if (!m_rings.back().isValid()) {
@@ -30,9 +30,9 @@ void SystemClock::proceed(uint32_t)
   }
 
   uint32_t cyclesPassed = static_cast<uint32_t>(
-        (now - m_nLastCycleTime) / generatorCycle);
+        (now - m_nLastCycleTime) / generator_tick_us);
   if (cyclesPassed) {
-    m_nLastCycleTime += cyclesPassed * generatorCycle;
+    m_nLastCycleTime += cyclesPassed * generator_tick_us;
     if (m_nLastCycleTime < now)
       m_nLastCycleTime = now;
     for (uint32_t session: m_generatorSessions) {
@@ -64,6 +64,9 @@ void SystemClock::handleSystemClockMessage(
       return;
     case spex::ISystemClock::kDetachGenerator:
       detachGenerator(nSessionId);
+      return;
+    case spex::ISystemClock::kGeneratorTickReq:
+      sendGeneratorTick(nSessionId);
       return;
     default:
       return;
@@ -125,6 +128,14 @@ void SystemClock::sendRing(uint32_t nSessionId, uint64_t time)
   spex::Message message;
   spex::ISystemClock* body = message.mutable_system_clock();
   body->set_ring(time);
+  sendToClient(nSessionId, message);
+}
+
+void SystemClock::sendGeneratorTick(uint32_t nSessionId)
+{
+  spex::Message message;
+  spex::ISystemClock* body = message.mutable_system_clock();
+  body->set_generator_tick_us(generator_tick_us);
   sendToClient(nSessionId, message);
 }
 

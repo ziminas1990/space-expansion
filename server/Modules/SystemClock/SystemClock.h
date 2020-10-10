@@ -29,6 +29,7 @@ private:
 
   void sendTime(uint32_t nSessionId);
   void sendRing(uint32_t nSessionId, uint64_t time);
+  void sendGeneratorTick(uint32_t nSessionId);
   void sendGeneratorStatus(uint32_t nSessionId, spex::ISystemClock::Status eStatus);
 
   void drawnLastRing();

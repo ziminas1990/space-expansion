@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
@@ -146,13 +147,20 @@ class TestSystemClock(BaseTestFixture):
         system_clock = await procedures.connect_to_system_clock(commutator)
         self.assertIsNotNone(system_clock)
 
-        counter: int = 0
+        generator_tick = await system_clock.get_generator_tick_us()
+        self.assertIsNotNone(generator_tick)
+        current_time = 0
 
-        def time_cb(time: int) -> bool:
-            nonlocal counter
-            counter += 1
-            return counter < 10
+        def time_cb(time: int):
+            nonlocal current_time
+            current_time = time
+            logging.debug(f"on time_cb() with time={current_time}")
 
         status = await system_clock.attach_to_generator(time_cb)
-        self.assertEqual(status, SystemClock.Status.GENERATOR_DETACHED)
-        self.assertEqual(10, counter)
+        self.assertEqual(status, SystemClock.Status.SUCCESS)
+
+        for i in range(10):
+            success, time = await self.system_clock_proceed(500, timeout_s=1)
+            await asyncio.sleep(0.02)  # waiting for all events to be handled
+            delta = time - current_time
+            self.assertLessEqual(delta, generator_tick)

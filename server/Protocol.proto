@@ -401,15 +401,17 @@ message ISystemClock {
   }
 
   oneof choice {
-    bool   time_req         = 1;
-    uint64 wait_until       = 2;
-    uint64 wait_for         = 3;
-    bool   attach_generator = 4;
-    bool   detach_generator = 5;
+    bool   time_req           = 1;
+    uint64 wait_until         = 2;
+    uint64 wait_for           = 3;
+    bool   generator_tick_req = 4;
+    bool   attach_generator   = 5;
+    bool   detach_generator   = 6;
 
-    uint64 time             = 21;
-    uint64 ring             = 22;
-    Status generator_status = 23;
+    uint64 time              = 21;
+    uint64 ring              = 22;
+    uint32 generator_tick_us = 23;
+    Status generator_status  = 24;
   }
 
 }

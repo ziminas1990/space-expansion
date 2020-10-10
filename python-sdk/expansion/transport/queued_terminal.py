@@ -63,4 +63,9 @@ class QueuedTerminal(Terminal):
                 return None
 
     def send_message(self, message: Any) -> bool:
+        """Send the specified message to the remote side"""
         return self.channel is not None and self.channel.send(message=message)
+
+    def detach(self):
+        """Close an existing channel to the remote side"""
+        self.channel.close()

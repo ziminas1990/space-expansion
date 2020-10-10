@@ -111,10 +111,17 @@ async def connect_to_system_clock(commutator: Commutator) -> Optional[SystemCloc
 
     system_clock: SystemClock = SystemClock("SystemClock")
 
-    error = await commutator.open_tunnel(candidate.slot_id, system_clock)
+    error = await commutator.open_tunnel(candidate.slot_id, system_clock.control_channel)
     if error:
         logging.getLogger(__name__).warning(
-            f"Failed to connect to the system clock!': {error}")
+            f"Failed to open control channel to the system clock!': {error}")
+        return None
+
+    error = await commutator.open_tunnel(candidate.slot_id, system_clock.generator_channel)
+    if error:
+        logging.getLogger(__name__).warning(
+            f"Failed to open generator channel to the system clock!': {error}")
+        system_clock.control_channel.detach()
         return None
     return system_clock
 
