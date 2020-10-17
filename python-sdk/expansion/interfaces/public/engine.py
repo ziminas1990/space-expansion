@@ -2,7 +2,7 @@ from typing import Optional, NamedTuple
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport.queued_terminal import QueuedTerminal
+from expansion.transport import IOTerminal
 from expansion.types.geometry import Vector
 
 import expansion.utils as utils
@@ -12,7 +12,7 @@ class Specification(NamedTuple):
     max_thrust: int
 
 
-class Engine(QueuedTerminal):
+class Engine(IOTerminal):
 
     def __init__(self, name: Optional[str] = None):
         super().__init__(terminal_name=name or utils.generate_name(Engine))
@@ -26,7 +26,7 @@ class Engine(QueuedTerminal):
             return self.specification
         request = public.Message()
         request.engine.specification_req = True
-        if not self.send_message(message=request):
+        if not self.send(message=request):
             return None
         response = await self.wait_message(timeout=timeout)
         if not response:
@@ -41,7 +41,7 @@ class Engine(QueuedTerminal):
         """Return current engine thrust"""
         request = public.Message()
         request.engine.thrust_req = True
-        if not self.channel.send(message=request):
+        if not self.send(message=request):
             return None
         response = await self.wait_message(timeout=timeout)
         if not response:

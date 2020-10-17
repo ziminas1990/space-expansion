@@ -5,7 +5,7 @@ import logging
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport.terminal import Terminal
-from expansion.transport.queued_terminal import QueuedTerminal
+from expansion.transport import IOTerminal
 from expansion.transport.proxy_channel import ProxyChannel
 from expansion.transport.channel import Channel
 
@@ -64,7 +64,7 @@ class ModuleInfo(NamedTuple):
                           name=info.module_name)
 
 
-class Commutator(QueuedTerminal):
+class Commutator(IOTerminal):
     """Commutator is a:
     - BaseModule, because it represent a corresponding commutator module on
       the server;
@@ -82,20 +82,15 @@ class Commutator(QueuedTerminal):
         # Key - slot_id, value - ModuleInfo
         self._logger = logging.getLogger(f"{name}")
 
-    # Override from Channel
-    def send(self, message: Any) -> bool:
-        """Send operation is implemented in BaseModule"""
-        return self.send_message(message=message)
-
     # Override from BaseModule->Terminal
     def attach_channel(self, channel: Channel):
         super().attach_channel(channel=channel)
 
-    # Override from QueuedTerminal->Terminal
+    # Override from IOTerminal->Terminal
     async def close(self):
         assert False, "Operation is not supported for commutators"
 
-    # Override from QueuedTerminal->Terminal
+    # Override from IOTerminal->Terminal
     def on_receive(self, message: public.Message):
         if message.WhichOneof('choice') == 'encapsulated':
             try:
@@ -119,7 +114,7 @@ class Commutator(QueuedTerminal):
         """Return total number of devices, attached to this commutator"""
         request = public.Message()
         request.commutator.total_slots_req = True
-        self.send_message(request)
+        self.send(request)
         response = await self.wait_message()
         if not response:
             return False, 0
@@ -136,7 +131,7 @@ class Commutator(QueuedTerminal):
             return self.modules_cache[slot_id]
         request = public.Message()
         request.commutator.module_info_req = slot_id
-        self.send_message(request)
+        self.send(request)
         response = await self.wait_message()
         if not response:
             return None
@@ -163,7 +158,7 @@ class Commutator(QueuedTerminal):
             return None
         request = public.Message()
         request.commutator.all_modules_info_req = True
-        self.send_message(request)
+        self.send(request)
 
         for i in range(total_slots):
             response = await self.wait_message()
@@ -179,7 +174,7 @@ class Commutator(QueuedTerminal):
         'terminal' to it. Return None on success, or error string on fail."""
         request = public.Message()
         request.commutator.open_tunnel = port
-        self.send_message(request)
+        self.send(request)
 
         response = await self.wait_message()
         if not response:

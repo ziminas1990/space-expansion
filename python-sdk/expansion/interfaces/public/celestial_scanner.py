@@ -11,7 +11,7 @@ class Specification(NamedTuple):
     processing_time_us: int
 
 
-class CelestialScanner(transport.QueuedTerminal):
+class CelestialScanner(transport.IOTerminal):
 
     def __init__(self, name: Optional[str] = None):
         super().__init__(terminal_name=name or utils.generate_name(CelestialScanner))
@@ -36,7 +36,7 @@ class CelestialScanner(transport.QueuedTerminal):
             return self.specification
         request = protocol.Message()
         request.celestial_scanner.specification_req = True
-        if not self.send_message(message=request):
+        if not self.send(message=request):
             return None
         response = await self.wait_message(timeout=timeout)
         if not response:
@@ -66,7 +66,7 @@ class CelestialScanner(transport.QueuedTerminal):
         scan_req = request.celestial_scanner.scan
         scan_req.scanning_radius_km = scanning_radius_km
         scan_req.minimal_radius_m = minimal_radius_m
-        if not self.send_message(message=request):
+        if not self.send(message=request):
             return None, "Failed to send message"
 
         scanned_objects: List[types.PhysicalObject] = []

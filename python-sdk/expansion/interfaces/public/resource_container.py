@@ -3,13 +3,13 @@ from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport.queued_terminal import QueuedTerminal
+from expansion.transport import IOTerminal
 from expansion.types import ResourceType, ResourceItem
 
 import expansion.utils as utils
 
 
-class ResourceContainer(QueuedTerminal):
+class ResourceContainer(IOTerminal):
 
     class Status(Enum):
         SUCCESS = "success"
@@ -83,7 +83,7 @@ class ResourceContainer(QueuedTerminal):
     async def get_content(self, timeout: float = 0.5) -> Optional[Content]:
         request = public.Message()
         request.resource_container.content_req = True
-        if not self.send_message(message=request):
+        if not self.send(message=request):
             return None
         response = await self.wait_message(timeout=timeout)
         if not response:
@@ -100,7 +100,7 @@ class ResourceContainer(QueuedTerminal):
         or error string."""
         request = public.Message()
         request.resource_container.open_port = access_key
-        if not self.send_message(message=request):
+        if not self.send(message=request):
             return ResourceContainer.Status.FAILED_TO_SEND_REQUEST, 0
         response = await self.wait_message(timeout=timeout)
         if not response:
@@ -120,7 +120,7 @@ class ResourceContainer(QueuedTerminal):
         """Close an existing opened port"""
         request = public.Message()
         request.resource_container.close_port = True
-        if not self.send_message(message=request):
+        if not self.send(message=request):
             return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
         response = await self.wait_message(timeout=timeout)
         if not response:
@@ -146,7 +146,7 @@ class ResourceContainer(QueuedTerminal):
         resource_item = req_body.resource
         resource.to_protobuf(resource_item)
 
-        if not self.send_message(message=request):
+        if not self.send(message=request):
             return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
         response = await self.wait_message(timeout=timeout)
         if not response:

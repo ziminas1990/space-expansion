@@ -5,5 +5,4 @@ from .io_terminal import IOTerminal
 from .pipe import Pipe
 from .protobuf_channel import ProtobufChannel
 from .udp_channel import UdpChannel
-from .queued_terminal import QueuedTerminal   # REMOVE
 from .interfaces_mux import InterfacesMux, Interfaces

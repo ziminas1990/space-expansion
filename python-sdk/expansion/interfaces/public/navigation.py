@@ -2,13 +2,13 @@ from typing import Optional
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport.queued_terminal import QueuedTerminal
+from expansion.transport import IOTerminal
 from expansion.types.geometry import Position, Vector
 
 import expansion.utils as utils
 
 
-class INavigation(QueuedTerminal):
+class INavigation(IOTerminal):
 
     def __init__(self, name: Optional[str] = None):
         super().__init__(terminal_name=name or utils.generate_name(INavigation))
@@ -16,7 +16,7 @@ class INavigation(QueuedTerminal):
     async def get_position(self) -> Optional[Position]:
         request = public.Message()
         request.navigation.position_req = True
-        if not self.channel.send(message=request):
+        if not self.send(message=request):
             return None
         response = await self.wait_message(timeout=0.5)
         if not response:
