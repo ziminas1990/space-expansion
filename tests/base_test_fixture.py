@@ -51,8 +51,13 @@ class BaseTestFixture(unittest.TestCase):
                 port=admin_cfg.udp_port,
                 login=admin_cfg.login,
                 password=admin_cfg.password)
+
         status, error = login_as_administrator()
-        assert status, error
+        if not status:
+            # Since the administrator channel has not been opened,
+            # there could be no other way to stop the server
+            self.server.stop()
+            assert status, error
 
     def tearDown(self) -> None:
         @BaseTestFixture.run_as_sync

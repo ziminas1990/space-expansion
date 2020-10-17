@@ -186,6 +186,6 @@ async def connect_to_asteroid_miner(
         logging.getLogger(__name__).warning(
             f"Failed to connect to the {module_type_name} '{name}' on the ship "
             f"'{ship.get_name()}': {error}")
-        miner.control_channel.channel.close()
+        miner.control_channel.socket.close()
         return None
     return miner

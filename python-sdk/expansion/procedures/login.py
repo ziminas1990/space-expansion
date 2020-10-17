@@ -1,8 +1,6 @@
-import asyncio
 import logging.config
 from typing import Optional
 
-from expansion.transport.channel import ChannelMode
 from expansion.transport.udp_channel import UdpChannel
 from expansion.transport.protobuf_channel import ProtobufChannel
 
@@ -47,6 +45,7 @@ async def login(server_ip: str, login_port: int,
     protobuf_channel = ProtobufChannel(channel_name="Main",
                                        message_type=public.Message)
     protobuf_channel.attach_channel(login_udp_channel)
+    login_udp_channel.attach_to_terminal(protobuf_channel)
 
     # Creating access panel instance and login in
     access_panel = IAccessPanel()
@@ -63,7 +62,6 @@ async def login(server_ip: str, login_port: int,
     # Switch protobuf channel to a new socket + ACTIVE mode
     protobuf_channel.attach_channel(player_channel)
     player_channel.attach_to_terminal(protobuf_channel)
-    player_channel.propagate_mode(ChannelMode.ACTIVE)
 
     # Creating root commutator and attach it to channel
     commutator: Commutator = Commutator(name=f"{local_ip}:{local_port}::Root")

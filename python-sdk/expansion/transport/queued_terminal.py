@@ -2,7 +2,7 @@ from typing import Any, Optional
 import asyncio
 import threading
 
-from .channel import Channel, ChannelMode
+from .channel import Channel
 from .terminal import Terminal
 
 
@@ -42,10 +42,6 @@ class QueuedTerminal(Terminal):
         self.channel = channel
 
     # Override from Terminal
-    def on_channel_mode_changed(self, mode: ChannelMode):
-        super().on_channel_mode_changed(mode)  # For logging
-
-    # Override from Terminal
     def on_channel_detached(self):
         super().on_channel_detached()  # For logging
         self.channel = None
@@ -55,8 +51,6 @@ class QueuedTerminal(Terminal):
         # method. Otherwise, await for a message on the internal queue.
         assert not self.wait_lock.locked()  # Multithreading wait is not what you want!
         with self.wait_lock:
-            if self.channel and not self.channel.is_active_mode():
-                return await self.channel.receive(timeout)
             try:
                 return await asyncio.wait_for(self.queue.get(), timeout=timeout)
             except asyncio.TimeoutError:

@@ -18,14 +18,14 @@ class Administrator:
         )
         self.protobuf_channel: transport.ProtobufChannel = transport.ProtobufChannel(
             message_type=PrivilegedMessage,
-            mode=transport.ChannelMode.PASSIVE,
             channel_name=f"{self.name}.Protobuf")
         self.token: Optional[int] = None
         self.access_panel: Access = Access()
         self.system_clock = SystemClock()
 
+        self.udp_channel.attach_to_terminal(self.protobuf_channel)
         self.protobuf_channel.attach_channel(self.udp_channel)
-        self.access_panel.attach_to_channel(self.protobuf_channel)
+        self.access_panel.fasten_to_channel(self.protobuf_channel)
 
     def on_channel_closed(self):
         self.token = None

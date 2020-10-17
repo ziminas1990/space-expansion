@@ -7,7 +7,7 @@ from expansion.protocol.utils import get_message_field
 from expansion.transport.terminal import Terminal
 from expansion.transport.queued_terminal import QueuedTerminal
 from expansion.transport.proxy_channel import ProxyChannel
-from expansion.transport.channel import Channel, ChannelMode
+from expansion.transport.channel import Channel
 
 
 class Tunnel(ProxyChannel):
@@ -21,13 +21,12 @@ class Tunnel(ProxyChannel):
     def __init__(self, tunnel_id: int,
                  client: Terminal,
                  commutator: 'Commutator',
-                 mode: ChannelMode = ChannelMode.PASSIVE,
                  *args, ** kwargs):
         """Create tunnel for the specified 'client' with the specified
         'tunnel_id'. The specified 'channel' will be used by tunnel to send
         messages."""
         tunnel_name = f"{commutator.get_name()}::tun#{tunnel_id}"
-        super().__init__(mode=mode, proxy_name=tunnel_name, *args, **kwargs)
+        super().__init__(proxy_name=tunnel_name, *args, **kwargs)
         self.tunnel_id: int = tunnel_id
         self.client: Terminal = client
         self.commutator: 'Commutator' = commutator
@@ -90,15 +89,7 @@ class Commutator(QueuedTerminal):
 
     # Override from BaseModule->Terminal
     def attach_channel(self, channel: Channel):
-        assert channel.is_active_mode(), "Commutator may work properly only with " \
-                                         "active downlevel channel"
         super().attach_channel(channel=channel)
-
-    # Override from QueuedTerminal->Terminal
-    def on_channel_mode_changed(self, mode: 'ChannelMode'):
-        # No need in further propagation
-        assert mode == ChannelMode.ACTIVE,\
-            "Commutator may work properly only with active downlevel channel!"
 
     # Override from QueuedTerminal->Terminal
     async def close(self):
@@ -183,8 +174,7 @@ class Commutator(QueuedTerminal):
             self.modules_cache.update({info.slot_id: info})
         return list(self.modules_cache.values())
 
-    async def open_tunnel(self, port: int, terminal: Terminal,
-                          mode: ChannelMode = ChannelMode.ACTIVE) -> Optional[str]:
+    async def open_tunnel(self, port: int, terminal: Terminal) -> Optional[str]:
         """Open tunnel to the specified 'port' and attach the specified
         'terminal' to it. Return None on success, or error string on fail."""
         request = public.Message()
@@ -204,7 +194,6 @@ class Commutator(QueuedTerminal):
 
         tunnel: Tunnel = Tunnel(tunnel_id=tunnel_id,
                                 client=terminal,
-                                mode=mode,
                                 commutator=self)
         terminal.attach_channel(tunnel)
         # A channel is attached to the commutator, but tunnels are attached

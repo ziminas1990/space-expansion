@@ -2,7 +2,6 @@ from typing import Optional, Any
 
 from google.protobuf.message import Message
 from .proxy_channel import ProxyChannel
-from .channel import ChannelMode
 
 from expansion import utils
 
@@ -16,10 +15,9 @@ class ProtobufChannel(ProxyChannel):
      channel)"""
 
     def __init__(self, message_type: Any,
-                 mode: ChannelMode=ChannelMode.PASSIVE,
                  channel_name: Optional[str] = None):
         name = channel_name or utils.generate_name(ProxyChannel)
-        super().__init__(mode=mode, proxy_name=name)
+        super().__init__(proxy_name=name)
         self._message_type = message_type
 
     # Override from Channel

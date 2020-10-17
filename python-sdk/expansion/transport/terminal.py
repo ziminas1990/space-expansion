@@ -30,12 +30,6 @@ class Terminal(abc.ABC):
         self.terminal_logger.info(f"Attached to channel {channel.channel_name}")
 
     @abc.abstractmethod
-    def on_channel_mode_changed(self, mode: 'ChannelMode'):
-        """This function is called, when downlevel channel mode has been
-        changed"""
-        self.terminal_logger.info(f"Channel mode changed to {mode}")
-
-    @abc.abstractmethod
     def on_channel_detached(self):
         """Detach terminal from channel. After it is done, terminal won't
         be able to send messages anymore"""

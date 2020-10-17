@@ -3,7 +3,7 @@ import socket
 from typing import Callable, Any, Optional, Tuple
 
 from expansion import utils
-from .channel import Channel, ChannelMode
+from .channel import Channel
 
 
 class UdpChannel(Channel, asyncio.BaseProtocol):
@@ -14,8 +14,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         """Create UDP channel. The specified 'on_closed_cb' will be called when
         connection is closed. The specified 'channel_name' will be used in
         logs"""
-        super().__init__(channel_name=channel_name or utils.generate_name(type(self)),
-                         mode=ChannelMode.PASSIVE)
+        super().__init__(channel_name=channel_name or utils.generate_name(type(self)))
 
         self.remote: Optional[Tuple[str, int]] = None
         # Pair, that holds IP and port of the server
@@ -49,7 +48,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def set_remote(self, ip: str, port: int):
         assert self.remote is None, f"Remote is already set to {self.remote}"
-        self.remote=(ip, port)
+        self.remote = (ip, port)
 
     def get_local_address(self) -> Optional[Tuple[str, int]]:
         """Return IP and port of the local socket or None"""
@@ -76,14 +75,11 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def datagram_received(self, data: bytes, addr):
         self.channel_logger.debug(f"Received {len(data)} bytes from {addr}")
-        if self.is_active_mode():
-            if self.terminal:
-                self.terminal.on_receive(data)
-            else:
-                self.channel_logger.warning(
-                    f"Ignoring {len(data)} bytes message: not attached to the terminal!")
+        if self.terminal:
+            self.terminal.on_receive(data)
         else:
-            self.on_message(message=data)
+            self.channel_logger.warning(
+                f"Ignoring {len(data)} bytes message: not attached to the terminal!")
 
     def error_received(self, exc):
         self.channel_logger.error(f"Got error: {exc}")

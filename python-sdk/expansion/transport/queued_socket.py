@@ -1,4 +1,4 @@
-from .queued_terminal import QueuedTerminal
+from .queued_terminal import QueuedTerminal, Channel
 
 
 class QueuedSocket(QueuedTerminal):

@@ -1,7 +1,7 @@
 from typing import Optional
 from enum import Enum
 
-from expansion.transport.channel import Channel
+from expansion.transport import Channel, IOTerminal
 import expansion.protocol.Privileged_pb2 as privileged
 from expansion.protocol.utils import get_message_field
 
@@ -30,18 +30,18 @@ class Status(Enum):
 
 class SystemClock:
     def __init__(self):
-        self._channel: Optional[Channel] = None
+        self._socket: IOTerminal = IOTerminal()
         self._token: int = 0
 
     def attach_to_channel(self, channel: Channel, token: int):
-        self._channel = channel
+        self._socket.wrap_channel(channel)
         self._token = token
 
     def _send_message(self, message: privileged.Message) -> bool:
         if self._token == 0:
             return False
         message.token = self._token
-        return self._channel.send(message)
+        return self._socket.send(message)
 
     async def get_time(self, timeout_sec: float = 0.01) -> Optional[int]:
         """Request current in-game time. Return number of microseconds
@@ -107,12 +107,12 @@ class SystemClock:
         return time is not None, time
 
     async def _await_status(self, timeout_sec: float = 0.05) -> Optional[Status]:
-        response = await self._channel.receive(timeout=timeout_sec)
+        response = await self._socket.wait_message(timeout=timeout_sec)
         status = get_message_field(response, "system_clock.status")
         return Status.from_protobuf(mode=status) if status is not None else None
 
     async def _await_time(self, timeout_sec: float = 0.05) -> Optional[int]:
-        response = await self._channel.receive(timeout=timeout_sec)
+        response = await self._socket.wait_message(timeout=timeout_sec)
         time = get_message_field(response, "system_clock.now")
         return time
 

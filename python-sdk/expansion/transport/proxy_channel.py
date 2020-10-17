@@ -1,4 +1,4 @@
-from .channel import Channel, ChannelMode
+from .channel import Channel
 from .terminal import Terminal
 from typing import Optional, Any
 import abc
@@ -15,13 +15,10 @@ class ProxyChannel(Channel, Terminal):
     overridden.
     """
 
-    def __init__(self, mode: ChannelMode,
-                 proxy_name: Optional[str] = None,
-                 *args, **kwargs):
+    def __init__(self, proxy_name: Optional[str] = None, *args, **kwargs):
         self.proxy_name: str = proxy_name or utils.generate_name(ProxyChannel)
-        super().__init__(mode=mode,
-                         channel_name=f"{self.proxy_name}/channel",
-                         terminal_name=f"{self.proxy_name}/terminal",
+        super().__init__(channel_name=f"{self.proxy_name}/enc",
+                         terminal_name=f"{self.proxy_name}/dec",
                          *args, **kwargs)
         self.downlevel: Optional[Channel] = None
 
@@ -46,19 +43,7 @@ class ProxyChannel(Channel, Terminal):
     def attach_channel(self, channel: 'Channel'):
         assert channel
         super().attach_channel(channel)  # For logging
-        if self._mode == ChannelMode.ACTIVE:
-            assert channel._mode == ChannelMode.ACTIVE, \
-                "Proxy channel is in Active mode, so downlevel channel must" \
-                " be in Active mode too!"
         self.downlevel = channel
-
-    # Override from Terminal
-    def on_channel_mode_changed(self, mode: 'ChannelMode'):
-        """Downlevel channel has changed mode, so proxy channel should
-        also change its mode and propagate mode to uplevel terminal"""
-        self.propagate_mode(mode)
-        # For logging:
-        super().on_channel_mode_changed(mode)
 
     # Override from Terminal
     def on_channel_detached(self):
@@ -74,37 +59,16 @@ class ProxyChannel(Channel, Terminal):
             self.on_message(decoded_message)
 
     # Override from Channel
-    def set_mode(self, mode: ChannelMode):
-        """Set new mode for the channel"""
-        if self.downlevel:
-            if mode == ChannelMode.ACTIVE:
-                assert self.downlevel._mode == ChannelMode.ACTIVE, \
-                    "Can't switch proxy channel to Active mode, while" \
-                    " downlevel channel is not in Active mode"
-        super().set_mode(mode=mode)
-
-    # Override from Channel
     def send(self, message: Any) -> bool:
         self.channel_logger.debug(f"Sending:\n{message}")
         if not self.downlevel:
-            self.channel_logger.warning(f"Not attached to channel!")
+            self.channel_logger.warning(f"Not attached to the channel!")
             return False
         data = self.encode(message)
         if not data:
             self.channel_logger.warning(f"Failed to encode message!")
             return False
         return self.downlevel.send(data)
-
-    # Override from Channel
-    async def receive(self, timeout: float = 5) -> Any:
-        if not self.downlevel or self.is_active_mode():
-            return None
-        data = await self.downlevel.receive(timeout)
-        if not data:
-            return None
-        message = self.decode(data=data)
-        self.channel_logger.debug(f"Received message:\n{message}")
-        return message
 
     # Override from Channel
     async def close(self):

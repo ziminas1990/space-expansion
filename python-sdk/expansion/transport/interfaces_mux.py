@@ -3,8 +3,8 @@ from enum import Enum
 
 from .terminal import Terminal
 import expansion.protocol.Protocol_pb2 as public
-from .channel import Channel, ChannelMode
-from .channel_adapter import ChannelAdapter
+from .channel import Channel
+from .pipe import Pipe
 
 from expansion import utils
 
@@ -32,14 +32,14 @@ class InterfacesMux(Terminal):
 
         super().__init__(terminal_name=self.name)
         self.downlevel: Optional[Channel] = None
-        self.interfaces: Dict[Interfaces, ChannelAdapter] = {}
+        self.interfaces: Dict[Interfaces, Pipe] = {}
 
     # Override from Terminal
     def on_receive(self, message: public.Message):
         """This callback will be called to pass received message, that was
         addressed to this terminal"""
         self.terminal_logger.debug(f"Got a message for the '{message.WhichOneof('choice')}' interface")
-        channel: Optional[ChannelAdapter] = self.interfaces[message.WhichOneof("choice")]
+        channel: Optional[Pipe] = self.interfaces[message.WhichOneof("choice")]
         if channel:
             channel.on_message(message=message)
         else:
@@ -49,33 +49,28 @@ class InterfacesMux(Terminal):
     # Override from Terminal
     def attach_channel(self, channel: 'Channel'):
         super().attach_channel(channel=channel)  # for logging
-        assert channel.is_active_mode()
         self.downlevel = channel
-
-    # Override from Terminal
-    def on_channel_mode_changed(self, mode: 'ChannelMode'):
-        super().on_channel_mode_changed(mode=mode)  # for logging
-        assert mode == ChannelMode.ACTIVE
+        for pipe in self.interfaces.values():
+            pipe.attach_channel(self.downlevel)
 
     # Override from Terminal
     def on_channel_detached(self):
         super().on_channel_detached()  # for logging
         self.downlevel = None
+        for pipe in self.interfaces.values():
+            pipe.on_channel_detached()
 
-    def get_interface(self, interface: Interfaces,
-                      mode: ChannelMode = ChannelMode.ACTIVE) -> Channel:
+    def get_interface(self, interface: Interfaces) -> Channel:
         """
         Return a channel for the specified 'interface'. If the channel is not
         been created yet, it will be created.
         """
         if interface.value in self.interfaces:
             return self.interfaces[interface.value]
-        channel: ChannelAdapter = ChannelAdapter(
-            send_fn=lambda message: self.downlevel.send(message=message),
-            close_fn=lambda: None,
-            receive_fn=None,
-            channel_name=f"{self.name}/{interface.value}",
-            mode=mode
+        pipe: Pipe = Pipe(
+            name=f"{self.name}/{interface.value}"
         )
-        self.interfaces[interface.value] = channel
-        return channel
+        if self.downlevel:
+            pipe.attach_channel(self.downlevel)
+        self.interfaces[interface.value] = pipe
+        return pipe

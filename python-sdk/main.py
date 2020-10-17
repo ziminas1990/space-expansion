@@ -28,7 +28,7 @@ async def main():
 
     # Creating components:
     access_panel = PrivilegedAccess()
-    access_panel.attach_to_channel(privileged_channel)
+    access_panel.fasten_to_channel(privileged_channel)
 
     # Logging in
     status, token = await access_panel.login("admin", "admin")
