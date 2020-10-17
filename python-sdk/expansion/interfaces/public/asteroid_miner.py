@@ -58,8 +58,8 @@ class AsteroidMiner:
         self.specification: Optional[Specification] = None
         self.cargo_name: Optional[str] = None
         # A name of the resource container, to which the miner is attached
-        self.control_channel = transport.QueuedSocket(terminal_name=f"{name}.C")
-        self.mining_channel = transport.QueuedSocket(terminal_name=f"{name}.M")
+        self.control_channel = transport.IOTerminal(terminal_name=f"{name}.C")
+        self.mining_channel = transport.IOTerminal(terminal_name=f"{name}.M")
         # The 'mining_channel' is used for 'start_mining' command only
         # For all other commands the 'control_channel' is used
 
@@ -72,7 +72,7 @@ class AsteroidMiner:
             return status.SUCCESS, self.specification
         request = public.Message()
         request.asteroid_miner.specification_req = True
-        if not self.control_channel.send_message(message=request):
+        if not self.control_channel.send(message=request):
             return status.FAILED_TO_SEND_REQUEST, None
         response = await self.control_channel.wait_message(timeout=timeout)
         if not response:
@@ -89,7 +89,7 @@ class AsteroidMiner:
         """Bind miner to the container with the specified 'cargo_name'"""
         request = public.Message()
         request.asteroid_miner.bind_to_cargo = cargo_name
-        if not self.control_channel.send_message(message=request):
+        if not self.control_channel.send(message=request):
             return AsteroidMiner.Status.FAILED_TO_SEND_REQUEST
         response = await self.control_channel.wait_message(timeout=timeout)
         if not response:
@@ -150,7 +150,7 @@ class AsteroidMiner:
         """Stop the mining process"""
         request = public.Message()
         request.asteroid_miner.stop_mining = True
-        if not self.control_channel.send_message(message=request):
+        if not self.control_channel.send(message=request):
             return AsteroidMiner.Status.FAILED_TO_SEND_REQUEST
 
         response = await self.control_channel.wait_message(timeout=timeout)
@@ -166,7 +166,7 @@ class AsteroidMiner:
         body = request.asteroid_miner.start_mining
         body.asteroid_id = asteroid_id
         body.resource = resource.to_protobuf()
-        return self.mining_channel.send_message(message=request)
+        return self.mining_channel.send(message=request)
 
     async def _wait_start_mining_status(self, timeout: float = 0.5) -> Status:
         response = await self.mining_channel.wait_message(timeout=timeout)

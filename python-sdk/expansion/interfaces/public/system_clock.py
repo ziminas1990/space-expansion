@@ -3,9 +3,9 @@ from enum import Enum
 import asyncio
 import logging
 
+from expansion.transport import IOTerminal
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport import QueuedSocket
 
 import expansion.utils as utils
 
@@ -39,8 +39,8 @@ class SystemClock:
         if name is None:
             name = utils.generate_name(SystemClock)
         self.logger = logging.getLogger(name)
-        self.control_channel: QueuedSocket = QueuedSocket(f"{name}.C")
-        self.generator_channel: QueuedSocket = QueuedSocket(f"{name}.G")
+        self.control_channel: IOTerminal = IOTerminal(f"{name}.C")
+        self.generator_channel: IOTerminal = IOTerminal(f"{name}.G")
 
         self._generator_tick_us: Optional[int] = None
         self._attached_task: Optional[asyncio.Task] = None
@@ -51,7 +51,7 @@ class SystemClock:
         """Return current server time"""
         request = public.Message()
         request.system_clock.time_req = True
-        if not self.control_channel.send_message(message=request):
+        if not self.control_channel.send(message=request):
             return None
         response = await self.control_channel.wait_message(timeout=timeout)
         if not response:
@@ -62,7 +62,7 @@ class SystemClock:
         """Wait until server time reaches the specified 'time'"""
         request = public.Message()
         request.system_clock.wait_until = time
-        if not self.control_channel.send_message(message=request):
+        if not self.control_channel.send(message=request):
             return None
         response = await self.control_channel.wait_message(timeout=timeout)
         if not response:
@@ -73,7 +73,7 @@ class SystemClock:
         """Wait for the specified 'period' microseconds"""
         request = public.Message()
         request.system_clock.wait_for = period_us
-        if not self.control_channel.send_message(message=request):
+        if not self.control_channel.send(message=request):
             return None
         response = await self.control_channel.wait_message(timeout=timeout)
         if not response:
@@ -110,7 +110,7 @@ class SystemClock:
         """Return generator's tick in microseconds"""
         request = public.Message()
         request.system_clock.generator_tick_req = True
-        if not self.control_channel.send_message(message=request):
+        if not self.control_channel.send(message=request):
             return None
         response = await self.control_channel.wait_message(timeout=timeout)
         if not response:
@@ -120,14 +120,14 @@ class SystemClock:
     async def _attach_generator(self, timeout: float = 0.5) -> Status:
         request = public.Message()
         request.system_clock.attach_generator = True
-        if not self.generator_channel.send_message(message=request):
+        if not self.generator_channel.send(message=request):
             return SystemClock.Status.FAILED_TO_SEND_REQUEST
         return await self._receive_generator_status(timeout)
 
     async def _detach_generator(self, timeout: float) -> Status:
         request = public.Message()
         request.system_clock.detach_generator = True
-        if not self.generator_channel.send_message(message=request):
+        if not self.generator_channel.send(message=request):
             return SystemClock.Status.FAILED_TO_SEND_REQUEST
         return await self._receive_generator_status(timeout)
 
