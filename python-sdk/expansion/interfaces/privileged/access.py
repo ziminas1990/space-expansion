@@ -22,6 +22,6 @@ class Access:
         login_req.password = password
         self._socket.send(message)
 
-        response = await self._socket.wait_message()
+        response, _ = await self._socket.wait_message()
         token: Optional[int] = get_message_field(response, 'access.success')
         return token is not None, token

@@ -35,13 +35,13 @@ class InterfacesMux(Terminal):
         self.interfaces: Dict[Interfaces, Pipe] = {}
 
     # Override from Terminal
-    def on_receive(self, message: public.Message):
+    def on_receive(self, message: public.Message, timestamp: Optional[int]):
         """This callback will be called to pass received message, that was
         addressed to this terminal"""
         self.terminal_logger.debug(f"Got a message for the '{message.WhichOneof('choice')}' interface")
         channel: Optional[Pipe] = self.interfaces[message.WhichOneof("choice")]
         if channel:
-            channel.on_message(message=message)
+            channel.on_message(message=message, timestamp=timestamp)
         else:
             self.terminal_logger.warning("No channel for the '{message.WhichOneof('choice')}'"
                                          " interface has been created")

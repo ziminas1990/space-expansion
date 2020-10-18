@@ -38,7 +38,7 @@ class CelestialScanner(transport.IOTerminal):
         request.celestial_scanner.specification_req = True
         if not self.send(message=request):
             return None
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
         spec = protocol.get_message_field(response, "celestial_scanner.specification")
@@ -97,7 +97,7 @@ class CelestialScanner(transport.IOTerminal):
             return 0, f"Got unexpected response '{response.WhichOneof('choice')}'"
 
         while True:
-            response = await self.wait_message(timeout=timeout)
+            response, _ = await self.wait_message(timeout=timeout)
             if not response:
                 return 0, "No response"
             objects_left, error = handle_response(response)

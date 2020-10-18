@@ -91,7 +91,7 @@ class Commutator(IOTerminal):
         assert False, "Operation is not supported for commutators"
 
     # Override from IOTerminal->Terminal
-    def on_receive(self, message: public.Message):
+    def on_receive(self, message: public.Message, timestamp: Optional[int]):
         if message.WhichOneof('choice') == 'encapsulated':
             try:
                 tunnel = self.tunnels[message.tunnelId]
@@ -102,20 +102,22 @@ class Commutator(IOTerminal):
                 return
 
             if tunnel:
-                tunnel.on_receive(message)
+                # Encapsulated timestamp has a higher priority then a timestamp
+                # passed to this function
+                tunnel.on_receive(message, message.timestamp or timestamp)
             else:
                 self._logger.warning(
                     f"Ignore message for invalid tunnel"
                     f" #{message.tunnelId}:\n {message}")
         else:
-            super().on_receive(message)
+            super().on_receive(message, timestamp)
 
     async def get_total_slots(self) -> (bool, int):
         """Return total number of devices, attached to this commutator"""
         request = public.Message()
         request.commutator.total_slots_req = True
         self.send(request)
-        response = await self.wait_message()
+        response, _ = await self.wait_message()
         if not response:
             return False, 0
         total_slots = get_message_field(response, "commutator.total_slots")
@@ -132,7 +134,7 @@ class Commutator(IOTerminal):
         request = public.Message()
         request.commutator.module_info_req = slot_id
         self.send(request)
-        response = await self.wait_message()
+        response, _ = await self.wait_message()
         if not response:
             return None
         module_info = get_message_field(response, "commutator.module_info")
@@ -161,7 +163,7 @@ class Commutator(IOTerminal):
         self.send(request)
 
         for i in range(total_slots):
-            response = await self.wait_message()
+            response, _ = await self.wait_message()
             module_info = get_message_field(response, "commutator.module_info")
             if not module_info:
                 return None
@@ -176,7 +178,7 @@ class Commutator(IOTerminal):
         request.commutator.open_tunnel = port
         self.send(request)
 
-        response = await self.wait_message()
+        response, _ = await self.wait_message()
         if not response:
             return None
         tunnel_id = get_message_field(response, "commutator.open_tunnel_report")

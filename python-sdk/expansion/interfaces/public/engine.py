@@ -28,7 +28,7 @@ class Engine(IOTerminal):
         request.engine.specification_req = True
         if not self.send(message=request):
             return None
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
         spec = get_message_field(response, "engine.specification")
@@ -43,7 +43,7 @@ class Engine(IOTerminal):
         request.engine.thrust_req = True
         if not self.send(message=request):
             return None
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
         thrust = get_message_field(response, "engine.thrust")

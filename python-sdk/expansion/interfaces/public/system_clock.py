@@ -53,7 +53,7 @@ class SystemClock:
         request.system_clock.time_req = True
         if not self.control_channel.send(message=request):
             return None
-        response = await self.control_channel.wait_message(timeout=timeout)
+        response, _ = await self.control_channel.wait_message(timeout=timeout)
         if not response:
             return None
         return get_message_field(response, "system_clock.time")
@@ -64,7 +64,7 @@ class SystemClock:
         request.system_clock.wait_until = time
         if not self.control_channel.send(message=request):
             return None
-        response = await self.control_channel.wait_message(timeout=timeout)
+        response, _ = await self.control_channel.wait_message(timeout=timeout)
         if not response:
             return None
         return get_message_field(response, "system_clock.ring")
@@ -75,7 +75,7 @@ class SystemClock:
         request.system_clock.wait_for = period_us
         if not self.control_channel.send(message=request):
             return None
-        response = await self.control_channel.wait_message(timeout=timeout)
+        response, _ = await self.control_channel.wait_message(timeout=timeout)
         if not response:
             return None
         return get_message_field(response, "system_clock.ring")
@@ -112,7 +112,7 @@ class SystemClock:
         request.system_clock.generator_tick_req = True
         if not self.control_channel.send(message=request):
             return None
-        response = await self.control_channel.wait_message(timeout=timeout)
+        response, _ = await self.control_channel.wait_message(timeout=timeout)
         if not response:
             return None
         return get_message_field(response, "system_clock.generator_tick_us")
@@ -132,7 +132,7 @@ class SystemClock:
         return await self._receive_generator_status(timeout)
 
     async def _receive_generator_status(self, timeout: float) -> Status:
-        response = await self.generator_channel.wait_message(timeout=timeout)
+        response, _ = await self.generator_channel.wait_message(timeout=timeout)
         if not response:
             return SystemClock.Status.RESPONSE_TIMEOUT
 
@@ -141,7 +141,7 @@ class SystemClock:
 
     async def _generator_task(self, timeout: float = 0.5):
         while len(self.time_callback) > 0:
-            response = await self.generator_channel.wait_message(timeout=timeout)
+            response, _ = await self.generator_channel.wait_message(timeout=timeout)
             if not response:
                 self.logger.warning("Timeout while waiting generator time message")
                 # Ignoring the problem

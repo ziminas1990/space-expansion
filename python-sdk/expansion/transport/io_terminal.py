@@ -1,8 +1,9 @@
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 import asyncio
 
 from .channel import Channel
 from .terminal import Terminal
+
 
 class IOTerminal(Channel, Terminal):
     """IOTerminal may be attached to the channel (as a terminal inheritor)
@@ -20,13 +21,14 @@ class IOTerminal(Channel, Terminal):
     def get_name(self) -> str:
         return super(IOTerminal, self).get_name()
 
-    async def wait_message(self, timeout: float = 1.0) -> Optional[Any]:
+    async def wait_message(self, timeout: float = 1.0) -> Tuple[Optional[Any], Optional[int]]:
         """Await for a message on the internal queue for not more than the
-        specified 'timeout' seconds"""
+        specified 'timeout' seconds. Return a message and a optional timestamp, when
+        the message was sent."""
         try:
             return await asyncio.wait_for(self.queue.get(), timeout=timeout)
         except asyncio.TimeoutError:
-            return None
+            return None, None
 
     def wrap_channel(self, down_level: Channel):
         self.attach_channel(down_level)
@@ -51,10 +53,10 @@ class IOTerminal(Channel, Terminal):
             await self.channel.close()
 
     # Override from Terminal
-    def on_receive(self, message: Any):
-        super().on_receive(message)  # For logging
+    def on_receive(self, message: Any, timestamp: Optional[int]):
+        super().on_receive(message, timestamp)  # For logging
         try:
-            self.queue.put_nowait(message)
+            self.queue.put_nowait((message, timestamp))
         except asyncio.QueueFull:
             self.terminal_logger.warning(f"Drop message: queue is full!")
         self.terminal_logger.debug(f"Queue size: {self.queue.qsize()}")

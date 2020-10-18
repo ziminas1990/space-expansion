@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import abc
 import logging
 
@@ -18,7 +18,7 @@ class Terminal(abc.ABC):
         return self.terminal_name
 
     @abc.abstractmethod
-    def on_receive(self, message: Any):
+    def on_receive(self, message: Any, timestamp: Optional[int]):
         """This callback will be called to pass received message, that was
         addressed to this terminal"""
         self.terminal_logger.debug(f"Got\n{message}")

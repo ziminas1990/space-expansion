@@ -85,7 +85,7 @@ class ResourceContainer(IOTerminal):
         request.resource_container.content_req = True
         if not self.send(message=request):
             return None
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
         content = get_message_field(response, "resource_container.content")
@@ -102,7 +102,7 @@ class ResourceContainer(IOTerminal):
         request.resource_container.open_port = access_key
         if not self.send(message=request):
             return ResourceContainer.Status.FAILED_TO_SEND_REQUEST, 0
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainer.Status.RESPONSE_TIMEOUT, 0
         port_id = get_message_field(response, "resource_container.port_opened")
@@ -122,7 +122,7 @@ class ResourceContainer(IOTerminal):
         request.resource_container.close_port = True
         if not self.send(message=request):
             return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainer.Status.RESPONSE_TIMEOUT
         status = get_message_field(response, "resource_container.close_port_status")
@@ -148,7 +148,7 @@ class ResourceContainer(IOTerminal):
 
         if not self.send(message=request):
             return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainer.Status.RESPONSE_TIMEOUT
         status = get_message_field(response, "resource_container.transfer_status")
@@ -158,7 +158,7 @@ class ResourceContainer(IOTerminal):
             return ResourceContainer.Status.convert(status)
         # Status is success. Waiting for reports
         while True:
-            response = await self.wait_message(timeout=2)
+            response, _ = await self.wait_message(timeout=2)
             report = get_message_field(response, "resource_container.transfer_report")
             if not report:
                 # May be complete status is received:

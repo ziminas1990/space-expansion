@@ -74,7 +74,7 @@ class AsteroidMiner:
         request.asteroid_miner.specification_req = True
         if not self.control_channel.send(message=request):
             return status.FAILED_TO_SEND_REQUEST, None
-        response = await self.control_channel.wait_message(timeout=timeout)
+        response, _ = await self.control_channel.wait_message(timeout=timeout)
         if not response:
             return status.RESPONSE_TIMEOUT, None
         spec = protocol.get_message_field(response, "asteroid_miner.specification")
@@ -91,7 +91,7 @@ class AsteroidMiner:
         request.asteroid_miner.bind_to_cargo = cargo_name
         if not self.control_channel.send(message=request):
             return AsteroidMiner.Status.FAILED_TO_SEND_REQUEST
-        response = await self.control_channel.wait_message(timeout=timeout)
+        response, _ = await self.control_channel.wait_message(timeout=timeout)
         if not response:
             return AsteroidMiner.Status.RESPONSE_TIMEOUT
         protobuf_status = protocol.get_message_field(
@@ -153,7 +153,7 @@ class AsteroidMiner:
         if not self.control_channel.send(message=request):
             return AsteroidMiner.Status.FAILED_TO_SEND_REQUEST
 
-        response = await self.control_channel.wait_message(timeout=timeout)
+        response, _ = await self.control_channel.wait_message(timeout=timeout)
         if not response:
             return AsteroidMiner.Status.RESPONSE_TIMEOUT
         status = protocol.get_message_field(response, "asteroid_miner.stop_mining_status")
@@ -169,7 +169,7 @@ class AsteroidMiner:
         return self.mining_channel.send(message=request)
 
     async def _wait_start_mining_status(self, timeout: float = 0.5) -> Status:
-        response = await self.mining_channel.wait_message(timeout=timeout)
+        response, _ = await self.mining_channel.wait_message(timeout=timeout)
         if not response:
             return AsteroidMiner.Status.RESPONSE_TIMEOUT
         mining_status = protocol.get_message_field(response, "asteroid_miner.start_mining_status")
@@ -179,7 +179,7 @@ class AsteroidMiner:
 
     async def _wait_mining_report(self, timeout: float) \
             -> (Status, Optional[ResourceItem]):
-        response = await self.mining_channel.wait_message(timeout=timeout)
+        response, _ = await self.mining_channel.wait_message(timeout=timeout)
         if not response:
             return AsteroidMiner.Status.RESPONSE_TIMEOUT, None
         report = protocol.get_message_field(response, "asteroid_miner.mining_report")

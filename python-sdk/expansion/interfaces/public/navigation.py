@@ -18,7 +18,7 @@ class INavigation(IOTerminal):
         request.navigation.position_req = True
         if not self.send(message=request):
             return None
-        response = await self.wait_message(timeout=0.5)
+        response, _ = await self.wait_message(timeout=0.5)
         if not response:
             return None
         position = get_message_field(response, "navigation.position")

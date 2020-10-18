@@ -51,12 +51,12 @@ class ProxyChannel(Channel, Terminal):
         self.downlevel = None
 
     # Override from Terminal
-    def on_receive(self, message: Any):
+    def on_receive(self, message: Any, timestamp: Optional[int]):
         # For logging:
-        super().on_receive(message)
+        super().on_receive(message, timestamp)
         decoded_message = self.decode(message)
         if decoded_message:
-            self.on_message(decoded_message)
+            self.on_message(decoded_message, timestamp)
 
     # Override from Channel
     def send(self, message: Any) -> bool:

@@ -47,7 +47,7 @@ class Ship(Terminal):
         request.ship.state_req = True
         if not self.ship_tunnel.send(message=request):
             return None
-        response = await self.ship_tunnel.wait_message(timeout=0.5)
+        response, _ = await self.ship_tunnel.wait_message(timeout=0.5)
         if not response:
             return None
         spec = get_message_field(response, "ship.state")
@@ -56,9 +56,9 @@ class Ship(Terminal):
         return State(weight=spec.weight)
 
     # Overrides Terminal's implementation
-    def on_receive(self, message: Any):
-        super().on_receive(message=message)  # For logging
-        self.mux.on_receive(message)
+    def on_receive(self, message: Any, timestamp: Optional[int]):
+        super().on_receive(message=message, timestamp=timestamp)  # For logging
+        self.mux.on_receive(message, timestamp)
 
     # Overrides Terminal's implementation
     def attach_channel(self, channel: 'Channel'):

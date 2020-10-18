@@ -26,7 +26,7 @@ class IAccessPanel:
         login_req.port = local_port
         self.socket.send(message)
 
-        response = await self.socket.wait_message()
+        response, _ = await self.socket.wait_message()
         port: Optional[int] = get_message_field(response, 'accessPanel.access_granted')
         if port:
             return port, None

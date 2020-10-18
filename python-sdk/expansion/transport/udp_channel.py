@@ -76,7 +76,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     def datagram_received(self, data: bytes, addr):
         self.channel_logger.debug(f"Received {len(data)} bytes from {addr}")
         if self.terminal:
-            self.terminal.on_receive(data)
+            self.terminal.on_receive(data, None)
         else:
             self.channel_logger.warning(
                 f"Ignoring {len(data)} bytes message: not attached to the terminal!")

@@ -37,10 +37,10 @@ class Channel(abc.ABC):
     def get_name(self) -> str:
         return self.channel_name
 
-    def on_message(self, message: Any):
-        self.channel_logger.debug(f"Got:\n{message}")
+    def on_message(self, message: Any, timestamp: Optional[int]):
+        self.channel_logger.debug(f"Got:\n{message}, timestamp = {timestamp}")
         if self.terminal:
-            self.terminal.on_receive(message)
+            self.terminal.on_receive(message, timestamp)
 
     def attach_to_terminal(self, terminal: 'Terminal'):
         """Attach channel to terminal. If channel in ACTIVE mode, it will pass
