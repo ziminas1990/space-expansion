@@ -27,18 +27,26 @@ class Interfaces(Enum):
 
 class InterfacesMux(Terminal):
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: Optional[str] = None,
+                 trace_mode: bool = False):
         self.name: str = name or utils.generate_name(InterfacesMux)
 
-        super().__init__(terminal_name=self.name)
+        super().__init__(terminal_name=self.name,
+                         trace_mode=trace_mode)
         self.downlevel: Optional[Channel] = None
         self.interfaces: Dict[Interfaces, Pipe] = {}
+        self._trace_mode=trace_mode
+
+    def set_trace_mode(self, on: bool):
+        self._trace_mode = on
 
     # Override from Terminal
     def on_receive(self, message: public.Message, timestamp: Optional[int]):
         """This callback will be called to pass received message, that was
         addressed to this terminal"""
-        self.terminal_logger.debug(f"Got a message for the '{message.WhichOneof('choice')}' interface")
+        if self._trace_mode:
+            self.terminal_logger.debug(f"Got a message for the "
+                                       f"'{message.WhichOneof('choice')}' interface")
         channel: Optional[Pipe] = self.interfaces[message.WhichOneof("choice")]
         if channel:
             channel.on_message(message=message, timestamp=timestamp)

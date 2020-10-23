@@ -10,11 +10,15 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
 
     def __init__(self,
                  on_closed_cb: Callable[[], Any],
-                 channel_name: Optional[str] = None):
+                 channel_name: Optional[str] = None,
+                 trace_mode: bool = False,
+                 *args, **kwargs):
         """Create UDP channel. The specified 'on_closed_cb' will be called when
         connection is closed. The specified 'channel_name' will be used in
         logs"""
-        super().__init__(channel_name=channel_name or utils.generate_name(type(self)))
+        super().__init__(channel_name=channel_name or utils.generate_name(type(self)),
+                         trace_mode=trace_mode
+                         *args, **kwargs)
 
         self.remote: Optional[Tuple[str, int]] = None
         # Pair, that holds IP and port of the server
@@ -24,6 +28,11 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         # Object, that returned by asyncio. Will be used to send data
         self.on_closed_cb: Callable[[], Any] = on_closed_cb
         # callback, that will be called if connection is closed/lost
+
+        self.__trace_mode = trace_mode
+
+    def set_trace_mode(self, on: bool):
+        self.__trace_mode = on
 
     async def bind(self, local_addr: Tuple[str, int]) -> bool:
         self.local_addr = local_addr
@@ -61,7 +70,8 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     # Override from Channel
     def send(self, message: bytes) -> bool:
         """Write the specified 'message' to channel"""
-        self.channel_logger.debug(f"Sending:\n{len(message)} bytes to {self.remote}")
+        if self.__trace_mode:
+            self.channel_logger.debug(f"Sending:\n{len(message)} bytes to {self.remote}")
         self.transport.sendto(message, addr=self.remote)
         return True
 
@@ -74,7 +84,8 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         self.channel_logger.info(f"Connection established to {self.remote}")
 
     def datagram_received(self, data: bytes, addr):
-        self.channel_logger.debug(f"Received {len(data)} bytes from {addr}")
+        if self.__trace_mode:
+            self.channel_logger.debug(f"Received {len(data)} bytes from {addr}")
         if self.terminal:
             self.terminal.on_receive(data, None)
         else:

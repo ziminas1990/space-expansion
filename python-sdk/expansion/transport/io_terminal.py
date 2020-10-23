@@ -12,11 +12,17 @@ class IOTerminal(Channel, Terminal):
     the 'wait_message' call).
     """
 
-    def __init__(self, channel_name: Optional[str] = None, *args, **kwargs):
+    def __init__(self, channel_name: Optional[str] = None,
+                 trace_mode: bool = False,
+                 *args, **kwargs):
         super().__init__(channel_name=channel_name, *args, **kwargs)
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
         self._waiters: int = 0
+        self._trace_mode = trace_mode
+
+    def set_trace_mode(self, on: bool):
+        self._trace_mode = on
 
     def get_name(self) -> str:
         return super(IOTerminal, self).get_name()
@@ -59,7 +65,8 @@ class IOTerminal(Channel, Terminal):
             self.queue.put_nowait((message, timestamp))
         except asyncio.QueueFull:
             self.terminal_logger.warning(f"Drop message: queue is full!")
-        self.terminal_logger.debug(f"Queue size: {self.queue.qsize()}")
+        if self._trace_mode:
+            self.terminal_logger.debug(f"Queue size: {self.queue.qsize()}")
 
     # Override from Terminal
     def attach_channel(self, channel: Channel):

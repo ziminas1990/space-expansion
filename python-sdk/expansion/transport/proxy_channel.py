@@ -15,15 +15,23 @@ class ProxyChannel(Channel, Terminal):
     overridden.
     """
 
-    def __init__(self, proxy_name: Optional[str] = None, *args, **kwargs):
+    def __init__(self,
+                 proxy_name: Optional[str] = None,
+                 trace_mode=False,
+                 *args, **kwargs):
         self.proxy_name: str = proxy_name or utils.generate_name(ProxyChannel)
         super().__init__(channel_name=f"{self.proxy_name}/enc",
                          terminal_name=f"{self.proxy_name}/dec",
+                         trace_mode=trace_mode,
                          *args, **kwargs)
         self.downlevel: Optional[Channel] = None
+        self._trace_mode = trace_mode
 
     def get_name(self) -> str:
         return self.proxy_name
+
+    def set_trace_mode(self, on: bool):
+        self._trace_mode = on
 
     @abc.abstractmethod
     def decode(self, data: Any) -> Optional[Any]:
@@ -60,7 +68,9 @@ class ProxyChannel(Channel, Terminal):
 
     # Override from Channel
     def send(self, message: Any) -> bool:
-        self.channel_logger.debug(f"Sending:\n{message}")
+        if self._trace_mode:
+            self.channel_logger.debug(f"Sending:\n{message}")
+
         if not self.downlevel:
             self.channel_logger.warning(f"Not attached to the channel!")
             return False

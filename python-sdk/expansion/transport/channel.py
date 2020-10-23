@@ -28,17 +28,24 @@ class Channel(abc.ABC):
 
     next_channel_id: int = 0
 
-    def __init__(self, channel_name=None, *args, **kwargs):
+    def __init__(self, channel_name=None,
+                 trace_mode=False,
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channel_name = channel_name or utils.generate_name(type(self))
         self.channel_logger = logging.getLogger(self.channel_name)
         self.terminal: Optional['Terminal'] = None
+        self._trace_mode = trace_mode
 
     def get_name(self) -> str:
         return self.channel_name
 
+    def set_trace_mode(self, on: bool):
+        self._trace_mode = on
+
     def on_message(self, message: Any, timestamp: Optional[int]):
-        self.channel_logger.debug(f"Got:\n{message}, timestamp = {timestamp}")
+        if self._trace_mode:
+            self.channel_logger.debug(f"Got:\n{message}, timestamp = {timestamp}")
         if self.terminal:
             self.terminal.on_receive(message, timestamp)
 
