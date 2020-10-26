@@ -21,8 +21,7 @@ public:
   UdpDispatcher(boost::asio::io_service& ioContext,
                 uint16_t nPoolBegin, uint16_t nPoolEnd);
 
-  UdpSocketPtr createUdpConnection(BufferedTerminalPtr pTerminal,
-                                   uint16_t nLocalPort = 0);
+  UdpSocketPtr createUdpConnection(uint16_t nLocalPort = 0);
 
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() override { return 1; }
@@ -47,11 +46,9 @@ private:
 
 private:
   boost::asio::io_service& m_IOContext;
-  std::vector<Connection>  m_Connections;
 
   utils::SimplePool<uint16_t, 0> m_portsPool;
 
-  std::atomic_size_t m_nNextConnectionId;
   utils::Mutex       m_Mutex;
 };
 

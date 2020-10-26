@@ -95,8 +95,12 @@ private:
   modules::SystemClockManagerPtr       m_pSystemClockManager;
 
   network::UdpDispatcherPtr     m_pUdpDispatcher;
+
+  network::UdpSocketPtr         m_pLoginSocket;
   network::PlayerChannelPtr     m_pLoginChannel;
   modules::AccessPanelPtr       m_pAccessPanel;
+
+  network::UdpSocketPtr         m_pPrivilegedSocket;
   network::PrivilegedChannelPtr m_pPrivilegedChannel;
   AdministratorPanelPtr         m_pAdministratorPanel;
 

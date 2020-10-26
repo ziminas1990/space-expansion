@@ -4,6 +4,7 @@
 
 #include <Utils/YamlForwardDeclarations.h>
 #include <Network/ProtobufChannel.h>
+#include <Network/UdpSocket.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/Ship.h>
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
@@ -27,7 +28,8 @@ public:
                         YAML::Node const& state);
   ~Player();
 
-  void attachToChannel(network::PlayerChannelPtr pChannel);
+  network::UdpSocketPtr getUdpSocket() const { return m_pUdpChannel; }
+  void attachToUdpSocket(network::UdpSocketPtr pSocket);
 
   std::string const& getLogin()    const { return m_sLogin; }
   std::string const& getPassword() const { return m_sPassword; }
@@ -41,7 +43,8 @@ private:
   std::string const m_sLogin;
   std::string       m_sPassword;
 
-  network::PlayerChannelPtr     m_pChannel;
+  network::UdpSocketPtr         m_pUdpChannel;
+  network::PlayerChannelPtr     m_pProtobufChannel;
   modules::CommutatorPtr        m_pEntryPoint;
   modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;

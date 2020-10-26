@@ -77,9 +77,12 @@ PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary bluepri
 
 Player::~Player()
 {
-  if (m_pChannel) {
-    m_pChannel->detachFromTerminal();
-    m_pChannel->detachFromChannel();
+  if (m_pUdpChannel) {
+    m_pUdpChannel->detachFromTerminal();
+  }
+  if (m_pProtobufChannel) {
+    m_pProtobufChannel->detachFromTerminal();
+    m_pProtobufChannel->detachFromChannel();
   }
   m_pEntryPoint->detachFromChannel();
   m_pEntryPoint->detachFromTerminal();
@@ -87,11 +90,16 @@ Player::~Player()
   m_pBlueprintsExplorer->detachFromChannel();
 }
 
-void Player::attachToChannel(network::PlayerChannelPtr pChannel)
+void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)
 {
-  m_pChannel = std::move(pChannel);
-  m_pEntryPoint->attachToChannel(m_pChannel);
-  m_pChannel->attachToTerminal(m_pEntryPoint);
+  m_pUdpChannel = pSocket;
+  if (!m_pProtobufChannel) {
+    m_pProtobufChannel = std::make_shared<network::PlayerChannel>();
+    m_pEntryPoint->attachToChannel(m_pProtobufChannel);
+    m_pProtobufChannel->attachToTerminal(m_pEntryPoint);
+  }
+  m_pProtobufChannel->attachToChannel(m_pUdpChannel);
+  m_pUdpChannel->attachToTerminal(m_pProtobufChannel);
 }
 
 } // namespace world

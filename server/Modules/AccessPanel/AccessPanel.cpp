@@ -42,29 +42,29 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     return;
   }
 
-  // Creating protobuf transport layer
-  network::PlayerChannelPtr pPlayerChannel = std::make_shared<network::PlayerChannel>();
-
-  // Creating low-level transport (UDP)
-  network::UdpSocketPtr pLocalSocket =
-      m_pConnectionManager->createUdpConnection(pPlayerChannel);
-  if (!pLocalSocket) {
-    sendLoginFailed(nSessionId, "Can't create UDP socket");
-    return;
-  }
-  pLocalSocket->addRemote(
-        network::UdpEndPoint(
-          boost::asio::ip::address_v4::from_string(loginRequest.ip()),
-          uint16_t(loginRequest.port())));
-
   world::PlayerPtr pPlayer = pPlayerStorage->getPlayer(loginRequest.login());
   if (!pPlayer) {
     sendLoginFailed(nSessionId, "Failed to get or spawn player");
     return;
   }
 
-  pPlayer->attachToChannel(pPlayerChannel);
-  sendLoginSuccess(nSessionId, pLocalSocket->getNativeSocket().local_endpoint());
+  network::UdpSocketPtr pPlayerSocket = pPlayer->getUdpSocket();
+
+  if (!pPlayerSocket) {
+    pPlayerSocket = m_pConnectionManager->createUdpConnection();
+    if (!pPlayerSocket) {
+      sendLoginFailed(nSessionId, "Can't create UDP socket");
+      return;
+    }
+    pPlayer->attachToUdpSocket(pPlayerSocket);
+  }
+
+  pPlayerSocket->addRemote(
+        network::UdpEndPoint(
+          boost::asio::ip::address_v4::from_string(loginRequest.ip()),
+          uint16_t(loginRequest.port())));
+
+  sendLoginSuccess(nSessionId, pPlayerSocket->getNativeSocket().local_endpoint());
 }
 
 bool AccessPanel::checkLogin(std::string const& sLogin,

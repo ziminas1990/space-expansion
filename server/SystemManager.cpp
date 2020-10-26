@@ -204,16 +204,19 @@ bool SystemManager::configureComponents()
 bool SystemManager::linkComponents()
 {
   if (m_pPrivilegedChannel && m_pAdministratorPanel) {
-    m_pUdpDispatcher->createUdpConnection(
-          m_pPrivilegedChannel,
+    m_pPrivilegedSocket = m_pUdpDispatcher->createUdpConnection(
           m_configuration.getAdministratorCfg().getPort());
+    m_pPrivilegedSocket->attachToTerminal(m_pPrivilegedChannel);
+    m_pPrivilegedChannel->attachToChannel(m_pPrivilegedSocket);
     m_pPrivilegedChannel->attachToTerminal(m_pAdministratorPanel);
     m_pAdministratorPanel->attachToChannel(m_pPrivilegedChannel);
     m_pAdministratorPanel->attachToSystemManager(this);
   }
 
-  m_pUdpDispatcher->createUdpConnection(m_pLoginChannel,
-                                        m_configuration.getLoginUdpPort());
+  m_pLoginSocket = m_pUdpDispatcher->createUdpConnection(
+        m_configuration.getLoginUdpPort());
+  m_pLoginSocket->attachToTerminal(m_pLoginChannel);
+  m_pLoginChannel->attachToChannel(m_pLoginSocket);
   m_pLoginChannel->attachToTerminal(m_pAccessPanel);
   m_pAccessPanel->attachToChannel(m_pLoginChannel);
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);

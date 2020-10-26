@@ -18,9 +18,8 @@ public:
 
     m_pChannel->attachToTerminal(m_pMockedTerminal);
 
-    m_pMockedTerminal->setEnviromentProceeder(
-          [this]() { m_pChannel->handleBufferedMessages(); }
-    );
+    // In this test there is nothing to proceed
+    m_pMockedTerminal->setEnviromentProceeder([](){});
   }
 
 protected:

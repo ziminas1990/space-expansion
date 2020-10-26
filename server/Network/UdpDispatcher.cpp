@@ -8,8 +8,7 @@ UdpDispatcher::UdpDispatcher(boost::asio::io_service& ioContext,
     m_portsPool(nPoolBegin, nPoolEnd)
 {}
 
-UdpSocketPtr UdpDispatcher::createUdpConnection(
-    BufferedTerminalPtr pTerminal, uint16_t nLocalPort)
+UdpSocketPtr UdpDispatcher::createUdpConnection(uint16_t nLocalPort)
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
 
@@ -18,32 +17,18 @@ UdpSocketPtr UdpDispatcher::createUdpConnection(
     if (!nLocalPort)
       return UdpSocketPtr();
   }
-
-  UdpSocketPtr pUdpSocket = std::make_shared<UdpSocket>(m_IOContext, nLocalPort);
-  pUdpSocket->attachToTerminal(pTerminal);
-  pTerminal->attachToChannel(pUdpSocket);
-  m_Connections.emplace_back(pUdpSocket, std::move(pTerminal));
-  return pUdpSocket;
+  return std::make_shared<UdpSocket>(m_IOContext, nLocalPort);
 }
 
 bool UdpDispatcher::prephare(uint16_t, uint32_t, uint64_t)
 {
-  // Move to proceedStage
-  if (!m_IOContext.poll())
-      return false;
   while(m_IOContext.poll());
-
-  m_nNextConnectionId.store(0);
-  return true;
+  return false;
 }
 
 void UdpDispatcher::proceed(uint16_t, uint32_t, uint64_t)
 {
-  size_t nConnectionId = m_nNextConnectionId.fetch_add(1);
-  while (nConnectionId < m_Connections.size()) {
-    m_Connections[nConnectionId].m_pTerminal->handleBufferedMessages();
-    nConnectionId = m_nNextConnectionId.fetch_add(1);
-  }
+  assert(nullptr == "This function should never be called!");
 }
 
 } // namespace network
