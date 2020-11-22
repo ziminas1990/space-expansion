@@ -8,7 +8,8 @@ from server.configurator import Configuration, AdministratorCfg
 from server.server import Server
 
 import expansion.procedures as procedures
-import expansion.interfaces.public as modules
+import expansion.interfaces.public as rpc
+import expansion.modules as modules
 import expansion.interfaces.privileged as privileged
 
 
@@ -68,7 +69,7 @@ class BaseTestFixture(unittest.TestCase):
         # At this point server should stop himself, but to be sure:
         self.server.stop()
 
-    async def login(self, player: str) -> (Optional[modules.Commutator], Optional[str]):
+    async def login_old(self, player: str) -> (Optional[rpc.CommutatorI], Optional[str]):
         if player not in self.config.players:
             return None, f"Player {player} doesn't exist!"
         general_cfg = self.config.general
@@ -80,6 +81,22 @@ class BaseTestFixture(unittest.TestCase):
             password=self.config.players[player].password,
             local_ip="127.0.0.1",
             local_port=port)
+
+    async def login(self, player: str, server_ip: str, local_ip: str) \
+            -> (Optional[modules.Commutator], Optional[str]):
+        general_cfg = self.config.general
+        port = self.login_ports.pop()
+        commutator = modules.RootCommutator(name="Root")
+        error = await commutator.login(
+            server_ip=server_ip,
+            login_port=general_cfg.login_udp_port,
+            login=self.config.players[player].login,
+            password=self.config.players[player].password,
+            local_ip=local_ip,
+            local_port=port)
+        if error is not None or not await commutator.init():
+            return None, error
+        return commutator, None
 
     async def _proceed_time(self, proceed_ms: int, timeout_s: float) -> (bool, Optional[int]):
         """

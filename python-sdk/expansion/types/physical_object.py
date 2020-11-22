@@ -6,9 +6,7 @@ class PhysicalObject:
     def __init__(self,
                  object_id: Optional[int] = None,
                  position: Optional[types.Position] = None,
-                 radius: Optional[float] = None,
-                 timestamp: Optional[int] = None):
+                 radius: Optional[float] = None):
         self.object_id = object_id
         self.position: Optional[types.Position] = position
         self.radius: Optional[float] = radius
-        self.timestamp: Optional[int] = timestamp

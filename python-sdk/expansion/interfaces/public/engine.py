@@ -12,10 +12,10 @@ class Specification(NamedTuple):
     max_thrust: int
 
 
-class Engine(IOTerminal):
+class EngineI(IOTerminal):
 
     def __init__(self, name: Optional[str] = None):
-        super().__init__(terminal_name=name or utils.generate_name(Engine))
+        super().__init__(name=name or utils.generate_name(EngineI))
         self.specification: Optional[Specification] = None
 
     async def get_specification(self, timeout: float = 0.5, reset_cached=False)\

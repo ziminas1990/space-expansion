@@ -6,14 +6,14 @@ from expansion.transport.protobuf_channel import ProtobufChannel
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.interfaces.public.access_panel import IAccessPanel
-from expansion.interfaces.public.commutator import Commutator
+from expansion.interfaces.public.commutator import CommutatorI
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 async def login(server_ip: str, login_port: int,
                 login: str, password: str,
-                local_ip: str, local_port: int) -> (Optional[Commutator], Optional[str]):
+                local_ip: str, local_port: int) -> (Optional[CommutatorI], Optional[str]):
     """Login on server and return root commutator.
     On success return (Commutator, None) pair. Otherwise return (None, error).
     This procedure will send login request to the specified 'server_ip' and
@@ -64,7 +64,7 @@ async def login(server_ip: str, login_port: int,
     player_channel.attach_to_terminal(protobuf_channel)
 
     # Creating root commutator and attach it to channel
-    commutator: Commutator = Commutator(name=f"{local_ip}:{local_port}::Root")
+    commutator: CommutatorI = CommutatorI(name=f"{local_ip}:{local_port}::Root")
     commutator.attach_channel(protobuf_channel)
     protobuf_channel.attach_to_terminal(commutator)
 

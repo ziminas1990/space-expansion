@@ -6,8 +6,7 @@ import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 from server.configurator import Configuration, General, ApplicationMode
 
-import expansion.procedures as procedures
-from expansion.interfaces.public import SystemClock
+import expansion.modules as modules
 
 
 class TestSystemClock(BaseTestFixture):
@@ -36,11 +35,11 @@ class TestSystemClock(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_breath(self):
-        commutator, error = await self.login('player')
-        self.assertIsNotNone(commutator)
+        commutator, error = await self.login(player='player',
+                                             server_ip="127.0.0.1",
+                                             local_ip="127.0.0.1")
         self.assertIsNone(error)
-
-        system_clock = await procedures.connect_to_system_clock(commutator)
+        system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
 
         # Checking time_req function
@@ -87,30 +86,25 @@ class TestSystemClock(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_multiple_sessions(self):
-        commutator, error = await self.login('player')
-        self.assertIsNotNone(commutator)
+        commutator, error = await self.login(player='player',
+                                             server_ip="127.0.0.1",
+                                             local_ip="127.0.0.1")
         self.assertIsNone(error)
-
-        system_clock_1 = await procedures.connect_to_system_clock(commutator)
-        self.assertIsNotNone(system_clock_1)
-        system_clock_2 = await procedures.connect_to_system_clock(commutator)
-        self.assertIsNotNone(system_clock_2)
-        system_clock_3 = await procedures.connect_to_system_clock(commutator)
-        self.assertIsNotNone(system_clock_3)
-        system_clock_4 = await procedures.connect_to_system_clock(commutator)
-        self.assertIsNotNone(system_clock_4)
+        system_clock = modules.get_system_clock(commutator)
+        self.assertIsNotNone(system_clock)
 
         success, time = await self.system_clock_stop()
         self.assertTrue(success)
 
         task_1 = asyncio.get_running_loop().create_task(
-            system_clock_2.wait_for(period_us=20000, timeout=1))
+            system_clock.wait_for(period_us=20000, timeout=1))
         task_2 = asyncio.get_running_loop().create_task(
-            system_clock_3.wait_until(time=time + 100000, timeout=1))
+            system_clock.wait_until(time=time + 100000, timeout=1))
         task_3 = asyncio.get_running_loop().create_task(
-            system_clock_1.wait_until(time=time + 50000, timeout=1))
+            system_clock.wait_until(time=time + 50000, timeout=1))
         task_4 = asyncio.get_running_loop().create_task(
-            system_clock_4.wait_for(500000, timeout=1))
+            system_clock.wait_for(500000, timeout=1))
+        await asyncio.sleep(0.01)  # proceeding the loop to actually spawn a tasks
 
         success, time = await self.system_clock_proceed(20, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
@@ -118,7 +112,7 @@ class TestSystemClock(BaseTestFixture):
         self.assertTrue(task_1.done())
 
         task_1 = asyncio.get_running_loop().create_task(
-            system_clock_2.wait_for(period_us=30000, timeout=1))
+            system_clock.wait_for(period_us=30000, timeout=1))
 
         success, time = await self.system_clock_proceed(30, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
@@ -131,7 +125,7 @@ class TestSystemClock(BaseTestFixture):
         self.assertTrue(success)
         self.assertTrue(task_2.done())
 
-        success, time = await self.system_clock_proceed(400, timeout_s=1)
+        success, time = await self.system_clock_proceed(450, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_4.done())
@@ -140,11 +134,11 @@ class TestSystemClock(BaseTestFixture):
     async def test_generator(self):
         await self.system_clock_fast_forward(10)
 
-        commutator, error = await self.login('player')
-        self.assertIsNotNone(commutator)
+        commutator, error = await self.login(player='player',
+                                             server_ip="127.0.0.1",
+                                             local_ip="127.0.0.1")
         self.assertIsNone(error)
-
-        system_clock = await procedures.connect_to_system_clock(commutator)
+        system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
 
         generator_tick = await system_clock.get_generator_tick_us()
@@ -156,8 +150,7 @@ class TestSystemClock(BaseTestFixture):
             current_time = time
             logging.debug(f"on time_cb() with time={current_time}")
 
-        status = await system_clock.attach_to_generator(time_cb)
-        self.assertEqual(status, SystemClock.Status.SUCCESS)
+        system_clock.subscribe(time_cb)
 
         for i in range(10):
             success, time = await self.system_clock_proceed(500, timeout_s=1)

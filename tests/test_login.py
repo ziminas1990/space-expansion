@@ -41,6 +41,6 @@ class TestLogin(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_login(self):
-        commutator, error = await self.login('spy007')
+        commutator, error = await self.login_old('spy007')
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)

@@ -11,10 +11,10 @@ class Specification(NamedTuple):
     processing_time_us: int
 
 
-class CelestialScanner(transport.IOTerminal):
+class CelestialScannerI(transport.IOTerminal):
 
     def __init__(self, name: Optional[str] = None):
-        super().__init__(terminal_name=name or utils.generate_name(CelestialScanner))
+        super().__init__(name=name or utils.generate_name(CelestialScannerI))
         self.specification: Optional[Specification] = None
 
     async def expected_scanning_time(self, scanning_radius_km: int, minimal_radius_m: int) -> float:
@@ -28,12 +28,8 @@ class CelestialScanner(transport.IOTerminal):
         total_processing_time = (resolution * spec.processing_time_us) / 1000000
         return 0.1 + 2 * scanning_radius_km / c_km_per_sec + total_processing_time
 
-    async def get_specification(self, timeout: float = 0.5, reset_cached=False)\
+    async def get_specification(self, timeout: float = 0.5)\
             -> Optional[Specification]:
-        if reset_cached:
-            self.specification = None
-        if self.specification:
-            return self.specification
         request = protocol.Message()
         request.celestial_scanner.specification_req = True
         if not self.send(message=request):
@@ -44,24 +40,17 @@ class CelestialScanner(transport.IOTerminal):
         spec = protocol.get_message_field(response, "celestial_scanner.specification")
         if not spec:
             return None
-        self.specification = Specification(max_radius_km=spec.max_radius_km,
-                                           processing_time_us=spec.processing_time_us)
-        return self.specification
+        return Specification(max_radius_km=spec.max_radius_km,
+                             processing_time_us=spec.processing_time_us)
 
-    async def scan(self, scanning_radius_km: int, minimal_radius_m: int) -> \
-            (Optional[List[types.PhysicalObject]], Optional[str]):
+    async def scan(self,
+                   scanning_radius_km: int,
+                   minimal_radius_m: int,
+                   timeout: float) -> (Optional[List[types.PhysicalObject]], Optional[str]):
         """Scanning all bodies with a signature not less than 'minimal_radius_m'
         within a 'scanning_radius_km' radius.
         On success return (asteroid_list, None). Otherwise return (None, error_string)
         """
-        timeout = 2 * await self.expected_scanning_time(
-            scanning_radius_km=scanning_radius_km,
-            minimal_radius_m=minimal_radius_m)
-        if timeout == 0:
-            return 0, "Can't calculate expected timeout"
-        if timeout < 0.2:
-            timeout = 0.2
-
         request = protocol.Message()
         scan_req = request.celestial_scanner.scan
         scan_req.scanning_radius_km = scanning_radius_km
@@ -84,9 +73,9 @@ class CelestialScanner(transport.IOTerminal):
                             object_id=body.id,
                             position=types.Position(
                                 x=body.x, y=body.y,
-                                velocity=types.Vector(x=body.vx, y=body.vy)
+                                velocity=types.Vector(x=body.vx, y=body.vy),
+                                timestamp=timestamp
                             ),
-                            timestamp=timestamp
                         )
                     )
                 return report.left, None

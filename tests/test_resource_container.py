@@ -1,5 +1,4 @@
 from typing import Optional
-import asyncio
 
 from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
@@ -12,9 +11,9 @@ from server.configurator.modules import (
 )
 from server.configurator import Configuration, General, ApplicationMode
 
-import expansion.procedures as procedures
+from expansion import modules
 from expansion.types import ResourceType, ResourceItem
-from expansion.interfaces.public import ResourceContainer
+from expansion.interfaces.public import ResourceContainerI
 
 
 class TestCase(BaseTestFixture):
@@ -70,14 +69,14 @@ class TestCase(BaseTestFixture):
     async def test_get_content(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player')
+        commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
+        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
         self.assertIsNotNone(miner_1)
 
-        cargo = await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        cargo = modules.get_cargo(commutator=miner_1, name='cargo')
         self.assertIsNotNone(cargo)
 
         content = await cargo.get_content()
@@ -89,22 +88,21 @@ class TestCase(BaseTestFixture):
     async def test_open_close_port(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player')
+        commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
+        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
         self.assertIsNotNone(miner_1)
 
-        cargo: Optional[ResourceContainer] =\
-            await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        cargo = modules.get_cargo(commutator=miner_1, name='cargo')
         self.assertIsNotNone(cargo)
 
         self.assertIsNone(cargo.get_opened_port())
 
         # Trying to close a port, that has not been opened
         status = await cargo.close_port()
-        self.assertEqual(ResourceContainer.Status.PORT_IS_NOT_OPENED, status)
+        self.assertEqual(ResourceContainerI.Status.PORT_IS_NOT_OPENED, status)
 
         # Opening a port
         access_key = 12456
@@ -117,14 +115,14 @@ class TestCase(BaseTestFixture):
 
         # Trying to open yet another port
         status, port = await cargo.open_port(access_key=access_key*2)
-        self.assertEqual(ResourceContainer.Status.PORT_ALREADY_OPEN, status)
+        self.assertEqual(ResourceContainerI.Status.PORT_ALREADY_OPEN, status)
         self.assertEqual(0, port)
 
         # Closing port (twice)
         status = await cargo.close_port()
-        self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+        self.assertEqual(ResourceContainerI.Status.SUCCESS, status)
         status = await cargo.close_port()
-        self.assertEqual(ResourceContainer.Status.PORT_IS_NOT_OPENED, status)
+        self.assertEqual(ResourceContainerI.Status.PORT_IS_NOT_OPENED, status)
 
         # Opening a port again
         status, port = await cargo.open_port(access_key=access_key)
@@ -135,23 +133,19 @@ class TestCase(BaseTestFixture):
     async def test_transfer_success_case(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player')
+        commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
+        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
         self.assertIsNotNone(miner_1)
-
-        miner_1_cargo: Optional[ResourceContainer] =\
-            await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        miner_1_cargo = modules.get_cargo(commutator=miner_1, name='cargo')
         self.assertIsNotNone(miner_1_cargo)
 
-        miner_2 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-2", commutator)
-        self.assertIsNotNone(miner_1)
-
-        miner_2_cargo: Optional[ResourceContainer] = \
-            await procedures.connect_to_resource_container(name='cargo', ship=miner_2)
-        self.assertIsNotNone(miner_1_cargo)
+        miner_2 = modules.get_ship(commutator, ShipType.MINER.value, "miner-2")
+        self.assertIsNotNone(miner_2)
+        miner_2_cargo = modules.get_cargo(commutator=miner_2, name='cargo')
+        self.assertIsNotNone(miner_2_cargo)
 
         # Opening a port on miner_2
         access_key = 12456
@@ -170,7 +164,7 @@ class TestCase(BaseTestFixture):
         status = await miner_1_cargo.transfer(port=port, access_key=access_key,
                                               progress_cb=cb_progress_report,
                                               resource=ResourceItem(ResourceType.e_METALS, 30000))
-        self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+        self.assertEqual(ResourceContainerI.Status.SUCCESS, status)
         self.assertAlmostEqual(30000, total_transferred_amount)
 
         # Check resources in containers
@@ -188,28 +182,24 @@ class TestCase(BaseTestFixture):
     async def test_transfer_fails_cases(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player')
+        commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-1", commutator)
+        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
         self.assertIsNotNone(miner_1)
-
-        miner_1_cargo: Optional[ResourceContainer] = \
-            await procedures.connect_to_resource_container(name='cargo', ship=miner_1)
+        miner_1_cargo = modules.get_cargo(commutator=miner_1, name='cargo')
         self.assertIsNotNone(miner_1_cargo)
 
-        miner_2 = await procedures.connect_to_ship(ShipType.MINER.value, "miner-2", commutator)
-        self.assertIsNotNone(miner_1)
-
-        miner_2_cargo: Optional[ResourceContainer] = \
-            await procedures.connect_to_resource_container(name='cargo', ship=miner_2)
-        self.assertIsNotNone(miner_1_cargo)
+        miner_2 = modules.get_ship(commutator, ShipType.MINER.value, "miner-2")
+        self.assertIsNotNone(miner_2)
+        miner_2_cargo = modules.get_cargo(commutator=miner_2, name='cargo')
+        self.assertIsNotNone(miner_2_cargo)
 
         # Port is not opened error:
         status = await miner_1_cargo.transfer(port=4, access_key=123456,
                                               resource=ResourceItem(ResourceType.e_METALS, 30000))
-        self.assertEqual(ResourceContainer.Status.PORT_IS_NOT_OPENED, status)
+        self.assertEqual(ResourceContainerI.Status.PORT_IS_NOT_OPENED, status)
 
         # Opening a port on miner_2
         access_key = 12456
@@ -220,4 +210,4 @@ class TestCase(BaseTestFixture):
         # Invalid access key
         status = await miner_1_cargo.transfer(port=port, access_key=access_key-1,
                                               resource=ResourceItem(ResourceType.e_METALS, 30000))
-        self.assertEqual(ResourceContainer.Status.INVALID_ACCESS_KEY, status)
+        self.assertEqual(ResourceContainerI.Status.INVALID_ACCESS_KEY, status)

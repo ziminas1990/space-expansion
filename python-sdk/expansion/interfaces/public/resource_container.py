@@ -1,4 +1,4 @@
-from typing import Optional, NamedTuple, Dict, Tuple, Callable
+from typing import Optional, NamedTuple, Dict, Callable
 from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
@@ -9,7 +9,7 @@ from expansion.types import ResourceType, ResourceItem
 import expansion.utils as utils
 
 
-class ResourceContainer(IOTerminal):
+class ResourceContainerI(IOTerminal):
 
     class Status(Enum):
         SUCCESS = "success"
@@ -28,12 +28,12 @@ class ResourceContainer(IOTerminal):
         UNEXPECTED_RESPONSE = "unexpected response"
 
         def is_ok(self):
-            return self == ResourceContainer.Status.SUCCESS
+            return self == ResourceContainerI.Status.SUCCESS
 
         @staticmethod
-        def convert(status: public.IResourceContainer.Status) -> "ResourceContainer.Status":
+        def convert(status: public.IResourceContainer.Status) -> "ResourceContainerI.Status":
             ProtobufStatus = public.IResourceContainer.Status
-            ModuleStatus = ResourceContainer.Status
+            ModuleStatus = ResourceContainerI.Status
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
                 ProtobufStatus.INTERNAL_ERROR: ModuleStatus.INTERNAL_ERROR,
@@ -48,93 +48,71 @@ class ResourceContainer(IOTerminal):
             }[status]
 
     class Content(NamedTuple):
+        timestamp: int
         volume: int
         used: float
         resources: Dict[ResourceType, float]
 
-    class Cache:
-        """Cache is used to store data and may be used by user to obtain
-        data without requesting a server"""
-        def __init__(self):
-            self.content: Optional["ResourceContainer.Content"] = None
-            # Stores information about port, that has been opened (portId, accessKey)
-            self.opened_port: Optional[Tuple[int, int]] = None
-
-        def update_content(self, content: public.IResourceContainer.Content):
-            self.content = ResourceContainer.Content(
-                volume=content.volume,
-                used=content.used,
-                resources={ResourceType.from_protobuf(item.type): item.amount
-                           for item in content.resources}
-            )
-
     def __init__(self, name: Optional[str] = None):
-        super().__init__(terminal_name=name or utils.generate_name(ResourceContainer))
-        self._cache: ResourceContainer.Cache = ResourceContainer.Cache()
-
-    def cache(self) -> 'ResourceContainer.Cache':
-        return self._cache
-
-    def get_opened_port(self) -> Optional[Tuple[int, int]]:
-        """Return (port_d, accessKey) pair, if port is opened. Otherwise
-        return None"""
-        return self._cache.opened_port
+        super().__init__(name=name or utils.generate_name(ResourceContainerI))
 
     async def get_content(self, timeout: float = 0.5) -> Optional[Content]:
         request = public.Message()
         request.resource_container.content_req = True
         if not self.send(message=request):
             return None
-        response, _ = await self.wait_message(timeout=timeout)
+        response, timestamp = await self.wait_message(timeout=timeout)
         if not response:
             return None
         content = get_message_field(response, "resource_container.content")
         if not content:
             return None
-        self._cache.update_content(content)
-        return self._cache.content
+        return ResourceContainerI.Content(
+            timestamp=timestamp,
+            volume=content.volume,
+            used=content.used,
+            resources={ResourceType.from_protobuf(item.type): item.amount
+                       for item in content.resources}
+        )
 
-    async def open_port(self, access_key: int, timeout: int = 0.5) -> \
-            ("ResourceContainer.Status", int):
-        """Open a new port with the specified 'access_key'. Return port number
-        or error string."""
+    async def open_port(self, access_key: int, timeout: int = 0.5) -> (Status, int):
+        """Open a new port with the specified 'access_key'. Return operation status
+        and port number"""
         request = public.Message()
         request.resource_container.open_port = access_key
         if not self.send(message=request):
-            return ResourceContainer.Status.FAILED_TO_SEND_REQUEST, 0
+            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, 0
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
-            return ResourceContainer.Status.RESPONSE_TIMEOUT, 0
+            return ResourceContainerI.Status.RESPONSE_TIMEOUT, 0
         port_id = get_message_field(response, "resource_container.port_opened")
         if port_id is not None:
             # Success case
-            self._cache.opened_port = (port_id, access_key)
-            return ResourceContainer.Status.SUCCESS, port_id
+            return ResourceContainerI.Status.SUCCESS, port_id
 
         error_status = get_message_field(response, "resource_container.open_port_failed")
         if error_status is not None:
-            return ResourceContainer.Status.convert(error_status), 0
-        return ResourceContainer.Status.UNEXPECTED_RESPONSE, 0
+            return ResourceContainerI.Status.convert(error_status), 0
+        return ResourceContainerI.Status.UNEXPECTED_RESPONSE, 0
 
-    async def close_port(self, timeout: int = 0.5) -> "ResourceContainer.Status":
+    async def close_port(self, timeout: int = 0.5) -> Status:
         """Close an existing opened port"""
         request = public.Message()
         request.resource_container.close_port = True
         if not self.send(message=request):
-            return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
+            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
-            return ResourceContainer.Status.RESPONSE_TIMEOUT
+            return ResourceContainerI.Status.RESPONSE_TIMEOUT
         status = get_message_field(response, "resource_container.close_port_status")
         if status is not None:
             # Success case
-            self._cache.opened_port = None
-            return ResourceContainer.Status.convert(status)
+            return ResourceContainerI.Status.convert(status)
 
     async def transfer(self, port: int, access_key: int,
                        resource: ResourceItem,
                        progress_cb: Optional[Callable[[ResourceItem], None]] = None,
-                       timeout: int = 0.5):
+                       timeout: int = 0.5) -> Status:
         """Transfer the specified 'resource' to the specified 'port' with the
         specified 'access_key'. The optionally specified 'progress_cb' will be
         called to report transferring status (a total amount of transferred
@@ -147,15 +125,15 @@ class ResourceContainer(IOTerminal):
         resource.to_protobuf(resource_item)
 
         if not self.send(message=request):
-            return ResourceContainer.Status.FAILED_TO_SEND_REQUEST
+            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
-            return ResourceContainer.Status.RESPONSE_TIMEOUT
+            return ResourceContainerI.Status.RESPONSE_TIMEOUT
         status = get_message_field(response, "resource_container.transfer_status")
         if status is None:
-            return ResourceContainer.Status.UNEXPECTED_RESPONSE
+            return ResourceContainerI.Status.UNEXPECTED_RESPONSE
         if status != public.IResourceContainer.Status.SUCCESS:
-            return ResourceContainer.Status.convert(status)
+            return ResourceContainerI.Status.convert(status)
         # Status is success. Waiting for reports
         while True:
             response, _ = await self.wait_message(timeout=2)
@@ -163,8 +141,8 @@ class ResourceContainer(IOTerminal):
             if not report:
                 # May be complete status is received:
                 status = get_message_field(response, "resource_container.transfer_finished")
-                return ResourceContainer.Status.convert(status) \
-                    if status is not None else ResourceContainer.Status.UNEXPECTED_RESPONSE
+                return ResourceContainerI.Status.convert(status) \
+                    if status is not None else ResourceContainerI.Status.UNEXPECTED_RESPONSE
             # Got transfer report:
             if progress_cb is not None:
                 progress_cb(ResourceItem.from_protobuf(report))

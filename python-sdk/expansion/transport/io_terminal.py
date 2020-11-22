@@ -12,10 +12,10 @@ class IOTerminal(Channel, Terminal):
     the 'wait_message' call).
     """
 
-    def __init__(self, channel_name: Optional[str] = None,
+    def __init__(self, name: Optional[str] = None,
                  trace_mode: bool = False,
                  *args, **kwargs):
-        super().__init__(channel_name=channel_name, *args, **kwargs)
+        super().__init__(channel_name=name, terminal_name=name, *args, **kwargs)
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
         self._waiters: int = 0

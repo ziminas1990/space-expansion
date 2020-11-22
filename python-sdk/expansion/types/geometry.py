@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 import math
 
 
@@ -48,9 +48,16 @@ class Position(NamedTuple):
     x: float
     y: float
     velocity: Vector
+    timestamp: Optional[int]
 
     def distance_to(self, other: 'Position') -> float:
         return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
 
     def vector_to(self, other: 'Position') -> Vector:
         return Vector(x=other.x - self.x, y=other.y - self.y)
+
+    def make_prediction(self, dt_sec: float) -> 'Position':
+        return Position(x=self.x + self.velocity.x * dt_sec,
+                        y=self.y + self.velocity.y * dt_sec,
+                        velocity=Vector(self.velocity.x, self.velocity.y),
+                        timestamp=self.timestamp + int(dt_sec * 1000000))

@@ -5,7 +5,7 @@ import server.configurator.world as world
 from server.configurator.modules import default_ships
 from server.configurator import Configuration, General, ApplicationMode
 
-import expansion.procedures as procedures
+from expansion import modules
 
 
 class TestCase(BaseTestFixture):
@@ -48,17 +48,17 @@ class TestCase(BaseTestFixture):
     async def test_get_specification(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman')
+        commutator, error = await self.login('oreman', "127.0.0.1", "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner = await procedures.connect_to_ship("Miner", "miner-1", commutator)
+        miner = modules.get_ship(commutator, "Miner", "miner-1")
         self.assertIsNotNone(miner)
 
-        scaner = await procedures.connect_to_celestial_scanner("scanner", miner)
-        self.assertIsNotNone(scaner)
+        scanner = modules.get_celestial_scanner(miner, "scanner")
+        self.assertIsNotNone(scanner)
 
-        spec = await scaner.get_specification()
+        spec = await scanner.get_specification()
         self.assertIsNotNone(spec)
 
         self.assertEqual(1000, spec.max_radius_km)
@@ -68,14 +68,14 @@ class TestCase(BaseTestFixture):
     async def test_scanning(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman')
+        commutator, error = await self.login('oreman', "127.0.0.1", "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner = await procedures.connect_to_ship("Miner", "miner-1", commutator)
+        miner = modules.get_ship(commutator, "Miner", "miner-1")
         self.assertIsNotNone(miner)
 
-        scanner = await procedures.connect_to_celestial_scanner("scanner", miner)
+        scanner = modules.get_celestial_scanner(miner, "scanner")
         self.assertIsNotNone(scanner)
 
         result, error = await scanner.scan(scanning_radius_km=20, minimal_radius_m=300)

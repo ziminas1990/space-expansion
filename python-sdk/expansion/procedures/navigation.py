@@ -1,15 +1,17 @@
 from typing import Callable, Awaitable
 import math
+import logging
 
-from expansion.interfaces.public.engine import Engine, Specification as EngineSpec
-from expansion.interfaces.public.system_clock import SystemClock
-from expansion.interfaces.public.ship import Ship
 from expansion.types.geometry import Position
+from expansion.modules.ship import Ship, ShipState
+from expansion.modules.engine import Engine, EngineSpec
+import expansion.interfaces.public as rpc
 
 
-async def move_to(ship: Ship, engine: Engine,
+async def move_to(ship: Ship,
+                  engine: Engine,
                   position: Callable[[], Awaitable[Position]],
-                  system_clock: SystemClock,
+                  system_clock: rpc.SystemClockI,
                   max_distance_error: float = 5,
                   max_velocity_error: float = 0.5,
                   max_thrust_k_limit: float = 1) -> bool:
@@ -21,8 +23,8 @@ async def move_to(ship: Ship, engine: Engine,
     """
     iterations = 0
 
-    ship_position = await ship.navigation.get_position()
-    ship_state = await ship.get_state()
+    ship_position = await ship.get_position(cache_expiring_ms=0)
+    ship_state: ShipState = await ship.get_state()
     target = await position()
     engine_spec: EngineSpec = await engine.get_specification()
     if not ship_position or not ship_state or not target or not engine_spec:
@@ -55,7 +57,7 @@ async def move_to(ship: Ship, engine: Engine,
             thrust.mult_self(burn_time / 0.5)
             burn_time = 0.5
 
-        if not engine.set_thrust(thrust=thrust, duration_ms=int(round(burn_time * 1000))):
+        if not await engine.set_thrust(thrust=thrust, duration_ms=int(round(burn_time * 1000))):
             return False
 
         sleep_time = burn_time / 2
@@ -67,8 +69,8 @@ async def move_to(ship: Ship, engine: Engine,
             return False
 
         # Getting actual data:
-        # TODO: send to requests in parallel!
-        ship_position = await ship.navigation.get_position()
+        # TODO: send two requests in parallel!
+        ship_position = await ship.get_position(cache_expiring_ms=0)
         target = await position()
         if not ship_position or not target:
             return False

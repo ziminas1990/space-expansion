@@ -1,9 +1,9 @@
 from typing import Any, Optional, NamedTuple
 import logging
 
-from .commutator import Commutator
+from .commutator import CommutatorI
 from .navigation import INavigation
-from expansion.transport import IOTerminal, Channel, Terminal, InterfacesMux, Interfaces
+from expansion.transport import IOTerminal
 from expansion.protocol.utils import get_message_field
 import expansion.protocol.Protocol_pb2 as public
 
@@ -12,60 +12,33 @@ class State(NamedTuple):
     weight: float
 
 
-class Ship(Terminal):
+class ShipI(CommutatorI, INavigation, IOTerminal):
 
     def __init__(self, ship_name: str = "ship"):
         """Create a new ship instance. Note that ship should be attached to
-        the channel. The sprcified 'ship_name' will be used in logs."""
-        super().__init__(terminal_name=ship_name)
+        the channel. The specified 'ship_name' will be used in logs."""
+        super().__init__(name=ship_name)
         self.ship_name: str = ship_name
-
-        self.mux: InterfacesMux = InterfacesMux(f"{self.ship_name}::mux")
-
-        self.commutator: Commutator = Commutator()
-        self.commutator.attach_channel(self.mux.get_interface(Interfaces.COMMUTATOR))
-        self.mux.get_interface(Interfaces.COMMUTATOR).attach_to_terminal(self.commutator)
-        self.mux.get_interface(Interfaces.ENCAPSULATED).attach_to_terminal(self.commutator)
-
-        self.navigation: INavigation = INavigation()
-        self.navigation.attach_channel(self.mux.get_interface(Interfaces.NAVIGATION))
-        self.mux.get_interface(Interfaces.NAVIGATION).attach_to_terminal(self.navigation)
-
-        self.ship_tunnel: IOTerminal = IOTerminal()
-        self.ship_tunnel.wrap_channel(self.mux.get_interface(interface=Interfaces.SHIP))
         self.ship_logger = logging.getLogger()
 
-    def get_navigation(self) -> INavigation:
-        return self.navigation
+    def navigation(self) -> INavigation:
+        # Just for better readability
+        return self
 
-    def get_commutator(self) -> Commutator:
-        return self.commutator
+    def commutator(self) -> CommutatorI:
+        # Just for better readability
+        return self
 
     async def get_state(self) -> Optional[State]:
         """Return current ship's state"""
         request = public.Message()
         request.ship.state_req = True
-        if not self.ship_tunnel.send(message=request):
+        if not self.send(message=request):
             return None
-        response, _ = await self.ship_tunnel.wait_message(timeout=0.5)
+        response, _ = await self.wait_message(timeout=0.5)
         if not response:
             return None
         spec = get_message_field(response, "ship.state")
         if not spec:
             return None
         return State(weight=spec.weight)
-
-    # Overrides Terminal's implementation
-    def on_receive(self, message: Any, timestamp: Optional[int]):
-        super().on_receive(message=message, timestamp=timestamp)  # For logging
-        self.mux.on_receive(message, timestamp)
-
-    # Overrides Terminal's implementation
-    def attach_channel(self, channel: 'Channel'):
-        super().attach_channel(channel=channel)  # For logging
-        self.mux.attach_channel(channel)
-
-    # Overrides Terminal's implementation
-    def on_channel_detached(self):
-        super().on_channel_detached()  # For logging
-        self.mux.on_channel_detached()

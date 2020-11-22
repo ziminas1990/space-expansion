@@ -1,4 +1,4 @@
-from typing import Optional, Any, Dict, List, NamedTuple
+from typing import Optional, Any, Dict, List, NamedTuple, Tuple
 import logging
 
 
@@ -19,8 +19,7 @@ class Tunnel(ProxyChannel):
     """
 
     def __init__(self, tunnel_id: int,
-                 client: Terminal,
-                 commutator: 'Commutator',
+                 commutator: 'CommutatorI',
                  *args, ** kwargs):
         """Create tunnel for the specified 'client' with the specified
         'tunnel_id'. The specified 'channel' will be used by tunnel to send
@@ -28,8 +27,7 @@ class Tunnel(ProxyChannel):
         tunnel_name = f"{commutator.get_name()}::tun#{tunnel_id}"
         super().__init__(proxy_name=tunnel_name, *args, **kwargs)
         self.tunnel_id: int = tunnel_id
-        self.client: Terminal = client
-        self.commutator: 'Commutator' = commutator
+        self.commutator: 'CommutatorI' = commutator
 
     # Overridden from ProxyChannel
     def decode(self, data: public.Message) -> Optional[Any]:
@@ -64,22 +62,18 @@ class ModuleInfo(NamedTuple):
                           name=info.module_name)
 
 
-class Commutator(IOTerminal):
-    """Commutator is a:
-    - BaseModule, because it represent a corresponding commutator module on
-      the server;
-    - Channel, because tunnels, uses commutator as channel to send messages.
+class CommutatorI(IOTerminal):
+    """Commutator is a module, that can be used to access another modules,
+    attached to the commutator
     """
 
     def __init__(self, name: str = __name__):
-        super().__init__(module_name=name)
+        super().__init__(name=name)
         # Commutator prefers active channel to forward encapsulated messages
         # to the corresponding tunnels as soon as possible. See 'on_receive'
         # function for more details
         self.tunnels: Dict[int, Tunnel] = {}
         # All opened tunnels
-        self.modules_cache: Dict[int, ModuleInfo] = {}
-        # Key - slot_id, value - ModuleInfo
         self._logger = logging.getLogger(f"{name}")
 
     # Override from BaseModule->Terminal
@@ -123,14 +117,11 @@ class Commutator(IOTerminal):
         total_slots = get_message_field(response, "commutator.total_slots")
         return total_slots is not None, total_slots
 
-    async def get_module_info(self, slot_id: int,  use_cache: bool = True)\
+    async def get_module_info(self, slot_id: int)\
             -> Optional[ModuleInfo]:
         """Return information about module, installed into the specified
-        'slot_id'. If an internal cache is initialized, than data will be
-        retrieved from it, unless 'use_cache' is False.
+        'slot_id'.
         """
-        if use_cache and slot_id in self.modules_cache:
-            return self.modules_cache[slot_id]
         request = public.Message()
         request.commutator.module_info_req = slot_id
         self.send(request)
@@ -141,20 +132,11 @@ class Commutator(IOTerminal):
         if not module_info:
             return None
         info = ModuleInfo.from_protubuf(module_info)
-        self.modules_cache.update({slot_id: info})
         return info
 
-    async def get_all_modules(self, reset_cache: bool = False)\
-            -> Optional[List[ModuleInfo]]:
+    async def get_all_modules(self) -> Optional[List[ModuleInfo]]:
         """Return all modules, attached to commutator. Modules received will
-        be stored to a local cache. If the specified 'reset_cache' flag is
-        true, then the cache will be cleared and a request will be sent to
-        the server anyway"""
-        if reset_cache:
-            self.modules_cache.clear()
-        if self.modules_cache:
-            return list(self.modules_cache.values())
-
+        be stored to a local cache"""
         success, total_slots = await self.get_total_slots()
         if not success:
             return None
@@ -162,41 +144,48 @@ class Commutator(IOTerminal):
         request.commutator.all_modules_info_req = True
         self.send(request)
 
+        result: List[ModuleInfo] = []
         for i in range(total_slots):
             response, _ = await self.wait_message()
             module_info = get_message_field(response, "commutator.module_info")
             if not module_info:
                 return None
-            info = ModuleInfo.from_protubuf(module_info)
-            self.modules_cache.update({info.slot_id: info})
-        return list(self.modules_cache.values())
+            result.append(ModuleInfo.from_protubuf(module_info))
+        return result
 
-    async def open_tunnel(self, port: int, terminal: Terminal) -> Optional[str]:
+    async def attach_to_module(self, port: int, terminal: Terminal) -> Optional[str]:
         """Open tunnel to the specified 'port' and attach the specified
         'terminal' to it. Return None on success, or error string on fail."""
+        tunnel, error = await self.open_tunnel(port)
+        if error is not None:
+            assert tunnel is None
+            return error
+        # A channel is attached to the commutator, but tunnels are attached
+        # to the channel directly
+        tunnel.attach_to_terminal(terminal)
+        terminal.attach_channel(tunnel)
+        return None  # No errors
+
+    async def open_tunnel(self, port: int) -> Tuple[Optional[Tunnel], Optional[str]]:
+        """Open tunnel to the specified 'port'. Return (tunnel, None) on
+        success, otherwise return (None, error)"""
         request = public.Message()
         request.commutator.open_tunnel = port
         self.send(request)
 
         response, _ = await self.wait_message()
         if not response:
-            return None
+            return None, "timeout"
         tunnel_id = get_message_field(response, "commutator.open_tunnel_report")
         if tunnel_id is None:
             error = get_message_field(response, "commutator.open_tunnel_failed")
             if not error:
                 error = "unexpected message received"
             self._logger.warning(f"Failed to open tunnel to port #{port}: {error}")
-            return error
+            return None, error
 
-        tunnel: Tunnel = Tunnel(tunnel_id=tunnel_id,
-                                client=terminal,
-                                commutator=self)
-        terminal.attach_channel(tunnel)
-        # A channel is attached to the commutator, but tunnels are attached
-        # to the channel directly
+        tunnel = Tunnel(tunnel_id=tunnel_id, commutator=self)
         tunnel.attach_channel(channel=self.channel)
-        tunnel.attach_to_terminal(terminal)
+        self.tunnels.update({tunnel.tunnel_id: tunnel})
+        return tunnel, None
 
-        self.tunnels.update({tunnel_id: tunnel})
-        return None  # No errors

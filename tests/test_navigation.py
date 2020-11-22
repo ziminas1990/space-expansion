@@ -5,13 +5,14 @@ import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 import server.configurator.modules.default_ships as default_ships
 from server.configurator import Configuration, General, ApplicationMode
-from expansion.interfaces.public import SystemClock
 
+import expansion.interfaces.public as rpc
+import expansion.modules as modules
 import expansion.procedures as procedures
 
 
-class FastForwardSystemClock(SystemClock):
-    def __init__(self, system_clock: SystemClock,
+class FastForwardSystemClock(rpc.SystemClockI):
+    def __init__(self, system_clock: modules.SystemClock,
                  switch_to_real_time: Callable[[], Awaitable[bool]],
                  fast_forward: Callable[[int, int], Awaitable[None]],
                  fast_forward_multiplier: int):
@@ -71,11 +72,12 @@ class TestNavigation(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_move_to(self):
-        commutator, error = await self.login('spy007')
-        self.assertIsNotNone(commutator)
+        commutator, error = await self.login('spy007',
+                                             server_ip="127.0.0.1",
+                                             local_ip="127.0.0.1")
         self.assertIsNone(error)
 
-        system_clock = await procedures.connect_to_system_clock(commutator)
+        system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
         fast_forward_clock = FastForwardSystemClock(
             system_clock=system_clock,
@@ -83,28 +85,24 @@ class TestNavigation(BaseTestFixture):
             fast_forward=self.system_clock_fast_forward,
             fast_forward_multiplier=50)
 
-        scout_1 = await procedures.connect_to_ship("Probe", "scout-1", commutator)
+        scout_1: modules.Ship = modules.get_ship(commutator, "Probe", "scout-1")
+        self.assertIsNotNone(scout_1)
+        scout_2: modules.Ship = modules.get_ship(commutator, "Ship/Probe", "scout-2")
         self.assertIsNotNone(scout_1)
 
-        scout_2 = await procedures.connect_to_ship("Probe", "scout-2", commutator)
-        self.assertIsNotNone(scout_2)
-
-        engine = await procedures.connect_to_engine(name='main_engine', ship=scout_1)
+        engine = modules.get_engine(scout_1, "main_engine")
         self.assertIsNotNone(engine)
-
-        async def target() -> world.Position:
-            return await scout_2.get_navigation().get_position()
 
         success = await procedures.move_to(
             ship=scout_1,
             engine=engine,
-            position=target,
+            position=scout_2.get_position,
             system_clock=fast_forward_clock,
             max_distance_error=5,
             max_velocity_error=1)
 
         self.assertTrue(success)
-        scout_1_position = await scout_1.get_navigation().get_position()
-        scout_2_position = await scout_2.get_navigation().get_position()
+        scout_1_position = await scout_1.get_position()
+        scout_2_position = await scout_2.get_position()
         delta = scout_1_position.distance_to(scout_2_position)
         self.assertTrue(delta < 5)

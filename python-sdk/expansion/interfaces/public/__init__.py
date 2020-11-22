@@ -1,8 +1,8 @@
 
-from .commutator import Commutator, ModuleInfo
-from .ship import Ship
-from .engine import Engine
-from .celestial_scanner import CelestialScanner
-from .system_clock import SystemClock
-from .resource_container import ResourceContainer
-from .asteroid_miner import AsteroidMiner
+from .commutator import CommutatorI, ModuleInfo
+from .ship import ShipI, State as ShipState
+from .engine import EngineI, Specification as EngineSpec
+from .celestial_scanner import CelestialScannerI, Specification as CelestialScannerSpec
+from .system_clock import SystemClockI
+from .resource_container import ResourceContainerI
+from .asteroid_miner import AsteroidMinerI, Specification as AsteroidMinerSpec

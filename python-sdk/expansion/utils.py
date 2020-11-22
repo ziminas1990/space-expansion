@@ -1,15 +1,11 @@
-from typing import Awaitable, Callable, Any, Type, Dict
-import threading
-import functools
-import logging
+from typing import Type, Dict, Any, Callable
+
+__next_ids: Dict[Type, int] = {}
 
 
 def generate_name(cls: Type):
     """Generate a name for the instance of the specified 'cls'. The name will
     contain the class name and a unique identifier."""
-    id: int = generate_name.next_ids[cls] if cls in generate_name.next_ids else 1
-    generate_name.next_ids.update({cls: id + 1})
+    id: int = __next_ids[cls] if cls in __next_ids else 1
+    __next_ids.update({cls: id + 1})
     return f"{cls.__name__}_{id}"
-
-
-generate_name.next_ids = {}
