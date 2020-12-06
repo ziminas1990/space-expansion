@@ -49,6 +49,6 @@ class BaseModule:
 
     @staticmethod
     def _is_actual(value: Tuple[Optional[Any], int],
-                         expiration_time_ms: int,) -> bool:
+                   expiration_time_ms: int,) -> bool:
         return value[0] is not None and \
                (time.monotonic() * 1000 - value[1]) >= expiration_time_ms

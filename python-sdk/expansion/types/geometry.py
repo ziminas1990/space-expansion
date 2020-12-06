@@ -48,7 +48,7 @@ class Position(NamedTuple):
     x: float
     y: float
     velocity: Vector
-    timestamp: Optional[int]
+    timestamp: Optional[int] = None
 
     def distance_to(self, other: 'Position') -> float:
         return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)

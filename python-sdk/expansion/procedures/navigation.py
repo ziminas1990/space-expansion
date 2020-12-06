@@ -1,6 +1,6 @@
 from typing import Callable, Awaitable
 import math
-import logging
+import asyncio
 
 from expansion.types.geometry import Position
 from expansion.modules.ship import Ship, ShipState
@@ -21,8 +21,6 @@ async def move_to(ship: Ship,
     and 'position' is not more than the specified 'max_distance_error' meters
     AND the ship's speed is not more than the specified 'max_velocity_error'.
     """
-    iterations = 0
-
     ship_position = await ship.get_position(cache_expiring_ms=0)
     ship_state: ShipState = await ship.get_state()
     target = await position()
@@ -35,7 +33,6 @@ async def move_to(ship: Ship,
     relative_v = ship_position.velocity - target.velocity
 
     while distance > max_distance_error or relative_v.abs() > max_velocity_error:
-        iterations += 1
         max_acceleration = engine_max_thrust / ship_state.weight
 
         # Calculating the best relative velocity vector for this moment
@@ -69,9 +66,9 @@ async def move_to(ship: Ship,
             return False
 
         # Getting actual data:
-        # TODO: send two requests in parallel!
-        ship_position = await ship.get_position(cache_expiring_ms=0)
-        target = await position()
+        ship_position, target = \
+            await asyncio.gather(ship.get_position(cache_expiring_ms=0),
+                                 position())
         if not ship_position or not target:
             return False
         distance = ship_position.distance_to(target)

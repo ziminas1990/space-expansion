@@ -53,6 +53,15 @@ def get_engine(commutator: Commutator, name: str) -> Optional[Engine]:
         return None
 
 
+def get_all_engines(commutator: Commutator) -> Optional[List[Engine]]:
+    try:
+        engines = commutator.modules[ModuleType.ENGINE.value]
+        # Creating copy of engines list for better type hinting
+        return [engine for engine in engines.values() if isinstance(engine, Engine)]
+    except KeyError:
+        return None
+
+
 def get_cargo(commutator: Commutator, name: str) -> Optional[ResourceContainer]:
     try:
         cargo = commutator.modules[ModuleType.RESOURCE_CONTAINER.value][name]
