@@ -1,0 +1,1 @@
+from .ships_assistant import ShipsAssistant
