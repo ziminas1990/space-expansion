@@ -18,7 +18,7 @@ void Clock::start(bool lColdStart)
     m_eState = eDebugMode;
   }
   m_startedAt    = std::chrono::high_resolution_clock::now();
-  m_inGameTime   = 0;
+  m_inGameTimeUs   = 0;
   m_nDeviationUs = 0;
 }
 
@@ -33,7 +33,7 @@ uint32_t Clock::getNextInterval()
   // expected_now = m_startedAt + m_inGameTime + m_DeviationUs
   // dt = actual_now - expected_now
   uint64_t expectedRealeTime = static_cast<uint64_t>(
-        static_cast<int64_t>(m_inGameTime) + m_nDeviationUs);
+        static_cast<int64_t>(m_inGameTimeUs) + m_nDeviationUs);
   uint64_t dt  = timeSinceUs(m_startedAt);
   assert(dt >= expectedRealeTime);
   dt -= expectedRealeTime;
@@ -54,7 +54,7 @@ uint32_t Clock::getNextInterval()
       ++m_nTotalTicksCounter;
       ++m_nPeriodTicksCounter;
       // return instead of break to avoid extra jump
-      m_inGameTime        += dt;
+      m_inGameTimeUs      += dt;
       m_nPeriodDurationUs += dt;
       return static_cast<uint32_t>(dt);
     }
@@ -71,7 +71,7 @@ uint32_t Clock::getNextInterval()
       assert(dt < uint32_t(-1));
       m_nDeviationUs -= dt;
       // return instead of break to avoid extra jump
-      m_inGameTime        += dt;
+      m_inGameTimeUs        += dt;
       m_nPeriodDurationUs += dt;
       return static_cast<uint32_t>(dt);
     }
@@ -131,7 +131,7 @@ void Clock::exportStat(ClockStat& out) const
 {
   out.nTicksCounter = m_nTotalTicksCounter;
   out.nRealTimeUs   = timeSinceUs(m_startedAt);
-  out.nIngameTimeUs = m_inGameTime;
+  out.nIngameTimeUs = m_inGameTimeUs;
   out.nDeviationUs  = m_nDeviationUs;
   if (m_nPeriodTicksCounter) {
     out.nAvgTickDurationPerPeriod = m_nPeriodDurationUs / m_nPeriodTicksCounter;

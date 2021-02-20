@@ -1,56 +1,78 @@
-from typing import Optional, Set, Callable, Awaitable, Tuple
+from typing import Optional, Set, Callable, Awaitable
 import threading
 import asyncio
-import time
 
 import expansion.interfaces.public as remote
 import expansion.utils as utils
+import expansion.types as types
 
 from .base_module import BaseModule
+
+ConnectionFactory = Callable[[], Awaitable[remote.SystemClockI]]
 
 
 class SystemClock(BaseModule):
     def __init__(self,
-                 connection_factory: Callable[[], Awaitable[remote.SystemClockI]],
+                 connection_factory: ConnectionFactory,
                  name: Optional[str] = None):
         super().__init__(connection_factory=connection_factory,
                          logging_name=name or utils.generate_name(SystemClock))
         self.tick_us: Optional[int] = None
-        self.cached_time: Tuple[Optional[int], int] = (None, 0)
-        self.time_callback: Set[Callable[[int], None]] = set()
+        self.server_time: types.TimePoint = types.TimePoint(0)
+        self.time_callback: Set[Callable[[types.TimePoint], None]] = set()
         # A set of a callbacks, which wants to receive timestamps
         self.mutex: threading.Lock = threading.Lock()
 
-    async def time(self) -> Optional[int]:
+    async def sync(self) -> bool:
+        """Sync local system clock with server"""
         async with self._lock_channel() as channel:
-            if channel:
-                assert isinstance(channel, remote.SystemClockI)
-                self.cached_time = (await channel.time(), int(time.monotonic() * 1000))
-        return self.cached_time[0]
+            if not channel:
+                return False
+            assert isinstance(channel, remote.SystemClockI)
+            ingame_time = await channel.time()
+            if ingame_time is None:
+                return False
+            self.server_time.update(ingame_time)
 
-    def approximate_time(self) -> Optional[int]:
-        if self.cached_time[0] is None:
-            return None
-        dt = int(time.monotonic() * 1000) - self.cached_time[1]
-        return self.cached_time[0] + dt
+    async def time(self) -> types.TimePoint:
+        """Update the cached time and return it"""
+        await self.sync()
+        return self.server_time
 
-    async def wait_until(self, time: int, timeout: float) -> Optional[int]:
-        """Wait until server time reaches the specified 'time'"""
+    def cached_time(self) -> types.TimePoint:
+        """Return cached ingame time
+
+        Note: this function doesn't request server time. It returns
+        just a cached time. Cached time still can predict server's
+        time but the longer at has not been synced, the bigger
+        could be prediction error"""
+        return self.server_time
+
+    async def wait_until(self, time: int, timeout: float) \
+            -> Optional[types.TimePoint]:
+        """Wait until server time reaches the specified 'time'
+
+        On success update cached time and return cached time, otherwise
+        return None"""
         async with self._lock_channel() as channel:
             if channel is None:
                 return None
             assert isinstance(channel, remote.SystemClockI)
-            return await channel.wait_until(time=time, timeout=timeout) \
-                if channel is not None else None
+            time = await channel.wait_until(time=time, timeout=timeout)
+            if time:
+                self.server_time.update(time)
+            return self.server_time
 
-    async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
+    async def wait_for(self, period_us: int, timeout: float) -> Optional[types.TimePoint]:
         """Wait for the specified 'period' microseconds"""
         async with self._lock_channel() as channel:
             if channel is None:
                 return None
             assert isinstance(channel, remote.SystemClockI)
-            return await channel.wait_for(period_us=period_us, timeout=timeout) \
-                if channel is not None else None
+            time = await channel.wait_for(period_us=period_us, timeout=timeout)
+            if time:
+                self.server_time.update(time)
+            return self.server_time
 
     async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
         """Return generator's tick long (in microseconds). Once the
@@ -63,7 +85,7 @@ class SystemClock(BaseModule):
                 self.tick_us = await channel.get_generator_tick_us(timeout=timeout)
         return self.tick_us
 
-    def subscribe(self, time_cb: Callable[[int], None]):
+    def subscribe(self, time_cb: Callable[[types.TimePoint], None]):
         with self.mutex:
             self.time_callback.add(time_cb)
             if len(self.time_callback) == 1:
@@ -82,10 +104,10 @@ class SystemClock(BaseModule):
                 return
             while len(self.time_callback) > 0:
                 current_time = await channel.wait_timestamp()
-                self.cached_time = (current_time, int(time.monotonic() * 1000))
                 if current_time is None:
                     # Ignoring error
                     continue
+                self.server_time.update(current_time)
                 for time_cb in self.time_callback:
-                    time_cb(current_time)
+                    time_cb(self.server_time)
             await channel.detach_from_generator()

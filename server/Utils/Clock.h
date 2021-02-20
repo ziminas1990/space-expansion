@@ -33,7 +33,7 @@ class Clock
 public:
   void start(bool lColdStart = false);
 
-  uint64_t now() const { return m_inGameTime; }
+  uint64_t now() const { return m_inGameTimeUs; }
     // Return ingame time (not real time!)
 
   uint32_t getNextInterval();
@@ -63,9 +63,9 @@ private:
 
   std::chrono::system_clock::time_point m_startedAt;
     // Time when the clock has been started
-  uint64_t m_inGameTime   = 0;
+  uint64_t m_inGameTimeUs = 0;
     // How much time has passed in the game's world since it has been run
-  int64_t m_nDeviationUs = 0;
+  int64_t m_nDeviationUs  = 0;
     // How much the real time differs from the ingame time. Real time can be
     // calculated as: m_startedAt + m_inGameTime + m_DeviationUs
     // Negative value means, that ingame time flowed faster then real time

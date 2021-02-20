@@ -18,7 +18,6 @@ class IOTerminal(Channel, Terminal):
         super().__init__(channel_name=name, terminal_name=name, *args, **kwargs)
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
-        self._waiters: int = 0
         self._trace_mode = trace_mode
 
     def set_trace_mode(self, on: bool):

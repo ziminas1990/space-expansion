@@ -7,6 +7,7 @@ import server.configurator.world as world
 from server.configurator import Configuration, General, ApplicationMode
 
 import expansion.modules as modules
+import expansion.types as types
 
 
 class TestSystemClock(BaseTestFixture):
@@ -46,18 +47,21 @@ class TestSystemClock(BaseTestFixture):
         success, time = await self.system_clock_stop()
         self.assertTrue(success)
         current_time = await system_clock.time()
-        self.assertEqual(time, current_time)
+        self.assertEqual(time, current_time.now(predict=False))
 
         success, time = await self.system_clock_proceed(1000, timeout_s=0.2)
         self.assertTrue(success)
-        current_time = await system_clock.time()
-        self.assertEqual(time, current_time)
+        await system_clock.sync()
+        # sync() should update the current_time object
+        self.assertEqual(time, current_time.now(predict=False))
 
         wait_delta_ms = 10000
 
         # Checking wait_until feature
         task = asyncio.get_running_loop().create_task(
-            system_clock.wait_until(time=current_time + wait_delta_ms * 1000, timeout=1))
+            system_clock.wait_until(
+                time=current_time.now(predict=False) + wait_delta_ms * 1000,
+                timeout=1))
 
         success, time = await self.system_clock_proceed(wait_delta_ms - 1, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
@@ -143,9 +147,9 @@ class TestSystemClock(BaseTestFixture):
 
         generator_tick = await system_clock.get_generator_tick_us()
         self.assertIsNotNone(generator_tick)
-        current_time = 0
+        current_time = types.TimePoint(0)
 
-        def time_cb(time: int):
+        def time_cb(time: types.TimePoint):
             nonlocal current_time
             current_time = time
             logging.debug(f"on time_cb() with time={current_time}")
@@ -155,5 +159,5 @@ class TestSystemClock(BaseTestFixture):
         for i in range(10):
             success, time = await self.system_clock_proceed(500, timeout_s=1)
             await asyncio.sleep(0.02)  # waiting for all events to be handled
-            delta = time - current_time
+            delta = time - current_time.now(predict=False)
             self.assertLessEqual(delta, generator_tick)
