@@ -80,6 +80,13 @@ def get_celestial_scanner(commutator: Commutator, name: str) -> Optional[Celesti
         return None
 
 
+def get_all_celestial_scanners(commutator: Commutator):
+    try:
+        return commutator.modules[ModuleType.CELESTIAL_SCANNER.value]
+    except KeyError:
+        return []
+
+
 def get_asteroid_miner(commutator: Commutator, name: str) -> Optional[AsteroidMiner]:
     try:
         device = commutator.modules[ModuleType.ASTEROID_MINER.value][name]

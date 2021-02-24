@@ -51,9 +51,9 @@ class Ship(Commutator, BaseModule):
                            timeout: float = 0.5) -> Optional[Position]:
         """Get the current ship's position. If the position was cached more than the
         specified 'cache_expiring_ms' milliseconds ago, than it will be updated.
-        Otherwise a predicted position will be returned.
+        Otherwise a cached position will be returned.
         If updating position is required (cache has expired), the request will be
-        sent to the server and this call will block the thread until the response is
+        sent to the server and this call will block control until the response is
         received or the specified 'timeout' occurs.
         """
         if self._position is None:
@@ -67,15 +67,16 @@ class Ship(Commutator, BaseModule):
                 return None
             return self._position[0] if self._position else None
 
-        return self._position[0].make_prediction(float(dt_ms)/1000)
+        return self._position[0]
 
-    def get_cached_position(self) -> Optional[Position]:
-        """Returned a cached position (with prediction). If position
-        has not been cached, return None."""
-        if self._position is None:
-            return None
-        dt_ms = time.monotonic() * 1000 - self._position[1]
-        return self._position[0].make_prediction(float(dt_ms) / 1000)
+    def get_cached_position(self, now_us: Optional[int] = None) -> Optional[Position]:
+        """Return a cached position
+
+        Return None if position has not been cached.
+        Return a predicted position if 'now_us' is specified (as
+        server's time in microseconds)"""
+        return self._position[0].make_prediction(now_us) \
+            if now_us is not None else self._position[0]
 
     async def get_state(self, cache_expiring_ms: int = 50) -> Optional[ShipState]:
         """Return current ship's state"""

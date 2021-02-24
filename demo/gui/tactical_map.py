@@ -49,16 +49,16 @@ class TacticalMap(AdvancedViewer):
             self.centerOn(position.x, position.y)
 
     def update(self):
-        self._update_ships()
+        self._update_ships(self.tactical_core.time.now())
 
-    def _update_ships(self):
+    def _update_ships(self, now: int):
         for ship in self.tactical_core.ships_assistant.ships.values():
             try:
                 shape = self.ships_shapes[ship.name]
             except KeyError:
                 shape = None
 
-            position: Optional[Position] = ship.get_cached_position()
+            position: Optional[Position] = ship.get_cached_position(now)
             if position is None:
                 if shape is not None:
                     self.logger.warning(f"Ship's '{ship.name}' position is lost!")

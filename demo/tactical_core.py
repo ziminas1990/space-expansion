@@ -33,6 +33,7 @@ class TacticalCore:
         if self.system_clock is None:
             self.log.error("SystemClock not found!")
             return False
+        self.time = await self.system_clock.time()
         self.system_clock.subscribe(self._on_time_cb)
         self.ships_assistant = ShipsAssistant(root_commutator=self.root_commutator,
                                               system_clock=self.system_clock)

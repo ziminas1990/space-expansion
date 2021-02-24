@@ -1,9 +1,7 @@
 from typing import NamedTuple, Optional
 import math
 
-
 class Vector():
-
     def __init__(self, x: float, y: float):
         self.x: float = x
         self.y: float = y
@@ -56,8 +54,13 @@ class Position(NamedTuple):
     def vector_to(self, other: 'Position') -> Vector:
         return Vector(x=other.x - self.x, y=other.y - self.y)
 
-    def make_prediction(self, dt_sec: float) -> 'Position':
+    def make_prediction(self, now: int) -> 'Position':
+        if self.timestamp is None:
+            return Position(x=self.x,
+                            y=self.y,
+                            velocity=Vector(self.velocity.x, self.velocity.y))
+        dt_sec: float = (now - self.timestamp) / 1000000
         return Position(x=self.x + self.velocity.x * dt_sec,
                         y=self.y + self.velocity.y * dt_sec,
                         velocity=Vector(self.velocity.x, self.velocity.y),
-                        timestamp=self.timestamp + int(dt_sec * 1000000))
+                        timestamp=now)
