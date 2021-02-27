@@ -26,8 +26,8 @@ class Vector():
     def __mul__(self, mult: float) -> 'Vector':
         return Vector(x=self.x * mult, y=self.y * mult)
 
-    def scalar_mult(self, mult: 'Vector') -> float:
-        return self.x * mult.x + self.y * mult.y
+    def scalar_mult(self, other: 'Vector') -> float:
+        return self.x * other.x + self.y * other.y
 
     def set_length(self, length: float) -> 'Vector':
         k = length / self.abs()
