@@ -37,7 +37,7 @@ class CelestialScanner(BaseModule):
 
         async with self._lock_channel() as channel:
             assert isinstance(channel, CelestialScannerI)  # sort of type hinting
-            return await channel.scan(scanning_radius_km, minimal_radius_m, timeout)
+            return await channel.scan_sync(scanning_radius_km, minimal_radius_m, timeout)
 
     async def expected_scanning_time(self, scanning_radius_km: int, minimal_radius_m: int) -> float:
         """Return time, that should be required by scanner to finish scanning

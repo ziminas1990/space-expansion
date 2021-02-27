@@ -1,4 +1,4 @@
-from typing import Optional, NamedTuple, List
+from typing import Optional, NamedTuple, List, Callable, Any
 
 import expansion.protocol as protocol
 import expansion.transport as transport
@@ -9,6 +9,10 @@ import expansion.types as types
 class Specification(NamedTuple):
     max_radius_km: int
     processing_time_us: int
+
+
+AsteroidsList = Optional[List[types.PhysicalObject]]
+Error = Optional[str]
 
 
 class CelestialScannerI(transport.IOTerminal):
@@ -46,51 +50,87 @@ class CelestialScannerI(transport.IOTerminal):
     async def scan(self,
                    scanning_radius_km: int,
                    minimal_radius_m: int,
-                   timeout: float) -> (Optional[List[types.PhysicalObject]], Optional[str]):
-        """Scanning all bodies with a signature not less than 'minimal_radius_m'
-        within a 'scanning_radius_km' radius.
-        On success return (asteroid_list, None). Otherwise return (None, error_string)
+                   result_cb: Callable[[AsteroidsList, Error], None],
+                   timeout: float) -> bool:
+        """Scanning all bodies within a 'scanning_radius_km' radius.
+
+        Bodies with radius less then the specified 'minimal_radius_m' will be
+        ignored. The 'result_cb' callback will be called when another portion
+        of data received from the server. After all data received callback
+        will be called for the last time with (None, None) argument.
         """
         request = protocol.Message()
         scan_req = request.celestial_scanner.scan
         scan_req.scanning_radius_km = scanning_radius_km
         scan_req.minimal_radius_m = minimal_radius_m
         if not self.send(message=request):
-            return None, "Failed to send message"
+            result_cb(None, "Failed to send request")
+            return False
 
-        scanned_objects: List[types.PhysicalObject] = []
-
-        def handle_response(response) -> (int, Optional[str]):
-            """Handle response. Return (asteroids_left, None) on success,
-            otherwise return (0, error)"""
-            timestamp: Optional[int] = response.timestamp or None
-
-            report = protocol.get_message_field(response, "celestial_scanner.scanning_report")
-            if report:
-                for body in report.asteroids:
-                    scanned_objects.append(
-                        types.PhysicalObject(
-                            object_id=body.id,
-                            position=types.Position(
-                                x=body.x, y=body.y,
-                                velocity=types.Vector(x=body.vx, y=body.vy),
-                                timestamp=timestamp
-                            ),
-                        )
-                    )
-                return report.left, None
-
-            fail = protocol.get_message_field(response, "celestial_scanner.scanning_failed")
-            if fail:
-                return 0, str(fail)
-            return 0, f"Got unexpected response '{response.WhichOneof('choice')}'"
-
-        while True:
+        continue_scanning = True
+        while continue_scanning:
             response, _ = await self.wait_message(timeout=timeout)
-            if not response:
-                return 0, "No response"
-            objects_left, error = handle_response(response)
-            if error:
-                return 0, error
-            if objects_left == 0:
-                return scanned_objects, None
+            body = protocol.get_message_field(response, "celestial_scanner")
+            if not body:
+                result_cb(None, "No response")
+                return False
+
+            report = protocol.get_message_field(body, "scanning_report")
+            if not report:
+                fail = protocol.get_message_field(body, "scanning_failed")
+                result_cb(
+                    None,
+                    str(fail) if fail else self.__unexpected_msg_str(fail))
+                return False
+
+            timestamp: Optional[int] = response.timestamp or None
+            result_cb(
+                [self.__build_object(body, timestamp) for body in report.asteroids],
+                None
+            )
+            continue_scanning = report.left > 0
+
+        result_cb(None, None)  # Scanning is finished
+        return True
+
+    async def scan_sync(self,
+                        scanning_radius_km: int,
+                        minimal_radius_m: int,
+                        timeout: float) -> (AsteroidsList, Error):
+        """Scanning all bodies within a 'scanning_radius_km' radius.
+
+        Bodies with radius less then the specified 'minimal_radius_m' will be
+        ignored. On success return (asteroid_list, None). Otherwise
+        return (None, error_string)
+        """
+        scanned_asteroids: AsteroidsList = []
+        error_msg: Error = None
+
+        def accumulator(asteroids: AsteroidsList, error: Error):
+            nonlocal error_msg
+            if asteroids:
+                scanned_asteroids.extend(asteroids)
+            elif error:
+                error_msg = error
+
+        await self.scan(scanning_radius_km,
+                        minimal_radius_m,
+                        accumulator,
+                        timeout)
+        return scanned_asteroids, error_msg
+
+    @staticmethod
+    def __build_object(data: Any,  # Because its protobuf's type
+                       timestamp: Optional[int]):
+        return types.PhysicalObject(
+            object_id=data.id,
+            position=types.Position(
+                x=data.x, y=data.y,
+                velocity=types.Vector(x=data.vx, y=data.vy),
+                timestamp=timestamp
+            ),
+        )
+
+    @staticmethod
+    def __unexpected_msg_str(message: Any):
+        return f"Got unexpected response '{message.WhichOneof('choice')}'"
