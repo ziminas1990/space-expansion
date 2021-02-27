@@ -11,7 +11,7 @@ class Specification(NamedTuple):
     processing_time_us: int
 
 
-AsteroidsList = Optional[List[types.PhysicalObject]]
+ObjectsList = Optional[List[types.PhysicalObject]]
 Error = Optional[str]
 
 
@@ -50,38 +50,40 @@ class CelestialScannerI(transport.IOTerminal):
     async def scan(self,
                    scanning_radius_km: int,
                    minimal_radius_m: int,
-                   result_cb: Callable[[AsteroidsList, Error], None],
-                   timeout: float) -> bool:
+                   result_cb: Callable[[ObjectsList, Error], None],
+                   timeout: float) -> Optional[str]:
         """Scanning all bodies within a 'scanning_radius_km' radius.
 
         Bodies with radius less then the specified 'minimal_radius_m' will be
         ignored. The 'result_cb' callback will be called when another portion
         of data received from the server. After all data received callback
         will be called for the last time with (None, None) argument.
+        Retun None on success otherwise return error string
         """
         request = protocol.Message()
         scan_req = request.celestial_scanner.scan
         scan_req.scanning_radius_km = scanning_radius_km
         scan_req.minimal_radius_m = minimal_radius_m
         if not self.send(message=request):
-            result_cb(None, "Failed to send request")
-            return False
+            error = "Failed to send request"
+            result_cb(None, error)
+            return error
 
         continue_scanning = True
         while continue_scanning:
             response, _ = await self.wait_message(timeout=timeout)
             body = protocol.get_message_field(response, "celestial_scanner")
             if not body:
-                result_cb(None, "No response")
-                return False
+                error = "No response"
+                result_cb(None, error)
+                return error
 
             report = protocol.get_message_field(body, "scanning_report")
             if not report:
                 fail = protocol.get_message_field(body, "scanning_failed")
-                result_cb(
-                    None,
-                    str(fail) if fail else self.__unexpected_msg_str(fail))
-                return False
+                error = str(fail) if fail else self.__unexpected_msg_str(fail)
+                result_cb(None, error)
+                return error
 
             timestamp: Optional[int] = response.timestamp or None
             result_cb(
@@ -91,25 +93,25 @@ class CelestialScannerI(transport.IOTerminal):
             continue_scanning = report.left > 0
 
         result_cb(None, None)  # Scanning is finished
-        return True
+        return None
 
     async def scan_sync(self,
                         scanning_radius_km: int,
                         minimal_radius_m: int,
-                        timeout: float) -> (AsteroidsList, Error):
+                        timeout: float) -> (ObjectsList, Error):
         """Scanning all bodies within a 'scanning_radius_km' radius.
 
         Bodies with radius less then the specified 'minimal_radius_m' will be
         ignored. On success return (asteroid_list, None). Otherwise
         return (None, error_string)
         """
-        scanned_asteroids: AsteroidsList = []
+        scanned_objects: AsteroidsList = []
         error_msg: Error = None
 
-        def accumulator(asteroids: AsteroidsList, error: Error):
+        def accumulator(asteroids: ObjectsList, error: Error):
             nonlocal error_msg
             if asteroids:
-                scanned_asteroids.extend(asteroids)
+                scanned_objects.extend(asteroids)
             elif error:
                 error_msg = error
 
@@ -117,7 +119,7 @@ class CelestialScannerI(transport.IOTerminal):
                         minimal_radius_m,
                         accumulator,
                         timeout)
-        return scanned_asteroids, error_msg
+        return scanned_objects, error_msg
 
     @staticmethod
     def __build_object(data: Any,  # Because its protobuf's type
