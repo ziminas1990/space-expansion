@@ -130,7 +130,7 @@ class TestCase(BaseTestFixture):
         scanner: modules.CelestialScanner = modules.get_celestial_scanner(miner_ship, "scanner")
         self.assertIsNotNone(scanner)
 
-        result, error = await scanner.scan(scanning_radius_km=10, minimal_radius_m=15)
+        result, error = await scanner.scan_sync(scanning_radius_km=10, minimal_radius_m=15)
         self.assertIsNone(error)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))
@@ -143,7 +143,7 @@ class TestCase(BaseTestFixture):
         self.assertEqual(AsteroidMinerI.Status.ASTEROID_TOO_FAR, status)
 
         # Looking for the asteroid, that should be nearby
-        result, error = await scanner.scan(scanning_radius_km=1, minimal_radius_m=5)
+        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
         self.assertIsNone(error)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))
@@ -177,7 +177,7 @@ class TestCase(BaseTestFixture):
         scanner: modules.CelestialScanner = modules.get_celestial_scanner(miner_ship, "scanner")
         self.assertIsNotNone(scanner)
 
-        result, error = await scanner.scan(scanning_radius_km=1, minimal_radius_m=5)
+        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
         self.assertIsNone(error)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))
@@ -237,7 +237,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(scanner)
         self.assertIsNotNone(scanner)
 
-        result, error = await scanner.scan(scanning_radius_km=1, minimal_radius_m=5)
+        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
         self.assertIsNone(error)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))
@@ -292,7 +292,7 @@ class TestCase(BaseTestFixture):
         scanner: modules.CelestialScanner = modules.get_celestial_scanner(miner_ship, "scanner")
         self.assertIsNotNone(scanner)
 
-        result, error = await scanner.scan(scanning_radius_km=1, minimal_radius_m=5)
+        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
         self.assertIsNone(error)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))

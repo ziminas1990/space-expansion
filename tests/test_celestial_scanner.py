@@ -78,10 +78,47 @@ class TestCase(BaseTestFixture):
         scanner = modules.get_celestial_scanner(miner, "scanner")
         self.assertIsNotNone(scanner)
 
-        result, error = await scanner.scan(scanning_radius_km=20, minimal_radius_m=300)
+        result = []
+        errors = []
+
+        def scanning_cb(objects, e):
+            if objects:
+                result.extend(objects)
+            else:
+                errors.append(e)
+
+        self.assertIsNone(await scanner.scan(
+            scanning_radius_km=20,
+            minimal_radius_m=300,
+            scanning_cb=scanning_cb))
         self.assertIsNone(error)
         self.assertEqual([], result)
 
-        result, error = await scanner.scan(scanning_radius_km=20, minimal_radius_m=200)
+        self.assertIsNone(await scanner.scan(
+            scanning_radius_km=20,
+            minimal_radius_m=200,
+            scanning_cb=scanning_cb))
+        self.assertIsNone(error)
+        self.assertEqual(1, len(result))
+
+    @BaseTestFixture.run_as_sync
+    async def test_scanning_sync(self):
+        await self.system_clock_fast_forward(speed_multiplier=20)
+
+        commutator, error = await self.login('oreman', "127.0.0.1", "127.0.0.1")
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        miner = modules.get_ship(commutator, "Miner", "miner-1")
+        self.assertIsNotNone(miner)
+
+        scanner = modules.get_celestial_scanner(miner, "scanner")
+        self.assertIsNotNone(scanner)
+
+        result, error = await scanner.scan_sync(scanning_radius_km=20, minimal_radius_m=300)
+        self.assertIsNone(error)
+        self.assertEqual([], result)
+
+        result, error = await scanner.scan_sync(scanning_radius_km=20, minimal_radius_m=200)
         self.assertIsNone(error)
         self.assertEqual(1, len(result))
