@@ -6,7 +6,7 @@ from expansion.modules import Commutator, SystemClock
 from expansion.types import TimePoint
 import logging
 
-from assistants import ShipsAssistant
+from assistants import ShipsAssistant, AsteroidTracker, ScanningParams
 
 
 class TacticalCore:
@@ -24,6 +24,7 @@ class TacticalCore:
 
         self.ships: Dict[str, modules.Ship] = {}
         self.ships_assistant: Optional[ShipsAssistant] = None
+        self.asteroids_tracker: AsteroidTracker = AsteroidTracker(root_commutator)
 
     async def initialize(self) -> bool:
         if not await self.root_commutator.init():
@@ -37,6 +38,13 @@ class TacticalCore:
         self.system_clock.subscribe(self._on_time_cb)
         self.ships_assistant = ShipsAssistant(root_commutator=self.root_commutator,
                                               system_clock=self.system_clock)
+
+        # Starting auto-scanning
+        self.asteroids_tracker.run_auto_scanning([
+            ScanningParams(10, 5),
+            ScanningParams(100, 10),
+            ScanningParams(500, 15),
+        ])
         return True
 
     async def run(self):

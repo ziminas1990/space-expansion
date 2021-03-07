@@ -1,1 +1,2 @@
-from .ships_assistant import ShipsAssistant
+from assistants.ships_assistant import ShipsAssistant
+from assistants.asteroids_tracker import AsteroidTracker, ScanningParams
