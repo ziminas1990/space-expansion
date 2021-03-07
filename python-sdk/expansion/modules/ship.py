@@ -69,13 +69,16 @@ class Ship(Commutator, BaseModule):
 
         return self._position[0].make_prediction(float(dt_ms)/1000)
 
-    def get_cached_position(self) -> Optional[Position]:
-        """Returned a cached position (with prediction). If position
-        has not been cached, return None."""
-        if self._position is None:
+    def get_cached_position(self, now_us: Optional[int] = None) -> Optional[Position]:
+        """Return a cached position
+
+        Return None if position has not been cached.
+        Return a predicted position if 'now_us' is specified (as
+        server's time in microseconds)"""
+        if not self._position:
             return None
-        dt_ms = time.monotonic() * 1000 - self._position[1]
-        return self._position[0].make_prediction(float(dt_ms) / 1000)
+        return self._position[0].make_prediction(now_us) \
+            if now_us is not None else self._position[0]
 
     async def get_state(self, cache_expiring_ms: int = 50) -> Optional[ShipState]:
         """Return current ship's state"""

@@ -17,5 +17,6 @@ from .util import (
     get_all_engines,
     get_cargo,
     get_celestial_scanner,
+    get_any_celestial_scanner,
     get_asteroid_miner
 )
