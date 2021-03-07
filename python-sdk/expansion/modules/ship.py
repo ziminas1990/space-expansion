@@ -75,6 +75,8 @@ class Ship(Commutator, BaseModule):
         Return None if position has not been cached.
         Return a predicted position if 'now_us' is specified (as
         server's time in microseconds)"""
+        if not self._position:
+            return None
         return self._position[0].make_prediction(now_us) \
             if now_us is not None else self._position[0]
 

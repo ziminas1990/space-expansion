@@ -131,6 +131,7 @@ class CelestialScannerI(transport.IOTerminal):
                 velocity=types.Vector(x=data.vx, y=data.vy),
                 timestamp=timestamp
             ),
+            radius=data.r
         )
 
     @staticmethod

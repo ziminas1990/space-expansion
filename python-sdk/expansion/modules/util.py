@@ -53,13 +53,13 @@ def get_engine(commutator: Commutator, name: str) -> Optional[Engine]:
         return None
 
 
-def get_all_engines(commutator: Commutator) -> Optional[List[Engine]]:
+def get_all_engines(commutator: Commutator) -> List[Engine]:
     try:
         engines = commutator.modules[ModuleType.ENGINE.value]
-        # Creating copy of engines list for better type hinting
-        return [engine for engine in engines.values() if isinstance(engine, Engine)]
+        return [engine for engine in engines.values()
+                if isinstance(engine, Engine)]
     except KeyError:
-        return None
+        return []
 
 
 def get_cargo(commutator: Commutator, name: str) -> Optional[ResourceContainer]:
@@ -80,11 +80,15 @@ def get_celestial_scanner(commutator: Commutator, name: str) -> Optional[Celesti
         return None
 
 
-def get_all_celestial_scanners(commutator: Commutator):
+def get_any_celestial_scanner(commutator: Commutator) -> Optional[CelestialScanner]:
     try:
-        return commutator.modules[ModuleType.CELESTIAL_SCANNER.value]
+        scanners = commutator.modules[ModuleType.CELESTIAL_SCANNER.value]
+        for scanner in scanners.values():
+            assert isinstance(scanner, CelestialScanner)
+            return scanner
+        return None
     except KeyError:
-        return []
+        return None
 
 
 def get_asteroid_miner(commutator: Commutator, name: str) -> Optional[AsteroidMiner]:
