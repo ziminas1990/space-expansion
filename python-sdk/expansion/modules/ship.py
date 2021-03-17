@@ -77,8 +77,7 @@ class Ship(Commutator, BaseModule):
         server's time in microseconds)"""
         if not self._position:
             return None
-        return self._position[0].make_prediction(now_us) \
-            if now_us is not None else self._position[0]
+        return self._position[0].at(now_us)
 
     async def get_state(self, cache_expiring_ms: int = 50) -> Optional[ShipState]:
         """Return current ship's state"""
