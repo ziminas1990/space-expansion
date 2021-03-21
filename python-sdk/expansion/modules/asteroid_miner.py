@@ -41,11 +41,9 @@ class AsteroidMiner(BaseModule):
 
     async def start_mining(self,
                            asteroid_id: int,
-                           resource: ResourceType,
                            progress_cb: AsteroidMinerI.MiningReportCallback,
                            timeout: float = 0.5) -> Status:
-        """Start mining asteroid with the specified 'asteroid_id' for the
-        specified 'resource'. Only the specified resource will be retrieved.
+        """Start mining asteroid with the specified 'asteroid_id'.
         The specified 'progress_cb' will be called in the following cases:
         1. the mining report is received from server - in this case a
            'SUCCESS' status will be passed as the first argument, and a total
@@ -59,7 +57,7 @@ class AsteroidMiner(BaseModule):
         """
         async with self._lock_channel() as channel:
             assert isinstance(channel, AsteroidMinerI)  # sort of type hinting
-            return await channel.start_mining(asteroid_id, resource, progress_cb, timeout)
+            return await channel.start_mining(asteroid_id, progress_cb, timeout)
 
     async def stop_mining(self, timeout: float = 0.5) -> Status:
         """Stop the mining process"""

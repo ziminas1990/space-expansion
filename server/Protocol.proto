@@ -17,12 +17,17 @@ enum ResourceType {
   RESOURCE_METALS    = 1;
   RESOURCE_SILICATES = 2;
   RESOURCE_ICE       = 3;
+  RESOURCE_STONE     = 4;
   RESOURCE_LABOR     = 101;
 }
 
 message ResourceItem {
   ResourceType type  = 1;
   double       amount = 2;
+}
+
+message Resources {
+  repeated ResourceItem items = 1;
 }
 
 message Property {
@@ -257,21 +262,16 @@ message IAsteroidMiner {
     uint32 yield_per_cycle = 3;
   }
 
-  message MiningTask {
-    uint32       asteroid_id = 1;
-    ResourceType resource    = 2;
-  }
-
   oneof choice {
     bool          specification_req = 1;
     string        bind_to_cargo     = 2;
-    MiningTask    start_mining      = 3;
+    uint32        start_mining      = 3;
     bool          stop_mining       = 4;
 
     Specification specification        = 21;
     Status        bind_to_cargo_status = 22;
     Status        start_mining_status  = 23;
-    ResourceItem  mining_report        = 24;
+    Resources     mining_report        = 24;
     Status        mining_is_stopped    = 25;
     Status        stop_mining_status   = 26;
   }

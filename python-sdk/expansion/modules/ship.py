@@ -67,7 +67,7 @@ class Ship(Commutator, BaseModule):
                 return None
             return self._position[0] if self._position else None
 
-        return self._position[0].make_prediction(float(dt_ms)/1000)
+        return self._position[0].at(self._position[0].timestamp + dt_ms * 1000)
 
     def get_cached_position(self, now_us: Optional[int] = None) -> Optional[Position]:
         """Return a cached position

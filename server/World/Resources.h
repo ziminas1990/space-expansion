@@ -15,6 +15,7 @@ struct Resource {
     eMetal,
     eSilicate,
     eIce,
+    eStone,   // Useless resource
 
     // Non-material resources:
     eLabor, // some amount of work/producing
@@ -26,14 +27,14 @@ struct Resource {
 
   static bool isMaterial(Type eType) { return Density[eType] > 0.0; }
 
-  static Type               typeFromString(std::string const& sType);
-  static std::string const& typeToString(Type eType);
+  static Type        typeFromString(std::string const& sType);
+  static char const* typeToString(Type eType);
 
-  static std::array<Type, eTotalResources>        AllTypes;
-  static std::array<std::string, eTotalResources> Names;
-  static std::array<double, eTotalResources>      Density;
+  static const std::array<Type, eTotalResources>        AllTypes;
+  static const std::array<const char*, eTotalResources> Names;
+  static       std::array<double, eTotalResources>      Density;
 
-  static const std::array<Type, 3> MaterialResources;
+  static const std::array<Type, 4> MaterialResources;
   static const std::array<Type, 1> NonMaterialResources;
 };
 
@@ -73,7 +74,7 @@ struct ResourceItem {
   double         m_nAmount;
 };
 
-using Resources      = std::vector<ResourceItem>;
+using Resources = std::vector<ResourceItem>;
 
 // Stores resources in array, where index is resource type and value is amout.
 // Note that this class can NOT be inherited, because it doesn't have virtual
@@ -91,6 +92,7 @@ public:
   ResourcesArray& ice(double amount);
 
   ResourcesArray& operator+=(ResourcesArray const& other);
+  bool operator==(ResourcesArray const& other) const;
 
   double calculateTotalVolume() const;
 };

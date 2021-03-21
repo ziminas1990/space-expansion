@@ -63,15 +63,11 @@ AsteroidMiner::Status AsteroidMiner::bindToCargo(std::string const& sCargoName)
   return convert(response.bind_to_cargo_status());
 }
 
-AsteroidMiner::Status AsteroidMiner::startMining(
-    uint32_t nAsteroidId, world::Resource::Type eResourceType)
+AsteroidMiner::Status AsteroidMiner::startMining(uint32_t nAsteroidId)
 {
   spex::Message message;
   spex::IAsteroidMiner* request = message.mutable_asteroid_miner();
-  spex::IAsteroidMiner::MiningTask* body = request->mutable_start_mining();
-
-  body->set_asteroid_id(nAsteroidId);
-  body->set_resource(utils::convert(eResourceType));
+  request->set_start_mining(nAsteroidId);
   if (!send(message))
     return eTransportError;
 
@@ -104,15 +100,19 @@ AsteroidMiner::Status AsteroidMiner::stopMining()
   return waitMiningIsStoppedInd(eStopStatus) ? Status::eSuccess : Status::eTimeout;
 }
 
-bool AsteroidMiner::waitMiningReport(double& nAmount, uint16_t nTimeout)
+bool AsteroidMiner::waitMiningReport(world::ResourcesArray& mined, uint16_t nTimeout)
 {
+  mined.fill(0);
   spex::IAsteroidMiner response;
   if (!wait(response, nTimeout))
     return false;
   if (response.choice_case() != spex::IAsteroidMiner::kMiningReport)
     return false;
 
-  nAmount = response.mining_report().amount();
+  for (spex::ResourceItem const& item:  response.mining_report().items()) {
+    world::Resource::Type eType = utils::convert(item.type());
+    mined[eType] = item.amount();
+  }
   return true;
 }
 

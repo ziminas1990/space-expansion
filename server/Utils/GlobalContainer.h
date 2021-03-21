@@ -117,9 +117,8 @@ protected:
 private:
   uint32_t m_nInstanceId;
 
-    // Revision increases every time when container is modified
   static ThreadSafePool<uint32_t> m_IdPool;
-    // ObjectsId, that can be reused to new objects
+    // ObjectIds, that can be reused to new objects
   static Mutex                    m_AllInstancesMutex;
   static std::vector<Inheriter*>  m_AllInstances;
   static std::vector<IObserver*>  m_observers;

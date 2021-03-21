@@ -8,6 +8,7 @@ class ResourceType(Enum):
     e_METALS = "metals"
     e_SILICATES = "silicates"
     e_ICE = "ice"
+    e_STONES = "stones"
     e_LABOR = "labor"
 
     @staticmethod
@@ -69,3 +70,5 @@ class ResourceItem(NamedTuple):
         """Convert this type to the protobuf equivalent"""
         output.type = self.resource_type.to_protobuf()
         output.amount = self.amount
+
+ResourcesDict = Dict[ResourceType, ResourceItem]

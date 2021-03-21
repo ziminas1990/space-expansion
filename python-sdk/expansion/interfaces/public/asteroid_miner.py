@@ -5,7 +5,7 @@ import expansion.protocol.Protocol_pb2 as public
 import expansion.protocol as protocol
 from expansion.transport import IOTerminal
 import expansion.utils as utils
-from expansion.types import ResourceType, ResourceItem
+from expansion.types import ResourceType, ResourceItem, ResourcesDict
 
 
 class Specification(NamedTuple):
@@ -50,7 +50,7 @@ class AsteroidMinerI(IOTerminal):
                 ProtobufStatus.INTERRUPTED_BY_USER: ModuleStatus.INTERRUPTED_BY_USER
             }[status]
 
-    MiningReportCallback = Callable[[Status, Optional[ResourceItem]], bool]
+    MiningReportCallback = Callable[[Status, Optional[ResourcesDict]], bool]
 
     def __init__(self, name: Optional[str] = None):
         if not name:
@@ -92,11 +92,9 @@ class AsteroidMinerI(IOTerminal):
 
     async def start_mining(self,
                            asteroid_id: int,
-                           resource: ResourceType,
                            progress_cb: MiningReportCallback,
                            timeout: float = 0.5) -> Status:
-        """Start mining asteroid with the specified 'asteroid_id' for the
-        specified 'resource'. Only the specified resource will be retrieved.
+        """Start mining asteroid with the specified 'asteroid_id'.
         The specified 'progress_cb' will be called in the following cases:
         1. the mining report is received from server - in this case a
            'SUCCESS' status will be passed as the first argument, and a total
@@ -114,7 +112,7 @@ class AsteroidMinerI(IOTerminal):
         if not spec_status.is_ok():
             return spec_status
 
-        if not self._send_start_mining(asteroid_id=asteroid_id, resource=resource):
+        if not self._send_start_mining(asteroid_id=asteroid_id):
             return Status.FAILED_TO_SEND_REQUEST
 
         mining_status = await self._wait_start_mining_status(timeout=timeout)
@@ -125,8 +123,8 @@ class AsteroidMinerI(IOTerminal):
         resume = True
         status = Status.INTERNAL_ERROR
         while resume:
-            status, resource_item = await self._wait_mining_report(report_timeout)
-            resume = status.is_ok() and progress_cb(Status.SUCCESS, resource_item)
+            status, resources = await self._wait_mining_report(report_timeout)
+            resume = status.is_ok() and progress_cb(Status.SUCCESS, resources)
 
         if status.is_ok():
             # Mining was interrupted by the player, so we should send stop_mining
@@ -149,11 +147,9 @@ class AsteroidMinerI(IOTerminal):
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
         return AsteroidMinerI.Status.from_protobuf(status)
 
-    def _send_start_mining(self, asteroid_id: int, resource: ResourceType):
+    def _send_start_mining(self, asteroid_id: int):
         request = public.Message()
-        body = request.asteroid_miner.start_mining
-        body.asteroid_id = asteroid_id
-        body.resource = resource.to_protobuf()
+        request.asteroid_miner.start_mining = asteroid_id
         return self.send(message=request)
 
     async def _wait_start_mining_status(self, timeout: float = 0.5) -> Status:
@@ -166,13 +162,17 @@ class AsteroidMinerI(IOTerminal):
         return AsteroidMinerI.Status.from_protobuf(mining_status)
 
     async def _wait_mining_report(self, timeout: float) \
-            -> (Status, Optional[ResourceItem]):
+            -> (Status, Optional[ResourcesDict]):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT, None
         report = protocol.get_message_field(response, "asteroid_miner.mining_report")
         if report is not None:
-            return AsteroidMinerI.Status.SUCCESS, ResourceItem.from_protobuf(report)
+            resources = {
+                ResourceType.from_protobuf(item.type): item.amount
+                for item in report.items
+            }
+            return AsteroidMinerI.Status.SUCCESS, resources
 
         # May be mining was interrupted, that is why we haven't received the report?
         stop_ind = protocol.get_message_field(response, "asteroid_miner.mining_is_stopped")

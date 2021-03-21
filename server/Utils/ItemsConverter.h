@@ -14,6 +14,8 @@ inline world::Resource::Type convert(spex::ResourceType eType)
       return world::Resource::eSilicate;
     case spex::ResourceType::RESOURCE_LABOR:
       return world::Resource::eLabor;
+    case spex::ResourceType::RESOURCE_STONE:
+      return world::Resource::eStone;
     case spex::ResourceType::RESOURCE_UNKNOWN:
     case spex::ResourceType::ResourceType_INT_MAX_SENTINEL_DO_NOT_USE_:
     case spex::ResourceType::ResourceType_INT_MIN_SENTINEL_DO_NOT_USE_: {
@@ -33,6 +35,8 @@ inline spex::ResourceType convert(world::Resource::Type eType)
       return spex::ResourceType::RESOURCE_METALS;
     case world::Resource::eSilicate:
       return spex::ResourceType::RESOURCE_SILICATES;
+    case world::Resource::eStone:
+      return spex::ResourceType::RESOURCE_STONE;
     case world::Resource::eLabor:
       return spex::ResourceType::RESOURCE_LABOR;
     case world::Resource::eTotalResources:

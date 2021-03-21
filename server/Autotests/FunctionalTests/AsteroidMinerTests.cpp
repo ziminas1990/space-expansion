@@ -66,7 +66,8 @@ protected:
       "        radius:     10,",
       "        silicates:  5,",
       "        metals:     3,",
-      "        ice:        1 }",
+      "        ice:        1,"
+      "        stones:     25}",
     };
     std::stringstream ss;
     for (std::string const& line : data)
@@ -139,31 +140,24 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
 
   // The miner has not been bint to cargo
-  ASSERT_EQ(client::AsteroidMiner::eNotBoundToCargo,
-            miner.startMining(0, world::Resource::eMetal));
+  ASSERT_EQ(client::AsteroidMiner::eNotBoundToCargo, miner.startMining(0));
 
   // Binding mining to the cargo and trying again (should be ok)
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
 
-  ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resource::eMetal));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.startMining(0));
 
-  double nLastCycleAmount = 0;
-  double nYieldTotal      = 0;
+  world::ResourcesArray minedTotal;
   for(size_t i = 0; i < 10; ++i) {
-    double nAmount = 0;
-    ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
-    if (i > 0) {
-      EXPECT_LT(nAmount, nLastCycleAmount);
-    }
-    nYieldTotal      += nAmount;
-    nLastCycleAmount  = nAmount;
+    world::ResourcesArray mined;
+    ASSERT_TRUE(miner.waitMiningReport(mined, 1000)) << "On i #" << i;
+    minedTotal      += mined;
 
     client::ResourceContainer::Content content;
     cargo.getContent(content);
-    EXPECT_DOUBLE_EQ(content.metals(), nYieldTotal);
-  }
 
+    EXPECT_EQ(content.m_amount, minedTotal);
+  }
 }
 
 TEST_F(AsteroidMinerTests, StopMining)
@@ -184,76 +178,19 @@ TEST_F(AsteroidMinerTests, StopMining)
 
   ASSERT_EQ(client::AsteroidMiner::eMinerIsIdle, miner.stopMining());
 
-  ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resource::eMetal));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.startMining(0));
 
+  world::ResourcesArray mined;
   utils::Stopwatch stopwatch;
-  double nAmount = 0;
   for(size_t i = 0; i < 5; ++i) {
-    ASSERT_TRUE(miner.waitMiningReport(nAmount)) << "On i #" << i;
+    ASSERT_TRUE(miner.waitMiningReport(mined)) << "On i #" << i;
   }
-  uint16_t avgReportTime = static_cast<uint16_t>(stopwatch.testMs() / 5);
+  const uint16_t avgReportTime = static_cast<uint16_t>(stopwatch.testMs() / 5);
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.stopMining());
 
   // No more reports are expected
-  ASSERT_FALSE(miner.waitMiningReport(nAmount, (avgReportTime + 5) * 2));
-}
-
-TEST_F(AsteroidMinerTests, MiningVariousResources)
-{
-  resumeTime();
-
-  ASSERT_TRUE(
-        Scenarios::Login()
-        .sendLoginRequest("mega_miner", "unabtainable")
-        .expectSuccess());
-
-  client::Ship ship;
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
-
-  client::AsteroidMiner miner;
-  ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
-  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
-
-  double nTotalMetals    = 0;
-  double nTotalSilicates = 0;
-  double nTotalIce       = 0;
-
-  ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resource::eMetal));
-  for(size_t i = 0; i < 5; ++i) {
-    double nAmount = 0;
-    ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
-    nTotalMetals += nAmount;
-  }
-  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.stopMining());
-
-  ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resource::eSilicate));
-  for(size_t i = 0; i < 5; ++i) {
-    double nAmount = 0;
-    ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
-    nTotalSilicates += nAmount;
-  }
-  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.stopMining());
-
-  ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resource::eIce));
-  for(size_t i = 0; i < 5; ++i) {
-    double nAmount = 0;
-    ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000)) << "On i #" << i;
-    nTotalIce += nAmount;
-  }
-  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.stopMining());
-
-  client::ResourceContainer cargo;
-  ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
-  client::ResourceContainer::Content content;
-  cargo.getContent(content);
-  EXPECT_DOUBLE_EQ(content.metals(),    nTotalMetals);
-  EXPECT_DOUBLE_EQ(content.silicates(), nTotalSilicates);
-  EXPECT_DOUBLE_EQ(content.ice(),       nTotalIce);
+  ASSERT_FALSE(miner.waitMiningReport(mined, (avgReportTime + 5) * 2));
 }
 
 TEST_F(AsteroidMinerTests, StartMiningFails)
@@ -272,14 +209,9 @@ TEST_F(AsteroidMinerTests, StartMiningFails)
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
 
-  ASSERT_EQ(client::AsteroidMiner::eAsteroidDoesntExist,
-            miner.startMining(42, world::Resource::eMetal));
-
-  ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resource::eMetal));
-
-  ASSERT_EQ(client::AsteroidMiner::eMinerIsBusy,
-            miner.startMining(0, world::Resource::eMetal));
+  ASSERT_EQ(client::AsteroidMiner::eAsteroidDoesntExist, miner.startMining(42));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.startMining(0));
+  ASSERT_EQ(client::AsteroidMiner::eMinerIsBusy, miner.startMining(0));
 }
 
 TEST_F(AsteroidMinerTests, NoAvaliableSpace)
@@ -301,14 +233,13 @@ TEST_F(AsteroidMinerTests, NoAvaliableSpace)
   client::ResourceContainer cargo;
   ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo"));
 
-  ASSERT_EQ(client::AsteroidMiner::eSuccess,
-            miner.startMining(0, world::Resource::eIce));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.startMining(0));
 
   client::ResourceContainer::Content content;
   cargo.getContent(content);
-  while(content.m_nUsedSpace < content.m_nVolume) {
-    double nAmount = 0;
-    ASSERT_TRUE(miner.waitMiningReport(nAmount, 1000));
+  while(!utils::AlmostEqual(content.m_nUsedSpace, content.m_nVolume)) {
+    world::ResourcesArray mined;
+    ASSERT_TRUE(miner.waitMiningReport(mined, 1000));
     cargo.getContent(content);
   }
 

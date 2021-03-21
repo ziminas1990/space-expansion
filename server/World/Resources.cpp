@@ -11,16 +11,23 @@
 
 namespace world {
 
-std::array<Resource::Type, Resource::eTotalResources> Resource::AllTypes = {
-  Resource::eMetal, Resource::eSilicate, Resource::eIce, Resource::eLabor
+const std::array<Resource::Type, Resource::eTotalResources> Resource::AllTypes = {
+  Resource::eMetal,
+  Resource::eSilicate,
+  Resource::eIce,
+  Resource::eStone,
+  Resource::eLabor
 };
-std::array<std::string, Resource::eTotalResources> Resource::Names = {
-  "metals", "silicates", "ice", "labor"
+const std::array<const char*, Resource::eTotalResources> Resource::Names = {
+  "metals", "silicates", "ice", "stones", "labor"
 };
 
 std::array<double, Resource::eTotalResources> Resource::Density = {0};
-const std::array<Resource::Type, 3> Resource::MaterialResources = {
-  Resource::eMetal, Resource::eSilicate, Resource::eIce
+const std::array<Resource::Type, 4> Resource::MaterialResources = {
+  Resource::eMetal,
+  Resource::eSilicate,
+  Resource::eIce,
+  Resource::eStone
 };
 const std::array<Resource::Type, 1> Resource::NonMaterialResources = {
   Resource::eLabor
@@ -31,6 +38,8 @@ bool Resource::initialize()
   Density[eMetal]    = 4500;  // Ti
   Density[eIce]      = 916;
   Density[eSilicate] = 2330;  // Si
+  Density[eStone]    = Density[eSilicate];  // Useless silicates
+
   Density[eLabor]    = 0;     // It is non material resource
 
   // Run-time checks:
@@ -64,6 +73,7 @@ Resource::Type Resource::typeFromString(std::string const& sType)
     std::make_pair(Names[eMetal],    eMetal),
     std::make_pair(Names[eIce],      eIce),
     std::make_pair(Names[eSilicate], eSilicate),
+    std::make_pair(Names[eStone],    eStone),
     std::make_pair(Names[eLabor],    eLabor)
   };
 
@@ -72,9 +82,8 @@ Resource::Type Resource::typeFromString(std::string const& sType)
   return I != table.end() ? I->second : eUnknown;
 }
 
-std::string const& Resource::typeToString(Resource::Type eType)
+char const* Resource::typeToString(Resource::Type eType)
 {
-  const static std::string unknown("unknown");
   assert(eType < Resource::eTotalResources);
   return Names[eType];
 }
@@ -119,7 +128,7 @@ void ResourcesArray::dump(YAML::Node& out) const
   for (Resource::Type eType : Resource::AllTypes) {
     if (utils::AlmostEqual(at(eType), 0))
       continue;
-    dumper.add(Resource::typeToString(eType).c_str(), at(eType));
+    dumper.add(Resource::typeToString(eType), at(eType));
   }
 }
 
@@ -147,6 +156,15 @@ ResourcesArray& ResourcesArray::operator+=(ResourcesArray const& other)
     at(eType) += other.at(eType);
   }
   return *this;
+}
+
+bool ResourcesArray::operator==(ResourcesArray const& other) const
+{
+  for (Resource::Type eType : Resource::AllTypes) {
+    if (!utils::AlmostEqual(at(eType), other.at(eType)))
+      return false;
+  }
+  return true;
 }
 
 double ResourcesArray::calculateTotalVolume() const

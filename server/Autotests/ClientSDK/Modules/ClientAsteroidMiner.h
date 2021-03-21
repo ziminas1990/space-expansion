@@ -35,10 +35,10 @@ public:
   bool getSpecification(AsteroidMinerSpecification& specification);
 
   Status bindToCargo(std::string const& sCargoName);
-  Status startMining(uint32_t nAsteroidId, world::Resource::Type eResourceType);
+  Status startMining(uint32_t nAsteroidId);
   Status stopMining();
 
-  bool waitMiningReport(double& nAmount, uint16_t nTimeout = 500);
+  bool waitMiningReport(world::ResourcesArray& mined, uint16_t nTimeout = 500);
   bool waitMiningIsStoppedInd(Status& eStatus, uint16_t nTimeout = 500);
 
 };

@@ -30,8 +30,7 @@ private:
   void yiedlAsteroidAndSendReport(world::Asteroid* pAsteroid);
 
   void bindToCargoRequest(uint32_t nTunnelId, std::string const& sCargoName);
-  void startMiningRequest(uint32_t nTunnelId,
-                          spex::IAsteroidMiner::MiningTask const& task);
+  void startMiningRequest(uint32_t nTunnelId, uint32_t asteroidId);
   void stopMiningRequest(uint32_t nTunnelId);
   void onSpecificationRequest(uint32_t nTunnelId);
 
@@ -53,7 +52,6 @@ private:
   uint32_t               m_nAsteroidId;
   uint64_t               m_nCycleProgressUs;
   uint32_t               m_nTunnelId;
-  world::Resource::Type  m_eResourceType;
 };
 
 } // namespace modules

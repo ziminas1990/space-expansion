@@ -55,21 +55,26 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
 
   m_nCycleProgressUs -= nCycleTimeUs;
 
-  double percentage = pAsteroid->getComposition().percents[m_eResourceType];
-  double amount     = pAsteroid->yield(m_eResourceType, m_nYeildPerCycle * percentage);
-  double put        = m_pContainer->putResource(m_eResourceType, amount);
+  world::ResourcesArray mined = pAsteroid->yield(m_nYeildPerCycle);
 
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
-  spex::ResourceItem* pItem = pResponse->mutable_mining_report();
-  pItem->set_type(utils::convert(m_eResourceType));
-  pItem->set_amount(put);
-  sendToClient(m_nTunnelId, message);
-
-  if (put < amount) {
-    sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
-    onDeactivated();
+  spex::Resources* pBody = pResponse->mutable_mining_report();
+  for (world::Resource::Type eResource: world::Resource::MaterialResources) {
+    if (eResource == world::Resource::eStone || mined[eResource] < 0.01) {
+      continue;
+    }
+    double put = m_pContainer->putResource(eResource, mined[eResource]);
+    spex::ResourceItem* pItem = pBody->add_items();
+    pItem->set_type(utils::convert(eResource));
+    pItem->set_amount(put);
+    if (put < mined[eResource]) {
+      sendToClient(m_nTunnelId, message);
+      sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
+      onDeactivated();
+    }
   }
+  sendToClient(m_nTunnelId, message);
 }
 
 void AsteroidMiner::handleAsteroidMinerMessage(
@@ -108,8 +113,7 @@ void AsteroidMiner::bindToCargoRequest(uint32_t nTunnelId, std::string const& sC
   sendBindingStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
 }
 
-void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
-                                       spex::IAsteroidMiner::MiningTask const& task)
+void AsteroidMiner::startMiningRequest(uint32_t nTunnelId, uint32_t asteroiId)
 {
   if (!isIdle()) {
     sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::MINER_IS_BUSY);
@@ -121,7 +125,7 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
     return;
   }
 
-  world::Asteroid* pAsteroid = getAsteroid(task.asteroid_id());
+  world::Asteroid* pAsteroid = getAsteroid(asteroiId);
   if (!pAsteroid) {
     sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::ASTEROID_DOESNT_EXIST);
     return;
@@ -132,9 +136,8 @@ void AsteroidMiner::startMiningRequest(uint32_t nTunnelId,
     return;
   }
 
-  m_nAsteroidId   = task.asteroid_id();
+  m_nAsteroidId   = asteroiId;
   m_nTunnelId     = nTunnelId;
-  m_eResourceType = utils::convert(task.resource());
   switchToActiveState();
   sendStartMiningStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
 }

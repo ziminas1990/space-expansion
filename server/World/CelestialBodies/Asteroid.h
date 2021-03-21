@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <random>
+
 #include <Utils/GlobalContainer.h>
 #include <Newton/PhysicalObject.h>
 #include <Utils/Spinlock.h>
@@ -11,17 +13,23 @@ namespace world {
 
 struct AsteroidComposition
 {
-  AsteroidComposition(double utility, double nSilicates, double nMetals, double nIce);
-  AsteroidComposition() : AsteroidComposition(0.1, 1, 1, 1)
-  {}
+  AsteroidComposition(double nSilicates,
+                      double nMetals,
+                      double nIce,
+                      double nStones);
+  AsteroidComposition()
+  {
+    reset();
+  }
 
-  double silicates_percent() const { return percents[Resource::Type::eSilicate]; }
-  double metals_percent()    const { return percents[Resource::Type::eMetal]; }
-  double ice_percent()       const { return percents[Resource::Type::eIce]; }
+  void   reset();
+  double silicates_percent() const { return m_stakes[Resource::Type::eSilicate]; }
+  double metals_percent()    const { return m_stakes[Resource::Type::eMetal]; }
+  double ice_percent()       const { return m_stakes[Resource::Type::eIce]; }
 
-  void normalize(double utility = 1.0);
+  void normalize();
 
-  double percents[Resource::Type::eTotalResources];
+  double m_stakes[Resource::Type::eTotalResources];
 };
 
 class Asteroid;
@@ -31,7 +39,10 @@ class Asteroid : public newton::PhysicalObject, public AsteroidsContainer
 {
 public:
   Asteroid();
-  Asteroid(double radius, double weight, AsteroidComposition composition);
+  Asteroid(double radius,
+           double weight,
+           AsteroidComposition distribution,
+           double seed);
 
   bool loadState(YAML::Node const& data);
 
@@ -41,10 +52,11 @@ public:
     return utils::GlobalContainer<Asteroid>::getInstanceId();
   }
 
-  double yield(Resource::Type eType, double amount);
+  ResourcesArray yield(double amount);
 
 private:
-  AsteroidComposition m_composition;
+  AsteroidComposition        m_composition;
+  std::default_random_engine m_randomizer;
 
   utils::Spinlock m_spinlock;
 };

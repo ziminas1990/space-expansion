@@ -1,6 +1,8 @@
 #include "Asteroid.h"
 #include <Utils/YamlReader.h>
 
+#include <cstring>
+#include <random>
 #include <assert.h>
 #include <cmath>
 
@@ -13,9 +15,13 @@ Asteroid::Asteroid() : newton::PhysicalObject(0, 0)
   AsteroidsContainer::registerSelf(this);
 }
 
-Asteroid::Asteroid(double radius, double weight, AsteroidComposition composition)
+Asteroid::Asteroid(double radius,
+                   double weight,
+                   AsteroidComposition distribution,
+                   double seed)
   : newton::PhysicalObject(weight, radius),
-    m_composition(std::move(composition))
+    m_composition(std::move(distribution)),
+    m_randomizer(seed)
 {
   utils::GlobalContainer<Asteroid>::registerSelf(this);
 }
@@ -26,54 +32,79 @@ bool Asteroid::loadState(YAML::Node const& data)
         data,
         PhysicalObject::LoadMask().loadPosition().loadVelocity().loadRadius()))
     return false;
+  m_composition.reset();
   utils::YamlReader reader(data);
-  reader.read("silicates", m_composition.percents[Resource::Type::eSilicate])
-        .read("metals",    m_composition.percents[Resource::Type::eMetal])
-        .read("ice",       m_composition.percents[Resource::Type::eIce]);
+  for (Resource::Type eType: Resource::MaterialResources) {
+    reader.read(Resource::Names[eType], m_composition.m_stakes[eType]);
+  }
   m_composition.normalize();
-  if (!reader.isOk())
-    return false;
 
-  double weight = 5000 * 4 / 3 * M_PI * std::pow(getRadius(), 3);
+  double weight = 2000 * 4 / 3 * M_PI * std::pow(getRadius(), 3);
   setWeight(weight);
   return true;
 }
 
-double Asteroid::yield(Resource::Type eType, double amount)
+ResourcesArray Asteroid::yield(double amount)
 {
-  m_spinlock.lock();
+  ResourcesArray mined;
 
-  double total = getWeight() * m_composition.percents[eType];
-  if (amount > total)
-    amount = total;
+  m_spinlock.lock();
+  amount = std::min(amount, getWeight());
+
+  // Generating resources composition in the mined chunk
+  AsteroidComposition minedChunk;
+  double divider = m_randomizer.max();
+  for (Resource::Type eType: Resource::MaterialResources) {
+    double willOfChance = m_randomizer() / divider;
+    minedChunk.m_stakes[eType] = 2 * m_composition.m_stakes[eType] * willOfChance;
+  }
+
+  // Reduce the number of stones mined, because we are not blind to
+  // mine stones!
+  minedChunk.m_stakes[Resource::eStone] /= 2;
+  minedChunk.normalize();
+
+  double weight = getWeight();
+  for (Resource::Type eType: Resource::MaterialResources) {
+    double total = weight * m_composition.m_stakes[eType];
+    mined[eType] = amount * minedChunk.m_stakes[eType];
+    assert(mined[eType] <= total);
+    // Recalculating composition
+    m_composition.m_stakes[eType] = (total - mined[eType]) / weight;
+  }
   changeWeight(-amount);
-  m_composition.percents[eType] = (total - amount) / getWeight();
 
   m_spinlock.unlock();
-  return amount;
+  return mined;
 }
 
 AsteroidComposition::AsteroidComposition(
-    double utility, double nSilicates, double nMetals, double nIce)
+    double nSilicates,
+    double nMetals,
+    double nIce,
+    double nStones)
 {
-  assert(utility <= 1.0 && utility >= 0.0);
-  utility = std::min(utility, 1.0);
-  utility = std::max(0.0,     utility);
-
-  percents[Resource::Type::eIce]      = nIce;
-  percents[Resource::Type::eMetal]    = nMetals;
-  percents[Resource::Type::eSilicate] = nSilicates;
-  normalize(utility);
+  m_stakes[Resource::Type::eIce]      = nIce;
+  m_stakes[Resource::Type::eMetal]    = nMetals;
+  m_stakes[Resource::Type::eSilicate] = nSilicates;
+  m_stakes[Resource::Type::eStone]    = nStones;
 }
 
-void AsteroidComposition::normalize(double utility)
+void AsteroidComposition::reset()
 {
-  // TODO: maybe "for" is better?
-  double total = percents[Resource::Type::eIce] +
-                 percents[Resource::Type::eMetal] +
-                 percents[Resource::Type::eSilicate];
-  for (size_t i = 0; i < world::Resource::eTotalResources; ++i) {
-    percents[i] *= utility/total;
+  std::memset(m_stakes, 0, sizeof(m_stakes));
+}
+
+void AsteroidComposition::normalize()
+{
+  double total = 0;
+  for (Resource::Type eType: Resource::MaterialResources) {
+    total += m_stakes[eType];
+  }
+  if (total > 0) {
+    for (Resource::Type eType: Resource::MaterialResources) {
+      m_stakes[eType] /= total;
+    }
   }
 }
 

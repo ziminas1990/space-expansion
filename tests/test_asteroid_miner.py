@@ -9,8 +9,8 @@ from server.configurator.modules import default_ships, asteroid_miner_blueprints
 from server.configurator import Configuration, General, ApplicationMode
 
 from expansion import modules
-from expansion.interfaces.public import AsteroidMinerI, CelestialScannerI
-from expansion.types import ResourceType, ResourceItem
+from expansion.interfaces.public import AsteroidMinerI
+from expansion.types import ResourceType, ResourceItem, ResourcesDict
 
 
 class TestCase(BaseTestFixture):
@@ -40,14 +40,16 @@ class TestCase(BaseTestFixture):
                 asteroids=world.Asteroids(asteroids=[
                     world.Asteroid(position=world.Position(x=100, y=100),
                                    radius=10,
-                                   composition={world.ResourceType.e_ICE: 50,
-                                                world.ResourceType.e_SILICATES: 20,
-                                                world.ResourceType.e_METALS: 20}),
+                                   composition={world.ResourceType.e_ICE: 15,
+                                                world.ResourceType.e_SILICATES: 15,
+                                                world.ResourceType.e_METALS: 20,
+                                                world.ResourceType.e_STONES: 50}),
                     world.Asteroid(position=world.Position(x=5000, y=5000),
                                    radius=20,
                                    composition={world.ResourceType.e_ICE: 10,
                                                 world.ResourceType.e_SILICATES: 10,
-                                                world.ResourceType.e_METALS: 40})
+                                                world.ResourceType.e_METALS: 20,
+                                                world.ResourceType.e_STONES: 60})
                 ])),
         )
 
@@ -117,13 +119,11 @@ class TestCase(BaseTestFixture):
         self.assertEqual(AsteroidMinerI.Status.SUCCESS, status)
         self.assertEqual("cargo", miner.cargo_name)
 
-        def progress_cb(status: AsteroidMinerI.Status, item: ResourceItem) -> bool:
+        def progress_cb(status: AsteroidMinerI.Status, resources: ResourcesDict) -> bool:
             return False  # Stop mining immediately
 
         # Trying to mine non existing asteroid
-        status = await miner.start_mining(asteroid_id=100500,
-                                          resource=ResourceType.e_METALS,
-                                          progress_cb=progress_cb)
+        status = await miner.start_mining(asteroid_id=100500, progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.ASTEROID_DOESNT_EXIST, status)
 
         # Looking for the asteroid, that should be away
@@ -138,7 +138,6 @@ class TestCase(BaseTestFixture):
 
         # Mining an asteroid
         status = await miner.start_mining(asteroid_id=asteroid.object_id,
-                                          resource=ResourceType.e_METALS,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.ASTEROID_TOO_FAR, status)
 
@@ -151,7 +150,6 @@ class TestCase(BaseTestFixture):
 
         # Mining an asteroid
         status = await miner.start_mining(asteroid_id=asteroid.object_id,
-                                          resource=ResourceType.e_METALS,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.SUCCESS, status)
 
@@ -188,14 +186,17 @@ class TestCase(BaseTestFixture):
             ResourceType.e_METALS: 0
         }
 
-        def progress_cb(status: AsteroidMinerI.Status, item: ResourceItem) -> bool:
-            collected_resources[item.resource_type] += item.amount
+        def progress_cb(status: AsteroidMinerI.Status, resources: ResourcesDict) -> bool:
+            for resource_type, amount in resources.items():
+                if resource_type in collected_resources:
+                    collected_resources[resource_type] += amount
+                else:
+                    collected_resources[resource_type] = amount
             return collected_resources[ResourceType.e_METALS] < 1000
 
         # Mining an asteroid
         await self.system_clock_fast_forward(speed_multiplier=500)
         status = await miner.start_mining(asteroid_id=asteroid.object_id,
-                                          resource=ResourceType.e_METALS,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.SUCCESS, status)
         await self.system_clock_fast_forward(speed_multiplier=50)
@@ -249,7 +250,6 @@ class TestCase(BaseTestFixture):
 
         mining_task = asyncio.get_running_loop().create_task(
             miner.start_mining(asteroid_id=asteroid.object_id,
-                               resource=ResourceType.e_METALS,
                                progress_cb=progress_cb)
         )
         # waiting for some cycles
@@ -305,7 +305,6 @@ class TestCase(BaseTestFixture):
         # This will take a long time
         await self.system_clock_fast_forward(1000)
         status = await miner.start_mining(asteroid_id=asteroid.object_id,
-                                          resource=ResourceType.e_ICE,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.NO_SPACE_AVAILABLE, status)
 
@@ -315,6 +314,3 @@ class TestCase(BaseTestFixture):
         content = await cargo.get_content()
         self.assertIsNotNone(content)
         self.assertAlmostEqual(content.volume, content.used)
-        self.assertAlmostEqual(
-            ResourceType.calculate_amount(ResourceType.e_ICE, content.volume),
-            content.resources[ResourceType.e_ICE])
