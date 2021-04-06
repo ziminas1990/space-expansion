@@ -1,6 +1,6 @@
 from typing import Optional, Callable, Awaitable, List
 
-from expansion.interfaces.public import CelestialScannerI, CelestialScannerSpec
+from expansion.interfaces.rpc import CelestialScannerI, CelestialScannerSpec
 from expansion import utils
 from expansion import types
 from .base_module import BaseModule

@@ -5,7 +5,7 @@ import asyncio
 from expansion.types.geometry import Position
 from expansion.modules.ship import Ship, ShipState
 from expansion.modules.engine import Engine, EngineSpec
-import expansion.interfaces.public as rpc
+import expansion.interfaces.rpc as rpc
 
 
 async def move_to(ship: Ship,

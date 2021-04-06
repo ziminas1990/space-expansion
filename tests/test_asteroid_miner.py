@@ -9,7 +9,7 @@ from server.configurator.modules import default_ships, asteroid_miner_blueprints
 from server.configurator import Configuration, General, ApplicationMode
 
 from expansion import modules
-from expansion.interfaces.public import AsteroidMinerI
+from expansion.interfaces.rpc import AsteroidMinerI
 from expansion.types import ResourceType, ResourceItem, ResourcesDict
 
 

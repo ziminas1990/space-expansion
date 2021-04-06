@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Callable, Awaitable, Tuple
 
-import expansion.interfaces.public as rpc
-from expansion.interfaces.public.commutator import Tunnel
+import expansion.interfaces.rpc as rpc
+from expansion.interfaces.rpc.commutator import Tunnel
 from expansion import utils
 
 from .base_module import BaseModule, ModuleType

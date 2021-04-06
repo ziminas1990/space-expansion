@@ -4,7 +4,7 @@ import contextlib
 
 from .commutator import Commutator
 from .factory import module_factory
-import expansion.interfaces.public as rpc
+import expansion.interfaces.rpc as rpc
 import expansion.procedures as procedures
 
 

@@ -2,13 +2,13 @@ from typing import Optional, Set, Callable, Awaitable
 import threading
 import asyncio
 
-import expansion.interfaces.public as remote
+import expansion.interfaces.rpc as rpc
 import expansion.utils as utils
 import expansion.types as types
 
 from .base_module import BaseModule
 
-ConnectionFactory = Callable[[], Awaitable[remote.SystemClockI]]
+ConnectionFactory = Callable[[], Awaitable[rpc.SystemClockI]]
 
 
 class SystemClock(BaseModule):
@@ -28,7 +28,7 @@ class SystemClock(BaseModule):
         async with self._lock_channel() as channel:
             if not channel:
                 return False
-            assert isinstance(channel, remote.SystemClockI)
+            assert isinstance(channel, rpc.SystemClockI)
             ingame_time = await channel.time()
             if ingame_time is None:
                 return False
@@ -57,7 +57,7 @@ class SystemClock(BaseModule):
         async with self._lock_channel() as channel:
             if channel is None:
                 return None
-            assert isinstance(channel, remote.SystemClockI)
+            assert isinstance(channel, rpc.SystemClockI)
             time = await channel.wait_until(time=time, timeout=timeout)
             if time:
                 self.server_time.update(time)
@@ -68,7 +68,7 @@ class SystemClock(BaseModule):
         async with self._lock_channel() as channel:
             if channel is None:
                 return None
-            assert isinstance(channel, remote.SystemClockI)
+            assert isinstance(channel, rpc.SystemClockI)
             time = await channel.wait_for(period_us=period_us, timeout=timeout)
             if time:
                 self.server_time.update(time)
@@ -81,7 +81,7 @@ class SystemClock(BaseModule):
             async with self._lock_channel() as channel:
                 if channel is None:
                     return None
-                assert isinstance(channel, remote.SystemClockI)
+                assert isinstance(channel, rpc.SystemClockI)
                 self.tick_us = await channel.get_generator_tick_us(timeout=timeout)
         return self.tick_us
 
@@ -97,9 +97,9 @@ class SystemClock(BaseModule):
 
     async def _time_watcher(self):
         async with self._lock_channel() as channel:
-            assert isinstance(channel, remote.SystemClockI)
+            assert isinstance(channel, rpc.SystemClockI)
             status = await channel.attach_to_generator()
-            if status != remote.SystemClockI.Status.GENERATOR_ATTACHED:
+            if status != rpc.SystemClockI.Status.GENERATOR_ATTACHED:
                 self.logger.error("Can't attach to the system clock's generator!")
                 return
             while len(self.time_callback) > 0:

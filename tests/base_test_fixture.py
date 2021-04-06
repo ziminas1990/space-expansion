@@ -8,7 +8,7 @@ from server.configurator import Configuration, AdministratorCfg
 from server.server import Server
 
 import expansion.procedures as procedures
-import expansion.interfaces.public as rpc
+import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
 import expansion.interfaces.privileged as privileged
 

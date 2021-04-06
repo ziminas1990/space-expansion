@@ -1,7 +1,7 @@
 from typing import Optional, Tuple, Callable, Awaitable
 import time
 
-from expansion.interfaces.public import ShipI, ShipState
+from expansion.interfaces.rpc import ShipI, ShipState
 from expansion.types import Position
 from .base_module import BaseModule
 from .commutator import Commutator, ModulesFactory

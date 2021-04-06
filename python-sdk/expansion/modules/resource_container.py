@@ -1,7 +1,7 @@
 from typing import Optional, Callable, Awaitable, Tuple
 import time
 
-from expansion.interfaces.public import ResourceContainerI
+from expansion.interfaces.rpc import ResourceContainerI
 from expansion import utils
 from expansion.types import ResourceItem
 from .base_module import BaseModule

@@ -1,6 +1,6 @@
 from typing import Optional, Callable, Awaitable
 
-from expansion.interfaces.public import AsteroidMinerI, AsteroidMinerSpec
+from expansion.interfaces.rpc import AsteroidMinerI, AsteroidMinerSpec
 from expansion import utils
 from .base_module import BaseModule
 from expansion.types import ResourceType

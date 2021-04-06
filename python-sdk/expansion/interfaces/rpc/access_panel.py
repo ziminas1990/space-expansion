@@ -5,7 +5,7 @@ from expansion.protocol.Protocol_pb2 import Message as PlayerMessage
 from expansion.protocol.utils import get_message_field
 
 
-class IAccessPanel:
+class AccessPanelI:
 
     def __init__(self):
         self.socket: IOTerminal = IOTerminal()

@@ -1,7 +1,7 @@
 from typing import Optional, Callable, Awaitable, Tuple
 import time
 
-from expansion.interfaces.public import EngineI, EngineSpec
+from expansion.interfaces.rpc import EngineI, EngineSpec
 import expansion.utils as utils
 from expansion.types import Vector
 

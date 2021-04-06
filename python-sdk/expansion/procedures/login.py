@@ -5,8 +5,7 @@ from expansion.transport.udp_channel import UdpChannel
 from expansion.transport.protobuf_channel import ProtobufChannel
 
 import expansion.protocol.Protocol_pb2 as public
-from expansion.interfaces.public.access_panel import IAccessPanel
-from expansion.interfaces.public.commutator import CommutatorI
+from expansion.interfaces.rpc import AccessPanelI, CommutatorI
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -48,7 +47,7 @@ async def login(server_ip: str, login_port: int,
     login_udp_channel.attach_to_terminal(protobuf_channel)
 
     # Creating access panel instance and login in
-    access_panel = IAccessPanel()
+    access_panel = AccessPanelI()
     access_panel.attach_to_channel(protobuf_channel)
 
     player_port, error = await access_panel.login(

@@ -13,7 +13,7 @@ from server.configurator import Configuration, General, ApplicationMode
 
 from expansion import modules
 from expansion.types import ResourceType, ResourceItem
-from expansion.interfaces.public import ResourceContainerI
+from expansion.interfaces.rpc import ResourceContainerI
 
 
 class TestCase(BaseTestFixture):

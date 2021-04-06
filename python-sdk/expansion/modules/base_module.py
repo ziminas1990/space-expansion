@@ -4,7 +4,7 @@ import logging
 from enum import Enum
 import time
 
-import expansion.interfaces.public as remote
+import expansion.interfaces.rpc as rpc
 
 
 class ModuleType(Enum):
@@ -35,7 +35,7 @@ class BaseModule:
     @contextlib.asynccontextmanager
     async def _lock_channel(self) -> ContextManager[Any]:
         """Return an existing available channel or open a new one"""
-        channel: Optional[remote.SystemClockI] = None
+        channel: Optional[rpc.SystemClockI] = None
         try:
             try:
                 channel = self._channels.pop(0)

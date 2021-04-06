@@ -1,4 +1,4 @@
-
+from .access_panel import AccessPanelI
 from .commutator import CommutatorI, ModuleInfo
 from .ship import ShipI, State as ShipState
 from .engine import EngineI, Specification as EngineSpec

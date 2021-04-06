@@ -6,7 +6,7 @@ import server.configurator.world as world
 import server.configurator.modules.default_ships as default_ships
 from server.configurator import Configuration, General, ApplicationMode
 
-import expansion.interfaces.public as rpc
+import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
 import expansion.procedures as procedures
 

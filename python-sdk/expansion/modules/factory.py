@@ -1,8 +1,8 @@
 from typing import Callable, Awaitable, Any, Tuple, Optional, Type
 import logging
 
-from expansion.interfaces.public.commutator import Tunnel
-import expansion.interfaces.public as rpc
+from expansion.interfaces.rpc.commutator import Tunnel
+import expansion.interfaces.rpc as rpc
 from expansion.transport import Terminal
 
 from .base_module import BaseModule, ModuleType
