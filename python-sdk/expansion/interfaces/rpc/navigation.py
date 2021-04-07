@@ -3,7 +3,7 @@ from typing import Optional
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport import IOTerminal
-from expansion.types.geometry import Position, Vector
+from expansion.types import Position, Vector
 
 import expansion.utils as utils
 

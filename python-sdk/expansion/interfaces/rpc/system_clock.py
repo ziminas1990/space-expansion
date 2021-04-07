@@ -1,6 +1,7 @@
 from typing import Optional
 from enum import Enum
 import logging
+from abc import ABC, abstractmethod
 
 from expansion.transport import IOTerminal
 import expansion.protocol.Protocol_pb2 as public
@@ -9,8 +10,7 @@ from expansion.protocol.utils import get_message_field
 import expansion.utils as utils
 
 
-class SystemClockI(IOTerminal):
-
+class SystemClockI(ABC):
     class Status(Enum):
         SUCCESS = "success"
         GENERATOR_ATTACHED = "attached to generator"
@@ -34,10 +34,45 @@ class SystemClockI(IOTerminal):
                 ProtobufStatus.GENERATOR_DETACHED: ModuleStatus.GENERATOR_DETACHED
             }[status]
 
+    @abstractmethod
+    async def time(self, timeout: float = 0.1) -> Optional[int]:
+        """Return current server time"""
+        pass
+
+    @abstractmethod
+    async def wait_until(self, time: int, timeout: float) -> Optional[int]:
+        """Wait until server time reaches the specified 'time'
+
+        Return actual server's time"""
+        pass
+
+    @abstractmethod
+    async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
+        """Wait for the specified 'period' microseconds
+
+        Return actual server's time"""
+        pass
+
+    @abstractmethod
+    async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
+        """Return generator's tick in microseconds"""
+        pass
+
+    @abstractmethod
+    async def attach_to_generator(self, timeout: float = 0.5) -> "SystemClockI.Status":
+        """Send 'attach_generator' request and wait for status response"""
+        pass
+
+    @abstractmethod
+    async def detach_from_generator(self, timeout: float = 5) -> "SystemClockI.Status":
+        """Send 'detach_generator' request and wait for status response"""
+        pass
+
+class SystemClock(SystemClockI, IOTerminal):
     def __init__(self, name: Optional[str] = None, trace_mode: bool = False):
         super().__init__(name=name, trace_mode=trace_mode)
         if name is None:
-            name = utils.generate_name(SystemClockI)
+            name = utils.generate_name(SystemClock)
         self.logger = logging.getLogger(name)
 
     async def time(self, timeout: float = 0.1) -> Optional[int]:
@@ -96,7 +131,7 @@ class SystemClockI(IOTerminal):
             return None
         return get_message_field(response, "system_clock.generator_tick_us")
 
-    async def attach_to_generator(self, timeout: float = 0.5) -> Status:
+    async def attach_to_generator(self, timeout: float = 0.5) -> SystemClockI.Status:
         """Send 'attach_generator' request and wait for status response"""
         request = public.Message()
         request.system_clock.attach_generator = True
@@ -104,7 +139,7 @@ class SystemClockI(IOTerminal):
             return SystemClockI.Status.FAILED_TO_SEND_REQUEST
         return await self._receive_generator_status(timeout)
 
-    async def detach_from_generator(self, timeout: float = 5) -> Status:
+    async def detach_from_generator(self, timeout: float = 5) -> SystemClockI.Status:
         """Send 'detach_generator' request and wait for status response"""
         request = public.Message()
         request.system_clock.detach_generator = True
@@ -112,7 +147,7 @@ class SystemClockI(IOTerminal):
             return SystemClockI.Status.FAILED_TO_SEND_REQUEST
         return await self._receive_generator_status(timeout)
 
-    async def _receive_generator_status(self, timeout: float) -> Status:
+    async def _receive_generator_status(self, timeout: float) -> SystemClockI.Status:
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return SystemClockI.Status.RESPONSE_TIMEOUT

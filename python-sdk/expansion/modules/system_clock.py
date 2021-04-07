@@ -11,7 +11,7 @@ from .base_module import BaseModule
 ConnectionFactory = Callable[[], Awaitable[rpc.SystemClockI]]
 
 
-class SystemClock(BaseModule):
+class SystemClock(rpc.SystemClockI, BaseModule):
     def __init__(self,
                  connection_factory: ConnectionFactory,
                  name: Optional[str] = None):
@@ -23,7 +23,7 @@ class SystemClock(BaseModule):
         # A set of a callbacks, which wants to receive timestamps
         self.mutex: threading.Lock = threading.Lock()
 
-    async def sync(self) -> bool:
+    async def sync(self, timeout: float = 0.5) -> bool:
         """Sync local system clock with server"""
         async with self._lock_channel() as channel:
             if not channel:
@@ -34,22 +34,31 @@ class SystemClock(BaseModule):
                 return False
             self.server_time.update(ingame_time)
 
-    async def time(self) -> types.TimePoint:
+    async def time(self, predict: bool = True, timeout: float = 0.5) -> int:
         """Update the cached time and return it"""
-        await self.sync()
-        return self.server_time
+        await self.sync(timeout)
+        return self.server_time.now(predict=predict)
 
-    def cached_time(self) -> types.TimePoint:
+    def cached_time(self) -> int:
         """Return cached ingame time
 
         Note: this function doesn't request server time. It returns
         just a cached time. Cached time still can predict server's
         time but the longer at has not been synced, the bigger
         could be prediction error"""
+        return self.server_time.now()
+
+    def time_point(self) -> types.TimePoint:
+        """Return cached time point.
+
+        Cached timepoint can be used to predict current server time.
+        Moreover the returned object will be updated every time when
+        SystemClock receives actual timestamp from the server
+        """
         return self.server_time
 
     async def wait_until(self, time: int, timeout: float) \
-            -> Optional[types.TimePoint]:
+            -> Optional[int]:
         """Wait until server time reaches the specified 'time'
 
         On success update cached time and return cached time, otherwise
@@ -61,9 +70,9 @@ class SystemClock(BaseModule):
             time = await channel.wait_until(time=time, timeout=timeout)
             if time:
                 self.server_time.update(time)
-            return self.server_time
+            return self.server_time.now()
 
-    async def wait_for(self, period_us: int, timeout: float) -> Optional[types.TimePoint]:
+    async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
         async with self._lock_channel() as channel:
             if channel is None:
@@ -72,7 +81,7 @@ class SystemClock(BaseModule):
             time = await channel.wait_for(period_us=period_us, timeout=timeout)
             if time:
                 self.server_time.update(time)
-            return self.server_time
+            return self.server_time.now()
 
     async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
         """Return generator's tick long (in microseconds). Once the
@@ -85,13 +94,21 @@ class SystemClock(BaseModule):
                 self.tick_us = await channel.get_generator_tick_us(timeout=timeout)
         return self.tick_us
 
+    async def attach_to_generator(self, timeout: float = 0.5) -> "SystemClockI.Status":
+        """Send 'attach_generator' request and wait for status response"""
+        assert False, "Not supported on this level! Use 'subscribe()' instead!"
+
+    async def detach_from_generator(self, timeout: float = 5) -> "SystemClockI.Status":
+        """Send 'detach_generator' request and wait for status response"""
+        assert False, "Not supported on this level! Use 'Unsubscribe()' instead!"
+
     def subscribe(self, time_cb: Callable[[types.TimePoint], None]):
         with self.mutex:
             self.time_callback.add(time_cb)
             if len(self.time_callback) == 1:
                 asyncio.get_running_loop().create_task(self._time_watcher())
 
-    def unsubscribe(self, time_cb: Callable[[int], None]):
+    def unsubscribe(self, time_cb: Callable[[types.TimePoint], None]):
         with self.mutex:
             self.time_callback.remove(time_cb)
 

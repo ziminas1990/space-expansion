@@ -35,7 +35,7 @@ class BaseModule:
     @contextlib.asynccontextmanager
     async def _lock_channel(self) -> ContextManager[Any]:
         """Return an existing available channel or open a new one"""
-        channel: Optional[rpc.SystemClockI] = None
+        channel: Optional[Any] = None
         try:
             try:
                 channel = self._channels.pop(0)

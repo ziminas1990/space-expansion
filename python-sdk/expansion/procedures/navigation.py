@@ -2,7 +2,7 @@ from typing import Callable, Awaitable
 import math
 import asyncio
 
-from expansion.types.geometry import Position
+from expansion.types import Position
 from expansion.modules.ship import Ship, ShipState
 from expansion.modules.engine import Engine, EngineSpec
 import expansion.interfaces.rpc as rpc
@@ -60,8 +60,8 @@ async def move_to(ship: Ship,
         sleep_time = burn_time / 2
         if sleep_time > 2:
             sleep_time = 2
-        now = await system_clock.wait_for(int(sleep_time * 1000000), 2 * sleep_time)
-        if now is None:
+        now_us = await system_clock.wait_for(int(sleep_time * 1000000), 2 * sleep_time)
+        if now_us is None:
             # Something went wrong on server (may be lags?)
             return False
 

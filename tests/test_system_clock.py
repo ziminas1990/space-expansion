@@ -46,21 +46,22 @@ class TestSystemClock(BaseTestFixture):
         # Checking time_req function
         success, time = await self.system_clock_stop()
         self.assertTrue(success)
-        current_time = await system_clock.time()
-        self.assertEqual(time, current_time.now(predict=False))
+        current_time = await system_clock.time(predict=False)
+        self.assertEqual(time, current_time)
 
+        current_time_point = system_clock.time_point()
         success, time = await self.system_clock_proceed(1000, timeout_s=0.2)
         self.assertTrue(success)
         await system_clock.sync()
-        # sync() should update the current_time object
-        self.assertEqual(time, current_time.now(predict=False))
-
-        wait_delta_ms = 10000
+        # sync() should update the current_time_point object
+        self.assertEqual(time, current_time_point.now(predict=False))
+        self.assertEqual(time, await system_clock.time(predict=False))
 
         # Checking wait_until feature
+        wait_delta_ms = 10000
         task = asyncio.get_running_loop().create_task(
             system_clock.wait_until(
-                time=current_time.now(predict=False) + wait_delta_ms * 1000,
+                time=current_time_point.now(predict=False) + wait_delta_ms * 1000,
                 timeout=1))
 
         success, time = await self.system_clock_proceed(wait_delta_ms - 1, timeout_s=1)

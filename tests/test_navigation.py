@@ -9,14 +9,15 @@ from server.configurator import Configuration, General, ApplicationMode
 import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
 import expansion.procedures as procedures
+from expansion.types import TimePoint
 
 
-class FastForwardSystemClock(rpc.SystemClockI):
-    def __init__(self, system_clock: modules.SystemClock,
+class FastForwardAdapter(rpc.SystemClockI):
+    def __init__(self,
+                 system_clock: rpc.SystemClockI,
                  switch_to_real_time: Callable[[], Awaitable[bool]],
                  fast_forward: Callable[[int, int], Awaitable[None]],
                  fast_forward_multiplier: int):
-        super().__init__(name="FastForwardSystemClock")
         self.system_clock = system_clock
         self.switch_to_real_time = switch_to_real_time
         self.fast_forward = fast_forward
@@ -24,17 +25,33 @@ class FastForwardSystemClock(rpc.SystemClockI):
 
     async def wait_until(self, time: int, timeout: float) -> Optional[int]:
         """Wait until server time reaches the specified 'time'"""
-        await self.fast_forward(self.fast_forward_multiplier)
+        await self.fast_forward(self.fast_forward_multiplier, 1000)
         result = await self.system_clock.wait_until(time, timeout)
         await self.switch_to_real_time()
         return result
 
     async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
-        await self.fast_forward(self.fast_forward_multiplier)
+        await self.fast_forward(self.fast_forward_multiplier, 1000)
         result = await self.system_clock.wait_for(period_us, timeout)
         await self.switch_to_real_time()
         return result
+
+    async def time(self, timeout: float = 0.1) -> Optional[TimePoint]:
+        """Return current server time"""
+        return await self.system_clock.time(timeout)
+
+    async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
+        """Return generator's tick in microseconds"""
+        return await self.system_clock.get_generator_tick_us(timeout)
+
+    async def attach_to_generator(self, timeout: float = 0.5) -> rpc.SystemClockI.Status:
+        """Send 'attach_generator' request and wait for status response"""
+        return await self.system_clock.attach_to_generator(timeout)
+
+    async def detach_from_generator(self, timeout: float = 5) -> rpc.SystemClockI.Status:
+        """Send 'detach_generator' request and wait for status response"""
+        return await self.system_clock.detach_from_generator(timeout)
 
 
 class TestNavigation(BaseTestFixture):
@@ -79,7 +96,7 @@ class TestNavigation(BaseTestFixture):
 
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
-        fast_forward_clock = FastForwardSystemClock(
+        fast_forward_clock = FastForwardAdapter(
             system_clock=system_clock,
             switch_to_real_time=self.system_clock_play,
             fast_forward=self.system_clock_fast_forward,
@@ -105,4 +122,4 @@ class TestNavigation(BaseTestFixture):
         scout_1_position = await scout_1.get_position()
         scout_2_position = await scout_2.get_position()
         delta = scout_1_position.distance_to(scout_2_position)
-        self.assertTrue(delta < 5)
+        self.assertLess(delta, 5)

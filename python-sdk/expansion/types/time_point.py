@@ -4,7 +4,7 @@ import time
 class TimePoint:
     """TimePoint helps to follow current server time
 
-    TimePoint sotres two time: a 'server_time' and a 'local_time', that
+    TimePoint sotres two timestamps: a 'server_time' and a 'local_time', that
     correspond to the stored 'server_time'. So it can predict server's time
     using a simple approach:
     predicted_server_time = server_tim + (now() - local_time)
@@ -18,6 +18,7 @@ class TimePoint:
         self._local_time: float = 0
         self._last_monotonic: int = 0
         self.update(ingame_time)
+        self.__call__ = self.now()
 
     def update(self, server_time: int):
         self._server_time: int = server_time
@@ -46,4 +47,4 @@ class TimePoint:
         now = self.now(predict)
         if now > self._last_monotonic:
             self._last_monotonic = now
-        return now
+        return self._last_monotonic

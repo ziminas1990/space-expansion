@@ -74,7 +74,7 @@ def module_factory(module_type: str,
         return SystemClock(
             connection_factory=_make_connection_factory(
                 tunnel_factory=tunnel_factory,
-                terminal_type=rpc.SystemClockI
+                terminal_type=rpc.SystemClock
             ),
             name=module_name), None
     else:
