@@ -16,10 +16,11 @@ class Position(NamedTuple):
         return Vector(x=other.x - self.x, y=other.y - self.y)
 
     def at(self, now_us: Optional[int] = None) -> 'Position':
-        if self.timestamp is None or now_us is None:
+        if now_us is None:
             return Position(x=self.x,
                             y=self.y,
                             velocity=Vector(self.velocity.x, self.velocity.y))
+        assert self.timestamp is not None
         dt_sec: float = (now_us - self.timestamp) / 1000000
         return Position(x=self.x + self.velocity.x * dt_sec,
                         y=self.y + self.velocity.y * dt_sec,

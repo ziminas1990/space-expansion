@@ -23,6 +23,8 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         # A set of a callbacks, which wants to receive timestamps
         self.mutex: threading.Lock = threading.Lock()
 
+        self.cached_time: Callable[[], int] = self.server_time.now
+
     async def sync(self, timeout: float = 0.5) -> bool:
         """Sync local system clock with server"""
         async with self._lock_channel() as channel:
@@ -38,15 +40,6 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         """Update the cached time and return it"""
         await self.sync(timeout)
         return self.server_time.now(predict=predict)
-
-    def cached_time(self) -> int:
-        """Return cached ingame time
-
-        Note: this function doesn't request server time. It returns
-        just a cached time. Cached time still can predict server's
-        time but the longer at has not been synced, the bigger
-        could be prediction error"""
-        return self.server_time.now()
 
     def time_point(self) -> types.TimePoint:
         """Return cached time point.
