@@ -22,6 +22,7 @@ public:
   ~Ship() override;
 
   bool loadState(YAML::Node const& source) override;
+  void proceed(uint32_t nIntervalUs);
 
   bool installModule(modules::BaseModulePtr pModule);
 
@@ -40,9 +41,28 @@ protected:
   void handleNavigationMessage(
       uint32_t nSessionId, spex::INavigation const& message) override;
 
+  void handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs);
+
+private:
+  enum StateMask {
+    eWeight = 0x0001,
+    ePosition = 0x0002,
+    eAll = 0xFFFF,
+  };
+
+  void sendState(uint32_t nSessionId, int eStateMask = StateMask::eAll) const;
+  void sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const;
+
 private:
   modules::CommutatorPtr m_pCommutator;
   std::map<std::string, modules::BaseModulePtr> m_Modules;
+
+  struct MonitoringSession {
+    uint32_t m_periodUs     = 0;
+    uint64_t m_lastUpdateUs = 0;
+  };
+  std::map<uint32_t, MonitoringSession> m_monitors;
+    // A list of session that are used for ship's monitoring
 };
 
 using ShipPtr     = std::shared_ptr<Ship>;

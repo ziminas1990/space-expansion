@@ -27,6 +27,4 @@ class INavigation(IOTerminal):
         if not position:
             return None
         assert response.timestamp is not None
-        return Position(x=position.x, y=position.y,
-                        velocity=Vector(x=position.vx, y=position.vy),
-                        timestamp=response.timestamp)
+        return Position.build(position, timestamp=response.timestamp)

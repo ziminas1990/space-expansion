@@ -142,9 +142,11 @@ void FunctionalTestFixture::skipTime(uint32_t nTimeMs, uint32_t nTickUs)
 
 void FunctionalTestFixture::proceed()
 {
+  size_t cycles = 0;
   do {
     m_application.nextCycle();
-  } while(m_IoService.poll());
+  } while(++cycles < 100000 && m_IoService.poll());
+  assert(cycles < 100000 && "It looks like message storm!");
 }
 
 } // namespace autotests

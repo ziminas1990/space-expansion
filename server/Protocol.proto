@@ -7,6 +7,10 @@ package spex;
 //=============================================================================
 // Common types
 
+message OptionalDouble {
+  double value = 1;
+}
+
 message NamesList {
   uint32          left  = 1;
   repeated string names = 2;
@@ -102,13 +106,16 @@ message IEngine
 
 message IShip {
   message State {
-    double weight = 1;
+    OptionalDouble weight   = 1;
+    Position       position = 2;
   }
 
   oneof choice {
-    bool state_req = 1;
+    bool   state_req = 1;
+    uint32 monitor   = 2;
 
-    State state = 21;
+    State state        = 21;
+    uint32 monitor_ack = 22;
   }
 }
 

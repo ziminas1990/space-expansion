@@ -132,7 +132,7 @@ uint64_t SystemManager::getIngameTime()
 #else // #ifndef AUTOTESTS_MODE
 void SystemManager::run(bool lColdStart)
 {
-  assert(g_clock == nullptr && "Another system manage is running?");
+  assert(g_clock == nullptr && "Another system manager is running?");
   g_clock = &m_clock;
   startConveyor();
   m_clock.start(lColdStart);

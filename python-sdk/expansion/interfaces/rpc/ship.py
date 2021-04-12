@@ -1,15 +1,30 @@
-from typing import Any, Optional, NamedTuple
+from typing import Any, Optional, NamedTuple, Callable
 import logging
 
 from .commutator import CommutatorI
 from .navigation import INavigation
 from expansion.transport import IOTerminal
 from expansion.protocol.utils import get_message_field
-import expansion.protocol.Protocol_pb2 as public
+import expansion.protocol.Protocol_pb2 as api
+from expansion import types
 
 
 class State(NamedTuple):
-    weight: float
+    timestamp: Optional[int]
+    weight: Optional[float]
+    position: Optional[types.Position]
+
+    @staticmethod
+    def build(timestamp: Optional[int], state: api.IShip.State):
+        position: Optional[types.Position] = None
+        if state.position:
+            position = types.Position.build(state.position, timestamp)
+
+        return State(
+            timestamp=timestamp,
+            weight=state.weight.value if state.weight else None,
+            position=position
+        )
 
 
 class ShipI(CommutatorI, INavigation, IOTerminal):
@@ -29,16 +44,31 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         # Just for better readability
         return self
 
+    async def wait_state(self) -> Optional[State]:
+        """Await a State message with actual ship's state"""
+        message, timestamp = await self.wait_message(timeout=0.5)
+        if not message:
+            return None
+        state = get_message_field(message, "ship.state")
+        return State.build(timestamp, state) if state else None
+
     async def get_state(self) -> Optional[State]:
         """Return current ship's state"""
-        request = public.Message()
+        request = api.Message()
         request.ship.state_req = True
         if not self.send(message=request):
             return None
-        response, _ = await self.wait_message(timeout=0.5)
-        if not response:
+        return await self.wait_state()
+
+    async def monitor(self, duration_ms: int) -> Optional[int]:
+        """Start ship's state monitoring. Return actual monitoring duration.
+        After this call you may use 'wait_state()' to receive updates
+        """
+        request = msg.Message()
+        request.ship.monitor = True
+        if not self.send(message=request):
             return None
-        spec = get_message_field(response, "ship.state")
-        if not spec:
-            return None
-        return State(weight=spec.weight)
+        ack, _ = self.wait_exact("ship.monitor_ack")
+        return ack
+
+

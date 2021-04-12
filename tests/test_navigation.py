@@ -113,7 +113,7 @@ class TestNavigation(BaseTestFixture):
         success = await procedures.move_to(
             ship=scout_1,
             engine=engine,
-            position=scout_2.get_position,
+            get_target=scout_2.get_position,
             system_clock=fast_forward_clock,
             max_distance_error=5,
             max_velocity_error=1)

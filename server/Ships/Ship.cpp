@@ -3,6 +3,8 @@
 #include <yaml-cpp/yaml.h>
 #include <Utils/YamlReader.h>
 
+#include <SystemManager.h>
+
 DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 
 namespace ships
@@ -42,6 +44,22 @@ bool Ship::loadState(YAML::Node const& source)
     }
   }
   return true;
+}
+
+void Ship::proceed(uint32_t)
+{
+  if (m_monitors.empty()) {
+    switchToIdleState();
+  }
+
+  for (auto& [nSessionId, monitor]: m_monitors) {
+    uint64_t dtUs = SystemManager::getIngameTime() - monitor.m_lastUpdateUs;
+    if (dtUs < monitor.m_periodUs) {
+      continue;
+    }
+    monitor.m_lastUpdateUs += (dtUs - dtUs % monitor.m_periodUs);
+    sendState(nSessionId);
+  }
 }
 
 bool Ship::installModule(modules::BaseModulePtr pModule)
@@ -88,10 +106,11 @@ void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
 {
   switch (message.choice_case()) {
     case spex::IShip::kStateReq: {
-      spex::IShip response;
-      spex::IShip::State* pBody = response.mutable_state();
-      pBody->set_weight(getWeight());
-      sendToClient(nSessionId, response);
+      sendState(nSessionId);
+      return;
+    }
+    case spex::IShip::kMonitor: {
+      handleMonitorRequest(nSessionId, message.monitor());
       return;
     }
     default: {
@@ -117,6 +136,61 @@ void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const&
       return;
     }
   }
+}
+
+void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
+{
+  if (m_monitors.size() > 8) {
+    sendMonitorAck(nSessionId, 0);
+    return;
+  }
+
+  if (nPeriodMs && nPeriodMs < 100) {
+    nPeriodMs = 100;
+  } else if (nPeriodMs > 60000) {
+    nPeriodMs = 60000;
+  }
+  sendMonitorAck(nSessionId, nPeriodMs);
+
+  if (nPeriodMs) {
+    MonitoringSession& session = m_monitors[nSessionId];
+    session.m_periodUs         = nPeriodMs * 1000;
+    session.m_lastUpdateUs     = SystemManager::getIngameTime();
+    sendState(nSessionId);
+    switchToActiveState();
+  } else {
+    m_monitors.erase(nSessionId);
+    if (m_monitors.empty()) {
+      switchToIdleState();
+    }
+  }
+}
+
+void Ship::sendState(uint32_t nSessionId, int eStateMask) const
+{
+  spex::IShip message;
+  spex::IShip::State* pBody = message.mutable_state();
+
+  if (eStateMask & StateMask::eWeight) {
+    pBody->mutable_weight()->set_value(getWeight());
+  }
+
+  if (eStateMask & StateMask::ePosition) {
+    spex::Position* pPosition = pBody->mutable_position();
+    pPosition->set_x(getPosition().x);
+    pPosition->set_y(getPosition().y);
+    pPosition->set_vx(getVelocity().getX());
+    pPosition->set_vy(getVelocity().getY());
+  }
+
+  sendToClient(nSessionId, message);
+}
+
+void Ship::sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const
+{
+  spex::IShip message;
+  message.set_monitor_ack(nPeriodMs);
+  sendToClient(nSessionId, message);
 }
 
 } // namespace modules

@@ -80,7 +80,7 @@ class Ship(Commutator, BaseModule):
         """Return current ship's state"""
         if self._state is not None:
             dt_ms = time.monotonic() * 1000 - self._state[1]
-            if dt_ms >= cache_expiring_ms:
+            if dt_ms <= cache_expiring_ms:
                 return self._state[0]
 
         async with self._lock_channel() as channel:

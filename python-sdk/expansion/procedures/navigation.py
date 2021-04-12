@@ -10,27 +10,27 @@ import expansion.interfaces.rpc as rpc
 
 async def move_to(ship: Ship,
                   engine: Engine,
-                  position: Callable[[], Awaitable[Position]],
+                  get_target: Callable[[], Awaitable[Position]],
                   system_clock: rpc.SystemClockI,
                   max_distance_error: float = 5,
                   max_velocity_error: float = 0.5,
                   max_thrust_k_limit: float = 1) -> bool:
-    """Move the specified 'ship' to the specified 'position' using the
-    specified 'engine'. Ths specified 'system_clock' will be used to track the
-    server's time. Procedure will complete when a distance between ship
-    and 'position' is not more than the specified 'max_distance_error' meters
-    AND the ship's speed is not more than the specified 'max_velocity_error'.
+    """Move the specified 'ship' to the target returned by the specified
+    'get_target' callback using the specified 'engine'. Ths specified 'system_clock'
+    will be used to track the server's time. Procedure will complete when a
+    distance between ship and 'position' is not more than the specified
+    'max_distance_error' meters AND the ship's speed is not more than the specified
+    'max_velocity_error'.
     """
-    ship_position = await ship.get_position(cache_expiring_ms=0)
     ship_state: ShipState = await ship.get_state()
-    target = await position()
+    target = await get_target()
     engine_spec: EngineSpec = await engine.get_specification()
-    if not ship_position or not ship_state or not target or not engine_spec:
+    if not ship_state or not target or not engine_spec:
         return False
     engine_max_thrust = engine_spec.max_thrust * max_thrust_k_limit
 
-    distance = ship_position.distance_to(target)
-    relative_v = ship_position.velocity - target.velocity
+    distance = ship_state.position.distance_to(target)
+    relative_v = ship_state.position.velocity - target.velocity
 
     while distance > max_distance_error or relative_v.abs() > max_velocity_error:
         max_acceleration = engine_max_thrust / ship_state.weight
@@ -38,7 +38,7 @@ async def move_to(ship: Ship,
         # Calculating the best relative velocity vector for this moment
         # Best velocity has such value, that if ship starts slow down right now, it will stop
         # at the required position
-        best_velocity = ship_position.vector_to(target)
+        best_velocity = ship_state.position.vector_to(target)
         best_velocity.set_length(math.sqrt(2 * distance * max_acceleration))
 
         # dv - how velocity should be changed to become perfect
@@ -66,12 +66,13 @@ async def move_to(ship: Ship,
             return False
 
         # Getting actual data:
-        ship_position, target = \
-            await asyncio.gather(ship.get_position(cache_expiring_ms=0),
-                                 position())
-        if not ship_position or not target:
+        ship_state, target = \
+            await asyncio.gather(ship.get_state(cache_expiring_ms=0),
+                                 get_target())
+        if not ship_state or not target:
             return False
-        distance = ship_position.distance_to(target)
-        relative_v = ship_position.velocity - target.velocity
+        distance = ship_state.position.distance_to(target)
+        print(distance)
+        relative_v = ship_state.position.velocity - target.velocity
 
     return True

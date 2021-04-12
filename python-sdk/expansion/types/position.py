@@ -3,11 +3,19 @@ import time
 import math
 from expansion.types import Vector
 
+import expansion.protocol.Protocol_pb2 as api
+
 class Position(NamedTuple):
     x: float
     y: float
     velocity: Vector
     timestamp: Optional[int] = None
+
+    @staticmethod
+    def build(position: api.Position, timestamp: Optional[int] = None) -> 'Position':
+        return Position(x=position.x, y=position.y,
+                        velocity=Vector(x=position.vx, y=position.vy),
+                        timestamp=timestamp)
 
     def distance_to(self, other: 'Position') -> float:
         return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)

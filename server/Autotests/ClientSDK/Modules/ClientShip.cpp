@@ -30,21 +30,48 @@ bool Ship::getPosition(geometry::Point &position)
   return getPosition(position, velocity);
 }
 
-bool Ship::getState(ShipState& state)
+bool Ship::monitor(uint32_t nPeriodMs, uint32_t& nMonitorAck)
 {
   spex::Message request;
-  request.mutable_ship()->set_state_req(true);
+  request.mutable_ship()->set_monitor(nPeriodMs);
   if (!send(request))
     return false;
 
   spex::IShip response;
   if (!wait(response))
     return false;
+  if (response.choice_case() != spex::IShip::kMonitorAck)
+    return false;
+
+  nMonitorAck = response.monitor_ack();
+  return true;
+}
+
+bool Ship::waitState(ShipState &state, uint16_t nTimeout)
+{
+  spex::IShip response;
+  if (!wait(response, nTimeout))
+    return false;
   if (response.choice_case() != spex::IShip::kState)
     return false;
 
-  state.nWeight = response.state().weight();
+  if (response.state().has_weight()) {
+    state.nWeight = response.state().weight().value();
+  }
+  if (response.state().has_position()) {
+    const spex::Position& position = response.state().position();
+    state.position.x = position.x();
+    state.position.y = position.y();
+    state.velocity.setPosition(position.vx(), position.vy());
+  }
   return true;
+}
+
+bool Ship::getState(ShipState& state)
+{
+  spex::Message request;
+  request.mutable_ship()->set_state_req(true);
+  return send(request) && waitState(state);
 }
 
 }}  // namespace autotests::client

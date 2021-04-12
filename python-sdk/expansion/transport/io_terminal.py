@@ -1,9 +1,10 @@
 from typing import Any, Optional, Tuple
 import asyncio
+import time
 
-from .channel import Channel
-from .terminal import Terminal
-
+from expansion.protocol import get_message_field
+from expansion.transport.channel import Channel
+from expansion.transport.terminal import Terminal
 
 class IOTerminal(Channel, Terminal):
     """IOTerminal may be attached to the channel (as a terminal inheritor)
@@ -34,6 +35,21 @@ class IOTerminal(Channel, Terminal):
             return await asyncio.wait_for(self.queue.get(), timeout=timeout)
         except asyncio.TimeoutError:
             return None, None
+
+    async def wait_exact(self, message: str, timeout: float = 1.0) \
+            -> Tuple[Optional[Any], Optional[int]]:
+        """Await for the specified 'message' but not more than 'timeout' seconds.
+        Ignore all other received messages. Return expected message and timestamp or
+        None"""
+        while timeout > 0:
+            start_at = time.monotonic()
+            received_msg, timestemp = await self.wait_message(timeout)
+            expected_msg = get_message_field(received_msg, message)
+            if expected_msg:
+                return expected_msg, timestemp
+            # Got unexpected message. Just ignoring it
+            timeout -= time.monotonic() - start_at
+        return None, None
 
     def wrap_channel(self, down_level: Channel):
         self.attach_channel(down_level)
