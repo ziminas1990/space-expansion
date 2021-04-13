@@ -10,21 +10,25 @@ from expansion import types
 
 
 class State(NamedTuple):
-    timestamp: Optional[int]
+    timestamp: Optional[types.TimePoint]
     weight: Optional[float]
     position: Optional[types.Position]
 
     @staticmethod
-    def build(timestamp: Optional[int], state: api.IShip.State):
+    def build(state: api.IShip.State, timestamp: Optional[int]):
         position: Optional[types.Position] = None
         if state.position:
             position = types.Position.build(state.position, timestamp)
 
         return State(
-            timestamp=timestamp,
+            timestamp=types.TimePoint(timestamp),
             weight=state.weight.value if state.weight else None,
             position=position
         )
+
+    def expired(self, timeout_ms: int = 100) -> bool:
+        assert self.timestamp is not None
+        return self.timestamp.dt_sec() * 1000 > timeout_ms
 
 
 class ShipI(CommutatorI, INavigation, IOTerminal):
@@ -50,7 +54,7 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         if not message:
             return None
         state = get_message_field(message, "ship.state")
-        return State.build(timestamp, state) if state else None
+        return State.build(state, timestamp) if state else None
 
     async def get_state(self) -> Optional[State]:
         """Return current ship's state"""
@@ -70,5 +74,3 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
             return None
         ack, _ = self.wait_exact("ship.monitor_ack")
         return ack
-
-

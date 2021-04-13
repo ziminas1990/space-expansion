@@ -14,11 +14,11 @@ class TimePoint:
     """
 
     def __init__(self, ingame_time: int):
+        assert ingame_time is not None
         self._server_time: int = 0
         self._local_time: float = 0
         self._last_monotonic: int = 0
         self.update(ingame_time)
-        self.__call__ = self.now()
 
     def update(self, server_time: int):
         self._server_time: int = server_time
@@ -48,3 +48,7 @@ class TimePoint:
         if now > self._last_monotonic:
             self._last_monotonic = now
         return self._last_monotonic
+
+    def dt_sec(self) -> float:
+        """Return seconds since the timepoint has been created/updated"""
+        return time.monotonic() - self._local_time

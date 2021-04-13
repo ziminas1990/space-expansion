@@ -86,6 +86,9 @@ class CommutatorI(IOTerminal):
 
     # Override from IOTerminal->Terminal
     def on_receive(self, message: public.Message, timestamp: Optional[int]):
+        if message.timestamp:
+            timestamp = message.timestamp
+
         if message.WhichOneof('choice') == 'encapsulated':
             try:
                 tunnel = self.tunnels[message.tunnelId]
@@ -98,7 +101,7 @@ class CommutatorI(IOTerminal):
             if tunnel:
                 # Encapsulated timestamp has a higher priority then a timestamp
                 # passed to this function
-                tunnel.on_receive(message, message.timestamp or timestamp)
+                tunnel.on_receive(message, timestamp)
             else:
                 self._logger.warning(
                     f"Ignore message for invalid tunnel"

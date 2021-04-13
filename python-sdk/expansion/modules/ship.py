@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Callable, Awaitable
 import time
 
 from expansion.interfaces.rpc import ShipI, ShipState
-from expansion.types import Position, CachedPosition
+from expansion.types import Position
 from .base_module import BaseModule
 from .commutator import Commutator, ModulesFactory
 
@@ -29,8 +29,8 @@ class Ship(Commutator, BaseModule):
         self.type = ship_type
         self.name = ship_name
 
-        self._position: Optional[CachedPosition] = None
-        self._state: Optional[Tuple[ShipState, int]] = None
+        self.position: Optional[Position] = None
+        self.state: Optional[ShipState] = None
 
     async def init(self):
         await super().init()
@@ -41,13 +41,13 @@ class Ship(Commutator, BaseModule):
             assert isinstance(channel, ShipI)  # for type hinting
             position = await channel.navigation().get_position(timeout=timeout)
             if position is not None:
-                self._position = CachedPosition(position)
+                self.position = position
                 return True
             else:
                 return False
 
     async def get_position(self,
-                           now_us: Optional[int] = None,
+                           at_us: Optional[int] = None,
                            cache_expiring_ms: int = 10,
                            timeout: float = 0.5) -> Optional[Position]:
         """Get the current ship's position. If the position was cached more than the
@@ -57,34 +57,22 @@ class Ship(Commutator, BaseModule):
         sent to the server and this call will block the thread until the response is
         received or the specified 'timeout' occurs.
         """
-        if self._position is None:
+        if self.position is None:
             if not await self.sync(timeout=timeout):
                 return None
-            return self._position.predict(now_us)
+            return self.position.predict(at_us)
 
-        if self._position.expired(cache_expiring_ms):
+        if self.position.expired(cache_expiring_ms):
             if not await self.sync():
                 return None
-
-        return self._position.predict(now_us=now_us)
-
-    def get_cached_position(self, at_us: Optional[int] = None) -> Optional[Position]:
-        """Return a cached position
-
-        Return None if position has not been cached.
-        Return a predicted position if 'at_us' is specified (as
-        server's time in microseconds)"""
-        return self._position.data.at(at_us) if self._position else None
+        return self.position.predict(at_us)
 
     async def get_state(self, cache_expiring_ms: int = 50) -> Optional[ShipState]:
         """Return current ship's state"""
-        if self._state is not None:
-            dt_ms = time.monotonic() * 1000 - self._state[1]
-            if dt_ms <= cache_expiring_ms:
-                return self._state[0]
+        if self.state and not self.state.expired(cache_expiring_ms):
+            return self.state
 
         async with self._lock_channel() as channel:
             assert isinstance(channel, ShipI)  # for type hinting
-            state = await channel.get_state()
-            self._state = (state, time.monotonic() * 1000)
-            return state
+            self.state = await channel.get_state()
+            return self.state
