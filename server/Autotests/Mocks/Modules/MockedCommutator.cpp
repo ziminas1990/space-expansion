@@ -20,16 +20,16 @@ bool MockedCommutator::waitOpenTunnel(uint32_t nSessionId, uint32_t nSlotId)
 
 bool MockedCommutator::sendOpenTunnelSuccess(uint32_t nSessionId, uint32_t nTunnelId)
 {
-  spex::ICommutator message;
-  message.set_open_tunnel_report(nTunnelId);
+  spex::Message message;
+  message.mutable_commutator()->set_open_tunnel_report(nTunnelId);
   return sendToClient(nSessionId, message);
 }
 
 bool MockedCommutator::sendOpenTunnelFailed(uint32_t nSessionId,
                                             spex::ICommutator::Status eReason)
 {
-  spex::ICommutator message;
-  message.set_open_tunnel_failed(eReason);
+  spex::Message message;
+  message.mutable_commutator()->set_open_tunnel_failed(eReason);
   return sendToClient(nSessionId, message);
 }
 

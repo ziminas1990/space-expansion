@@ -73,32 +73,4 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
   }
 }
 
-bool BaseModule::sendToClient(uint32_t nSessionId, spex::ICommutator const& message) const
-{
-  spex::Message pdu;
-  pdu.mutable_commutator()->CopyFrom(message);
-  return BufferedProtobufTerminal::send(nSessionId, pdu);
-}
-
-bool BaseModule::sendToClient(uint32_t nSessionId, spex::IShip const& message) const
-{
-  spex::Message pdu;
-  pdu.mutable_ship()->CopyFrom(message);
-  return BufferedProtobufTerminal::send(nSessionId, pdu);
-}
-
-bool BaseModule::sendToClient(uint32_t nSessionId, spex::INavigation const& message) const
-{
-  spex::Message pdu;
-  pdu.mutable_navigation()->CopyFrom(message);
-  return BufferedProtobufTerminal::send(nSessionId, pdu);
-}
-
-bool BaseModule::sendToClient(uint32_t nSessionId, spex::IEngine const& message) const
-{
-  spex::Message pdu;
-  pdu.mutable_engine()->CopyFrom(message);
-  return BufferedProtobufTerminal::send(nSessionId, pdu);
-}
-
 } // namespace modules

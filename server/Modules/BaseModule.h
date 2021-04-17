@@ -101,11 +101,6 @@ protected:
     return network::BufferedPlayerTerminal::send(nSessionId, message);
   }
 
-  bool sendToClient(uint32_t nSessionId, spex::ICommutator const& message) const;
-  bool sendToClient(uint32_t nSessionId, spex::IShip const& message) const;
-  bool sendToClient(uint32_t nSessionId, spex::INavigation const& message) const;
-  bool sendToClient(uint32_t nSessionId, spex::IEngine const& message) const;
-
   void switchToIdleState() {
     if (m_eState == State::eIdle)
       return;

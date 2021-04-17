@@ -123,13 +123,13 @@ void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const&
 {
   switch (message.choice_case()) {
     case spex::INavigation::kPositionReq: {
-      spex::INavigation navigation;
-      spex::Position* pBody = navigation.mutable_position();
+      spex::Message response;
+      spex::Position* pBody = response.mutable_navigation()->mutable_position();
       pBody->set_x(getPosition().x);
       pBody->set_y(getPosition().y);
       pBody->set_vx(getVelocity().getX());
       pBody->set_vy(getVelocity().getY());
-      sendToClient(nSessionId, navigation);
+      sendToClient(nSessionId, response);
       return;
     }
     default: {
@@ -168,8 +168,8 @@ void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
 
 void Ship::sendState(uint32_t nSessionId, int eStateMask) const
 {
-  spex::IShip message;
-  spex::IShip::State* pBody = message.mutable_state();
+  spex::Message message;
+  spex::IShip::State* pBody = message.mutable_ship()->mutable_state();
 
   if (eStateMask & StateMask::eWeight) {
     pBody->mutable_weight()->set_value(getWeight());
@@ -188,8 +188,8 @@ void Ship::sendState(uint32_t nSessionId, int eStateMask) const
 
 void Ship::sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const
 {
-  spex::IShip message;
-  message.set_monitor_ack(nPeriodMs);
+  spex::Message message;
+  message.mutable_ship()->set_monitor_ack(nPeriodMs);
   sendToClient(nSessionId, message);
 }
 

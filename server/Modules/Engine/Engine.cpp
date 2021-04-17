@@ -62,8 +62,9 @@ void Engine::onInstalled(ships::Ship* pPlatform)
 
 void Engine::getSpecification(uint32_t nSessionId) const
 {
-  spex::IEngine response;
-  response.mutable_specification()->set_max_thrust(m_maxThrust);
+  spex::Message response;
+  spex::IEngine* pBody = response.mutable_engine();
+  pBody->mutable_specification()->set_max_thrust(m_maxThrust);
   sendToClient(nSessionId, response);
 }
 
@@ -89,8 +90,8 @@ void Engine::setThrust(const spex::IEngine::ChangeThrust &req)
 
 void Engine::getThrust(uint32_t nSessionId) const
 {
-  spex::IEngine response;
-  spex::IEngine::CurrentThrust *pBody = response.mutable_thrust();
+  spex::Message response;
+  spex::IEngine::CurrentThrust *pBody = response.mutable_engine()->mutable_thrust();
 
   geometry::Vector const& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
