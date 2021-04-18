@@ -54,6 +54,29 @@ message Position {
 }
 
 //=============================================================================
+// Common interfaces
+
+
+message IMonitor {
+
+  enum Status {
+    SUCCESS        = 0;
+    LIMIT_EXCEEDED = 1;
+    UNEXPECTED_MSG = 2;
+    INVALID_TOKEN  = 3;
+  }
+
+  oneof choice {
+    bool   subscribe   = 1;
+    uint32 unsubscribe = 2;
+
+    uint32 token  = 21;
+    Status status = 22;
+  }
+
+}
+
+//=============================================================================
 // Modules interfaces
 
 message IAccessPanel {
@@ -443,5 +466,6 @@ message Message {
     IShipyard          shipyard           = 23;
     IGame              game               = 24;
     ISystemClock       system_clock       = 25;
+    IMonitor           monitor            = 26;
   }
 }

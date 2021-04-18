@@ -5,6 +5,7 @@
 #include <Network/BufferedProtobufTerminal.h>
 
 #include <Utils/YamlForwardDeclarations.h>
+#include <Utils/RandomSequence.h>
 
 namespace ships {
 class Ship;
@@ -100,6 +101,7 @@ protected:
   inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {
     return network::BufferedPlayerTerminal::send(nSessionId, message);
   }
+  void sendUpdate(spex::Message const& message) const;
 
   void switchToIdleState() {
     if (m_eState == State::eIdle)
@@ -115,12 +117,26 @@ protected:
   }
 
 private:
-  std::string          m_sModuleType;
-  std::string          m_sModuleName;
-  world::PlayerWeakPtr m_pOwner;
-  Status               m_eStatus;
-  State                m_eState;
-  ships::Ship*         m_pPlatform = nullptr;
+  void handleMonitorMessage(uint32_t nSessionId, spex::IMonitor const& monitor);
+
+  uint32_t generateToken() const;
+
+private:
+  struct Subscription {
+    uint32_t m_nSessionId;
+    uint32_t m_nToken;
+  };
+
+private:
+  std::string               m_sModuleType;
+  std::string               m_sModuleName;
+  world::PlayerWeakPtr      m_pOwner;
+  Status                    m_eStatus;
+  State                     m_eState;
+  ships::Ship*              m_pPlatform = nullptr;
+  std::vector<Subscription> m_subscribers;
+
+  static utils::RandomSequence m_tokenGenerator;
 };
 
 using BaseModulePtr     = std::shared_ptr<BaseModule>;

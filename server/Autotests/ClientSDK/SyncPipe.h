@@ -62,6 +62,12 @@ public:
     return m_pDownlevel && m_pDownlevel->send(message);
   }
 
+  void dropAll()
+  {
+    while (!m_receivedMessages.empty()) {
+      m_receivedMessages.pop();
+    }
+  }
 
 private:
   IChannelPtr<FrameType> m_pDownlevel;
@@ -91,6 +97,7 @@ public:
   bool wait(spex::IBlueprintsLibrary& out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IShipyard& out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IGame& out, uint16_t nTimeoutMs = 100);
+  bool wait(spex::IMonitor& out, uint16_t nTimeoutMs = 100);
 
   // overrides from SyncPipe<spex::Message>
   void onMessageReceived(spex::Message&& message) override;

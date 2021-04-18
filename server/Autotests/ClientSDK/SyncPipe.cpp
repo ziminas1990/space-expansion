@@ -121,6 +121,17 @@ bool PlayerPipe::wait(spex::IGame& out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool PlayerPipe::wait(spex::IMonitor &out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kMonitor, message, nTimeoutMs)) {
+    std::cerr << "Unexpected message: " << message.DebugString();
+    return false;
+  }
+  out = std::move(message.monitor());
+  return true;
+}
+
 void PlayerPipe::onMessageReceived(spex::Message &&message)
 {
   switch(message.choice_case()) {

@@ -14,7 +14,9 @@ Ship::Ship(std::string const& sShipType, std::string sName, world::PlayerWeakPtr
            double weight, double radius)
   : BaseModule(std::string("Ship/") + sShipType, std::move(sName), std::move(pOwner)),
     newton::PhysicalObject(weight, radius),
-    m_pCommutator(std::make_shared<modules::Commutator>())
+    m_pCommutator(std::make_shared<modules::Commutator>()),
+    m_nMonitoringPeriodUs(0),
+    m_nLastUpdateUs(0)
 {
   GlobalContainer<Ship>::registerSelf(this);
 }
@@ -48,17 +50,15 @@ bool Ship::loadState(YAML::Node const& source)
 
 void Ship::proceed(uint32_t)
 {
-  if (m_monitors.empty()) {
+  if (0 == m_nMonitoringPeriodUs) {
     switchToIdleState();
+    return;
   }
 
-  for (auto& [nSessionId, monitor]: m_monitors) {
-    uint64_t dtUs = SystemManager::getIngameTime() - monitor.m_lastUpdateUs;
-    if (dtUs < monitor.m_periodUs) {
-      continue;
-    }
-    monitor.m_lastUpdateUs += (dtUs - dtUs % monitor.m_periodUs);
-    sendState(nSessionId);
+  uint64_t dtUs = SystemManager::getIngameTime() - m_nLastUpdateUs;
+  if (dtUs >= m_nMonitoringPeriodUs) {
+    sendState(0);
+    m_nLastUpdateUs += (dtUs - dtUs % m_nMonitoringPeriodUs);
   }
 }
 
@@ -140,11 +140,6 @@ void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const&
 
 void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
 {
-  if (m_monitors.size() > 8) {
-    sendMonitorAck(nSessionId, 0);
-    return;
-  }
-
   if (nPeriodMs && nPeriodMs < 100) {
     nPeriodMs = 100;
   } else if (nPeriodMs > 60000) {
@@ -152,17 +147,13 @@ void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
   }
   sendMonitorAck(nSessionId, nPeriodMs);
 
+  m_nMonitoringPeriodUs = nPeriodMs * 1000;
+  m_nLastUpdateUs = SystemManager::getIngameTime();
   if (nPeriodMs) {
-    MonitoringSession& session = m_monitors[nSessionId];
-    session.m_periodUs         = nPeriodMs * 1000;
-    session.m_lastUpdateUs     = SystemManager::getIngameTime();
-    sendState(nSessionId);
+    sendState(0);
     switchToActiveState();
   } else {
-    m_monitors.erase(nSessionId);
-    if (m_monitors.empty()) {
-      switchToIdleState();
-    }
+    switchToIdleState();
   }
 }
 
@@ -183,7 +174,11 @@ void Ship::sendState(uint32_t nSessionId, int eStateMask) const
     pPosition->set_vy(getVelocity().getY());
   }
 
-  sendToClient(nSessionId, message);
+  if (nSessionId) {
+    sendToClient(nSessionId, message);
+  } else {
+    sendUpdate(message);
+  }
 }
 
 void Ship::sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const

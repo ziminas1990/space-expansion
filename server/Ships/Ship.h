@@ -57,12 +57,8 @@ private:
   modules::CommutatorPtr m_pCommutator;
   std::map<std::string, modules::BaseModulePtr> m_Modules;
 
-  struct MonitoringSession {
-    uint32_t m_periodUs     = 0;
-    uint64_t m_lastUpdateUs = 0;
-  };
-  std::map<uint32_t, MonitoringSession> m_monitors;
-    // A list of session that are used for ship's monitoring
+  uint64_t m_nMonitoringPeriodUs;
+  uint64_t m_nLastUpdateUs;
 };
 
 using ShipPtr     = std::shared_ptr<Ship>;

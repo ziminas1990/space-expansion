@@ -62,38 +62,101 @@ TEST_F(ShipTests, Monitoring)
   client::ShipPtr pShip = std::make_shared<client::Ship>();
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
-  client::Engine engine;
-  engine.attachToChannel(pShip->openTunnel(0));
+  client::ShipPtr pShipMonitor = std::make_shared<client::Ship>();
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShipMonitor));
+  uint32_t subscription;
+  ASSERT_EQ(client::ClientBaseModule::eSuccess, pShipMonitor->subscribe(subscription));
 
-  uint32_t nMontorAck = 0;
+  uint32_t nMonitorAck = 0;
   client::ShipState state;
 
-  ASSERT_TRUE(pShip->monitor(500, nMontorAck));
-  ASSERT_EQ(500, nMontorAck);
-  ASSERT_TRUE(pShip->waitState(state));
+  ASSERT_TRUE(pShip->monitor(500, nMonitorAck));
+  ASSERT_EQ(500, nMonitorAck);
+  ASSERT_TRUE(pShipMonitor->waitState(state));
 
   resumeTime();
   for (size_t i = 1; i < 100; ++i) {
     uint64_t expectedTime = m_application.getClock().now() + 500000;
-    ASSERT_TRUE(pShip->waitState(state)) << "On iteration " << i;
+    ASSERT_TRUE(pShipMonitor->waitState(state)) << "On iteration " << i;
     uint64_t now = m_application.getClock().now();
     ASSERT_NEAR(expectedTime, now, 10000) << "On iteration " << i;
   }
 
-  ASSERT_TRUE(pShip->monitor(1000, nMontorAck));
-  ASSERT_EQ(1000, nMontorAck);
-  ASSERT_TRUE(pShip->waitState(state));
+  ASSERT_TRUE(pShip->monitor(1000, nMonitorAck));
+  ASSERT_EQ(1000, nMonitorAck);
+  ASSERT_TRUE(pShipMonitor->waitState(state));
 
   for (size_t i = 0; i < 10; ++i) {
     uint64_t expectedTime = m_application.getClock().now() + 1000000;
-    ASSERT_TRUE(pShip->waitState(state)) << "On iteration " << i;
+    ASSERT_TRUE(pShipMonitor->waitState(state)) << "On iteration " << i;
     uint64_t now = m_application.getClock().now();
     ASSERT_NEAR(expectedTime, now, 10000) << "On iteration " << i;
   }
 
-  ASSERT_TRUE(pShip->monitor(0, nMontorAck));
-  ASSERT_EQ(0, nMontorAck);
-  ASSERT_FALSE(pShip->waitState(state, 50));
+  ASSERT_TRUE(pShip->monitor(0, nMonitorAck));
+  ASSERT_EQ(0, nMonitorAck);
+  ASSERT_FALSE(pShipMonitor->waitState(state, 200));
+}
+
+TEST_F(ShipTests, MultipleSubscriptions)
+{
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("test", "test")
+        .expectSuccess());
+
+  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
+
+  using Subscription = std::pair<client::ShipPtr, uint32_t>;
+
+  Subscription subscriptions[] = {
+    {std::make_shared<client::Ship>(), 0},
+    {std::make_shared<client::Ship>(), 0},
+    {std::make_shared<client::Ship>(), 0}
+  };
+  size_t total = sizeof(subscriptions) / sizeof(Subscription);
+
+  for (Subscription& subscription: subscriptions) {
+    ASSERT_TRUE(client::attachToShip(
+                  m_pRootCommutator, "Experimental", *subscription.first));
+    ASSERT_EQ(client::ClientBaseModule::eSuccess,
+              subscription.first->subscribe(subscription.second));
+  }
+
+  uint32_t nMonitorAck = 0;
+  client::ShipState state;
+
+  ASSERT_TRUE(pShip->monitor(500, nMonitorAck));
+  ASSERT_EQ(500, nMonitorAck);
+  for (Subscription& subscription: subscriptions) {
+    ASSERT_TRUE(subscription.first->waitState(state));
+  }
+
+  resumeTime();
+  for (size_t i = 1; i < 10; ++i) {
+    for (Subscription& subscription: subscriptions) {
+      ASSERT_TRUE(subscription.first->waitState(state));
+    }
+  }
+
+  // Unsubscribing
+  for (size_t i = 0; i < total; ++i) {
+    ASSERT_EQ(client::ClientBaseModule::eInvalidToken,
+              pShip->unsubscribe(subscriptions[i].second + 1));
+    ASSERT_EQ(client::ClientBaseModule::eSuccess,
+              pShip->unsubscribe(subscriptions[i].second));
+    for (size_t j = 0; j < total; ++j) {
+      Subscription& subscription = subscriptions[j];
+      if (j <= i) {
+        ASSERT_FALSE(subscription.first->waitState(state, 100));
+      } else {
+        ASSERT_TRUE(subscription.first->waitState(state, 100));
+        // Removing all other updates that may have been received
+        subscription.first->dropQueuedMessage();
+      }
+    }
+  }
 }
 
 TEST_F(ShipTests, MonitoringLimits)
@@ -104,7 +167,12 @@ TEST_F(ShipTests, MonitoringLimits)
         .expectSuccess());
 
   client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShipMonitor = std::make_shared<client::Ship>();
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShipMonitor));
+
+  uint32_t subscription;
+  ASSERT_EQ(client::ClientBaseModule::eSuccess, pShipMonitor->subscribe(subscription));
 
   client::Engine engine;
   engine.attachToChannel(pShip->openTunnel(0));
@@ -115,12 +183,12 @@ TEST_F(ShipTests, MonitoringLimits)
   // Period is too big
   ASSERT_TRUE(pShip->monitor(100000, nMontorAck));
   ASSERT_EQ(60000, nMontorAck);
-  ASSERT_TRUE(pShip->waitState(state));
+  ASSERT_TRUE(pShipMonitor->waitState(state));
 
   // Period is two short
   ASSERT_TRUE(pShip->monitor(50, nMontorAck));
   ASSERT_EQ(100 , nMontorAck);
-  ASSERT_TRUE(pShip->waitState(state));
+  ASSERT_TRUE(pShipMonitor->waitState(state));
 }
 
 } // namespace autotests
