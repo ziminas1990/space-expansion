@@ -48,7 +48,7 @@ class ProxyChannel(Channel, Terminal):
         pass
 
     # Override from Terminal
-    def attach_channel(self, channel: 'Channel'):
+    def attach_channel(self, channel: Channel):
         assert channel
         super().attach_channel(channel)  # For logging
         self.downlevel = channel

@@ -72,7 +72,6 @@ async def move_to(ship: Ship,
         if not ship_state or not target:
             return False
         distance = ship_state.position.distance_to(target)
-        print(distance)
         relative_v = ship_state.position.velocity - target.velocity
 
     return True

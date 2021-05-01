@@ -2,7 +2,7 @@ from typing import Optional, Callable, Awaitable
 
 from expansion.interfaces.rpc import AsteroidMinerI, AsteroidMinerSpec
 from expansion import utils
-from .base_module import BaseModule
+from .base_module import BaseModule, TunnelFactory
 from expansion.types import ResourceType
 
 
@@ -11,9 +11,9 @@ class AsteroidMiner(BaseModule):
     Status = AsteroidMinerI.Status
 
     def __init__(self,
-                 connection_factory: Callable[[], Awaitable[AsteroidMinerI]],
+                 tunnel_factory: TunnelFactory,
                  name: Optional[str] = None):
-        super().__init__(connection_factory=connection_factory,
+        super().__init__(tunnel_factory=tunnel_factory,
                          logging_name=name or utils.generate_name(AsteroidMiner))
         self.specification: Optional[AsteroidMinerSpec] = None
         self.cargo_name: Optional[str] = None
@@ -25,15 +25,13 @@ class AsteroidMiner(BaseModule):
             self.specification = None
         if self.specification:
             return self.specification
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, AsteroidMinerI)  # sort of type hinting
+        async with self.rent_session(AsteroidMinerI) as channel:
             self.specification = await channel.get_specification(timeout)
         return self.specification
 
     async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
         """Bind miner to the container with the specified 'cargo_name'"""
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, AsteroidMinerI)  # sort of type hinting
+        async with self.rent_session(AsteroidMinerI) as channel:
             status = await channel.bind_to_cargo(cargo_name, timeout)
             if status == AsteroidMinerI.Status.SUCCESS:
                 self.cargo_name = cargo_name
@@ -55,12 +53,10 @@ class AsteroidMiner(BaseModule):
            in this case a value, returned by callback, will be ignored and the mining
            process will be interrupted.
         """
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, AsteroidMinerI)  # sort of type hinting
+        async with self.rent_session(AsteroidMinerI) as channel:
             return await channel.start_mining(asteroid_id, progress_cb, timeout)
 
     async def stop_mining(self, timeout: float = 0.5) -> Status:
         """Stop the mining process"""
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, AsteroidMinerI)  # sort of type hinting
+        async with self.rent_session(AsteroidMinerI) as channel:
             return await channel.stop_mining(timeout)

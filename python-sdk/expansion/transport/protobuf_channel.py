@@ -20,7 +20,7 @@ class ProtobufChannel(ProxyChannel):
         super().__init__(proxy_name=name)
         self._message_type = message_type
 
-    # Override from Channel
+    # Override from ProxyChannel
     def encode(self, message: Message) -> bool:
         return message.SerializeToString()
 

@@ -3,7 +3,7 @@ import time
 
 from expansion.interfaces.rpc import ShipI, ShipState
 from expansion.types import Position
-from .base_module import BaseModule
+from .base_module import BaseModule, TunnelFactory
 from .commutator import Commutator, ModulesFactory
 
 
@@ -21,9 +21,9 @@ class Ship(Commutator, BaseModule):
                  ship_type: str,
                  ship_name: str,
                  modules_factory: ModulesFactory,
-                 connection_factory: Callable[[], Awaitable[ShipI]]):
+                 tunnel_factory: TunnelFactory):
         super().__init__(
-            connection_factory=connection_factory,
+            tunnel_factory=tunnel_factory,
             modules_factory=modules_factory,
             name=ship_name)
         self.type = ship_type
@@ -37,8 +37,7 @@ class Ship(Commutator, BaseModule):
 
     async def sync(self, timeout: float = 0.5) -> bool:
         """Update ship's information."""
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, ShipI)  # for type hinting
+        async with self.rent_session(ShipI) as channel:
             position = await channel.navigation().get_position(timeout=timeout)
             if position is not None:
                 self.position = position
@@ -72,7 +71,6 @@ class Ship(Commutator, BaseModule):
         if self.state and not self.state.expired(cache_expiring_ms):
             return self.state
 
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, ShipI)  # for type hinting
+        async with self.rent_session(ShipI) as channel:
             self.state = await channel.get_state()
             return self.state

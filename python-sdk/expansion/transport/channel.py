@@ -47,6 +47,8 @@ class Channel(abc.ABC):
             self.channel_logger.debug(f"Got:\n{message}, timestamp = {timestamp}")
         if self.terminal:
             self.terminal.on_receive(message, timestamp)
+        else:
+            self.channel_logger.warning(f"No terminal attached! Drop message:\n{message}")
 
     def attach_to_terminal(self, terminal: 'Terminal'):
         """Attach channel to terminal. If channel in ACTIVE mode, it will pass

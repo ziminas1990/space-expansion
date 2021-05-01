@@ -4,7 +4,7 @@ import expansion.interfaces.rpc as rpc
 from expansion.interfaces.rpc.commutator import Tunnel
 from expansion import utils
 
-from .base_module import BaseModule, ModuleType
+from .base_module import BaseModule, ModuleType, TunnelFactory
 
 TunnelOrError = Tuple[Optional[Tunnel], Optional[str]]
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
@@ -15,25 +15,25 @@ ModulesFactory = Callable[[str, str, TunnelFactory], ModuleOrError]
 
 class Commutator(BaseModule):
     def __init__(self,
-                 connection_factory: ConnectionFactory,
+                 tunnel_factory: TunnelFactory,
                  modules_factory: ModulesFactory,
                  name: Optional[str] = None):
         self.name = name or utils.generate_name(Commutator)
-        super().__init__(connection_factory=connection_factory,
+        super().__init__(tunnel_factory=tunnel_factory,
                          logging_name=self.name)
         self.modules_factory = modules_factory
         self.modules_info: Dict[str, Dict[str, int]] = {}
         # Map: module_type -> module_name -> slot_id
         self.modules: Dict[str, Dict[str, BaseModule]] = {}
         # Map: module_type -> module_name -> module
+        self._connections: List[rpc.CommutatorI] = []
 
     async def init(self) -> bool:
         """Retrieve an information about all modules, attached to the
         commutator. Should be called after module is instantiated"""
         self.modules_info.clear()
 
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, rpc.CommutatorI)
+        async with self.rent_session(rpc.CommutatorI) as channel:
             modules: List[rpc.ModuleInfo] = await channel.get_all_modules()
 
         if modules is None:
@@ -56,9 +56,8 @@ class Commutator(BaseModule):
 
     def _add_module(self, module_type: str, name: str, slot_id: int):
         async def tunnel_factory():
-            async with self._lock_channel() as channel:
-                assert isinstance(channel, rpc.CommutatorI)
-                return await channel.open_tunnel(port=slot_id)
+            async with self.rent_session(rpc.CommutatorI) as remote:
+                return await remote.open_tunnel(port=slot_id)
 
         module_instance, error = self.modules_factory(module_type, name, tunnel_factory)
         if error is not None:

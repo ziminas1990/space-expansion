@@ -4,7 +4,7 @@ import time
 from expansion.interfaces.rpc import ResourceContainerI
 from expansion import utils
 from expansion.types import ResourceItem
-from .base_module import BaseModule
+from .base_module import BaseModule, TunnelFactory
 
 
 class ResourceContainer(BaseModule):
@@ -17,9 +17,9 @@ class ResourceContainer(BaseModule):
             self.content: Tuple[Optional[ResourceContainer.Content], int] = (None, 0)
 
     def __init__(self,
-                 connection_factory: Callable[[], Awaitable[ResourceContainerI]],
+                 tunnel_factory: TunnelFactory,
                  name: Optional[str] = None):
-        super().__init__(connection_factory=connection_factory,
+        super().__init__(tunnel_factory=tunnel_factory,
                          logging_name=name or utils.generate_name(ResourceContainer))
         self.cache = ResourceContainer.Cache()
         self.opened_port: Optional[Tuple[int, int]] = None  # (port, accessKey)
@@ -33,8 +33,7 @@ class ResourceContainer(BaseModule):
                           timeout: float = 0.5,
                           expiration_ms: int = 250) -> Optional[Content]:
         if not self._is_actual(self.cache.content, expiration_ms):
-            async with self._lock_channel() as channel:
-                assert isinstance(channel, ResourceContainerI)  # For type hinting
+            async with self.rent_session(ResourceContainerI) as channel:
                 self.cache.content = await channel.get_content(timeout),\
                                      time.monotonic() * 1000
         return self.cache.content[0]
@@ -42,8 +41,7 @@ class ResourceContainer(BaseModule):
     async def open_port(self, access_key: int, timeout: int = 0.5) -> (Status, int):
         """Open a new port with the specified 'access_key'. Return operation status
         and port number"""
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, ResourceContainerI)  # For type hinting
+        async with self.rent_session(ResourceContainerI) as channel:
             status, port = await channel.open_port(access_key, timeout)
             if status == ResourceContainer.Status.SUCCESS:
                 self.opened_port = port, access_key
@@ -51,8 +49,7 @@ class ResourceContainer(BaseModule):
 
     async def close_port(self, timeout: int = 0.5) -> Status:
         """Close an existing opened port"""
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, ResourceContainerI)  # For type hinting
+        async with self.rent_session(ResourceContainerI) as channel:
             status = await channel.close_port(timeout)
             if status == ResourceContainer.Status.SUCCESS:
                 self.opened_port = None
@@ -73,6 +70,5 @@ class ResourceContainer(BaseModule):
             if progress_cb is not None:
                 progress_cb(item)
 
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, ResourceContainerI)  # For type hinting
+        async with self.rent_session(ResourceContainerI) as channel:
             return await channel.transfer(port, access_key, resource, _progress_cb, timeout)

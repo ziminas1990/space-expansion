@@ -3,10 +3,9 @@ import asyncio
 import time
 
 from expansion.protocol import get_message_field
-from expansion.transport.channel import Channel
-from expansion.transport.terminal import Terminal
+from expansion.transport import Endpoint, Terminal, Channel
 
-class IOTerminal(Channel, Terminal):
+class IOTerminal(Endpoint):
     """IOTerminal may be attached to the channel (as a terminal inheritor)
     and can be used by the client code as a channel. It uses internal queue
     to store all incoming messages until they are read by a client (see
@@ -27,6 +26,7 @@ class IOTerminal(Channel, Terminal):
     def get_name(self) -> str:
         return super(IOTerminal, self).get_name()
 
+    # Override from Endpoint
     async def wait_message(self, timeout: float = 1.0) -> Tuple[Optional[Any], Optional[int]]:
         """Await for a message on the internal queue for not more than the
         specified 'timeout' seconds. Return a message and a optional timestamp, when
@@ -35,21 +35,6 @@ class IOTerminal(Channel, Terminal):
             return await asyncio.wait_for(self.queue.get(), timeout=timeout)
         except asyncio.TimeoutError:
             return None, None
-
-    async def wait_exact(self, message: str, timeout: float = 1.0) \
-            -> Tuple[Optional[Any], Optional[int]]:
-        """Await for the specified 'message' but not more than 'timeout' seconds.
-        Ignore all other received messages. Return expected message and timestamp or
-        None"""
-        while timeout > 0:
-            start_at = time.monotonic()
-            received_msg, timestemp = await self.wait_message(timeout)
-            expected_msg = get_message_field(received_msg, message)
-            if expected_msg:
-                return expected_msg, timestemp
-            # Got unexpected message. Just ignoring it
-            timeout -= time.monotonic() - start_at
-        return None, None
 
     def wrap_channel(self, down_level: Channel):
         self.attach_channel(down_level)

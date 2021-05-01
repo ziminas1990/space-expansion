@@ -3,7 +3,7 @@ from typing import Optional, Callable, Awaitable, List
 from expansion.interfaces.rpc import CelestialScannerI, CelestialScannerSpec
 from expansion import utils
 from expansion import types
-from .base_module import BaseModule
+from .base_module import BaseModule, TunnelFactory
 
 
 ObjectsList = Optional[List[types.PhysicalObject]]
@@ -13,9 +13,9 @@ ScanningCallback = Callable[[ObjectsList, Error], None]
 
 class CelestialScanner(BaseModule):
     def __init__(self,
-                 connection_factory: Callable[[], Awaitable[CelestialScannerI]],
+                 tunnel_factory: TunnelFactory,
                  name: Optional[str] = None):
-        super().__init__(connection_factory=connection_factory,
+        super().__init__(tunnel_factory=tunnel_factory,
                          logging_name=name or utils.generate_name(CelestialScanner))
         self.specification: Optional[CelestialScannerSpec] = None
 
@@ -25,8 +25,7 @@ class CelestialScanner(BaseModule):
             self.specification = None
         if self.specification:
             return self.specification
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, CelestialScannerI)  # sort of type hinting
+        async with self.rent_session(CelestialScannerI) as channel:
             self.specification = await channel.get_specification(timeout)
         return self.specification
 
@@ -51,8 +50,7 @@ class CelestialScanner(BaseModule):
         if timeout < 0.2:
             timeout = 0.2
 
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, CelestialScannerI)  # sort of type hinting
+        async with self.rent_session(CelestialScannerI) as channel:
             return await channel.scan(
                 scanning_radius_km,
                 minimal_radius_m,
@@ -70,8 +68,7 @@ class CelestialScanner(BaseModule):
         if timeout < 0.2:
             timeout = 0.2
 
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, CelestialScannerI)  # sort of type hinting
+        async with self.rent_session(CelestialScannerI) as channel:
             return await channel.scan_sync(
                 scanning_radius_km,
                 minimal_radius_m,

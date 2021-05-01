@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, ContextManager
+from typing import Optional, ContextManager, Type
 import contextlib
 
 from .commutator import Commutator
@@ -11,7 +11,7 @@ import expansion.procedures as procedures
 class RootCommutator(Commutator):
     def __init__(self, name: str = "Root"):
         super().__init__(
-            connection_factory=self.__open_tunnel_fake,
+            tunnel_factory=self.__open_tunnel_fake,
             modules_factory=module_factory,
             name=name)
         self.mutex = asyncio.Lock()
@@ -38,10 +38,12 @@ class RootCommutator(Commutator):
 
     # Overrides BaseModule's implementation
     @contextlib.asynccontextmanager
-    async def _lock_channel(self) -> ContextManager[rpc.CommutatorI]:
-        """This function will always return the same channel, because
+    async def rent_session(self, terminal_type: Type = rpc.CommutatorI) \
+            -> ContextManager[rpc.CommutatorI]:
+        """This function will always return the same session, because
         root commutator can't spawn a new channels to the remote side. So
         this function will block until the channel is used by someone else"""
+        assert terminal_type == rpc.CommutatorI
         try:
             await self.mutex.acquire()
             assert self.remote is not None, \
@@ -52,6 +54,6 @@ class RootCommutator(Commutator):
 
     @staticmethod
     async def __open_tunnel_fake():
-        # This function should be never called, because the '_lock_channel'
+        # This function should be never called, because the 'lock_channel'
         # call is overridden!
         assert False

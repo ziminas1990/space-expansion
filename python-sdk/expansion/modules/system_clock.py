@@ -6,16 +6,16 @@ import expansion.interfaces.rpc as rpc
 import expansion.utils as utils
 import expansion.types as types
 
-from .base_module import BaseModule
+from .base_module import BaseModule, TunnelFactory
 
 ConnectionFactory = Callable[[], Awaitable[rpc.SystemClockI]]
 
 
 class SystemClock(rpc.SystemClockI, BaseModule):
     def __init__(self,
-                 connection_factory: ConnectionFactory,
+                 tunnel_factory: TunnelFactory,
                  name: Optional[str] = None):
-        super().__init__(connection_factory=connection_factory,
+        super().__init__(tunnel_factory=tunnel_factory,
                          logging_name=name or utils.generate_name(SystemClock))
         self.tick_us: Optional[int] = None
         self.server_time: types.TimePoint = types.TimePoint(0)
@@ -27,10 +27,9 @@ class SystemClock(rpc.SystemClockI, BaseModule):
 
     async def sync(self, timeout: float = 0.5) -> bool:
         """Sync local system clock with server"""
-        async with self._lock_channel() as channel:
+        async with self.rent_session(rpc.SystemClock) as channel:
             if not channel:
                 return False
-            assert isinstance(channel, rpc.SystemClockI)
             ingame_time = await channel.time()
             if ingame_time is None:
                 return False
@@ -56,10 +55,9 @@ class SystemClock(rpc.SystemClockI, BaseModule):
 
         On success update cached time and return cached time, otherwise
         return None"""
-        async with self._lock_channel() as channel:
+        async with self.rent_session(rpc.SystemClock) as channel:
             if channel is None:
                 return None
-            assert isinstance(channel, rpc.SystemClockI)
             time = await channel.wait_until(time=time, timeout=timeout)
             if time:
                 self.server_time.update(time)
@@ -67,10 +65,9 @@ class SystemClock(rpc.SystemClockI, BaseModule):
 
     async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
-        async with self._lock_channel() as channel:
+        async with self.rent_session(rpc.SystemClock) as channel:
             if channel is None:
                 return None
-            assert isinstance(channel, rpc.SystemClockI)
             time = await channel.wait_for(period_us=period_us, timeout=timeout)
             if time:
                 self.server_time.update(time)
@@ -80,10 +77,9 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         """Return generator's tick long (in microseconds). Once the
         value is retrieved from the server, it will be cached"""
         if self.tick_us is None:
-            async with self._lock_channel() as channel:
+            async with self.rent_session(rpc.SystemClock) as channel:
                 if channel is None:
                     return None
-                assert isinstance(channel, rpc.SystemClockI)
                 self.tick_us = await channel.get_generator_tick_us(timeout=timeout)
         return self.tick_us
 
@@ -106,8 +102,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
             self.time_callback.remove(time_cb)
 
     async def _time_watcher(self):
-        async with self._lock_channel() as channel:
-            assert isinstance(channel, rpc.SystemClockI)
+        async with self.rent_session(rpc.SystemClock) as channel:
             status = await channel.attach_to_generator()
             if status != rpc.SystemClockI.Status.GENERATOR_ATTACHED:
                 self.logger.error("Can't attach to the system clock's generator!")

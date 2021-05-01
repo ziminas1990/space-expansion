@@ -1,10 +1,13 @@
-from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple
+from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple, Type
 import contextlib
 import logging
 from enum import Enum
 import time
 
-import expansion.interfaces.rpc as rpc
+from expansion.transport import ProxyChannel, Endpoint
+
+TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
+TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
 
 
 class ModuleType(Enum):
@@ -18,34 +21,55 @@ class ModuleType(Enum):
 
 class BaseModule:
     def __init__(self,
-                 connection_factory: Callable[[], Awaitable[Any]],
+                 tunnel_factory: TunnelFactory,
                  logging_name: str):
         """Instantiate a module, that is attached on the specified 'port' to the
         specified remote 'commutator'. The specified 'connection_factory' will
         be used to instantiate an object, that implements a module's interface."""
         self.logger = logging.getLogger(logging_name)
-        self._connection_factory = connection_factory
-
-        self._channels: List[Any] = []
+        self._tunnel_factory = tunnel_factory
         # All opened channels, that may be used to send requests
+        self._sessions: Dict[Type, List[Endpoint]] = {}
 
     async def init(self) -> bool:
         return True
 
     @contextlib.asynccontextmanager
-    async def _lock_channel(self) -> ContextManager[Any]:
-        """Return an existing available channel or open a new one"""
-        channel: Optional[Any] = None
+    async def rent_session(self, terminal_type: Type) -> ContextManager[Optional[Endpoint]]:
+        """Rent a session for a simple request/response communications
+        """
         try:
+            terminal: Optional[Endpoint] = None
             try:
-                channel = self._channels.pop(0)
+                terminal = self._sessions.setdefault(terminal_type, []).pop(-1)
             except IndexError:
-                # No available channels, trying to open a new one
-                channel = await self._connection_factory()
-            yield channel
+                # No terminals to reuse
+                terminal = await self.open_session(terminal_type)
+            finally:
+                assert terminal is not None
+                yield terminal
         finally:
-            if channel is not None:
-                self._channels.append(channel)
+            if terminal:
+                self._sessions.setdefault(terminal_type, []).append(terminal)
+
+    async def open_session(self, terminal_type: Type) -> Optional[Endpoint]:
+        """Return an existing available channel or open a new one."""
+        tunnel: Optional[ProxyChannel] = None
+        error: Optional[str] = None
+        # No available tunnels, trying to open a new one
+        try:
+            tunnel, error = await self._tunnel_factory()
+        except Exception as ex:
+            print(ex)
+        if tunnel is None:
+            self.logger.warning(f"Failed to open tunnel for the {terminal_type.__name__}: {error}")
+            return None, None
+        # Create terminal and link it with tunnel
+        terminal: Optional[Endpoint] = terminal_type()
+        assert isinstance(terminal, Endpoint)
+        tunnel.attach_to_terminal(terminal)
+        terminal.attach_channel(tunnel)
+        return terminal
 
     @staticmethod
     def _is_actual(value: Tuple[Optional[Any], int],
