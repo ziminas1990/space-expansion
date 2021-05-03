@@ -3,7 +3,7 @@ import logging
 
 from .commutator import CommutatorI
 from .navigation import INavigation
-from expansion.transport import IOTerminal
+from expansion.transport import IOTerminal, Endpoint
 from expansion.protocol.utils import get_message_field
 import expansion.protocol.Protocol_pb2 as api
 from expansion import types
@@ -68,9 +68,9 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         """Start ship's state monitoring. Return actual monitoring duration.
         After this call you may use 'wait_state()' to receive updates
         """
-        request = msg.Message()
+        request = api.Message()
         request.ship.monitor = True
         if not self.send(message=request):
             return None
-        ack, _ = self.wait_exact("ship.monitor_ack")
+        ack, _ = await self.wait_exact("ship.monitor_ack")
         return ack

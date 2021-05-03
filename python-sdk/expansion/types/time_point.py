@@ -24,6 +24,9 @@ class TimePoint:
         self._server_time: int = server_time
         self._local_time: float = time.monotonic()
 
+    def __str__(self) -> str:
+        return f"Server: {self._server_time}, Local: {self._local_time}"
+
     def now(self, predict: bool = True) -> int:
         """Return approximate current time in microseconds
 

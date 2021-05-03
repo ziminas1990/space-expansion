@@ -31,7 +31,7 @@ class Tunnel(ProxyChannel):
 
     # Overridden from ProxyChannel
     def decode(self, data: public.Message) -> Optional[Any]:
-        """De-encapsulate message and pass it to client"""
+        """De-encapsulate message"""
         if data.tunnelId != self.tunnel_id:
             self.terminal_logger.warning(f"Tunnel_id mismatch! {data.tunnelId} != {self.tunnel_id}")
             return None
@@ -86,10 +86,13 @@ class CommutatorI(IOTerminal):
 
     # Override from IOTerminal->Terminal
     def on_receive(self, message: public.Message, timestamp: Optional[int]):
-        if message.timestamp:
+        if message.timestamp is not None:
             timestamp = message.timestamp
 
         if message.WhichOneof('choice') == 'encapsulated':
+            if message.encapsulated.timestamp is not None:
+                timestamp = message.encapsulated.timestamp
+
             try:
                 tunnel = self.tunnels[message.tunnelId]
             except KeyError:

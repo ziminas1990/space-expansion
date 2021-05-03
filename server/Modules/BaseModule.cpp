@@ -121,6 +121,13 @@ void BaseModule::handleMonitorMessage(uint32_t nSessionId, spex::IMonitor const&
         sendToClient(nSessionId, response);
         return;
       }
+      if (m_subscribers[i].m_nSessionId != nSessionId) {
+        // If subscribtion has been canceled from other session than we should
+        // notify subscriber about it
+        spex::Message cancelMsg;
+        cancelMsg.mutable_monitor()->set_status(spex::IMonitor::CANCELED);
+        sendToClient(m_subscribers[i].m_nSessionId, response);
+      }
       m_subscribers[i] = m_subscribers.back();
       m_subscribers.pop_back();
       pBody->set_status(spex::IMonitor::SUCCESS);

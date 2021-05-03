@@ -3,7 +3,7 @@ import math
 import asyncio
 
 from expansion.types import Position
-from expansion.modules.ship import Ship, ShipState
+from expansion.modules.ship import Ship
 from expansion.modules.engine import Engine, EngineSpec
 import expansion.interfaces.rpc as rpc
 
@@ -22,7 +22,7 @@ async def move_to(ship: Ship,
     'max_distance_error' meters AND the ship's speed is not more than the specified
     'max_velocity_error'.
     """
-    ship_state: ShipState = await ship.get_state()
+    ship_state: rpc.ShipState = await ship.get_state()
     target = await get_target()
     engine_spec: EngineSpec = await engine.get_specification()
     if not ship_state or not target or not engine_spec:

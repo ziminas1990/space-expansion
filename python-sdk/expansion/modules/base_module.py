@@ -63,7 +63,7 @@ class BaseModule:
             print(ex)
         if tunnel is None:
             self.logger.warning(f"Failed to open tunnel for the {terminal_type.__name__}: {error}")
-            return None, None
+            return None
         # Create terminal and link it with tunnel
         terminal: Optional[Endpoint] = terminal_type()
         assert isinstance(terminal, Endpoint)

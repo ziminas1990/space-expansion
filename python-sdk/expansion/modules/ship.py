@@ -1,7 +1,8 @@
-from typing import Optional, Tuple, Callable, Awaitable
+import asyncio
+from typing import Optional, Tuple, Callable, Awaitable, NamedTuple, Set
 import time
 
-from expansion.interfaces.rpc import ShipI, ShipState
+import expansion.interfaces.rpc as rpc
 from expansion.types import Position
 from .base_module import BaseModule, TunnelFactory
 from .commutator import Commutator, ModulesFactory
@@ -10,12 +11,6 @@ from .commutator import Commutator, ModulesFactory
 class Ship(Commutator, BaseModule):
     """This class represent a wrapper for the remote ship. Is supports
     caching and prediction ship's position"""
-
-    @staticmethod
-    def factory(ship_type: str,
-                ship_name: str,
-                open_tunnel_f: Callable[[], Awaitable[ShipI]]):
-        Ship(ship_type, ship_name, open_tunnel_f)
 
     def __init__(self,
                  ship_type: str,
@@ -30,14 +25,20 @@ class Ship(Commutator, BaseModule):
         self.name = ship_name
 
         self.position: Optional[Position] = None
-        self.state: Optional[ShipState] = None
+        self.state: Optional[rpc.ShipState] = None
+
+        # Monitoring facilities
+        self.__monitoring_session: Optional[rpc.Monitor] = None
+        self.__monitoring_task: Optional[asyncio.Task] = None
+        self.__monitoring_token: int = 0
+        self.__subscribers: Set[Ship.Subscription] = []
 
     async def init(self):
         await super().init()
 
     async def sync(self, timeout: float = 0.5) -> bool:
         """Update ship's information."""
-        async with self.rent_session(ShipI) as channel:
+        async with self.rent_session(rpc.ShipI) as channel:
             position = await channel.navigation().get_position(timeout=timeout)
             if position is not None:
                 self.position = position
@@ -66,11 +67,43 @@ class Ship(Commutator, BaseModule):
                 return None
         return self.position.predict(at_us)
 
-    async def get_state(self, cache_expiring_ms: int = 50) -> Optional[ShipState]:
+    async def get_state(self, cache_expiring_ms: int = 50) -> Optional[rpc.ShipState]:
         """Return current ship's state"""
         if self.state and not self.state.expired(cache_expiring_ms):
             return self.state
 
-        async with self.rent_session(ShipI) as channel:
+        async with self.rent_session(rpc.ShipI) as channel:
             self.state = await channel.get_state()
             return self.state
+
+    async def start_monitoring(self, interval_ms: int = 50) -> bool:
+        # If subscription session has not been opened yet we should open it
+        if self.__monitoring_session is None:
+            self.__monitoring_session = await self.open_session(rpc.Monitor)
+            if not isinstance(self.__monitoring_session, rpc.Monitor):  # for type hinting
+                return False
+            status, self.__monitoring_token = await self.__monitoring_session.subscribe()
+            if not status.is_ok():
+                return False
+            self.__monitoring_task = asyncio.get_running_loop().create_task(self.__monitoring())
+
+        async with self.rent_session(rpc.ShipI) as session:
+            if not isinstance(session, rpc.ShipI):
+                return False
+            ack = await session.monitor(interval_ms)
+            return ack is not None
+
+    async def stop_monitoring(self) -> bool:
+        if self.__monitoring_session is not None:
+            pass
+
+    def __on_update(self, state: rpc.ShipState):
+        self.state = state
+        if state.position:
+            self.position = state.position
+
+    async def __monitoring(self):
+        await self.__monitoring_session.monitor(
+            ship_state_cb=self.__on_update
+        )
+

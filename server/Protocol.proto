@@ -64,6 +64,7 @@ message IMonitor {
     LIMIT_EXCEEDED = 1;
     UNEXPECTED_MSG = 2;
     INVALID_TOKEN  = 3;
+    CANCELED       = 4;
   }
 
   oneof choice {

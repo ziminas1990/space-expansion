@@ -1,6 +1,6 @@
 from .channel import Channel
 from .terminal import Terminal
-from typing import Optional, Any
+from typing import Optional, Any, Tuple
 import abc
 
 from expansion import utils
@@ -34,10 +34,10 @@ class ProxyChannel(Channel, Terminal):
         self._trace_mode = on
 
     @abc.abstractmethod
-    def decode(self, data: Any) -> Optional[Any]:
+    def decode(self, data: Any) -> Tuple[Optional[Any], Optional[int]]:
         """Decode the specified 'data', received from down-level channel
-        to the message, that may be passed to client (terminal).  Return None
-        if message has not been converted."""
+        to the message, that may be passed to client (terminal).  Return
+        decoded message and a timestamp if it is """
         pass
 
     @abc.abstractmethod
