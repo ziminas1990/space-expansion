@@ -13,10 +13,5 @@ class PhysicalObject:
 
     def update(self, other: "PhysicalObject"):
         assert self.object_id == other.object_id
-        if self.position is None:
-            self.position = other.position
-        elif other.position is None or other.position.timestamp is None:
-            return
-        elif self.position.timestamp is None or  \
-            self.position.timestamp < other.position.timestamp:
+        if self.position is None or other.position.more_recent_than(self.position):
             self.position = other.position

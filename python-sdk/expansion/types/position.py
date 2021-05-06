@@ -41,3 +41,8 @@ class Position(NamedTuple):
                         velocity=Vector(self.velocity.x, self.velocity.y),
                         # Predicted position shouldn't have timestamp
                         timestamp=None)
+
+    def more_recent_than(self, other: "Position") -> bool:
+        return other.timestamp is None or \
+               (self.timestamp and
+                self.timestamp.now(predict=False) > other.timestamp.now(predict=False))

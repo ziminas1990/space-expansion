@@ -126,11 +126,7 @@ class CelestialScannerI(transport.IOTerminal):
                        timestamp: Optional[int]):
         return types.PhysicalObject(
             object_id=data.id,
-            position=types.Position(
-                x=data.x, y=data.y,
-                velocity=types.Vector(x=data.vx, y=data.vy),
-                timestamp=timestamp
-            ),
+            position=types.Position.build(data, timestamp),
             radius=data.r
         )
 
