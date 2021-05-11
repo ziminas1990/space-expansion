@@ -1,6 +1,7 @@
 #include "NewtonEngine.h"
 
 #include <mutex>
+#include <algorithm>
 
 namespace newton
 {
@@ -13,10 +14,12 @@ bool NewtonEngine::prephare(uint16_t, uint32_t, uint64_t)
 
 void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
 {
+  const uint32_t step = 256;
   double nIntervalSec = nIntervalUs / 1000000.0;
 
-  size_t nId = m_nNextObjectId.fetch_add(1);
-  while (nId < PhysicalObject::TotalInstancies()) {
+  uint32_t nId = m_nNextObjectId.fetch_add(step);
+  uint32_t end = std::min(nId + step, PhysicalObject::TotalInstancies());
+  while (nId < end) {
     PhysicalObject* pObject = PhysicalObject::Instance(nId);
     if (pObject) {
       // acc_t - acceleration * time
@@ -30,7 +33,8 @@ void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
       pObject->m_position.translate(movement);
       pObject->m_velocity += acc_t;
     }
-    nId = m_nNextObjectId.fetch_add(1);
+    nId = m_nNextObjectId.fetch_add(step);
+    end = std::min(nId + step, PhysicalObject::TotalInstancies());
   }
 }
 
