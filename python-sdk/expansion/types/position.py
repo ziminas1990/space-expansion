@@ -1,4 +1,5 @@
-from typing import Optional, NamedTuple
+import copy
+from typing import Optional, NamedTuple, Tuple
 import time
 import math
 from expansion.types import Vector, TimePoint
@@ -41,6 +42,17 @@ class Position(NamedTuple):
                         velocity=Vector(self.velocity.x, self.velocity.y),
                         # Predicted position shouldn't have timestamp
                         timestamp=None)
+
+    def decompose(self, other: "Position") -> Tuple["Position", "Position"]:
+        longitudinal_offset, lateral_offset = other.vector_to(self).decompose(other.velocity)
+        longitudinal_velocity, lateral_velocity = self.velocity.decompose(other.velocity)
+        return Position(x = other.x + longitudinal_offset.x,
+                        y = other.y + longitudinal_offset.y,
+                        velocity=longitudinal_velocity),\
+               Position(x=other.x + lateral_offset.x,
+                        y=other.y + lateral_offset.y,
+                        velocity=lateral_velocity),
+
 
     def more_recent_than(self, other: "Position") -> bool:
         return other.timestamp is None or \
