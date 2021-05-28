@@ -23,7 +23,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         # A set of a callbacks, which wants to receive timestamps
         self.mutex: threading.Lock = threading.Lock()
 
-        self.cached_time: Callable[[], int] = self.server_time.now
+        self.cached_time: Callable[[], int] = self.server_time.usec
 
     async def sync(self, timeout: float = 0.5) -> bool:
         """Sync local system clock with server"""
@@ -38,7 +38,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
     async def time(self, predict: bool = True, timeout: float = 0.5) -> int:
         """Update the cached time and return it"""
         await self.sync(timeout)
-        return self.server_time.now(predict=predict)
+        return self.server_time.predict_usec() if predict else self.server_time.usec()
 
     def time_point(self) -> types.TimePoint:
         """Return cached time point.
@@ -61,7 +61,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
             time = await channel.wait_until(time=time, timeout=timeout)
             if time:
                 self.server_time.update(time)
-            return self.server_time.now()
+            return self.server_time.predict_usec()
 
     async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
@@ -71,7 +71,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
             time = await channel.wait_for(period_us=period_us, timeout=timeout)
             if time:
                 self.server_time.update(time)
-            return self.server_time.now()
+            return self.server_time.predict_usec()
 
     async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
         """Return generator's tick long (in microseconds). Once the

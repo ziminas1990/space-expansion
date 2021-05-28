@@ -41,7 +41,7 @@ class Position(NamedTuple):
         if at is None:
             dt_sec = self.timestamp.dt_sec()
         else:
-            dt_sec = (at - self.timestamp.now(predict=False)) / 1000000
+            dt_sec = (at - self.timestamp.usec()) / 10 ** 6
 
         return Position(x=self.x + self.velocity.x * dt_sec,
                         y=self.y + self.velocity.y * dt_sec,
@@ -51,8 +51,6 @@ class Position(NamedTuple):
                         # than another. Predicted object can't be more recent than
                         # original because it is predicted, obviously :)
                         timestamp=None)
-
-
 
     def decompose(self, other: "Position") -> Tuple["Position", "Position"]:
         longitudinal_offset, lateral_offset = other.vector_to(self).decompose(other.velocity)
@@ -64,8 +62,7 @@ class Position(NamedTuple):
                         y=other.y + lateral_offset.y,
                         velocity=lateral_velocity),
 
-
     def more_recent_than(self, other: "Position") -> bool:
         return other.timestamp is None or \
                (self.timestamp and
-                self.timestamp.now(predict=False) > other.timestamp.now(predict=False))
+                self.timestamp.usec() > other.timestamp.usec())

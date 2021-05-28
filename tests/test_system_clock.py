@@ -54,14 +54,14 @@ class TestSystemClock(BaseTestFixture):
         self.assertTrue(success)
         await system_clock.sync()
         # sync() should update the current_time_point object
-        self.assertEqual(time, current_time_point.now(predict=False))
+        self.assertEqual(time, current_time_point.usec())
         self.assertEqual(time, await system_clock.time(predict=False))
 
         # Checking wait_until feature
         wait_delta_ms = 10000
         task = asyncio.get_running_loop().create_task(
             system_clock.wait_until(
-                time=current_time_point.now(predict=False) + wait_delta_ms * 1000,
+                time=current_time_point.usec() + wait_delta_ms * 1000,
                 timeout=1))
 
         success, time = await self.system_clock_proceed(wait_delta_ms - 1, timeout_s=1)
@@ -148,7 +148,7 @@ class TestSystemClock(BaseTestFixture):
 
         generator_tick = await system_clock.get_generator_tick_us()
         self.assertIsNotNone(generator_tick)
-        current_time = types.TimePoint(0)
+        current_time = types.TimePoint(0, static=True)
 
         def time_cb(time: types.TimePoint):
             nonlocal current_time
@@ -160,5 +160,5 @@ class TestSystemClock(BaseTestFixture):
         for i in range(10):
             success, time = await self.system_clock_proceed(500, timeout_s=1)
             await asyncio.sleep(0.02)  # waiting for all events to be handled
-            delta = time - current_time.now(predict=False)
+            delta = time - current_time.usec()
             self.assertLessEqual(delta, generator_tick)

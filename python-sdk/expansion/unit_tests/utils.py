@@ -13,7 +13,7 @@ def random_position(x: float, y: float, deviation: float, speed_max: float,
     return types.Position(x = r * math.cos(alfa),
                           y = r * math.sin(alfa),
                           velocity=random_vector(speed_max),
-                          timestamp=timestamp)
+                          timestamp=types.TimePoint(timestamp, static=True))
 
 def vectors_equal(one: types.Vector, other: types.Vector, delta: float = 0.000001) -> bool:
     diff = one - other

@@ -1,3 +1,4 @@
+from typing import Optional
 import time
 
 
@@ -13,45 +14,39 @@ class TimePoint:
     if you really need monotonic behavior.
     """
 
-    def __init__(self, ingame_time: int):
+    def __init__(self, ingame_time: int, static: bool = False):
         assert ingame_time is not None
-        self._server_time: int = 0
-        self._local_time: float = 0
-        self._last_monotonic: int = 0
-        self.update(ingame_time)
+        self._server_time: int = ingame_time
+        self._local_time: Optional[float] = None if static else time.monotonic()
 
     def update(self, server_time: int):
         self._server_time: int = server_time
-        self._local_time: float = time.monotonic()
+        if self._local_time is not None:
+            self._local_time = time.monotonic()
 
     def __str__(self) -> str:
-        return f"Server: {self._server_time}, Local: {self._local_time}"
-
-    def now(self, predict: bool = True) -> int:
-        """Return approximate current time in microseconds
-
-        if 'predict' is True than return a predicted time of the server,
-        otherwise return last received time.
-        Note: if predict is True than this function doesn't guarantee
-        monotonic behavior! If you need monotonic time, use the
-        `monotonic()` instead
-        """
-        if predict:
-            dt = int((time.monotonic() - self._local_time) * 1000000)
-            return self._server_time + dt
+        if self._local_time is not None:
+            return f"Server: {self._server_time}, Local: {self._local_time}"
         else:
-            return self._server_time
+            return f"{self._server_time}"
 
-    def monotonic(self, predict: bool = True) -> int:
-        """Return approximate current time in microseconds
+    def usec(self) -> int:
+        return self._server_time
 
-        if 'predict' is True than return a predicted time of the server,
-        otherwise return last received time."""
-        now = self.now(predict)
-        if now > self._last_monotonic:
-            self._last_monotonic = now
-        return self._last_monotonic
+    def sec(self) -> float:
+        return self._server_time / 10**6
+
+    def predict_usec(self) -> int:
+        """Return predited current time in microseconds
+
+        Note: this function doesn't guarantee monotonic behavior!
+        If you need monotonic time, use the `monotonic()` instead
+        """
+        assert self._local_time is not None
+        dt = int((time.monotonic() - self._local_time) * 1000000)
+        return self._server_time + dt
 
     def dt_sec(self) -> float:
         """Return seconds since the timepoint has been created/updated"""
+        assert self._local_time is not None
         return time.monotonic() - self._local_time
