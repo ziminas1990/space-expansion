@@ -135,6 +135,32 @@ def decelerating_plan(position: Position, *, acc: float) -> FlightPlan:
         ]
     )
 
+def one_maneuver_plan(position: Position, target: Position) -> Optional[FlightPlan]:
+    # This algorytm can be used only if:
+    # 1 initial position has no speed
+    # 2 if initial position has a speed than:
+    #   2.1 speed is directed to the target
+    #   2.2 initial speed and target speed have the same direction
+    # This algorytm can't be used in other cases
+
+    if position.velocity.abs() > 0.002:
+        if position.vector_to(target).cosa(position.velocity) < 0.999:
+            return None
+        if target.velocity.abs() > 0.002 and \
+                position.velocity.cosa(target.velocity) < 0.999:
+            return None
+
+    dv = target.velocity.abs() - position.velocity.abs()
+    diffSqrV = dv * (target.velocity.abs() + position.velocity.abs())
+    s = position.distance_to(target)
+    acc = diffSqrV / (2 * s)
+    duration = round(1000000 * dv / acc)
+    return FlightPlan([Maneuver(
+        at=position.timestamp.usec() if position.timestamp else 0,
+        duration=duration,
+        acc=position.vector_to(target).set_length(acc, inplace=False))])
+
+
 def stop_at_plan(start: Position, finish: Position, amax: float) -> FlightPlan:
     """Return flight plan which can be used to move from the specified 'start'
     position to the specified 'finish'. The 'finish' position must have zero speed.
@@ -158,55 +184,28 @@ def stop_at_plan(start: Position, finish: Position, amax: float) -> FlightPlan:
     cosa = start.velocity.cosa(start.vector_to(finish))
     if 0.999 < abs(cosa):
         # 1D case:
-        if (0.999 < cosa):
-            # special case: may be we can do it with a single maneuver
-            acc = start.velocity.abs() ** 2 / (2 * s)
-            if acc <= amax:
-                duration = int(round(1000000 * start.velocity.abs() / acc))
-                return FlightPlan(maneuvers=[
-                    Maneuver(at=now,
-                             duration=duration,
-                             acc=start.vector_to(finish).set_length(acc))
-                ])
+        # Try to build one maneuver plan first
+        simple_plan = one_maneuver_plan(start, finish)
+        if simple_plan and simple_plan.max_acceleration() < amax:
+            return simple_plan
         # Can't decelerate in one maneuver
         decelerating = decelerating_plan(start, acc=amax)
         stoped_at = decelerating.apply_to(start)
+        stoped_at.velocity.set_length(0)
         moving = stop_at_plan(stoped_at, finish, amax)
         return FlightPlan.merge(plans=[decelerating, moving])
     else:
         assert False  # Not supported
-
-def one_maneuver_plan(position: Position, target: Position) -> Optional[FlightPlan]:
-    # This algorytm can be used only if:
-    # 1 initial position has no speed
-    # 2 if initial position has a speed than:
-    #   2.1 speed is directed to the target
-    #   2.2 initial speed and target speed have the same direction
-    # This algorytm can't be used in other cases
-
-    if position.velocity.abs() > 0.01:
-        if position.vector_to(target).cosa(position.velocity) < 0.999:
-            return None
-        if position.velocity.cosa(target.velocity) < 0.999:
-            return None
-
-    dv = target.velocity.abs() - position.velocity.abs()
-    diffSqrV = dv * (target.velocity.abs() + position.velocity.abs())
-    s = position.distance_to(target)
-    acc = diffSqrV / (2 * s)
-    duration = round(1000000 * dv / acc)
-    return FlightPlan([Maneuver(
-        at=position.timestamp.usec() if position.timestamp else 0,
-        duration=duration,
-        acc=position.velocity.set_length(acc, inplace=False))])
 
 
 def prepare_flight_plan_1D(position: Position,
                            target: Position,
                            amax: float) -> FlightPlan:
     # As far as we are in 1D the following assertions should be true:
-    assert 0.9999 < abs(position.velocity.cosa(position.vector_to(target)))
-    assert 0.9999 < abs(position.velocity.cosa(target.velocity))
+    if position.velocity.abs() > 0.001:
+        assert 0.9999 < abs(position.vector_to(target).cosa(position.velocity))
+    if target.velocity.abs() > 0.001:
+        assert 0.9999 < abs(position.vector_to(target).cosa(target.velocity))
     maneuvers: List[Maneuver] = []
 
     # Try to build one manuever plan first
@@ -215,14 +214,18 @@ def prepare_flight_plan_1D(position: Position,
         # Gods are smiling for us today: it's a simple case
         return simple_plan
 
+    if target.velocity.abs() < 0.01:
+        return stop_at_plan(position, target, amax)
+
     # We are not that lucky, we have to do a series of manuevers
     # Let's find 'middle_point'. It should be a point where we should start to
-    # accelerate with amax ti reach the target
+    # accelerate with amax to reach the target
     middle_point = accelerated_from(target, acc=amax * 0.995)
     # Building a plan to reach middle_point
     decelerate = stop_at_plan(position, middle_point, amax)
     # Recalculating middle_point to calculate it's timestamp
     middle_point = decelerate.apply_to(position)
+    middle_point.velocity.set_length(0)
     # Calculatin a plan to accelerate from middle point to target
     # This time it should be a one maneuver plan
     accelerate = one_maneuver_plan(middle_point, target=target)
@@ -231,15 +234,46 @@ def prepare_flight_plan_1D(position: Position,
     return FlightPlan.merge([decelerate, accelerate])
 
 
-def prepare_flight_plan_2D(position: Position, target: Position, amax: float) -> FlightPlan:
-    # more specific assertions that prevent cases which are not supported yet
-    assert 0 < position.vector_to(target).cosa(target.velocity)
-    longitudinal, lateral = position.decompose(target)
+class Range:
+    def __init__(self, left: float, right: float):
+        self.left = left
+        self.right = right
 
-    longitudinal_plan = prepare_flight_plan_1D(longitudinal, target)
-    lateral_target = Position(x=target.x, y=target.y, velocity=Vector(0, 0))
-    lateral_plan = prepare_flight_plan_1D(lateral, target)
-    return FlightPlan.merge([longitudinal_plan, lateral_plan])
+    def middle(self) -> float:
+        return (self.right + self.left) / 2
+
+    def shift_left(self):
+        self.left = self.middle()
+
+    def shift_right(self):
+        self.right = self.middle()
+
+    def calculate_zero(self, f: Callable[[float], float], cycles: int = 32) -> "Range":
+        bounds = Range(self.left, self.right)
+        for i in range(cycles):
+            if f(bounds.middle()) > 0:
+                bounds.shift_right()
+            else:
+                bounds.shift_left()
+        return bounds
+
+
+
+def prepare_flight_plan(position: Position, target: Position, amax: float) -> FlightPlan:
+    target_y = Position(x=target.x, y=target.y, velocity=Vector(0, 0))
+    x_position, y_position = position.decompose(target)
+
+    def predicate(alfa: float):
+        plan_x = prepare_flight_plan_1D(x_position, target, amax * math.cos(alfa))
+        plan_y = prepare_flight_plan_1D(y_position, target_y, amax * math.sin(alfa))
+        return plan_x.duration_usec() - plan_y.duration_usec()
+
+    # Use right bound instead of middle because we need strongly positive
+    # predicate's value!
+    alfa = Range(0, math.pi / 2).calculate_zero(predicate).right
+    plan_x = prepare_flight_plan_1D(x_position, target, amax * math.cos(alfa))
+    plan_y = prepare_flight_plan_1D(y_position, target_y, amax * math.sin(alfa))
+    return FlightPlan.merge([plan_x, plan_y])
 
 
 async def move_to(ship: Ship,

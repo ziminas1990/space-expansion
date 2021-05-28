@@ -3,6 +3,7 @@ import random as rnd
 import expansion.types as types
 from expansion.unit_tests.utils import random_position, vectors_equal, positions_equal
 from expansion.procedures.navigation import (
+    prepare_flight_plan,
     prepare_flight_plan_1D,
     accelerated_from,
     decelerating_plan,
@@ -103,18 +104,21 @@ class TestCase(unittest.TestCase):
                 dv=(target.velocity - position.velocity).abs() * 0.0001),
                 f"Case seed: {case_seed}")
 
-    def _test_prepare_fligh_plan_2D(self):
+    def test_prepare_fligh_plan_2D(self):
         rnd.seed(74836)
-        for i in range(10000):
+        for i in range(1000):
             case_seed = rnd.randint(1, 1000000)
             rnd.seed(case_seed)
             # Create position ant target
-            position = random_position(0, 0, 100, 100)
-            target = self.create_target(
-                position=position,
-                distance=0.1 + rnd.random() * 100000)
+            position = random_position(0, 0, 100000, 500)
+            target = random_position(0, 0, 100000, 500)
             # Build flight plan
-            plan = prepare_flight_plan_1D(position, target)
+            plan = prepare_flight_plan(position, target, amax=rnd.uniform(0.1, 10000))
             # Predict flight plan result
             arrive = plan.apply_to(position)
-            self.assertTrue(positions_equal(target, arrive, delta=0.1))
+            self.assertTrue(positions_equal(
+                one=target,
+                other=arrive,
+                ds=max(0.01, position.distance_to(target) * 0.001),
+                dv=max(0.01, (target.velocity - position.velocity).abs() * 0.001)),
+                f"Case seed: {case_seed}")
