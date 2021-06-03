@@ -30,6 +30,9 @@ class Maneuver(NamedTuple):
     def __cmp__(self, other: "Maneuver"):
         return self.at - other.at
 
+    def ends_at(self) -> int:
+        return self.at + self.duration
+
     def apply_to(self, position: Position) -> Position:
         """Predict a new position of the object if this maneuver is applied to it."""
         if position.timestamp:
@@ -38,6 +41,12 @@ class Maneuver(NamedTuple):
 
         dt = self.duration / 10**6
         return accelerate(position, self.acc, dt)
+
+    def partially_apply_to(self, position: Position, duration_usec: int) -> Position:
+        maneuver_ends_at = self.at + self.duration
+        assert self.at <= position.timestamp.usec()
+        assert position.timestamp.usec() + duration_usec <= maneuver_ends_at
+        return accelerate(position, self.acc, duration_usec / 10**6)
 
 
 def squash_maneuvers(maneuvers: List[Maneuver]):
@@ -93,6 +102,11 @@ class FlightPlan(NamedTuple):
         assert begin < end
         return end - begin
 
+    def starts_at(self) -> int:
+        if not self.maneuvers:
+            return 0
+        return self.maneuvers[0].at
+
     def ends_at(self) -> int:
         if not self.maneuvers:
             return 0
@@ -125,6 +139,21 @@ class FlightPlan(NamedTuple):
             return position
         for maneuver in self.maneuvers:
             position = maneuver.apply_to(position)
+        return position
+
+    def partially_apply_to(self, position: Position, duration_usec: int) -> Position:
+        assert self.maneuvers and position.timestamp
+        assert self.starts_at() <= position.timestamp.usec()
+        if (position.timestamp.usec() + duration_usec > self.ends_at()):
+            print("fuck")
+        assert position.timestamp.usec() + duration_usec <= self.ends_at()
+        for maneuver in self.maneuvers:
+            if position.timestamp.usec() < maneuver.ends_at():
+                dt = min(maneuver.ends_at() - position.timestamp.usec(), duration_usec)
+                position = maneuver.partially_apply_to(position, dt)
+                duration_usec -= dt
+                if duration_usec <= 0:
+                    break
         return position
 
 
@@ -281,7 +310,7 @@ def prepare_flight_plan_1D(position: Position,
     # Building a plan to reach middle_point
     decelerate = stop_at_plan(position, middle_point, amax)
     # Recalculating middle_point to calculate it's timestamp
-    middle_point.timestamp.update(decelerate.duration_usec())
+    middle_point.timestamp.update(now + decelerate.duration_usec())
     # Calculatin a plan to accelerate from middle point to target
     # This time it should be a one maneuver plan
     accelerate = one_maneuver_plan(middle_point, target=target)
