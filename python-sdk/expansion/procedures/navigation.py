@@ -1,3 +1,4 @@
+import random
 from typing import Callable, Awaitable, NamedTuple, List, Tuple, Optional, Iterator
 import math
 import asyncio
@@ -7,6 +8,18 @@ from expansion.modules.ship import Ship
 from expansion.modules.engine import Engine, EngineSpec
 import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
+
+
+def accelerate(start: Position, acc: Vector, t_sec: float) -> Position:
+    """Return a result of acceleration with the specified 'acc' from the
+    specified 'start' position during the specified 't_sec' seconds"""
+    dv = acc * t_sec
+    ds = (start.velocity + dv / 2) * t_sec
+    end_at = t_sec * 10 ** 6 + (start.timestamp.usec() if start.timestamp else 0)
+    return Position(x = start.x + ds.x,
+                    y = start.y + ds.y,
+                    velocity = start.velocity + dv,
+                    timestamp = TimePoint(round(end_at), static=True))
 
 
 class Maneuver(NamedTuple):
@@ -23,15 +36,26 @@ class Maneuver(NamedTuple):
             assert position.timestamp.usec() <= self.at
             position = position.predict(self.at)
 
-        dt = self.duration / 1000000
-        return Position(
-            x = position.x + dt * (position.velocity.x + self.acc.x * dt / 2),
-            y = position.y + dt * (position.velocity.y + self.acc.y * dt / 2),
-            velocity=Vector(
-                x = position.velocity.x + self.acc.x * dt,
-                y = position.velocity.y + self.acc.y * dt),
-            timestamp = TimePoint(self.at + self.duration, static=True)
-        )
+        dt = self.duration / 10**6
+        return accelerate(position, self.acc, dt)
+
+
+def squash_maneuvers(maneuvers: List[Maneuver]):
+    result: List[Maneuver] = []
+    for maneuver in maneuvers:
+        doSquash = result \
+                   and result[-1].acc.codirected(maneuver.acc) \
+                   and (result[-1].acc - maneuver.acc).abs() < 0.00001
+        if doSquash:
+            previous = result[-1]
+            result[-1] = Maneuver(
+                at=previous.at,
+                duration=previous.duration + maneuver.duration,
+                acc=previous.acc)
+        else:
+            result.append(maneuver)
+    return result
+
 
 class FlightPlan(NamedTuple):
     maneuvers: List[Maneuver]
@@ -69,8 +93,13 @@ class FlightPlan(NamedTuple):
         assert begin < end
         return end - begin
 
+    def ends_at(self) -> int:
+        if not self.maneuvers:
+            return 0
+        return self.maneuvers[-1].at + self.maneuvers[-1].duration
+
     @staticmethod
-    def merge(plans: List["FlightPlan"]) -> "FlightPlan":
+    def merge(plans: List["FlightPlan"], squash: bool = True) -> "FlightPlan":
         time_points: List[int] = []
         for plan in plans:
             time_points.extend(plan.time_points())
@@ -87,7 +116,7 @@ class FlightPlan(NamedTuple):
                 acceleration += plan.acceleration_at(begin)
             maneuvers.append(Maneuver(at=begin, duration=duration, acc=acceleration))
 
-        return FlightPlan(maneuvers)
+        return FlightPlan(squash_maneuvers(maneuvers) if squash else maneuvers)
 
     def apply_to(self, position: Position) -> Position:
         """Predict a new position of the object if this flight plan is
@@ -98,19 +127,6 @@ class FlightPlan(NamedTuple):
             position = maneuver.apply_to(position)
         return position
 
-def accelerate(start: Position, acc: Vector, t_sec: float) -> Position:
-    """Return a result of acceleration with the specified 'acc' from the
-    specified 'start' position during the specified 't_sec' seconds"""
-    dv = acc * t_sec
-    ds = start.velocity * t_sec + (dv * t_sec) / 2
-    timestamp = None
-    if start.timestamp is not None:
-        timestamp = TimePoint(round(start.timestamp.usec() + (t_sec * 10 ** 6)),
-                              static=True)
-    return Position(x = start.x + ds.x,
-                    y = start.y + ds.y,
-                    velocity = start.velocity + dv,
-                    timestamp = timestamp)
 
 def accelerated_from(position: Position, *, acc: float) -> Position:
     '''Return position where object had to start accelerate with
@@ -299,6 +315,7 @@ class Range:
                 bounds.shift_left()
         return bounds
 
+
 def prepare_flight_plan(position: Position, target: Position, amax: float) -> FlightPlan:
     if one_dimension_case(position, target):
         return prepare_flight_plan_1D(position, target, amax)
@@ -316,7 +333,8 @@ def prepare_flight_plan(position: Position, target: Position, amax: float) -> Fl
     alfa = Range(0, math.pi / 2).calculate_zero(predicate).right
     plan_x = prepare_flight_plan_1D(x_position, target, amax * math.cos(alfa))
     plan_y = prepare_flight_plan_1D(y_position, target_y, amax * math.sin(alfa))
-    return FlightPlan.merge([plan_x, plan_y])
+    # No need to squash since plan_x and plan_y are already squashed
+    return FlightPlan.merge([plan_x, plan_y], squash=False)
 
 
 async def move_to(ship: Ship,
