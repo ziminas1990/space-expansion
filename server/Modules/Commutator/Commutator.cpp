@@ -106,7 +106,7 @@ void Commutator::proceed(uint32_t)
   for(size_t i = 0; i < m_delayedMessages.size(); ++i) {
     StoredMessage& message = m_delayedMessages[i];
     if(message.m_message.timestamp() < nNow) {
-      onMessageReceived(message.m_nSessionId, message.m_message);
+      commutateMessage(message.m_nTunnelId, message.m_message);
       // Removing this message from array (swap with last element and pop last element):
       if (i + 1 < m_delayedMessages.size()) {
         std::swap(m_delayedMessages[i], m_delayedMessages.back());
@@ -121,10 +121,7 @@ void Commutator::proceed(uint32_t)
 
 void Commutator::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
 {
-  if (message.timestamp() && message.timestamp() > SystemManager::getIngameTime()) {
-    m_delayedMessages.emplace_back(nSessionId, message);
-    switchToActiveState();
-  } else if (message.choice_case() == spex::Message::kEncapsulated) {
+  if (message.choice_case() == spex::Message::kEncapsulated) {
     // This exception is done to prevent loosing time for tunneling
     commutateMessage(message.tunnelid(), message.encapsulated());
   } else {
@@ -329,6 +326,12 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
 
 void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message const& message)
 {
+  if (message.timestamp() && message.timestamp() > SystemManager::getIngameTime()) {
+    m_delayedMessages.emplace_back(nTunnelId, message);
+    switchToActiveState();
+    return;
+  }
+
   if (nTunnelId >= m_Tunnels.size() || nTunnelId == 0)
     return;
   Tunnel& tunnel = m_Tunnels[nTunnelId];

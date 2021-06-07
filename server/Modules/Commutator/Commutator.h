@@ -100,9 +100,9 @@ private:
   // Messages, that a waiting for exact time to be transferred next
   struct StoredMessage {
     StoredMessage(uint32_t nSessionId, spex::Message const& message)
-      : m_nSessionId(nSessionId), m_message(message)
+      : m_nTunnelId(nSessionId), m_message(message)
     {}
-    uint32_t      m_nSessionId;
+    uint32_t      m_nTunnelId;
     spex::Message m_message;
   };
   std::vector<StoredMessage> m_delayedMessages;
