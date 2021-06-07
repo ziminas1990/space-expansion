@@ -1,12 +1,13 @@
 import unittest
 import random as rnd
 import expansion.types as types
-from expansion.unit_tests.utils import random_position, vectors_equal, positions_equal
+from expansion.unit_tests.utils import random_position, vectors_equal, positions_equal, random_positions_1D
 from expansion.procedures.navigation import (
     prepare_flight_plan,
     prepare_flight_plan_1D,
     accelerated_from,
     decelerating_plan,
+    two_maneuvers_plan,
     stop_at_plan,
     accelerate
 )
@@ -70,29 +71,68 @@ class TestCase(unittest.TestCase):
         for i in range(10000):
             case_seed = rnd.randint(1, 1000000)
             rnd.seed(case_seed)
-            position = random_position(0, 0, 1000, 1000)
-            target = self.create_target_on_line(
-                position=position,
-                distance=0.1 + rnd.uniform(-50000, 50000),
-                maxspeed=0)
+
+            velocity_case = rnd.randint(0, 1)
+            if velocity_case == 0:
+                position, target = random_positions_1D(0, 0, 10000, 0, 0)
+            elif velocity_case == 1:
+                position, target = random_positions_1D(0, 0, 10000, 100, 0)
+
             # Plan:
-            plan = stop_at_plan(start=position, finish=target, amax=rnd.random() * 100)
+            plan = stop_at_plan(start=position, target=target, amax=rnd.random() * 100)
             if plan is None:
                 assert False, case_seed
             stopped_at = plan.apply_to(position)
             # Verify
             positions_equal(target, stopped_at)
 
+    def test_two_maneuvers_plan(self):
+        rnd.seed(74836)
+        for i in range(20000):
+            case_seed = rnd.randint(1, 1000000)
+            rnd.seed(case_seed)
+            # Create position and target
+            velocity_case = rnd.randint(0, 6)
+            if velocity_case == 0:
+                position, target = random_positions_1D(0, 0, 100000, 0, 0)
+                amax = rnd.uniform(0.1, 1000)
+            elif velocity_case == 1:
+                position, target = random_positions_1D(0, 0, 100000, 5000, 0)
+                amax = 10 ** 4
+            elif velocity_case == 2:
+                position, target = random_positions_1D(0, 0, 100000, 0, 5000)
+                amax = 10 ** 4
+            elif velocity_case >= 3:
+                position, target = random_positions_1D(0, 0, 100000, 5000, 5000)
+                amax = 10 ** 4
+            # Build flight plan
+            plan = two_maneuvers_plan(position, target, amax=amax)
+            # Predict flight plan result
+            arrive = plan.apply_to(position)
+            self.assertTrue(positions_equal(
+                one=target,
+                other=arrive,
+                ds=max(0.01, position.distance_to(target) * 0.0001),
+                dv=max(0.01, (target.velocity - position.velocity).abs() * 0.0001)),
+                f"Case seed: {case_seed}")
+
+
     def test_prepare_fligh_plan_1D(self):
         rnd.seed(74836)
         for i in range(10000):
             case_seed = rnd.randint(1, 1000000)
-            rnd.seed(407276)
+            rnd.seed(case_seed)
             # Create position ant target
-            position = random_position(0, 0, 1000, 1000)
-            target = self.create_target_on_line(
-                position=position,
-                distance=rnd.uniform(-50000, 50000))
+            velocity_case = rnd.randint(0, 6)
+            if velocity_case == 0:
+                position, target = random_positions_1D(0, 0, 100000, 0, 0)
+            elif velocity_case == 1:
+                position, target = random_positions_1D(0, 0, 100000, 5000, 0)
+            elif velocity_case == 2:
+                position, target = random_positions_1D(0, 0, 100000, 0, 5000)
+            elif velocity_case >= 3:
+                position, target = random_positions_1D(0, 0, 100000, 5000, 5000)
+
             # Build flight plan
             plan = prepare_flight_plan_1D(position, target, amax=rnd.random() * 100)
             # Predict flight plan result
@@ -105,15 +145,27 @@ class TestCase(unittest.TestCase):
                 f"Case seed: {case_seed}")
 
     def test_prepare_fligh_plan_2D(self):
-        rnd.seed(74836)
+        rnd.seed(34254)
         for i in range(1000):
             case_seed = rnd.randint(1, 1000000)
             rnd.seed(case_seed)
-            # Create position ant target
-            position = random_position(0, 0, 100000, 500)
-            target = random_position(0, 0, 100000, 500)
+            # Create position and target
+            velocity_case = rnd.randint(0, 6)
+            if velocity_case == 0:
+                position = random_position(0, 0, 100000, 0)
+                target = random_position(0, 0, 100000, 0)
+            elif velocity_case == 1:
+                position = random_position(0, 0, 100000, 5000)
+                target = random_position(0, 0, 100000, 0)
+            elif velocity_case == 2:
+                position = random_position(0, 0, 100000, 0)
+                target = random_position(0, 0, 100000, 5000)
+            elif velocity_case >= 3:
+                position = random_position(0, 0, 100000, 5000)
+                target = random_position(0, 0, 100000, 5000)
+
             # Build flight plan
-            plan = prepare_flight_plan(position, target, amax=rnd.uniform(0.1, 10000))
+            plan = prepare_flight_plan(position, target, amax=rnd.uniform(0.1, 1000))
             # Predict flight plan result
             arrive = plan.apply_to(position)
             self.assertTrue(positions_equal(

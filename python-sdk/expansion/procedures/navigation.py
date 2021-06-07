@@ -6,6 +6,7 @@ from expansion.types import Position, Vector, TimePoint
 from expansion.modules.ship import Ship
 from expansion.modules.engine import Engine, EngineSpec
 import expansion.interfaces.rpc as rpc
+import expansion.modules as modules
 
 
 class Maneuver(NamedTuple):
@@ -104,7 +105,8 @@ def accelerate(start: Position, acc: Vector, t_sec: float) -> Position:
     ds = start.velocity * t_sec + (dv * t_sec) / 2
     timestamp = None
     if start.timestamp is not None:
-        timestamp = TimePoint(start.timestamp.usec() + (t_sec * 10 ** 6), static=True)
+        timestamp = TimePoint(round(start.timestamp.usec() + (t_sec * 10 ** 6)),
+                              static=True)
     return Position(x = start.x + ds.x,
                     y = start.y + ds.y,
                     velocity = start.velocity + dv,
@@ -113,12 +115,13 @@ def accelerate(start: Position, acc: Vector, t_sec: float) -> Position:
 def accelerated_from(position: Position, *, acc: float) -> Position:
     '''Return position where object had to start accelerate with
     the specified 'acc' to reach the specified 'position' '''
-    t = position.velocity.abs() / acc
-    s = acc * t * t / 2
+    v0 = position.velocity.abs()
+    t = v0 / acc
+    s = (v0 ** 2) / (2 * acc)
     vector_to_target = position.velocity.set_length(-s, inplace=False)
-    timestamp = None
-    if position.timestamp is not None:
-        timestamp = TimePoint(position.timestamp.usec() - (t * 10 ** 6), static=True)
+
+    now = position.timestamp.usec() if position.timestamp else 0
+    timestamp = TimePoint(round(now - t * 10 ** 6), static=True)
     return Position(x = position.x + vector_to_target.x,
                     y = position.y + vector_to_target.y,
                     velocity=Vector(0, 0),
@@ -129,7 +132,7 @@ def decelerating_plan(position: Position, *, acc: float) -> FlightPlan:
     t = position.velocity.abs() / acc
     return FlightPlan(
         maneuvers=[
-            Maneuver(at=0,
+            Maneuver(at=position.timestamp.usec() if position.timestamp else 0,
                      duration=round(t * 10**6),
                      acc=position.velocity.set_length(-acc, inplace=False))
         ]
@@ -142,7 +145,6 @@ def one_maneuver_plan(position: Position, target: Position) -> Optional[FlightPl
     #   2.1 speed is directed to the target
     #   2.2 initial speed and target speed have the same direction
     # This algorytm can't be used in other cases
-
     if position.velocity.abs() > 0.002:
         if position.vector_to(target).cosa(position.velocity) < 0.999:
             return None
@@ -150,8 +152,10 @@ def one_maneuver_plan(position: Position, target: Position) -> Optional[FlightPl
                 position.velocity.cosa(target.velocity) < 0.999:
             return None
 
-    dv = target.velocity.abs() - position.velocity.abs()
-    diffSqrV = dv * (target.velocity.abs() + position.velocity.abs())
+    v0 = position.velocity.abs()
+    v1 = target.velocity.abs()
+    dv = v1 - v0
+    diffSqrV = dv * (v1 + v0)
     s = position.distance_to(target)
     acc = diffSqrV / (2 * s)
     duration = round(1000000 * dv / acc)
@@ -161,74 +165,112 @@ def one_maneuver_plan(position: Position, target: Position) -> Optional[FlightPl
         acc=position.vector_to(target).set_length(acc, inplace=False))])
 
 
-def stop_at_plan(start: Position, finish: Position, amax: float) -> FlightPlan:
+def two_maneuvers_plan(position: Position, target: Position, amax: float):
+    # This algorytm can't be used in other cases
+    vector_to_target = position.vector_to(target)
+    if position.velocity.abs() > 0.002:
+        if not position.velocity.codirected(vector_to_target):
+            return None
+    if target.velocity.abs() > 0.002:
+        if not target.velocity.codirected(vector_to_target):
+            return None
+
+    v0 = position.velocity.abs()
+    v2 = target.velocity.abs()
+    s = position.distance_to(target)
+    diffSqrV = v2 ** 2 - v0 ** 2
+    acc_s = s / 2 + diffSqrV  / (4 * amax)
+    if acc_s < 0:
+        # thrust doesn't have enough power to decelerate on time
+        return None
+    if acc_s > s:
+        # thrust doesn't have enough power to accelerate on time
+        return None
+
+    acc = vector_to_target.set_length(amax)
+
+    acc_t = (math.sqrt(v0 ** 2 + 2 * amax * acc_s) - v0) / amax
+    assert acc_t >= 0
+
+    middle_point = accelerate(start=position, acc=acc, t_sec=acc_t)
+    v1 = middle_point.velocity.abs()
+    dec_t = (v1 - v2) / amax
+
+    now = position.timestamp.usec() if position.timestamp else 0
+    accelerate_maneuver = Maneuver(at=now,
+                                   duration=round(acc_t * 10**6),
+                                   acc=acc)
+    decelerate_maneuver = Maneuver(at=now + round(acc_t * 10**6),
+                                   duration=round(dec_t * 10**6),
+                                   acc=-acc)
+    return FlightPlan(maneuvers=[accelerate_maneuver, decelerate_maneuver])
+
+def stop_at_plan(start: Position, target: Position, amax: float) -> FlightPlan:
     """Return flight plan which can be used to move from the specified 'start'
     position to the specified 'finish'. The 'finish' position must have zero speed.
     Acceleration must not exceed the specified 'amax' value"""
-    assert finish.velocity.abs() < 0.001
+    assert target.velocity.abs() < 0.001
 
-    s = start.distance_to(finish)
+    s = start.distance_to(target)
     now = start.timestamp.usec() if start.timestamp else 0
 
-    if start.velocity.abs() < 0.001:
-        t = math.sqrt(s/amax)
-        return FlightPlan(maneuvers=[
-            Maneuver(at=now,
-                     duration=t * 10**6,
-                     acc=start.vector_to(finish).set_length(amax)),
-            Maneuver(at=now + t * 10**6,
-                     duration=t * 10 ** 6,
-                     acc=start.vector_to(finish).set_length(-amax)),
-        ])
+    simple_plan = two_maneuvers_plan(start, target, amax)
+    if simple_plan:
+        return simple_plan
 
-    cosa = start.velocity.cosa(start.vector_to(finish))
-    if 0.999 < abs(cosa):
-        # 1D case:
-        # Try to build one maneuver plan first
-        simple_plan = one_maneuver_plan(start, finish)
-        if simple_plan and simple_plan.max_acceleration() < amax:
-            return simple_plan
-        # Can't decelerate in one maneuver
-        decelerating = decelerating_plan(start, acc=amax)
-        stoped_at = decelerating.apply_to(start)
-        stoped_at.velocity.set_length(0)
-        moving = stop_at_plan(stoped_at, finish, amax)
-        return FlightPlan.merge(plans=[decelerating, moving])
+    # Can't decelerate in one maneuver
+    assert start.velocity.collinear(start.vector_to(target))
+    decelerating = decelerating_plan(start, acc=amax)
+    stoped_at = decelerating.apply_to(start)
+    stoped_at.velocity.zero()
+    moving = two_maneuvers_plan(stoped_at, target, amax)
+    if not decelerating or not moving:
+        print("aaa")
+    return FlightPlan.merge(plans=[decelerating, moving])
+
+def one_dimension_case(position: Position, target: Position):
+    if position.velocity.abs() < 0.002:
+        if target.velocity.abs() < 0.002:
+            return True
+        else:
+            return target.velocity.collinear(position.vector_to(target))
+    elif target.velocity.abs() < 0.002:
+        return position.velocity.collinear(position.vector_to(target))
     else:
-        assert False  # Not supported
-
+        return target.velocity.collinear(position.vector_to(target)) and \
+               position.velocity.collinear(position.vector_to(target))
 
 def prepare_flight_plan_1D(position: Position,
                            target: Position,
                            amax: float) -> FlightPlan:
     # As far as we are in 1D the following assertions should be true:
-    if position.velocity.abs() > 0.001:
-        assert 0.9999 < abs(position.vector_to(target).cosa(position.velocity))
-    if target.velocity.abs() > 0.001:
-        assert 0.9999 < abs(position.vector_to(target).cosa(target.velocity))
+    assert one_dimension_case(position, target)
     maneuvers: List[Maneuver] = []
 
     # Try to build one manuever plan first
-    simple_plan = one_maneuver_plan(position, target)
-    if simple_plan and simple_plan.max_acceleration() < amax:
+    simple_plan = two_maneuvers_plan(position, target, amax)
+    if simple_plan:
         # Gods are smiling for us today: it's a simple case
         return simple_plan
 
     if target.velocity.abs() < 0.01:
         return stop_at_plan(position, target, amax)
 
+    now = position.timestamp.usec() if position.timestamp else 0
+
     # We are not that lucky, we have to do a series of manuevers
     # Let's find 'middle_point'. It should be a point where we should start to
     # accelerate with amax to reach the target
-    middle_point = accelerated_from(target, acc=amax * 0.995)
+    middle_point = accelerated_from(target, acc=amax * 0.99)
     # Building a plan to reach middle_point
     decelerate = stop_at_plan(position, middle_point, amax)
     # Recalculating middle_point to calculate it's timestamp
-    middle_point = decelerate.apply_to(position)
-    middle_point.velocity.set_length(0)
+    middle_point.timestamp.update(decelerate.duration_usec())
     # Calculatin a plan to accelerate from middle point to target
     # This time it should be a one maneuver plan
     accelerate = one_maneuver_plan(middle_point, target=target)
+    if not (accelerate and accelerate.max_acceleration() <= amax):
+        print(accelerate.max_acceleration(), amax)
     assert accelerate and accelerate.max_acceleration() <= amax
     # Finally, merging (actually, concatanating) two plans:
     return FlightPlan.merge([decelerate, accelerate])
@@ -257,9 +299,10 @@ class Range:
                 bounds.shift_left()
         return bounds
 
-
-
 def prepare_flight_plan(position: Position, target: Position, amax: float) -> FlightPlan:
+    if one_dimension_case(position, target):
+        return prepare_flight_plan_1D(position, target, amax)
+
     target_y = Position(x=target.x, y=target.y, velocity=Vector(0, 0))
     x_position, y_position = position.decompose(target)
 

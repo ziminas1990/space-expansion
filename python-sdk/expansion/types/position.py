@@ -53,14 +53,17 @@ class Position(NamedTuple):
                         timestamp=None)
 
     def decompose(self, other: "Position") -> Tuple["Position", "Position"]:
-        longitudinal_offset, lateral_offset = other.vector_to(self).decompose(other.velocity)
-        longitudinal_velocity, lateral_velocity = self.velocity.decompose(other.velocity)
+        base_vector = other.velocity if other.velocity.abs() > 0.001 else self.velocity
+        longitudinal_offset, lateral_offset = other.vector_to(self).decompose(base_vector)
+        longitudinal_velocity, lateral_velocity = self.velocity.decompose(base_vector)
         return Position(x = other.x + longitudinal_offset.x,
                         y = other.y + longitudinal_offset.y,
-                        velocity=longitudinal_velocity),\
+                        velocity=longitudinal_velocity,
+                        timestamp=self.timestamp),\
                Position(x=other.x + lateral_offset.x,
                         y=other.y + lateral_offset.y,
-                        velocity=lateral_velocity),
+                        velocity=lateral_velocity,
+                        timestamp=self.timestamp)
 
     def more_recent_than(self, other: "Position") -> bool:
         return other.timestamp is None or \

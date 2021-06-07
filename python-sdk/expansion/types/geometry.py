@@ -44,6 +44,12 @@ class Vector():
     def cosa(self, other: 'Vector') -> float:
         return (self.x * other.x + self.y * other.y) / (self.abs() * other.abs())
 
+    def collinear(self, other: "Vector") -> bool:
+        return abs(self.x * other.y - self.y * other.x) < 0.001
+
+    def codirected(self, other: "Vector") -> bool:
+        return self.collinear(other) and self.x * other.x >= 0 and self.y * other.y >= 0
+
     def set_length(self, length: float, *, inplace: bool = True) -> 'Vector':
         k = length / self.abs()
         if inplace:
@@ -53,6 +59,11 @@ class Vector():
         else:
             return Vector(x = self.x * k, y = self.y * k)
 
+    def zero(self):
+        self.x = 0
+        self.y = 0
+        return self
+
     def mult_self(self, k: float) -> 'Vector':
         self.x *= k
         self.y *= k
@@ -61,6 +72,8 @@ class Vector():
     def decompose(self, other: "Vector") -> Tuple["Vector", "Vector"]:
         """Decompose vector into two vectors: one is parralel to 'other' and
         another is perpendicular to it."""
+        if self.abs() < 0.001:
+            return Vector(0, 0), Vector(0, 0)
         cosa = self.cosa(other)
         longitudinal = Vector(other.x, other.y).set_length(self.abs() * cosa)
         lateral = self - longitudinal
