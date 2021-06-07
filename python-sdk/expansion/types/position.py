@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, NamedTuple, Tuple
+from typing import Optional, NamedTuple, Tuple, Union
 import time
 import math
 from expansion.types import Vector, TimePoint
@@ -18,11 +18,17 @@ class Position(NamedTuple):
                         velocity=Vector(x=position.vx, y=position.vy),
                         timestamp=TimePoint(timestamp))
 
-    def distance_to(self, other: 'Position') -> float:
-        return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
+    def distance_to(self, other: Union['Position', Tuple[float, float]]) -> float:
+        if isinstance(other, Position):
+            return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
+        else:
+            return math.sqrt((self.x - other[0]) ** 2 + (self.y - other[1]) ** 2)
 
-    def vector_to(self, other: 'Position') -> Vector:
-        return Vector(x=other.x - self.x, y=other.y - self.y)
+    def vector_to(self, other: Union['Position', Tuple[float, float]]) -> Vector:
+        if isinstance(other, Position):
+            return Vector(x=other.x - self.x, y=other.y - self.y)
+        else:
+            return Vector(x=other[0] - self.x, y=other[1] - self.y)
 
     def expired(self, timeout_ms: int = 100) -> bool:
         assert self.timestamp is not None
@@ -40,8 +46,13 @@ class Position(NamedTuple):
         return Position(x=self.x + self.velocity.x * dt_sec,
                         y=self.y + self.velocity.y * dt_sec,
                         velocity=Vector(self.velocity.x, self.velocity.y),
-                        # Predicted position shouldn't have timestamp
+                        # Predicted position shouldn't have timestamp, because
+                        # timestamp is used to compare if one object is more recent
+                        # than another. Predicted object can't be more recent than
+                        # original because it is predicted, obviously :)
                         timestamp=None)
+
+
 
     def decompose(self, other: "Position") -> Tuple["Position", "Position"]:
         longitudinal_offset, lateral_offset = other.vector_to(self).decompose(other.velocity)

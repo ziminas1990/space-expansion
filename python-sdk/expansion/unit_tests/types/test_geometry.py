@@ -8,7 +8,9 @@ class TestCase(unittest.TestCase):
 
     def test_vector_decompose(self):
         rnd.seed(473758)
-        for i in range(1000):
+        for i in range(10000):
+            case_seed = rnd.randint(1, 1000000)
+            rnd.seed(case_seed)
             target = random_vector(10)
             v = random_vector(10)
             a, b = v.decompose(target)

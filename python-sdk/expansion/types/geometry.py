@@ -29,13 +29,22 @@ class Vector():
     def __mul__(self, mult: float) -> 'Vector':
         return Vector(x=self.x * mult, y=self.y * mult)
 
+    def __pow__(self, power: int, modulo=None) -> "Vector":
+        assert power >= 1
+        k = self.abs() ** (power - 1)
+        return Vector(x = self.x * k, y=self.y * k)
+
+    def normalized(self) -> "Vector":
+        len = self.abs()
+        return Vector(x = self.x / len, y = self.y / len)
+
     def scalar_mult(self, other: 'Vector') -> float:
         return self.x * other.x + self.y * other.y
 
     def cosa(self, other: 'Vector') -> float:
         return (self.x * other.x + self.y * other.y) / (self.abs() * other.abs())
 
-    def set_length(self, length: float, inplace: bool = True) -> 'Vector':
+    def set_length(self, length: float, *, inplace: bool = True) -> 'Vector':
         k = length / self.abs()
         if inplace:
             self.x *= k

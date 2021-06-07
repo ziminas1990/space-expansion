@@ -1,11 +1,167 @@
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, NamedTuple, List, Tuple, Optional, Iterator
 import math
 import asyncio
 
-from expansion.types import Position
+from expansion.types import Position, Vector
 from expansion.modules.ship import Ship
 from expansion.modules.engine import Engine, EngineSpec
 import expansion.interfaces.rpc as rpc
+
+
+class Maneuver(NamedTuple):
+    at: int        # When the specified acceleration should be set
+    duration: int  # How long acceleration should last
+    acc: Vector    # An acceleration that should be set
+
+    def __cmp__(self, other: "Maneuver"):
+        return self.at - other.at
+
+    def apply_to(self, position: Position) -> Position:
+        """Predict a new position of the object if this maneuver is applied to it."""
+        if position.timestamp:
+            assert position.timestamp <= self.at
+            position = position.predict(self.at)
+
+        dt = self.duration / 1000000
+        return Position(
+            x = position.x + position.velocity.x * dt + self.acc.x * dt * dt / 2,
+            y = position.y + position.velocity.y * dt + self.acc.y * dt * dt / 2,
+            velocity=Vector(
+                x = position.velocity.x + self.acc.x * dt,
+                y = position.velocity.y + self.acc.y * dt),
+            timestamp = self.at + self.duration
+        )
+
+class FlightPlan(NamedTuple):
+    maneuvers: List[Maneuver]
+
+    def time_points(self) -> List[int]:
+        # Return timepoints where acceleration should be changed
+        points: List[int] = []
+        for maneuver in self.maneuvers:
+            if not points or points[-1] < maneuver.at:
+                points.extend([maneuver.at, maneuver.at + maneuver.duration])
+            else:
+                points.append(maneuver.at + maneuver.duration)
+
+    def acceleration_at(self, at_us: int) -> Vector:
+        for maneuver in self.maneuvers:
+            if at_us < maneuver.at:
+                return Vector(0, 0)
+            if maneuver.at <= at < maneuver.at + maneuver.duration:
+                return maneuver.acc
+        return Vector(0, 0)
+
+    @staticmethod
+    def merge(self, plans: List["FlightPlan"]) -> "FlightPlan":
+        time_points: List[int] = []
+        for plan in plans:
+            time_points.extend(plan.time_points())
+        time_points.sort()
+        if not time_points:
+            return FlightPlan([])
+
+        maneuvers: List[Maneuver] = []
+        for i in range(0, len(time_points) - 1):
+            begin = time_points[i]
+            duration = time_points[i + 1] - begin
+            acceleration = Vector(0, 0)
+            for plan in plans:
+                acceleration += plan.acceleration_at(begin)
+            maneuvers.append(Maneuver(at=begin, duration=duration, acc=acceleration))
+
+        return FlightPlan(maneuvers)
+
+    def apply_to(self, position: Position) -> Position:
+        """Predict a new position of the object if this flight plan is
+        applied to it."""
+        if not self.maneuvers:
+            return position
+        for maneuver in self.maneuvers:
+            position = maneuver.apply_to(position)
+        return position
+
+
+def flight_through_plan(position: Position, *, x: float, y: float, amax: float) -> FlightPlan:
+    """Return a flight plan to reach the speicfied point with any speed"""
+    vector_to_target = position.vector_to((x, y))
+    cosa = position.velocity.cosa(vector_to_target)
+    s = position.distance_to((x, y))
+    if (abs(cosa) > 0.999):
+        # 1D case
+        v0 = position.velocity.abs() * cosa  # it can be negative
+        D = v0 * v0 + 2 * amax * s  # discriminant can't be negative btw
+        t = (-v0 + math.sqrt(D)) / amax
+        return FlightPlan(maneuvers=[
+            Maneuver(at=0, duration=t * 1000000, acc=vector_to_target.set_length(amax))
+        ])
+    else:
+        # 2D case
+        assert False, "Not supported"
+
+
+def accelerate(start: Position, acc: Vector, t_sec: float) -> Position:
+    dv = acc * t_sec
+    ds = start.velocity * t_sec + (dv * t_sec) / 2
+    timestamp = start.timestamp + t_sec * 10 ** 6 if start.timestamp is not None else None
+    return Position(x = start.x + ds.x,
+                    y = start.y + ds.y,
+                    velocity = start.velocity + dv,
+                    timestamp = timestamp)
+
+def accelerated_from(position: Position, *, acc: float) -> Position:
+    '''Return position where object had to start accelerate with
+    the specified 'acc' to reach the specified 'position' '''
+    t = position.velocity.abs() / acc
+    s = acc * t * t / 2
+    vector_to_target = position.velocity.set_length(-s, inplace=False)
+    timestamp = position.timestamp - (t * 1000000) if position.timestamp is not None else None
+    return Position(x = position.x + vector_to_target.x,
+                    y = position.y + vector_to_target.y,
+                    velocity=Vector(0, 0),
+                    timestamp=timestamp)
+
+def decelerated_at(position: Position, *, acc: float) -> Position:
+    t = position.velocity.abs() / acc
+    s = t * position.velocity.abs() / 2
+    vector_to_target = position.velocity.set_length(s, inplace=False)
+    timestamp = position.timestamp - (t * 1000000) if position.timestamp is not None else None
+    return Position(x=position.x + vector_to_target.x,
+                    y=position.y + vector_to_target.y,
+                    velocity=Vector(0, 0),
+                    timestamp=timestamp)
+
+
+def prepare_flight_plan_1D(position: Position, target: Position) -> FlightPlan:
+    # As far as we are in 1D the following assertions should be true:
+    assert 0.9999 < abs(position.velocity.cosa(position.vector_to(target))) < 1.0001
+    assert 0.9999 < abs(position.velocity.cosa(target.velocity)) < 1.0001
+
+    # more specific assertions that prevent cases which are not supported yet
+    assert 0.9999 < position.velocity.cosa(target.velocity) < 1.0001
+
+    maneuvers: List[Maneuver] = []
+
+    dv = target.velocity.abs() - position.velocity.abs()
+    diffSqrV = dv * (target.velocity.abs() + position.velocity.abs())
+    s = position.distance_to(target)
+    acc = diffSqrV / (2 * s)
+    duration = round(1000000 * dv / acc)
+    maneuvers.append(Maneuver(at=position.timestamp if position.timestamp else 0,
+                              duration=duration,
+                              acc=position.velocity.set_length(acc, inplace=False)))
+    return FlightPlan(maneuvers)
+
+
+def prepare_flight_plan_2D(position: Position, target: Position) -> FlightPlan:
+    # more specific assertions that prevent cases which are not supported yet
+    assert 0 < position.vector_to(target).cosa(target.velocity)
+
+    longitudinal, lateral = position.decompose(target)
+    longitudinal_plan = prepare_flight_plan_1D(longitudinal, target)
+    lateral_target = Position(x=target.x, y=target.y, velocity=Vector(0, 0))
+    lateral_plan = prepare_flight_plan_1D(lateral, target)
+    return FlightPlan.merge([longitudinal_plan, lateral_plan])
 
 
 async def move_to(ship: Ship,

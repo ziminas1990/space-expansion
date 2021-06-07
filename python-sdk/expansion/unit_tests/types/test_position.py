@@ -7,14 +7,11 @@ import math
 
 class TestCase(unittest.TestCase):
 
-    @staticmethod
-    def almost_equal(one: types.Vector, other: types.Vector) -> bool:
-        diff = one - other
-        return diff.abs() < 0.000001
-
     def test_position_decompose(self):
         rnd.seed(473758)
-        for i in range(1000):
+        for i in range(10000):
+            case_seed = rnd.randint(1, 1000000)
+            rnd.seed(case_seed)
             target = random_position(0, 0, 100, 10)
             me = random_position(0, 0, 100, 10)
             a, b = me.decompose(target)
