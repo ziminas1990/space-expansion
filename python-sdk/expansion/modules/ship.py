@@ -60,12 +60,15 @@ class Ship(Commutator, BaseModule):
         if self.position is None:
             if not await self.sync(timeout=timeout):
                 return None
-            return self.position.predict(at_us)
+            return self.position.predict(at_us) if at_us else self.position
 
         if self.position.expired(cache_expiring_ms):
             if not await self.sync():
                 return None
-        return self.position.predict(at_us)
+        return self.position.predict(at_us) if at_us else self.position
+
+    def predict_position(self, at: Optional[int] = None) -> Optional[Position]:
+        return self.position.predict(at=at) if self.position else None
 
     async def get_state(self, cache_expiring_ms: int = 50) -> Optional[rpc.ShipState]:
         """Return current ship's state"""

@@ -51,7 +51,7 @@ class EngineI(IOTerminal):
             return None
         return Vector(x=thrust.x, y=thrust.y).set_length(thrust.thrust)
 
-    def set_thrust(self, thrust: Vector, duration_ms: int = 0) -> bool:
+    def set_thrust(self, thrust: Vector, at: int = 0, duration_ms: int = 0) -> bool:
         """Set engine thrust to the specified 'thrust' for the
         specified 'duration_ms' milliseconds. If 'duration_ms' is 0, then
         the thrust will be set until another command.
@@ -59,6 +59,8 @@ class EngineI(IOTerminal):
         Return true if a request has been sent
         """
         request = public.Message()
+        if at:
+            request.timestamp = at
         thrust_req = request.engine.change_thrust
         thrust_req.x = thrust.x
         thrust_req.y = thrust.y

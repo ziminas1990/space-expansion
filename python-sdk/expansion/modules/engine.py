@@ -41,7 +41,7 @@ class Engine(BaseModule):
                                     time.monotonic() * 1000
         return self.cache.thrust[0]
 
-    async def set_thrust(self, thrust: Vector, duration_ms: int = 0) -> bool:
+    async def set_thrust(self, thrust: Vector, at: int = 0, duration_ms: int = 0) -> bool:
         """Set engine thrust to the specified 'thrust' for the
         specified 'duration_ms' milliseconds. If 'duration_ms' is 0, then
         the thrust will be set until another command.
@@ -49,5 +49,5 @@ class Engine(BaseModule):
         Return true if a request has been sent
         """
         async with self.rent_session(EngineI) as channel:
-            return channel.set_thrust(thrust=thrust, duration_ms=duration_ms)
+            return channel.set_thrust(thrust=thrust, at=at, duration_ms=duration_ms)
             # Should we update self.cache.thrust here?

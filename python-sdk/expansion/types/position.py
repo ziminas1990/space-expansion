@@ -37,20 +37,17 @@ class Position(NamedTuple):
     def predict(self, at: Optional[int] = None) -> 'Position':
         assert self.timestamp is not None
 
-        dt_sec: float = 0
         if at is None:
-            dt_sec = self.timestamp.dt_sec()
-        else:
-            dt_sec = (at - self.timestamp.usec()) / 10 ** 6
+            at = self.timestamp.predict_usec()
+
+        dt_sec = (at - self.timestamp.usec()) / 10 ** 6
 
         return Position(x=self.x + self.velocity.x * dt_sec,
                         y=self.y + self.velocity.y * dt_sec,
                         velocity=Vector(self.velocity.x, self.velocity.y),
-                        # Predicted position shouldn't have timestamp, because
-                        # timestamp is used to compare if one object is more recent
-                        # than another. Predicted object can't be more recent than
-                        # original because it is predicted, obviously :)
-                        timestamp=None)
+                        # Since it is predicted position, it should have static
+                        # timestamp
+                        timestamp=TimePoint(at, static=True))
 
     def decompose(self, other: "Position") -> Tuple["Position", "Position"]:
         base_vector = other.velocity if other.velocity.abs() > 0.001 else self.velocity
@@ -66,6 +63,5 @@ class Position(NamedTuple):
                         timestamp=self.timestamp)
 
     def more_recent_than(self, other: "Position") -> bool:
-        return other.timestamp is None or \
-               (self.timestamp and
-                self.timestamp.usec() > other.timestamp.usec())
+        return other.timestamp is None or (
+                self.timestamp and self.timestamp.more_recent(other.timestamp))

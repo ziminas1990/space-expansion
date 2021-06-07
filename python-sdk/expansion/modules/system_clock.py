@@ -1,6 +1,7 @@
 from typing import Optional, Set, Callable, Awaitable
 import threading
 import asyncio
+from math import isclose
 
 import expansion.interfaces.rpc as rpc
 import expansion.utils as utils
@@ -23,7 +24,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         # A set of a callbacks, which wants to receive timestamps
         self.mutex: threading.Lock = threading.Lock()
 
-        self.cached_time: Callable[[], int] = self.server_time.usec
+        self.cached_time: Callable[[], int] = self.server_time.predict_usec
 
     async def sync(self, timeout: float = 0.5) -> bool:
         """Sync local system clock with server"""
@@ -49,12 +50,16 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         """
         return self.server_time
 
-    async def wait_until(self, time: int, timeout: float) \
+    async def wait_until(self, time: int, timeout: float = 0) \
             -> Optional[int]:
         """Wait until server time reaches the specified 'time'
 
         On success update cached time and return cached time, otherwise
         return None"""
+        if isclose(timeout, 0):
+            dt = time - self.server_time.predict_usec()
+            timeout = 1.2 * dt / 10**6 if dt > 0.1 else 0.1
+
         async with self.rent_session(rpc.SystemClock) as channel:
             if channel is None:
                 return None
@@ -63,8 +68,11 @@ class SystemClock(rpc.SystemClockI, BaseModule):
                 self.server_time.update(time)
             return self.server_time.predict_usec()
 
-    async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
+    async def wait_for(self, period_us: int, timeout: float = 0) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
+        if isclose(timeout, 0):
+            timeout = max(1.2 * period_us / 10 ** 6, 0.1)
+
         async with self.rent_session(rpc.SystemClock) as channel:
             if channel is None:
                 return None

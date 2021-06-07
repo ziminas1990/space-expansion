@@ -1,9 +1,9 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from .base_module import ModuleType
 from .commutator import Commutator
 from .ship import Ship
-from .engine import Engine
+from .engine import Engine, EngineSpec
 from .system_clock import SystemClock
 from .resource_container import ResourceContainer
 from .celestial_scanner import CelestialScanner
@@ -61,6 +61,17 @@ def get_all_engines(commutator: Commutator) -> List[Engine]:
     except KeyError:
         return []
 
+
+async def get_most_powerful_engine(commutator: Commutator) -> Optional[Engine]:
+    choice: Optional[Tuple[Engine, EngineSpec]] = None
+
+    for engine in get_all_engines(commutator):
+        engine_spec = await engine.get_specification()
+        if not engine_spec:
+            continue
+        if not choice or choice[1].max_thrust < engine_spec.max_thrust:
+            choice = (engine, engine_spec)
+    return choice[0] if choice else None
 
 def get_cargo(commutator: Commutator, name: str) -> Optional[ResourceContainer]:
     try:

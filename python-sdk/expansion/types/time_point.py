@@ -37,16 +37,28 @@ class TimePoint:
         return self._server_time / 10**6
 
     def predict_usec(self) -> int:
-        """Return predited current time in microseconds
-
-        Note: this function doesn't guarantee monotonic behavior!
-        If you need monotonic time, use the `monotonic()` instead
-        """
+        """Return predited current time in microseconds"""
         assert self._local_time is not None
         dt = int((time.monotonic() - self._local_time) * 1000000)
         return self._server_time + dt
+
+    def predict_sec(self) -> float:
+        """Return predited current time in seconds"""
+        assert self._local_time is not None
+        dt = time.monotonic() - self._local_time
+        return self._server_time / 10 ** 6 + dt
 
     def dt_sec(self) -> float:
         """Return seconds since the timepoint has been created/updated"""
         assert self._local_time is not None
         return time.monotonic() - self._local_time
+
+    def more_recent(self, other: "TimePoint") -> bool:
+        if self._local_time is None:
+            if other._local_time is None:
+                # Both timepoints are static and can be compared
+                return self._server_time > other._server_time
+        else:
+            # this timepoint is not static
+            # non-static (live) timepoint has priority against static
+            return other._local_time is None or self._server_time > other._server_time
