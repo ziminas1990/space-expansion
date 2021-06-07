@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple, Type
 import contextlib
 import logging
@@ -35,7 +36,9 @@ class BaseModule:
         return True
 
     @contextlib.asynccontextmanager
-    async def rent_session(self, terminal_type: Type) -> ContextManager[Optional[Endpoint]]:
+    async def rent_session(self,
+                           terminal_type: Type,
+                           retires: int = 3) -> ContextManager[Optional[Endpoint]]:
         """Rent a session for a simple request/response communications
         """
         try:
@@ -44,10 +47,18 @@ class BaseModule:
                 terminal = self._sessions.setdefault(terminal_type, []).pop(-1)
             except IndexError:
                 # No terminals to reuse
-                terminal = await self.open_session(terminal_type)
+                while terminal is None and retires > 0:
+                    terminal = await self.open_session(terminal_type)
+                    retires -= 1
             finally:
                 assert terminal is not None
                 yield terminal
+        except asyncio.CancelledError as exc:
+            # Tunnel could be in unknown state now (may be it is still waiting for
+            # answer). So we can't let another client to reuse it
+            await terminal.close()
+            terminal = None
+            raise exc
         finally:
             if terminal:
                 self._sessions.setdefault(terminal_type, []).append(terminal)

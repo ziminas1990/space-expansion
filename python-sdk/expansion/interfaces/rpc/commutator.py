@@ -47,7 +47,8 @@ class Tunnel(ProxyChannel):
 
     # Overridden from Channel
     async def close(self):
-        assert False, "Not implemented yet"
+        pass
+        #assert False, "Not implemented yet"
 
 
 class ModuleInfo(NamedTuple):
@@ -179,7 +180,7 @@ class CommutatorI(IOTerminal):
         request.commutator.open_tunnel = port
         self.send(request)
 
-        response, _ = await self.wait_message()
+        response, _ = await self.wait_message(timeout=0.2)  # it shouldn't take much time
         if not response:
             return None, "timeout"
         tunnel_id = get_message_field(response, "commutator.open_tunnel_report")
