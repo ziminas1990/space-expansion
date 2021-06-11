@@ -102,6 +102,9 @@ class FlightPlan(NamedTuple):
         assert begin < end
         return end - begin
 
+    def duration_sec(self) -> float:
+        return self.duration_usec() / 10**6
+
     def starts_at(self) -> int:
         if not self.maneuvers:
             return 0
@@ -144,9 +147,7 @@ class FlightPlan(NamedTuple):
     def partially_apply_to(self, position: Position, duration_usec: int) -> Position:
         assert self.maneuvers and position.timestamp
         assert self.starts_at() <= position.timestamp.usec()
-        if (position.timestamp.usec() + duration_usec > self.ends_at()):
-            print("fuck")
-        assert position.timestamp.usec() + duration_usec <= self.ends_at()
+        assert position.timestamp.usec() <= self.ends_at()
         for maneuver in self.maneuvers:
             if position.timestamp.usec() < maneuver.ends_at():
                 dt = min(maneuver.ends_at() - position.timestamp.usec(), duration_usec)
@@ -156,6 +157,12 @@ class FlightPlan(NamedTuple):
                     break
         return position
 
+    def build_path(self, position: Position, step_ms: int = 1000) -> List[Position]:
+        path: List[Position] = []
+        while position.timestamp.usec() < self.ends_at():
+            position = self.partially_apply_to(position, step_ms * 1000)
+            path.append(position)
+        return path
 
 def accelerated_from(position: Position, *, acc: float) -> Position:
     '''Return position where object had to start accelerate with
