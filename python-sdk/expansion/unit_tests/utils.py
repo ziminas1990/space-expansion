@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 import random
 import random as rnd
 import expansion.types as types
@@ -9,13 +9,14 @@ def random_vector(length: float) -> types.Vector:
     return types.Vector(x= length * math.cos(alfa), y = length * math.sin(alfa))
 
 def random_position(x: float, y: float, deviation: float, speed_max: float,
-                    timestamp: int = 0) -> types.Position:
+                    timestamp: Optional[int] = None) -> types.Position:
     alfa = rnd.random() * math.tau
     r = rnd.random() * deviation
+    timestamp = types.TimePoint(timestamp, static=True) if timestamp else None
     return types.Position(x = r * math.cos(alfa),
                           y = r * math.sin(alfa),
                           velocity=random_vector(rnd.random() * speed_max),
-                          timestamp=types.TimePoint(timestamp, static=True))
+                          timestamp=timestamp)
 
 def random_positions_1D(x: float, y: float, radius: float,
                         max_start_speed: float, max_stop_speed: float,

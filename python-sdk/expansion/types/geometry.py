@@ -45,7 +45,7 @@ class Vector():
         return (self.x * other.x + self.y * other.y) / (self.abs() * other.abs())
 
     def collinear(self, other: "Vector") -> bool:
-        return abs(self.x * other.y - self.y * other.x) < 0.001
+        return abs(self.x * other.y - self.y * other.x) < 0.02
 
     def codirected(self, other: "Vector") -> bool:
         return self.collinear(other) and self.x * other.x >= 0 and self.y * other.y >= 0
@@ -68,6 +68,9 @@ class Vector():
         self.x *= k
         self.y *= k
         return self
+
+    def almost_null(self, delta = 0.001) -> bool:
+        return self.x ** 2 + self.y ** 2 < delta
 
     def decompose(self, other: "Vector") -> Tuple["Vector", "Vector"]:
         """Decompose vector into two vectors: one is parralel to 'other' and

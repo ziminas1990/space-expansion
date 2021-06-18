@@ -65,3 +65,9 @@ class Position(NamedTuple):
     def more_recent_than(self, other: "Position") -> bool:
         return other.timestamp is None or (
                 self.timestamp and self.timestamp.more_recent(other.timestamp))
+
+    def no_timestamp(self) -> "Position":
+        return Position(self.x, self.y, self.velocity, None)
+
+    def with_timestamp(self, timestamp: int) -> "Position":
+        return Position(self.x, self.y, self.velocity, timestamp=TimePoint(timestamp, static=True))
