@@ -433,6 +433,21 @@ class Range:
                 self.shift_right()
         return best
 
+    def right_bound(self, predicate: Callable[[float], bool],
+                    precision_level: int = 10) -> Optional[float]:
+        # predicate must be defined on left bound
+        if predicate(self.right):
+            return self.right
+        if not predicate(self.left):
+            return None
+        for attempt in range(precision_level):
+            defined = predicate(self.middle())
+            if defined:
+                self.shift_left()
+            else:
+                self.shift_right()
+        return self.left
+
     def extend_bounds(self, f: Callable[[float], float]):
         """Extend bounds until f is negative for left bound and positive for
         right bound"""
@@ -456,14 +471,29 @@ def _prepare_flight_plan(position: Position,
     target_y = Position(x=target.x, y=target.y, velocity=Vector(0, 0))
     x_position, y_position = position.decompose(target)
 
+    def check_defined(alfa: float) -> bool:
+        plan_x = plan_x_builder(x_position, target, amax * math.cos(alfa))
+        return plan_x is not None
+
+    if not check_defined(0):
+        # Can't build plan_x with amax
+        return None
+
+    # plan_x should be defined in alfa=0 since it has max acc.
+    # We find (almost) max right bound where plan_x is specified
+    right_bound = Range(0, math.pi / 2).right_bound(check_defined)
+    if right_bound < 1:
+        right_bound = Range(0, math.pi / 2).right_bound(check_defined)
+    assert right_bound
+
+    # Now we should find alfa where plan_x and plan_y have almost the
+    # same suration but plan_y is not onger than plan_x
     def predicate(alfa: float) -> int:
         plan_x = plan_x_builder(x_position, target, amax * math.cos(alfa))
         plan_y = plan_y_builder(y_position, target_y, amax * math.sin(alfa))
-        if not plan_x:
-            return 0 - plan_y.duration_usec()
         return plan_x.duration_usec() - plan_y.duration_usec()
 
-    range = Range(0.01 * math.pi / 2, 0.99 * math.pi / 2)
+    range = Range(0.01 * math.pi / 2, right_bound)
     alfa, _ = range.smallest_positive(predicate, good_enough=10**4)
     if alfa:
         plan_x = plan_x_builder(x_position, target, amax * math.cos(alfa))
