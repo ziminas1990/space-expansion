@@ -468,6 +468,9 @@ def _prepare_flight_plan(position: Position,
                          plan_x_builder: Callable[[Position, Position, float], FlightPlan],
                          plan_y_builder: Callable[[Position, Position, float], FlightPlan],
                          amax: float) -> Optional[FlightPlan]:
+    if one_dimension_case(position, target):
+        return plan_x_builder(position, target, amax)
+
     target_y = Position(x=target.x, y=target.y, velocity=Vector(0, 0))
     x_position, y_position = position.decompose(target)
 
@@ -522,8 +525,6 @@ def prepare_long_flight_plan(position: Position, target: Position, amax: float) 
 
 def prepare_flight_plan(position: Position, target: Position, amax: float) -> Optional[FlightPlan]:
     if target.timestamp is None:
-        if one_dimension_case(position, target):
-            return prepare_flight_plan_1D(position, target, amax)
 
         plan = prepare_fast_flight_plan(position, target, amax)
         if not plan:
@@ -549,8 +550,8 @@ def prepare_flight_plan(position: Position, target: Position, amax: float) -> Op
 
         good_enough = 10000  # 10 ms is good enough
         for predicate in [predicate_fast, predicate_long]:
-            acc, dt = Range(0.01, amax).closest_to_zero(predicate, good_enough)
-            if acc and abs(dt) < good_enough:
+            acc, deviation = Range(0.01, amax).closest_to_zero(predicate, good_enough)
+            if acc and abs(deviation) < good_enough:
                 return prepare_flight_plan(position, target.no_timestamp(), acc)
         return None
 
@@ -562,41 +563,46 @@ def time_to_reach(position: Position, target: Position) -> float:
     return s / v
 
 
-def approach_to_plan(position: Position, target: Position, amax: float,
-                     precise_level: int = 8) -> FlightPlan:
+def approach_to_plan(position: Position,
+                     target: Position,
+                     amax: float) -> FlightPlan:
 
-    def predicate(t: int) -> bool:
+    def predicate(t: int) -> int:
         at = target.timestamp.usec() + t
-        predicted_target = target.predict(at)
+        predicted_target = target.predict(at).no_timestamp()
         plan = prepare_flight_plan(position, predicted_target, amax)
-        return plan is not None
+        return t - plan.duration_usec()
 
-    # try to estimate initial right bound
-    estimation_plan = prepare_flight_plan(position, target.no_timestamp(), amax)
-
-    # This predicate will return false at t = 0. All we need to do is to
-    # find minimal t, where predicate returns True
-    t_range = Range(0, estimation_plan.duration_usec())
-    defined = predicate(t_range.right)
-    while not defined:
-        t_range.left = t_range.right
-        t_range.right *= 2
-        defined = predicate(t_range.right)
-
-    # Function is defined on right bound and not defined on left
-    # bound. Now we should find minimal t where it is defined
-    for attempts in range(0, precise_level):
-        defined = predicate(t_range.middle())
-        if defined:
-            t_range.shift_right()
+    range_t = Range(0, -predicate(0))
+    attempt = 0
+    while attempt < 16:
+        attempt += 1
+        if predicate(range_t.right) < 0:
+            range_t.left = range_t.right
+            range_t.right *= 2
         else:
-            t_range.shift_left()
+            break
 
-    flight_time = t_range.right  # predicate is defined on right bound
-    randevu_t = target.timestamp.usec() + flight_time
-    randevu_position = target.predict(randevu_t)
-    return prepare_flight_plan(position, randevu_position, amax)
+    if attempt == 16:
+        # Can't find right bound
+        return None
 
+    # for t in range_t.iterate(range_t.length() / 1000):
+    #     print(t, predicate(t))
+
+    good_enough = 10**5  # 100 ms
+    flight_time, dt = range_t.smallest_positive(predicate, good_enough=10**4)
+
+    k = 1.05
+    for attempts in range(32):
+        randevu_t = target.timestamp.usec() + flight_time
+        randevu_position = target.predict(randevu_t)
+        plan = prepare_flight_plan(position, randevu_position, amax)
+        if plan:
+            return plan
+        flight_time *= k
+        k += 0.01
+    return None
 
 async def follow_flight_plan(
         ship: Ship,
