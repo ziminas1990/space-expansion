@@ -39,7 +39,7 @@ enum class Cooldown {
   eCelestialScanner  = 0,
   eResourceContainer = 307000,
   eBlueprintsStorage = 308000,
-  eShipYard          = 609000,
+  eShipYard          = 309000,
 };
 #endif
 

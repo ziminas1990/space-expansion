@@ -48,6 +48,7 @@ protected:
       "        miner:  AsteroidMiner/ancient-nordic-miner",
       "        engine: Engine/ancient-nordic-engine",
       "        cargo:  ResourceContainer/ancient-nordic-cargo",
+      "        cargo-2:  ResourceContainer/ancient-nordic-cargo",
       "      expenses:",
       "        labor: 1000",
       "Players:",
@@ -119,6 +120,16 @@ TEST_F(AsteroidMinerTests, BindingToCargo)
             miner.bindToCargo("NonExistingCargo"));
 
   ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
+  // Second attempt should also pass fine
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo"));
+
+  ASSERT_EQ(client::AsteroidMiner::eNotBoundToCargo,
+            miner.bindToCargo("NonExistingCargo"));
+
+  // Try to attach to another cargo
+  client::ResourceContainer cargo2;
+  ASSERT_TRUE(client::FindResourceContainer(ship, cargo, "cargo-2"));
+  ASSERT_EQ(client::AsteroidMiner::eSuccess, miner.bindToCargo("cargo-2"));
 }
 
 TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)

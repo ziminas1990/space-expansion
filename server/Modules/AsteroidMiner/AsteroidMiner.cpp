@@ -101,15 +101,14 @@ void AsteroidMiner::handleAsteroidMinerMessage(
 
 void AsteroidMiner::bindToCargoRequest(uint32_t nTunnelId, std::string const& sCargoName)
 {
-  m_sContainerName = sCargoName;
-
-  BaseModulePtr pModule = getPlatform()->getModuleByName(m_sContainerName);
+  BaseModulePtr pModule = getPlatform()->getModuleByName(sCargoName);
   ResourceContainerPtr pContainer = std::dynamic_pointer_cast<ResourceContainer>(pModule);
   if (!pContainer) {
     sendBindingStatus(nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
     return;
   }
   m_pContainer = std::move(pContainer);
+  m_sContainerName = sCargoName;
   sendBindingStatus(nTunnelId, spex::IAsteroidMiner::SUCCESS);
 }
 
