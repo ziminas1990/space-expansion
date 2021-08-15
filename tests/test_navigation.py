@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional, Callable, Awaitable
 
 from base_test_fixture import BaseTestFixture
@@ -23,7 +24,7 @@ class FastForwardAdapter(rpc.SystemClockI):
         self.fast_forward = fast_forward
         self.fast_forward_multiplier = fast_forward_multiplier
 
-    async def wait_until(self, time: int, timeout: float) -> Optional[int]:
+    async def wait_until(self, time: int, timeout: float = 1) -> Optional[int]:
         """Wait until server time reaches the specified 'time'"""
         await self.fast_forward(self.fast_forward_multiplier, 1000)
         result = await self.system_clock.wait_until(time, timeout)
@@ -104,22 +105,32 @@ class TestNavigation(BaseTestFixture):
 
         scout_1: modules.Ship = modules.get_ship(commutator, "Probe", "scout-1")
         self.assertIsNotNone(scout_1)
+        scout_1_state = await scout_1.get_state()
+        self.assertIsNotNone(scout_1_state)
+
         scout_2: modules.Ship = modules.get_ship(commutator, "Ship/Probe", "scout-2")
         self.assertIsNotNone(scout_1)
 
         engine = modules.get_engine(scout_1, "main_engine")
         self.assertIsNotNone(engine)
+        engine_spec = await engine.get_specification()
+        self.assertIsNotNone(engine_spec)
 
-        success = await procedures.move_to(
-            ship=scout_1,
-            engine=engine,
-            get_target=scout_2.get_position,
-            system_clock=fast_forward_clock,
-            max_distance_error=5,
-            max_velocity_error=1)
+        amax = engine_spec.max_thrust / scout_1_state.weight
 
+        position, target = \
+            await asyncio.gather(scout_1.get_position(),
+                                 scout_2.get_position())
+
+        flight_plan = procedures.approach_to_plan(
+            position=position,
+            target=target,
+            amax=amax
+        )
+        success = await procedures.follow_flight_plan(
+            scout_1,
+            engine,
+            flight_plan,
+            fast_forward_clock
+        )
         self.assertTrue(success)
-        scout_1_position = await scout_1.get_position()
-        scout_2_position = await scout_2.get_position()
-        delta = scout_1_position.distance_to(scout_2_position)
-        self.assertLess(delta, 5)
