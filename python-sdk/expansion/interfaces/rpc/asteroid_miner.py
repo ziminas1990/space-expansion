@@ -93,7 +93,7 @@ class AsteroidMinerI(IOTerminal):
     async def start_mining(self,
                            asteroid_id: int,
                            progress_cb: MiningReportCallback,
-                           timeout: float = 0.5) -> Status:
+                           timeout: float = 1) -> Status:
         """Start mining asteroid with the specified 'asteroid_id'.
         The specified 'progress_cb' will be called in the following cases:
         1. the mining report is received from server - in this case a
@@ -119,7 +119,7 @@ class AsteroidMinerI(IOTerminal):
         if not mining_status.is_ok():
             return mining_status
 
-        report_timeout: float = 2 * spec.cycle_time_ms / 10000.0
+        report_timeout: float = 2.1 * spec.cycle_time_ms / 1000.0
         resume = True
         status = Status.INTERNAL_ERROR
         while resume:
@@ -152,7 +152,7 @@ class AsteroidMinerI(IOTerminal):
         request.asteroid_miner.start_mining = asteroid_id
         return self.send(message=request)
 
-    async def _wait_start_mining_status(self, timeout: float = 0.5) -> Status:
+    async def _wait_start_mining_status(self, timeout: float = 1) -> Status:
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT

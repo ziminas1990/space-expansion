@@ -1,11 +1,14 @@
-from typing import Optional, Callable, Awaitable, Tuple
+from typing import Optional, Callable, Awaitable, Tuple, TYPE_CHECKING
 import time
 
 from expansion.interfaces.rpc import ResourceContainerI
 from expansion import utils
 from expansion.types import ResourceItem
-from .base_module import BaseModule, TunnelFactory
+from .base_module import BaseModule, ModuleType
 
+if TYPE_CHECKING:
+    from expansion.modules.base_module import TunnelFactory
+    from expansion.modules import Commutator
 
 class ResourceContainer(BaseModule):
 
@@ -17,10 +20,10 @@ class ResourceContainer(BaseModule):
             self.content: Tuple[Optional[ResourceContainer.Content], int] = (None, 0)
 
     def __init__(self,
-                 tunnel_factory: TunnelFactory,
+                 tunnel_factory: "TunnelFactory",
                  name: Optional[str] = None):
         super().__init__(tunnel_factory=tunnel_factory,
-                         logging_name=name or utils.generate_name(ResourceContainer))
+                         name=name or utils.generate_name(ResourceContainer))
         self.cache = ResourceContainer.Cache()
         self.opened_port: Optional[Tuple[int, int]] = None  # (port, accessKey)
 
@@ -72,3 +75,31 @@ class ResourceContainer(BaseModule):
 
         async with self.rent_session(ResourceContainerI) as channel:
             return await channel.transfer(port, access_key, resource, _progress_cb, timeout)
+
+    @staticmethod
+    def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:
+        return BaseModule.get_by_name(
+            commutator=commutator,
+            type=ModuleType.RESOURCE_CONTAINER,
+            name=name
+        )
+
+    @staticmethod
+    async def find_most_free(commutator: "Commutator"):
+        async def better_than(candidate: "ResourceContainer",
+                              best: "ResourceContainer"):
+            best_content = await best.get_content()
+            if not best_content:
+                return False
+            content = await candidate.get_content()
+            if not content:
+                return False
+            best_free = best_content.volume - best_content.used
+            free = content.volume - content.used
+            print(f"{candidate.name} has {free}, {best.name} has {best_free}")
+            return free > best_free
+
+        return await BaseModule.find_best(
+            commutator=commutator,
+            type=ModuleType.RESOURCE_CONTAINER,
+            better_than=better_than)

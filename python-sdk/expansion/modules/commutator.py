@@ -20,7 +20,7 @@ class Commutator(BaseModule):
                  name: Optional[str] = None):
         self.name = name or utils.generate_name(Commutator)
         super().__init__(tunnel_factory=tunnel_factory,
-                         logging_name=self.name)
+                         name=self.name)
         self.modules_factory = modules_factory
         self.modules_info: Dict[str, Dict[str, int]] = {}
         # Map: module_type -> module_name -> slot_id

@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple, Type
+from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple, Type, TYPE_CHECKING
 import contextlib
 import logging
 from enum import Enum
@@ -9,6 +9,9 @@ from expansion.transport import ProxyChannel, Endpoint
 
 TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
 TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
+
+if TYPE_CHECKING:
+    from expansion.modules import Commutator
 
 
 class ModuleType(Enum):
@@ -23,11 +26,12 @@ class ModuleType(Enum):
 class BaseModule:
     def __init__(self,
                  tunnel_factory: TunnelFactory,
-                 logging_name: str):
+                 name: str):
         """Instantiate a module, that is attached on the specified 'port' to the
         specified remote 'commutator'. The specified 'connection_factory' will
         be used to instantiate an object, that implements a module's interface."""
-        self.logger = logging.getLogger(logging_name)
+        self.name = name
+        self.logger = logging.getLogger(name)
         self._tunnel_factory = tunnel_factory
         # All opened channels, that may be used to send requests
         self._sessions: Dict[Type, List[Endpoint]] = {}
@@ -45,6 +49,7 @@ class BaseModule:
             terminal: Optional[Endpoint] = None
             try:
                 terminal = self._sessions.setdefault(terminal_type, []).pop(-1)
+                #terminal.
             except IndexError:
                 # No terminals to reuse
                 while terminal is None and retires > 0:
@@ -86,4 +91,29 @@ class BaseModule:
     def _is_actual(value: Tuple[Optional[Any], int],
                    expiration_time_ms: int,) -> bool:
         return value[0] is not None and \
-               (time.monotonic() * 1000 - value[1]) >= expiration_time_ms
+               (time.monotonic() * 1000 - value[1]) <= expiration_time_ms
+
+    @staticmethod
+    def get_by_name(commutator: "Commutator",
+                    type: ModuleType,
+                    name: str) -> Optional["BaseModule"]:
+        try:
+            return commutator.modules[type.value][name]
+        except KeyError:
+            return None
+
+    @staticmethod
+    async def find_best(
+            commutator: "Commutator",
+            type: ModuleType,
+            better_than: Awaitable[Callable[[Any, Any], bool]]) \
+            -> Optional["BaseModule"]:
+        best: Optional["BaseModule"] = None
+        try:
+            all = commutator.modules[type.value]
+            for candidate in all.values():
+                if not best or await better_than(candidate, best):
+                    best = candidate
+            return best
+        except KeyError:
+            return None

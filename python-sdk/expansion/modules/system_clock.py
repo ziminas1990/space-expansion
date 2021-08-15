@@ -17,7 +17,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
                  tunnel_factory: TunnelFactory,
                  name: Optional[str] = None):
         super().__init__(tunnel_factory=tunnel_factory,
-                         logging_name=name or utils.generate_name(SystemClock))
+                         name=name or utils.generate_name(SystemClock))
         self.tick_us: Optional[int] = None
         self.server_time: types.TimePoint = types.TimePoint(0)
         self.time_callback: Set[Callable[[types.TimePoint], None]] = set()

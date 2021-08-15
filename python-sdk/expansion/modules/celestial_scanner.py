@@ -16,7 +16,7 @@ class CelestialScanner(BaseModule):
                  tunnel_factory: TunnelFactory,
                  name: Optional[str] = None):
         super().__init__(tunnel_factory=tunnel_factory,
-                         logging_name=name or utils.generate_name(CelestialScanner))
+                         name=name or utils.generate_name(CelestialScanner))
         self.specification: Optional[CelestialScannerSpec] = None
 
     async def get_specification(self, timeout: float = 0.5, reset_cached=False) \
