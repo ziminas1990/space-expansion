@@ -71,4 +71,7 @@ class ResourceItem(NamedTuple):
         output.type = self.resource_type.to_protobuf()
         output.amount = self.amount
 
+    def __str__(self):
+        return f"{self.resource_type.value}: {self.amount}"
+
 ResourcesDict = Dict[ResourceType, ResourceItem]

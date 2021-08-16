@@ -1,4 +1,4 @@
-from typing import Optional, NamedTuple, Dict, Callable
+from typing import Optional, NamedTuple, Dict, Callable, List
 from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
@@ -52,6 +52,22 @@ class ResourceContainerI(IOTerminal):
         volume: int
         used: float
         resources: Dict[ResourceType, float]
+
+        def as_list(self) -> List[ResourceItem]:
+            return [
+                ResourceItem(resource_type, amount) for
+                resource_type, amount in self.resources.items()
+            ]
+
+        def print_content(self) -> str:
+            return ", ".join(
+                [ str(resource) for resource in self.as_list()]
+            )
+
+        def print_status(self) -> str:
+            used = 100 * self.used / self.volume
+            return f"{used:.2f}% used: {self.print_content()}"
+
 
     def __init__(self, name: Optional[str] = None):
         super().__init__(name=name or utils.generate_name(ResourceContainerI))

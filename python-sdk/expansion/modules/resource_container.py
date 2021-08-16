@@ -73,8 +73,12 @@ class ResourceContainer(BaseModule):
             if progress_cb is not None:
                 progress_cb(item)
 
-        async with self.rent_session(ResourceContainerI) as channel:
-            return await channel.transfer(port, access_key, resource, _progress_cb, timeout)
+        session: "ResourceContainerI" = await self.open_session(ResourceContainerI)
+        if not session:
+            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
+        status = await session.transfer(port, access_key, resource, _progress_cb, timeout)
+        await session.close()
+        return status
 
     @staticmethod
     def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:
