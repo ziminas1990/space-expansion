@@ -58,8 +58,14 @@ public:
   bool isOnline()     const { return m_eStatus == Status::eOnline; }
   bool isDestroyed()  const { return m_eStatus == Status::eDestoyed; }
 
-  void onDeactivated()        { m_eState = State::eIdle; }
-  void onActivated()          { m_eState = State::eActive; }
+  void onDeactivated() {
+    assert(m_eState == State::eDeactivating);
+    m_eState = State::eIdle;
+  }
+  void onActivated() {
+    assert(m_eState == State::eActivating);
+    m_eState = State::eActive;
+  }
   bool isIdle()         const { return m_eState == State::eIdle; }
   bool isActivating()   const { return m_eState == State::eActivating; }
   bool isActive()       const { return m_eState == State::eActive; }

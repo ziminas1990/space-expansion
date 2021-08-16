@@ -31,19 +31,19 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   world::Asteroid* pAsteroid = getAsteroid(m_nAsteroidId);
   if (!pAsteroid) {
     sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::ASTEROID_DOESNT_EXIST);
-    onDeactivated();
+    switchToIdleState();
     return;
   }
 
   if (!isInRange(pAsteroid)) {
     sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::ASTEROID_TOO_FAR);
-    onDeactivated();
+    switchToIdleState();
     return;
   }
 
   if (!m_pContainer) {
     sendStartMiningStatus(m_nTunnelId, spex::IAsteroidMiner::NOT_BOUND_TO_CARGO);
-    onDeactivated();
+    switchToIdleState();
     return;
   }
 
@@ -52,10 +52,11 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
   if (m_nCycleProgressUs < nCycleTimeUs) {
     return;
   }
-
   m_nCycleProgressUs -= nCycleTimeUs;
 
   world::ResourcesArray mined = pAsteroid->yield(m_nYeildPerCycle);
+
+  bool noSpaceLeft = false;
 
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
@@ -69,12 +70,15 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
     pItem->set_type(utils::convert(eResource));
     pItem->set_amount(put);
     if (put < mined[eResource]) {
-      sendToClient(m_nTunnelId, message);
-      sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
-      onDeactivated();
+      noSpaceLeft = true;
+      break;
     }
   }
   sendToClient(m_nTunnelId, message);
+  if (noSpaceLeft) {
+    sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
+    switchToIdleState();
+  }
 }
 
 void AsteroidMiner::handleAsteroidMinerMessage(
