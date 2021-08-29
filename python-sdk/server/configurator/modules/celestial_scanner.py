@@ -1,12 +1,15 @@
 from typing import Optional
 from server.configurator.blueprints.base_blueprint import BaseBlueprint, BlueprintId, ModuleType
+from server.configurator.resources import ResourcesList
 
 
 class CelestialScannerBlueprint(BaseBlueprint):
     def __init__(self, name: str,
-                 max_scanning_radius_km: Optional[int] = None,
-                 processing_time_us: Optional[int] = None):
-        super().__init__(blueprint_id=BlueprintId(ModuleType.e_CELESTIAL_SCANNER, name))
+                 max_scanning_radius_km: int,
+                 processing_time_us: int,
+                 expenses: ResourcesList):
+        super().__init__(blueprint_id=BlueprintId(ModuleType.e_CELESTIAL_SCANNER, name),
+                         expenses=expenses)
         self.max_scanning_radius_km: Optional[int] = max_scanning_radius_km
         self.processing_time_us: Optional[int] = processing_time_us
 

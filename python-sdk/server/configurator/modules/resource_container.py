@@ -1,13 +1,17 @@
 from typing import Optional, Dict
 from server.configurator.blueprints.base_blueprint import BaseBlueprint, BlueprintId, ModuleType
 from .base_module import BaseModule
-from server.configurator.resources import PhysicalResources
+from server.configurator.resources import PhysicalResources, ResourcesList
 from expansion.types import ResourceType
 
 
 class ResourceContainerBlueprint(BaseBlueprint):
-    def __init__(self, name: str, volume: Optional[int] = None):
-        super().__init__(blueprint_id=BlueprintId(ModuleType.e_RESOURCE_CONTAINER, name))
+    def __init__(self, name: str,
+                 volume: int,
+                 expenses: ResourcesList,):
+        super().__init__(
+            blueprint_id=BlueprintId(ModuleType.e_RESOURCE_CONTAINER, name),
+            expenses=expenses)
         self.volume: Optional[int] = volume
 
     def verify(self):

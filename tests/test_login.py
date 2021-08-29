@@ -2,8 +2,9 @@ from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 import server.configurator.modules.default_ships as default_ships
-from server.configurator import (
-    Configuration, General, ApplicationMode, ResourceType)
+from server.configurator.general import General, ApplicationMode
+from server.configurator.resources import ResourceType
+from server.configurator.configuration import Configuration
 
 
 class TestLogin(BaseTestFixture):

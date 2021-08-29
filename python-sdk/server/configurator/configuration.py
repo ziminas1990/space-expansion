@@ -1,37 +1,39 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, TYPE_CHECKING
 
-from .general import General
 from server.configurator.blueprints.base_blueprint import BlueprintId, ModuleType
-from server.configurator.blueprints.blueprints_db import BlueprintsDB
-from server.configurator.world.player import Player
-from server.configurator.world.world import World
+
+if TYPE_CHECKING:
+    from server.configurator import General
+    from server.configurator.blueprints import BlueprintsDB
+    from server.configurator.world.player import Player
+    from server.configurator.world.world import World
 
 
 class Configuration:
     def __init__(self,
-                 general: Optional[General] = None,
-                 blueprints: Optional[BlueprintsDB] = None,
-                 world: Optional[World] = None,
-                 players: Dict[str, Player] = {}):
-        self.general: Optional[General] = general
-        self.blueprints: Optional[BlueprintsDB] = blueprints
-        self.world: Optional[World] = world
-        self.players: Dict[str, Player] = players
+                 general: Optional["General"] = None,
+                 blueprints: Optional["BlueprintsDB"] = None,
+                 world: Optional["World"] = None,
+                 players: Dict[str, "Player"] = {}):
+        self.general: Optional["General"] = general
+        self.blueprints: Optional["BlueprintsDB"] = blueprints
+        self.world: Optional["World"] = world
+        self.players: Dict[str, "Player"] = players
 
-    def set_general(self, general: General) -> 'Configuration':
+    def set_general(self, general: "General") -> 'Configuration':
         self.general = general
         return self
 
-    def set_blueprints(self, blueprints: BlueprintsDB) -> 'Configuration':
+    def set_blueprints(self, blueprints: "BlueprintsDB") -> 'Configuration':
         self.blueprints = blueprints
         return self
 
-    def add_player(self, player: Player) -> 'Configuration':
+    def add_player(self, player: "Player") -> 'Configuration':
         assert player.login not in self.players
         self.players.update({player.login: player})
         return self
 
-    def set_world(self, world: World) -> 'Configuration':
+    def set_world(self, world: "World") -> 'Configuration':
         self.world = world
         return self
 

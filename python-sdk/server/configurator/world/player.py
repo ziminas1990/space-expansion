@@ -1,16 +1,17 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, TYPE_CHECKING
 
-from server.configurator.modules.ship import Ship
+if TYPE_CHECKING:
+    from server.configurator.modules.ship import Ship
 
 
 class Player:
     def __init__(self,
                  login: Optional[str] = None,
                  password: Optional[str] = None,
-                 ships: List[Ship] = []):
+                 ships: List["Ship"] = []):
         self.login: Optional[str] = login
         self.password: Optional[str] = password
-        self.ships: Dict[str, Ship] = {
+        self.ships: Dict[str, "Ship"] = {
             f"{ship.ship_type}/{ship.ship_name}": ship for ship in ships}
 
     def set_credentials(self, login: str, password: str) -> 'Player':
@@ -18,7 +19,7 @@ class Player:
         self.password = password
         return self
 
-    def add_ship(self, name: str, ship: Ship) -> 'Player':
+    def add_ship(self, name: str, ship: "Ship") -> 'Player':
         key = f"{ship.ship_type}/{name}"
         assert key not in self.ships
         self.ships.update({key: ship})

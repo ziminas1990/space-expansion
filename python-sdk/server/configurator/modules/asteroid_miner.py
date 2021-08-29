@@ -1,13 +1,17 @@
 from typing import Optional
-from server.configurator.blueprints.base_blueprint import BaseBlueprint, BlueprintId, ModuleType
+from server.configurator.blueprints import BaseBlueprint, BlueprintId, ModuleType
+from server.configurator.resources import ResourcesList
 
 
 class AsteroidMinerBlueprint(BaseBlueprint):
     def __init__(self, name: str,
-                 max_distance: Optional[int] = None,
-                 cycle_time_ms: Optional[int] = None,
-                 yield_per_cycle: Optional[int] = None):
-        super().__init__(blueprint_id=BlueprintId(ModuleType.e_ASTEROID_MINER, name))
+                 max_distance: int,
+                 cycle_time_ms: int,
+                 yield_per_cycle: int,
+                 expenses: ResourcesList):
+        super().__init__(
+            blueprint_id=BlueprintId(ModuleType.e_ASTEROID_MINER, name),
+            expenses=expenses)
         self.max_distance: Optional[int] = max_distance
         self.cycle_time_ms: Optional[int] = cycle_time_ms
         self.yield_per_cycle: Optional[int] = yield_per_cycle

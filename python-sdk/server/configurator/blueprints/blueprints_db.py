@@ -1,7 +1,7 @@
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 
-from .base_blueprint import BlueprintId, BaseBlueprint, ModuleType
-from server.configurator.modules.ship import ShipBlueprint
+from server.configurator.modules import ShipBlueprint
+from server.configurator.blueprints.base_blueprint import ModuleType, BlueprintId, BaseBlueprint
 
 
 class BlueprintsDict:

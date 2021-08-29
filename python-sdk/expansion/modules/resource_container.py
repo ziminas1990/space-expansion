@@ -89,7 +89,7 @@ class ResourceContainer(BaseModule):
         )
 
     @staticmethod
-    async def find_most_free(commutator: "Commutator"):
+    async def find_most_free(commutator: "Commutator") -> Optional["ResourceContainer"]:
         async def better_than(candidate: "ResourceContainer",
                               best: "ResourceContainer"):
             best_content = await best.get_content()
@@ -100,7 +100,6 @@ class ResourceContainer(BaseModule):
                 return False
             best_free = best_content.volume - best_content.used
             free = content.volume - content.used
-            print(f"{candidate.name} has {free}, {best.name} has {best_free}")
             return free > best_free
 
         return await BaseModule.find_best(

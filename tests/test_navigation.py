@@ -5,7 +5,8 @@ from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 import server.configurator.modules.default_ships as default_ships
-from server.configurator import Configuration, General, ApplicationMode
+from server.configurator.configuration import Configuration
+from server.configurator.general import General, ApplicationMode
 
 import expansion.interfaces.rpc as rpc
 import expansion.modules as modules

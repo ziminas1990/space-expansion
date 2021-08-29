@@ -2,11 +2,17 @@ from typing import Optional
 from server.configurator.blueprints.base_blueprint import BaseBlueprint, BlueprintId, ModuleType
 from .base_module import BaseModule
 from server.configurator.world.geomtery import Vector
+from server.configurator.resources import ResourcesList
 
 
 class EngineBlueprint(BaseBlueprint):
-    def __init__(self, name: str, max_thrust: Optional[int] = None):
-        super().__init__(blueprint_id=BlueprintId(ModuleType.e_ENGINE, name))
+    def __init__(self,
+                 name: str,
+                 max_thrust: int,
+                 expenses: ResourcesList):
+        super().__init__(
+            blueprint_id=BlueprintId(ModuleType.e_ENGINE, name),
+            expenses=expenses)
         self.max_thrust: Optional[int] = max_thrust
 
     def set_max_thrust(self, max_thrust: int) -> 'EngineBlueprint':

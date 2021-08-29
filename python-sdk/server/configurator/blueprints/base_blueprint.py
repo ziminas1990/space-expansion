@@ -32,13 +32,11 @@ class BlueprintId(NamedTuple):
 
 
 class BaseBlueprint:
-    def __init__(self, blueprint_id: BlueprintId):
+    def __init__(self,
+                 blueprint_id: BlueprintId,
+                 expenses: ResourcesList):
         self.id: BlueprintId = blueprint_id
-        self.expenses: ResourcesList = ResourcesList()
-
-    def set_expenses(self, expenses: ResourcesList):
-        self.expenses = expenses
-        return self
+        self.expenses: ResourcesList = expenses
 
     def verify(self):
         self.id.verify()

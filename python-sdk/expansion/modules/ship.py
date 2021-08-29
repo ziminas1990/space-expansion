@@ -1,11 +1,14 @@
 import asyncio
-from typing import Optional, Tuple, Callable, Awaitable, NamedTuple, Set
-import time
+from typing import Optional, TYPE_CHECKING
 
 import expansion.interfaces.rpc as rpc
 from expansion.types import Position
-from .base_module import BaseModule, TunnelFactory
-from .commutator import Commutator, ModulesFactory
+from expansion.modules import BaseModule, ModuleType
+from .commutator import Commutator
+
+if TYPE_CHECKING:
+    from expansion.modules.base_module import TunnelFactory
+    from .commutator import ModulesFactory
 
 
 class Ship(Commutator, BaseModule):
@@ -15,8 +18,8 @@ class Ship(Commutator, BaseModule):
     def __init__(self,
                  ship_type: str,
                  ship_name: str,
-                 modules_factory: ModulesFactory,
-                 tunnel_factory: TunnelFactory):
+                 modules_factory: "ModulesFactory",
+                 tunnel_factory: "TunnelFactory"):
         super().__init__(
             tunnel_factory=tunnel_factory,
             modules_factory=modules_factory,
@@ -60,6 +63,7 @@ class Ship(Commutator, BaseModule):
         if self.position is None:
             if not await self.sync(timeout=timeout):
                 return None
+            assert self.position is not None
             return self.position.predict(at_us) if at_us else self.position
 
         if self.position.expired(cache_expiring_ms):
@@ -110,3 +114,15 @@ class Ship(Commutator, BaseModule):
             ship_state_cb=self.__on_update
         )
 
+    @staticmethod
+    def get_ship_by_name(commutator: "Commutator",
+                    name: str) -> Optional["Ship"]:
+        for module_type, name2ship in commutator.modules.items():
+            if module_type.startswith(ModuleType.SHIP.value):
+                try:
+                    ship = name2ship[name]
+                    assert isinstance(ship, Ship)
+                    return ship
+                except KeyError:
+                    continue
+        return None

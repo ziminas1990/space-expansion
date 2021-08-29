@@ -9,7 +9,8 @@ from server.configurator.modules import (
     ResourceContainerState,
     ShipType
 )
-from server.configurator import Configuration, General, ApplicationMode
+from server.configurator.configuration import Configuration
+from server.configurator.general import General, ApplicationMode
 
 from expansion import modules
 from expansion.types import ResourceType, ResourceItem

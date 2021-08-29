@@ -1,16 +1,19 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 import unittest
 import asyncio
 import abc
 import datetime
 
-from server.configurator import Configuration, AdministratorCfg
+from server.configurator.general import AdministratorCfg
 from server.server import Server
 
 import expansion.procedures as procedures
 import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
 import expansion.interfaces.privileged as privileged
+
+if TYPE_CHECKING:
+    from server.configurator.configuration import Configuration
 
 
 class BaseTestFixture(unittest.TestCase):
@@ -20,7 +23,7 @@ class BaseTestFixture(unittest.TestCase):
         self.server: Server = Server()
         self.login_ports = list(range(5000, 5100))
         self.administrator: privileged.Administrator = privileged.Administrator()
-        self.config: Optional[Configuration] = None
+        self.config: Optional["Configuration"] = None
 
         # Time management:
         self.time_wheel_task: Optional[asyncio.Task] = None
@@ -29,7 +32,7 @@ class BaseTestFixture(unittest.TestCase):
         self.time_granularity_us = 1000
 
     @abc.abstractmethod
-    def get_configuration(self) -> Configuration:
+    def get_configuration(self) -> "Configuration":
         pass
 
     def setUp(self) -> None:

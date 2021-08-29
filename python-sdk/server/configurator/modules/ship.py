@@ -1,16 +1,23 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, TYPE_CHECKING
 from server.configurator.blueprints.base_blueprint import BaseBlueprint, BlueprintId, ModuleType
-from server.configurator.world.geomtery import Position
-from .base_module import BaseModule
+
+if TYPE_CHECKING:
+    from server.configurator.world.geomtery import Position
+    from server.configurator.resources import ResourcesList
+    from .base_module import BaseModule
 
 
 class ShipBlueprint(BaseBlueprint):
 
     def __init__(self, name: str,
-                 radius: Optional[float] = None,
-                 weight: Optional[float] = None,
-                 modules: Optional[Dict[str, BlueprintId]] = None):
-        super().__init__(blueprint_id=BlueprintId(ModuleType.e_SHIP, name))
+                 radius: float,
+                 weight: float,
+                 modules: Dict[str, BlueprintId],
+                 expenses: "ResourcesList"):
+        super().__init__(
+            blueprint_id=BlueprintId(ModuleType.e_SHIP, name),
+            expenses=expenses
+        )
         self.radius: Optional[float] = radius
         self.weight: Optional[float] = weight
         self.modules: Dict[str, BlueprintId] = modules or {}
@@ -47,18 +54,18 @@ class Ship:
     def __init__(self,
                  name: str,
                  ship_type: str,
-                 position: Optional[Position] = None,
-                 modules: Dict[str, BaseModule] = {}):
+                 position: Optional["Position"] = None,
+                 modules: Dict[str, "BaseModule"] = {}):
         self.ship_name: str = name
         self.ship_type: str = ship_type
-        self.position: Optional[Position] = position
-        self.modules: Dict[str, BaseModule] = modules
+        self.position: Optional["Position"] = position
+        self.modules: Dict[str, "BaseModule"] = modules
 
-    def set_position(self, position: Position) -> 'Ship':
+    def set_position(self, position: "Position") -> 'Ship':
         self.position = position
         return self
 
-    def configure_module(self, name: str, cfg: BaseModule) -> 'Ship':
+    def configure_module(self, name: str, cfg: "BaseModule") -> 'Ship':
         assert name not in self.modules
         self.modules.update({name: cfg})
         return self
