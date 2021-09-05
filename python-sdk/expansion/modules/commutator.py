@@ -4,12 +4,11 @@ import expansion.interfaces.rpc as rpc
 from expansion.interfaces.rpc.commutator import Tunnel
 from expansion import utils
 
-from .base_module import BaseModule, ModuleType, TunnelFactory
+from .base_module import BaseModule, TunnelFactory
 
 TunnelOrError = Tuple[Optional[Tunnel], Optional[str]]
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
 ConnectionFactory = Callable[[], Awaitable[rpc.CommutatorI]]
-TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
 ModulesFactory = Callable[[str, str, TunnelFactory], ModuleOrError]
 
 

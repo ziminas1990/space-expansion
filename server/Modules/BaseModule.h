@@ -112,13 +112,11 @@ protected:
   void switchToIdleState() {
     if (m_eState == State::eIdle)
       return;
-    assert(m_eState == State::eActive || m_eState == State::eDeactivating);
     m_eState = State::eDeactivating;
   }
   void switchToActiveState() {
     if (m_eState == State::eActive)
       return;
-    assert(m_eState == State::eIdle || m_eState == State::eActivating);
     m_eState = State::eActivating;
   }
 

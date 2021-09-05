@@ -34,7 +34,6 @@ class Ship(Commutator, BaseModule):
         self.__monitoring_session: Optional[rpc.Monitor] = None
         self.__monitoring_task: Optional[asyncio.Task] = None
         self.__monitoring_token: int = 0
-        self.__subscribers: Set[Ship.Subscription] = []
 
     async def init(self):
         await super().init()
@@ -55,9 +54,9 @@ class Ship(Commutator, BaseModule):
                            timeout: float = 0.5) -> Optional[Position]:
         """Get the current ship's position. If the position was cached more than the
         specified 'cache_expiring_ms' milliseconds ago, than it will be updated.
-        Otherwise a predicted position will be returned.
+        Otherwise a cached position will be returned.
         If updating position is required (cache has expired), the request will be
-        sent to the server and this call will block the thread until the response is
+        sent to the server and this call will block control until the response is
         received or the specified 'timeout' occurs.
         """
         if self.position is None:
@@ -101,8 +100,10 @@ class Ship(Commutator, BaseModule):
             return ack is not None
 
     async def stop_monitoring(self) -> bool:
-        if self.__monitoring_session is not None:
-            pass
+        if self.__monitoring_session is None:
+            return True
+        status = await self.__monitoring_session.unsubscribe(self.__monitoring_token)
+        return status.is_ok()
 
     def __on_update(self, state: rpc.ShipState):
         self.state = state
