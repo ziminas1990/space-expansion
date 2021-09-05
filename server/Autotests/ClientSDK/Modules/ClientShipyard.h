@@ -16,6 +16,8 @@ public:
     eSuccess,
     eInternalError,
     eBuildStarted,
+    eBuildInProgress,
+    eBuildComplete,
     eBuildFreezed,
     eBuildFailed,
     eBuildCanceled,

@@ -41,19 +41,24 @@ void Shipyard::proceed(uint32_t nIntervalUs)
     resourcesToConsume[i] = m_building.resources[i] * progressInc;
   }
 
+  m_building.nIntervalSinceLastInd += nIntervalUs;
+  const bool sendIndication = m_building.nIntervalSinceLastInd > 500000;
+  if (sendIndication) {
+    m_building.nIntervalSinceLastInd %= 500000;
+  }
+
   // If all consumed resources are in container, then consume them. Otherwise do not
   // consume anything and send freeze inication
   if (!m_building.pContainer->consumeExactly(resourcesToConsume)) {
-    sendBuildStatus(spex::IShipyard::BUILD_FREEZED);
+    if (sendIndication)
+      sendBuildingReport(spex::IShipyard::BUILD_FROZEN, m_building.progress);
     return;
   }
 
   m_building.progress += progressInc;
 
-  m_building.nIntervalSinceLastProgressInd += nIntervalUs;
-  if (m_building.nIntervalSinceLastProgressInd > 500000) {
-    m_building.nIntervalSinceLastProgressInd %= 500000;
-    sendBuildProgress(m_building.progress);
+  if (sendIndication) {
+    sendBuildingReport(spex::IShipyard::BUILD_IN_PROGRESS, m_building.progress);
   }
 
   if (m_building.progress > 0.9999) {
@@ -103,7 +108,7 @@ void Shipyard::finishBuildingProcedure()
   if (!pNewShip && !pOwner) {
     assert(pNewShip != nullptr);
     assert(pOwner != nullptr);
-    sendBuildStatus(spex::IShipyard::BUILD_FAILED);
+    sendBuildingReport(spex::IShipyard::BUILD_FAILED, m_building.progress);
     return;
   }
 
@@ -111,6 +116,7 @@ void Shipyard::finishBuildingProcedure()
   pNewShip->setVelocity(getPlatform()->getVelocity());
   uint32_t nSlotId = pOwner->getCommutator()->attachModule(pNewShip);
   pNewShip->attachToChannel(pOwner->getCommutator());
+  sendBuildingReport(spex::IShipyard::BUILD_COMPLETE, 1.0);
   sendBuildComplete(std::move(m_building.sShipName), nSlotId);
 
   switchToIdleState();
@@ -119,7 +125,7 @@ void Shipyard::finishBuildingProcedure()
 void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild const& req)
 {
   if (!isIdle()) {
-    sendBuildStatus(spex::IShipyard::SHIPYARD_IS_BUSY);
+    sendBuildingReport(spex::IShipyard::SHIPYARD_IS_BUSY, 0);
     return;
   }
 
@@ -127,7 +133,7 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
   world::PlayerPtr pOwner    = getOwner().lock();
 
   if (!pPlatform || !pOwner) {
-    sendBuildStatus(nSessionId, spex::IShipyard::INTERNAL_ERROR);
+    sendBuildingReport(nSessionId, spex::IShipyard::INTERNAL_ERROR, 0);
     return;
   }
 
@@ -136,7 +142,7 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
       std::dynamic_pointer_cast<modules::ResourceContainer>(
         pPlatform->getModuleByName(m_sContainerName));
   if (!m_building.pContainer) {
-    sendBuildStatus(nSessionId, spex::IShipyard::INTERNAL_ERROR);
+    sendBuildingReport(nSessionId, spex::IShipyard::INTERNAL_ERROR, 0);
     return;
   }
 
@@ -147,7 +153,7 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
           blueprints::BlueprintName::make(req.blueprint_name())));
   if (!m_building.pShipBlueprint ||
       !m_building.pShipBlueprint->checkDependencies(m_building.localLibraryCopy)) {
-    sendBuildStatus(nSessionId, spex::IShipyard::BLUEPRINT_NOT_FOUND);
+    sendBuildingReport(nSessionId, spex::IShipyard::BLUEPRINT_NOT_FOUND, 0);
     return;
   }
 
@@ -156,7 +162,7 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
   m_building.sShipName = req.ship_name();
 
   switchToActiveState();
-  sendBuildStatus(nSessionId, spex::IShipyard::BUILD_STARTED);
+  sendBuildingReport(nSessionId, spex::IShipyard::BUILD_STARTED, 0);
 }
 
 void Shipyard::cancelBuildReq(uint32_t)
@@ -173,27 +179,28 @@ void Shipyard::sendSpeification(uint32_t nSessionId)
   sendToClient(nSessionId, message);
 }
 
-void Shipyard::sendBuildStatus(spex::IShipyard::Status eStatus)
+void Shipyard::sendBuildingReport(spex::IShipyard::Status eStatus, double progress)
 {
   spex::Message message;
-  message.mutable_shipyard()->set_building_status(eStatus);
-  for (uint32_t nSessionId : m_openedSessions)
+  spex::IShipyard::BuildingReport* pBody =
+      message.mutable_shipyard()->mutable_building_report();
+  pBody->set_status(eStatus);
+  pBody->set_progress(progress);
+  for (uint32_t nSessionId : m_openedSessions) {
     sendToClient(nSessionId, message);
+  }
 }
 
-void Shipyard::sendBuildStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus)
+void Shipyard::sendBuildingReport(uint32_t nSessionId,
+                                  spex::IShipyard::Status eStatus,
+                                  double progress)
 {
   spex::Message message;
-  message.mutable_shipyard()->set_building_status(eStatus);
+  spex::IShipyard::BuildingReport* pBody =
+      message.mutable_shipyard()->mutable_building_report();
+  pBody->set_status(eStatus);
+  pBody->set_progress(progress);
   sendToClient(nSessionId, message);
-}
-
-void Shipyard::sendBuildProgress(double progress)
-{
-  spex::Message message;
-  message.mutable_shipyard()->set_building_progress(progress);
-  for (uint32_t nSessionId : m_openedSessions)
-    sendToClient(nSessionId, message);
 }
 
 void Shipyard::sendBuildComplete(std::string&& sShipName, uint32_t nSlotId)

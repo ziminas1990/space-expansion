@@ -11,7 +11,11 @@ Shipyard::Status convert(spex::IShipyard::Status eStatus)
       return Shipyard::eInternalError;
     case spex::IShipyard::BUILD_STARTED:
       return Shipyard::eBuildStarted;
-    case spex::IShipyard::BUILD_FREEZED:
+    case spex::IShipyard::BUILD_IN_PROGRESS:
+      return Shipyard::eBuildInProgress;
+    case spex::IShipyard::BUILD_COMPLETE:
+      return Shipyard::eBuildComplete;
+    case spex::IShipyard::BUILD_FROZEN:
       return Shipyard::eBuildFreezed;
     case spex::IShipyard::BUILD_FAILED:
       return Shipyard::eBuildFailed;
@@ -59,10 +63,10 @@ Shipyard::Status Shipyard::startBuilding(std::string const& sBlueprint,
   spex::IShipyard response;
   if (!wait(response))
     return eTimeoutError;
-  if (response.choice_case() != spex::IShipyard::kBuildingStatus) {
+  if (response.choice_case() != spex::IShipyard::kBuildingReport) {
     return eUnexpectedMessage;
   }
-  return convert(response.building_status());
+  return convert(response.building_report().status());
 }
 
 Shipyard::Status Shipyard::cancelBuild()
@@ -75,10 +79,10 @@ Shipyard::Status Shipyard::cancelBuild()
   spex::IShipyard response;
   if (!wait(response))
     return eTimeoutError;
-  if (response.choice_case() != spex::IShipyard::kBuildingStatus) {
+  if (response.choice_case() != spex::IShipyard::kBuildingReport) {
     return eUnexpectedMessage;
   }
-  return convert(response.building_status());
+  return convert(response.building_report().status());
 }
 
 Shipyard::Status Shipyard::waitingWhileBuilding(
@@ -88,20 +92,28 @@ Shipyard::Status Shipyard::waitingWhileBuilding(
     spex::IShipyard response;
     if (!wait(response))
       return eTimeoutError;
-    if (response.choice_case() == spex::IShipyard::kBuildingProgress) {
+    if (response.choice_case() != spex::IShipyard::kBuildingReport) {
+      return eUnexpectedMessage;
+    }
+
+    Shipyard::Status status = convert(response.building_report().status());
+    if (status == Shipyard::Status::eBuildInProgress) {
       continue;
+    } else if (status != Shipyard::Status::eBuildComplete) {
+      return status;
     }
-    if (response.choice_case() == spex::IShipyard::kBuildingStatus) {
-      return convert(response.building_status());
+    // Got report with 'BUILD_COMPLETE' status
+    // Waiting for 'building_complete' message as well
+    if (!wait(response))
+      return eTimeoutError;
+    if (response.choice_case() != spex::IShipyard::kBuildingComplete) {
+      return eUnexpectedMessage;
     }
-    if (response.choice_case() == spex::IShipyard::kBuildingComplete) {
-      if (pSlotId)
-        *pSlotId = response.building_complete().slot_id();
-      if (pShipName)
-        *pShipName = response.building_complete().ship_name();
-      return Shipyard::eSuccess;
-    }
-    return Shipyard::eUnexpectedMessage;
+    if (pSlotId)
+      *pSlotId = response.building_complete().slot_id();
+    if (pShipName)
+      *pShipName = response.building_complete().ship_name();
+    return Shipyard::eSuccess;
   }
 }
 

@@ -336,12 +336,14 @@ message IShipyard {
     INTERNAL_ERROR      = 1;
 
     BUILD_STARTED       = 2;
-    BUILD_CANCELED      = 3;
-    BUILD_FREEZED       = 4;
-    BUILD_FAILED        = 5;
-    BLUEPRINT_NOT_FOUND = 6;
+    BUILD_IN_PROGRESS   = 3;
+    BUILD_COMPLETE      = 4;
+    BUILD_CANCELED      = 5;
+    BUILD_FROZEN        = 6;
+    BUILD_FAILED        = 7;
+    BLUEPRINT_NOT_FOUND = 8;
 
-    SHIPYARD_IS_BUSY    = 7;
+    SHIPYARD_IS_BUSY    = 9;
   }
 
   message Specification {
@@ -358,15 +360,19 @@ message IShipyard {
     uint32 slot_id   = 2;
   }
 
+  message BuildingReport {
+    Status status   = 1;
+    double progress = 2;
+  }
+
   oneof choice {
     bool       specification_req = 1;
     StartBuild start_build       = 2;
     bool       cancel_build      = 3;
     
-    Specification specification     = 20;
-    Status        building_status   = 21;
-    double        building_progress = 22;
-    ShipBuilt     building_complete = 23;
+    Specification  specification     = 20;
+    BuildingReport building_report   = 21;
+    ShipBuilt      building_complete = 22;
   }
 
 }

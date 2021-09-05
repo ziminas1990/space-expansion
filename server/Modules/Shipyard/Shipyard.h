@@ -46,9 +46,10 @@ private:
   void cancelBuildReq(uint32_t nSessionId);
 
   void sendSpeification(uint32_t nSessionId);
-  void sendBuildStatus(spex::IShipyard::Status eStatus);
-  void sendBuildStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus);
-  void sendBuildProgress(double progress);
+  void sendBuildingReport(spex::IShipyard::Status eStatus, double progress);
+  void sendBuildingReport(uint32_t nSessionId,
+                          spex::IShipyard::Status eStatus,
+                          double progress);
   void sendBuildComplete(std::string &&sShipName, uint32_t nSlotId);
 
 private:
@@ -59,7 +60,7 @@ private:
   std::set<uint32_t> m_openedSessions;
 
   struct BuildingTask {
-    BuildingTask() : progress(0), nIntervalSinceLastProgressInd(0) {}
+    BuildingTask() : progress(0), nIntervalSinceLastInd(0) {}
 
     blueprints::ShipBlueprintPtr  pShipBlueprint;
     std::string                   sShipName;
@@ -72,7 +73,7 @@ private:
       // When building proedures starts, a copy of blueprints library will be
       // created. It is neccessary, because library can be changed, while ship is
       // being built and that would lead to undefined behavior (I mean not cpp ub!).
-    uint32_t                      nIntervalSinceLastProgressInd;
+    uint32_t                      nIntervalSinceLastInd;
       // Stores a number of usec, that passed after previos progress IND was sent
   } m_building;
 };
