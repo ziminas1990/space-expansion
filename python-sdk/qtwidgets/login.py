@@ -84,6 +84,8 @@ class LoginWidget(QWidget):
         if default_login:
             self.linedit_login.setText(default_login)
 
+        self.lineedit_password.setText("admin")
+
     def get_ok_button(self) -> QPushButton:
         return self.button_ok
 

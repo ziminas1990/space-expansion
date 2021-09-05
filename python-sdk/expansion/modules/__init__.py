@@ -8,6 +8,7 @@ from .engine import Engine, EngineSpec
 from .resource_container import ResourceContainer
 from .celestial_scanner import CelestialScanner
 from .asteroid_miner import AsteroidMiner, AsteroidMinerSpec
+from .shipyard import Shipyard, ShipyardSpec
 
 from .util import (
     get_system_clock,

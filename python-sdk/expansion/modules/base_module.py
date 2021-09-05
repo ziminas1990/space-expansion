@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple, Type, TYPE_CHECKING
+from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple, Type, Dict, TYPE_CHECKING
 import contextlib
 import logging
 from enum import Enum
@@ -21,6 +21,7 @@ class ModuleType(Enum):
     RESOURCE_CONTAINER = "ResourceContainer"
     CELESTIAL_SCANNER = "CelestialScanner"
     ASTEROID_MINER = "AsteroidMiner"
+    SHIPYARD = "Shipyard"
 
 
 class BaseModule:

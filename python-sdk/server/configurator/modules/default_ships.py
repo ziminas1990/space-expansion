@@ -10,6 +10,7 @@ from .ship import ShipBlueprint, Ship
 from .default_engines import engine_blueprints, EngineType, EngineSize
 from .default_celestial_scanners import celestial_scanners_blueprints
 from .default_asteroid_miners import asteroid_miner_blueprints
+from .default_shipyards import shipyard_blueprints
 from server.configurator.resources import ResourcesList, ResourceType
 
 
@@ -63,6 +64,8 @@ ships_blueprints: Dict[ShipType, ShipBlueprint] = {
                 'scanner': celestial_scanners_blueprints["station"].id,
                 'warehouse': resource_containers_blueprints["station"].id,
                 'shipyard-container': resource_containers_blueprints["station"].id,
+                'shipyard-medium': shipyard_blueprints["medium"].id,
+                'shipyard-large': shipyard_blueprints["large"].id,
             },
             expenses=ResourcesList({
                 ResourceType.e_METALS: 17000000,
@@ -102,6 +105,7 @@ def make_miner(name: str, position: world.Position,
 def make_station(name: str,
                  position: world.Position,
                  engine: EngineState = EngineState(),
+                 warehouse: ResourceContainerState = ResourceContainerState(),
                  shipyard_container: ResourceContainerState = ResourceContainerState()):
     """Create configuration of the 'STATION' ship"""
     return Ship(name=name,
@@ -109,5 +113,6 @@ def make_station(name: str,
                 position=position,
                 modules={
                     "engine": engine,
+                    "warehouse": warehouse,
                     "shipyard-container": shipyard_container
                 })

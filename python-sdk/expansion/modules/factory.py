@@ -10,6 +10,7 @@ from .engine import Engine
 from .resource_container import ResourceContainer
 from .celestial_scanner import CelestialScanner
 from .asteroid_miner import AsteroidMiner
+from .shipyard import Shipyard
 
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
 TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
@@ -56,9 +57,15 @@ def module_factory(module_type: str,
             tunnel_factory=tunnel_factory
         ), None
 
+    elif module_type == ModuleType.SHIPYARD.value:
+        return Shipyard(
+            tunnel_factory=tunnel_factory,
+            name=module_name), None
+
     elif module_type == ModuleType.SYSTEM_CLOCK.value:
         return SystemClock(
             tunnel_factory=tunnel_factory,
             name=module_name), None
+
     else:
         return None, f"module {module_type} is not supported yet"
