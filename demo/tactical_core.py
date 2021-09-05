@@ -1,0 +1,101 @@
+from typing import Optional
+import asyncio
+
+from expansion import modules
+from expansion.modules import Commutator, SystemClock, ModuleType
+from expansion.types import TimePoint, Position, Vector
+import logging
+
+from assistants import AsteroidTracker, ScanningParams
+from ship import Ship
+from world import World
+from player import Player
+
+from tasks.mining.random_mining import RandomMining
+
+
+class TacticalCore:
+    def __init__(self, root_commutator: Commutator):
+        self.player = Player()
+        self.world = World()
+        self.root_commutator = root_commutator
+        self.system_clock: Optional[SystemClock] = None
+        self.time = TimePoint(0)
+        self.log: logging.Logger = logging.getLogger("TacticalCore")
+
+        self.asteroids_tracker: Optional[AsteroidTracker] = None
+        self.random_mining: Optional[RandomMining] = None
+
+    async def initialize(self) -> bool:
+        # Initializing root commutator and system clock
+        if not await self.root_commutator.init():
+            self.log.error("Failed to init root commutator!")
+            return False
+
+        self.system_clock = modules.get_system_clock(self.root_commutator)
+        if self.system_clock is None:
+            self.log.error("SystemClock not found!")
+            return False
+        self.time = await self.system_clock.time()
+        self.system_clock.subscribe(self._on_time_cb)
+
+        # Getting all available ships:
+        remote_ships = modules.get_all_ships(self.root_commutator)
+        for remote_ship in remote_ships:
+            if not await remote_ship.start_monitoring():
+                self.log.warning(f"Failed to start monitoring ship {remote_ship.name}")
+            self.player.ships[remote_ship.name] = Ship(remote_ship, self.system_clock)
+
+        # Assistants
+        self.asteroids_tracker: AsteroidTracker = \
+            AsteroidTracker(
+                root_commutator=self.root_commutator,
+                world=self.world,
+                system_clock=self.system_clock)
+
+        # Starting auto-scanning
+        self.asteroids_tracker.run_auto_scanning([
+            ScanningParams(10, 5),
+            ScanningParams(100, 10),
+            ScanningParams(500, 15),
+        ])
+        return True
+
+    def move_ship(self, ship_name:str, x: float, y: float):
+        try:
+            ship = self.player.ships[ship_name]
+            ship.navigator.move_to_async(Position(x, y, Vector(0, 0)))
+        except KeyError:
+            self.log.warning(f"Can't move ship '{ship_name}': no such ship!")
+
+    async def run(self):
+        # Initialize RandomMiner
+        ships = self.player.get_ships_by_equipment(
+            [ModuleType.SHIPYARD, ModuleType.RESOURCE_CONTAINER]
+        )
+        if not ships:
+            self.log.error("Can't get Warehouse!")
+            return
+        warehouse = ships[0]
+        self.log.info(f"Using '{warehouse.name}' as warehouse")
+
+        self.random_mining = RandomMining(
+            "RandomMining", self, warehouse, self.system_clock
+        )
+        mining_ships = self.player.get_ships_by_equipment(
+            [ModuleType.RESOURCE_CONTAINER,
+             ModuleType.ASTEROID_MINER,
+             ModuleType.ENGINE]
+        )
+        for miner in mining_ships:
+            self.log.info(f"Using '{miner.name}' as mining ship")
+            self.random_mining.add_ship(miner)
+        self.random_mining.run_async()
+
+        """Main tactical core loop"""
+        while True:
+            # Nothing to do here
+            await asyncio.sleep(0.1)
+
+    def _on_time_cb(self, time: TimePoint):
+        self.time = time
