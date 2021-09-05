@@ -5,9 +5,7 @@ from enum import Enum
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 from expansion.transport import IOTerminal
-from expansion.types.geometry import Vector
 import expansion.interfaces.rpc as rpc
-import expansion.utils as utils
 
 
 class Monitor(IOTerminal):
@@ -62,12 +60,12 @@ class Monitor(IOTerminal):
         request.monitor.unsubscribe = token
         if not self.send(message=request):
             return Monitor.Status.FAILED_TO_SEND_REQUEST
-        response, _ = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message()
         if not response:
             return Monitor.Status.RESPONSE_TIMEOUT
         status = get_message_field(response, "monitor.status")
         if status is None:
-            Monitor.Status.UNEXPECTED_RESPONSE
+            return Monitor.Status.UNEXPECTED_RESPONSE
         return Monitor.Status.from_protobuf(status)
 
     async def monitor(

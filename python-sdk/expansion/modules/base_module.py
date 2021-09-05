@@ -45,11 +45,10 @@ class BaseModule:
                            retires: int = 3) -> ContextManager[Optional[Endpoint]]:
         """Rent a session for a simple request/response communications
         """
+        terminal: Optional[Endpoint] = None
         try:
-            terminal: Optional[Endpoint] = None
             try:
                 terminal = self._sessions.setdefault(terminal_type, []).pop(-1)
-                #terminal.
             except IndexError:
                 # No terminals to reuse
                 while terminal is None and retires > 0:
@@ -67,6 +66,20 @@ class BaseModule:
         finally:
             if terminal:
                 self._sessions.setdefault(terminal_type, []).append(terminal)
+
+    @contextlib.asynccontextmanager
+    async def open_managed_session(
+            self,
+            terminal_type: Type,
+            retires: int = 3) -> ContextManager[Optional[Endpoint]]:
+        """Context manager wrapper of 'open_session'"""
+        terminal: Optional[Endpoint] = None
+        while terminal is None and retires > 0:
+            terminal = await self.open_session(terminal_type)
+            retires -= 1
+        yield terminal
+        if terminal:
+            await terminal.close()
 
     async def open_session(self, terminal_type: Type) -> Optional[Endpoint]:
         """Return an existing available channel or open a new one."""

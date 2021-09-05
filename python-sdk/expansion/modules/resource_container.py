@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from expansion.modules.base_module import TunnelFactory
     from expansion.modules import Commutator
 
+
 class ResourceContainer(BaseModule):
 
     Content = ResourceContainerI.Content
@@ -73,12 +74,13 @@ class ResourceContainer(BaseModule):
             if progress_cb is not None:
                 progress_cb(item)
 
-        session: "ResourceContainerI" = await self.open_session(ResourceContainerI)
-        if not session:
-            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
-        status = await session.transfer(port, access_key, resource, _progress_cb, timeout)
-        await session.close()
-        return status
+        async with self.open_managed_session(ResourceContainerI) as session:
+            if not session:
+                return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
+            assert isinstance(session, ResourceContainerI)
+            status = await session.transfer(port, access_key, resource, _progress_cb, timeout)
+            await session.close()
+            return status
 
     @staticmethod
     def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:

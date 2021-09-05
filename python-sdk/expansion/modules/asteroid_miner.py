@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 Comparator = Callable[[AsteroidMinerSpec, AsteroidMinerSpec], bool]
 
+
 class AsteroidMiner(BaseModule):
 
     Status = AsteroidMinerI.Status
@@ -57,12 +58,13 @@ class AsteroidMiner(BaseModule):
            in this case a value, returned by callback, will be ignored and the mining
            process will be interrupted.
         """
-        mining_session: "AsteroidMinerI" = await self.open_session(AsteroidMinerI)
-        if not mining_session:
-            return AsteroidMinerI.Status.FAILED_TO_SEND_REQUEST
-        status = await mining_session.start_mining(asteroid_id, progress_cb)
-        await mining_session.close()
-        return status
+        async with self.open_managed_session(AsteroidMinerI) as session:
+            assert isinstance(session, AsteroidMinerI)
+            if not session:
+                return AsteroidMinerI.Status.FAILED_TO_SEND_REQUEST
+            status = await session.start_mining(asteroid_id, progress_cb)
+            await session.close()
+            return status
 
     async def stop_mining(self, timeout: float = 0.5) -> Status:
         """Stop the mining process"""
