@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List, Optional, Awaitable, Callable
+from typing import Tuple, Optional, Awaitable, Callable
 import asyncio
 
 from base_test_fixture import BaseTestFixture
@@ -14,8 +14,8 @@ from server.configurator.modules import (
 from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
 
-from expansion.modules import Ship, Shipyard, ShipyardSpec
-from expansion.types import ResourceType
+from expansion.modules import Ship, Shipyard, ResourceContainer
+from expansion.types import ResourceType, ResourceItem
 
 
 class ProgressTracker():
@@ -65,6 +65,9 @@ class ProgressTracker():
     async def wait_complete_report(self, timeout: float = 3) -> Optional[float]:
         return await self.wait_report(Shipyard.Status.BUILD_COMPLETE, timeout)
 
+    async def wait_frozen_report(self, timeout: float = 3) -> Optional[float]:
+        return await self.wait_report(Shipyard.Status.BUILD_FROZEN, timeout)
+
 
 class TestCase(BaseTestFixture):
 
@@ -87,13 +90,9 @@ class TestCase(BaseTestFixture):
                             position=world.Position(
                                 x=0, y=0, velocity=world.Vector(0, 0)),
                             warehouse=ResourceContainerState({
-                                ResourceType.e_METALS: 100000,
-                                ResourceType.e_SILICATES: 20000,
-                            }),
-                            shipyard_container=ResourceContainerState({
                                 ResourceType.e_METALS: 200000,
                                 ResourceType.e_SILICATES: 40000,
-                            })
+                            }),
                         ),
                     ]
                 )
@@ -148,6 +147,30 @@ class TestCase(BaseTestFixture):
         shipyard_large = Shipyard.find_by_name(station, "shipyard-large")
         self.assertIsNotNone(shipyard_large)
 
+        warehouse = ResourceContainer.get_by_name(station, "warehouse")
+        self.assertIsNotNone(warehouse)
+
+        shipyard_container = ResourceContainer.get_by_name(station, "shipyard-container")
+        self.assertIsNotNone(shipyard_container)
+
+        # Move half of all resources from warehouse to shipyard's container
+        access_key = 1234
+        status, port = await shipyard_container.open_port(access_key)
+        self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+
+        content = await warehouse.get_content()
+        self.assertIsNotNone(content)
+
+        await self.system_clock_fast_forward(100, 10000)
+        for resource, amount in content.resources.items():
+            status = await warehouse.transfer(
+                port,
+                access_key,
+                ResourceItem(resource, amount/2))
+            self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+        await self.system_clock_play()
+
+        # Building a ship
         async def proceed():
             await self.system_clock_proceed(450, 1, 50000)
         build_tracker = ProgressTracker(proceed=proceed)
@@ -160,6 +183,25 @@ class TestCase(BaseTestFixture):
         # Waiting for 'build started' indication
         status, progress = await build_tracker.next_report()
         self.assertEqual(Shipyard.Status.BUILD_IN_PROGRESS, status)
+
+        # Waiting for 'build frozen' indication since a lack of
+        # the resources
+        for i in range(10):
+            progress = await build_tracker.wait_frozen_report()
+            self.assertIsNotNone(progress)
+            self.assertGreater(progress, 0.5)
+
+        # Move the rest of the resources to the shipyard container
+        await self.system_clock_fast_forward(100, 10000)
+        content = await warehouse.get_content()
+        self.assertIsNotNone(content)
+        for resource, amount in content.resources.items():
+            status = await warehouse.transfer(
+                port,
+                access_key,
+                ResourceItem(resource, amount / 2))
+            self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+        await self.system_clock_play()
 
         # Waiting for 'build complete' indication
         progress = await build_tracker.wait_complete_report()
