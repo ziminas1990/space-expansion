@@ -24,7 +24,10 @@ class ShipsListModel(QAbstractListModel):
     # Override QAbstractListModel
     def rowCount(self, parent: QModelIndex = ...) -> int:
         if parent == QModelIndex():
-            self.ships_list_cache = list(self.player.ships.keys())
+            new_cache = list(self.player.ships.keys())
+            if new_cache != self.ships_list_cache:
+                self.dataChanged.emit(QModelIndex(), QModelIndex())
+                self.ships_list_cache = new_cache
         return len(self.ships_list_cache)
 
     # Override QAbstractListModel

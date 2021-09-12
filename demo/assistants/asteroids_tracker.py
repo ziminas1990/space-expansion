@@ -82,16 +82,20 @@ class AsteroidTracker:
 
     async def __auto_scanning(self):
         while len(self.auto_scanning_modes):
+            idle = True
             for ship in get_all_ships(self.root_commutator):
                 scanner = get_any_celestial_scanner(ship)
                 if not scanner:
                     continue
                 for mode in self.auto_scanning_modes:
+                    idle = False
                     await scanner.scan(
                         scanning_radius_km=mode.radius_km,
                         minimal_radius_m=mode.asteroid_radius_m,
                         scanning_cb=self.__on_result
                     )
+            if idle:
+                await asyncio.sleep(0.5)
 
     def _find_scanner_nearby(self,
                              position: types.Position,

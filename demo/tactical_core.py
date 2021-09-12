@@ -2,7 +2,7 @@ from typing import Optional
 import asyncio
 
 from expansion import modules
-from expansion.modules import Commutator, SystemClock, ModuleType
+from expansion.modules import Commutator, SystemClock, ModuleType, Shipyard
 from expansion.types import TimePoint, Position, Vector
 import logging
 
@@ -68,6 +68,42 @@ class TacticalCore:
         except KeyError:
             self.log.warning(f"Can't move ship '{ship_name}': no such ship!")
 
+    async def build_more_miners(self):
+        ships = self.player.get_ships_by_equipment(
+            [ModuleType.SHIPYARD, ModuleType.RESOURCE_CONTAINER]
+        )
+        if not ships:
+            self.log.error("Can't get Warehouse!")
+            return
+        warehouse = ships[0]
+
+        shipyard: Optional[Shipyard] = await Shipyard.find_most_productive(warehouse.commutator())
+        if not shipyard:
+            self.log.error("Can't get shipyard!")
+
+        next_id = 10
+        ship_type = "Ship/Civilian-Miner"
+        while True:
+            status, name, port =\
+                await shipyard.build_ship(
+                    ship_type, f"Miner-{next_id}",
+                    lambda s, p: self.log.info(f"Shipyard: {s} {p}"))
+            next_id += 1
+            success = self.root_commutator.add_module(ship_type, name, port)
+            if not success:
+                self.log.error("Failed to register new ship")
+                continue
+            remote_ship = modules.Ship.get_ship_by_name(self.root_commutator, name)
+            miner = Ship(remote_ship, self.system_clock)
+            assert name not in self.player.ships
+            success = await miner.remote.init()
+            if not success:
+                self.log.error(f"Failed to init miner {name}")
+                continue
+            await remote_ship.start_monitoring()
+            self.player.ships.update({name: miner})
+            self.random_mining.add_ship(miner)
+
     async def run(self):
         # Initialize RandomMiner
         ships = self.player.get_ships_by_equipment(
@@ -91,6 +127,8 @@ class TacticalCore:
             self.log.info(f"Using '{miner.name}' as mining ship")
             self.random_mining.add_ship(miner)
         self.random_mining.run_async()
+
+        shipyard_task = asyncio.create_task(self.build_more_miners())
 
         """Main tactical core loop"""
         while True:

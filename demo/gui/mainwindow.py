@@ -42,6 +42,7 @@ class MainWindow(QWidget):
     def update(self):
         self._update_time()
         self.tactical_map.update()
+        self.ships_list.update()
 
     def _ships_selected(self, index: QModelIndex):
         ship_name = self.ships_list_model.get_ship_name(index)

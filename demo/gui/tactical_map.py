@@ -128,7 +128,8 @@ class FlightPlanItem:
         self.plan = plan
 
     def release(self):
-        self.trace.release()
+        if self.trace:
+            self.trace.release()
 
     def update(self, ship: "Ship", now: int):
         if self.trace:
@@ -155,12 +156,10 @@ class ShipItem:
         super().__init__(*args, **kwargs)
         self.scene: QGraphicsScene = scene
         self.ship_item = MapItem(radius=ship_size, scene=scene, color=ship_color)
-        self.path = Trace(scene=scene, color=QColor(0, 0, 255, 100), delay_sec=10)
         self.flight_plan: Optional[FlightPlanItem] = None
 
     def release(self):
         self.ship_item.release()
-        self.path.release()
 
     def spawn(self):
         self.ship_item.spawn()
@@ -173,10 +172,6 @@ class ShipItem:
         if not position:
             return False
         self.ship_item.move(position.x, position.y)
-
-        if not self.path.segments or now - self.path.segments[-1].timestamp > 125000:
-            self.path.append(position.x, position.y, timestamp=position.timestamp.usec())
-            self.path.update(now)
 
         if ship.navigator.task_move_to:
             plan = ship.navigator.task_move_to.plan
@@ -268,7 +263,7 @@ class TacticalMap(AdvancedViewer):
                 item = MapItem(asteroid.radius, self.scene, QColor("blue"))
                 item.spawn()
                 # Let the size of the mark depend on the size of the asteroid
-                mark_size = 3 + int((17 * asteroid.radius / 20))
+                mark_size = 3 + int(17 * asteroid.radius / 20)
                 mark_size = min(mark_size, 20)
                 item.mark(size=mark_size, color=QColor(0, 0, 255, 100))
                 self.asteroids.update({asteroid.object_id: item})
