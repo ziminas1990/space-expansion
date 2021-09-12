@@ -37,13 +37,13 @@ class TimePoint:
         return self._server_time / 10**6
 
     def predict_usec(self) -> int:
-        """Return predited current time in microseconds"""
+        """Return predicted current time in microseconds"""
         assert self._local_time is not None
         dt = int((time.monotonic() - self._local_time) * 1000000)
         return self._server_time + dt
 
     def predict_sec(self) -> float:
-        """Return predited current time in seconds"""
+        """Return predicted current time in seconds"""
         assert self._local_time is not None
         dt = time.monotonic() - self._local_time
         return self._server_time / 10 ** 6 + dt

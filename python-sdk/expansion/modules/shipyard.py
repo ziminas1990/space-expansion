@@ -69,3 +69,21 @@ class Shipyard(BaseModule):
             type=ModuleType.SHIPYARD,
             name=name
         )
+
+    @staticmethod
+    async def find_most_productive(commutator: "Commutator") -> Optional["Shipyard"]:
+        async def better_than(candidate: "Shipyard",
+                              best: "Shipyard"):
+            _, best_spec = await best.get_specification()
+            if not best_spec:
+                return False
+            _, spec = await candidate.get_specification()
+            if not spec:
+                return False
+            return spec.labor_per_sec > best_spec.labor_per_sec
+        
+        return await BaseModule.find_best(
+            commutator=commutator,
+            type=ModuleType.SHIPYARD,
+            better_than=better_than
+        )

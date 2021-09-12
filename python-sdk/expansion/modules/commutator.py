@@ -44,7 +44,7 @@ class Commutator(BaseModule):
             modules_of_type.update({
                 module.name: module.slot_id
             })
-            self._add_module(module.type, module.name, module.slot_id)
+            self.add_module(module.type, module.name, module.slot_id)
 
         for module_type, name2module in self.modules.items():
             for module_name, module in name2module.items():
@@ -53,7 +53,7 @@ class Commutator(BaseModule):
 
         return True
 
-    def _add_module(self, module_type: str, name: str, slot_id: int):
+    def add_module(self, module_type: str, name: str, slot_id: int) -> bool:
         async def tunnel_factory():
             async with self.rent_session(rpc.CommutatorI) as remote:
                 return await remote.open_tunnel(port=slot_id)
@@ -62,7 +62,7 @@ class Commutator(BaseModule):
         if error is not None:
             self.logger.warning(f"Failed to connect to {module_type} '{name}': "
                                 f"{error}!")
-            return
+            return False
 
         try:
             modules = self.modules[module_type]
@@ -73,3 +73,4 @@ class Commutator(BaseModule):
             self.modules.update({
                 module_type: {name: module_instance}
             })
+        return True

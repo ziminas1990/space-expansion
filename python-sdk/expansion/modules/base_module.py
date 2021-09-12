@@ -120,7 +120,7 @@ class BaseModule:
     async def find_best(
             commutator: "Commutator",
             type: ModuleType,
-            better_than: Awaitable[Callable[[Any, Any], bool]]) \
+            better_than: Callable[[Any, Any], Awaitable[bool]]) \
             -> Optional["BaseModule"]:
         best: Optional["BaseModule"] = None
         try:

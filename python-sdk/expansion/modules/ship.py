@@ -35,8 +35,8 @@ class Ship(Commutator, BaseModule):
         self.__monitoring_task: Optional[asyncio.Task] = None
         self.__monitoring_token: int = 0
 
-    async def init(self):
-        await super().init()
+    async def init(self) -> bool:
+        return await super().init()
 
     async def sync(self, timeout: float = 0.5) -> bool:
         """Update ship's information."""
@@ -116,8 +116,9 @@ class Ship(Commutator, BaseModule):
         )
 
     @staticmethod
-    def get_ship_by_name(commutator: "Commutator",
-                    name: str) -> Optional["Ship"]:
+    def get_ship_by_name(
+            commutator: "Commutator",
+            name: str) -> Optional["Ship"]:
         for module_type, name2ship in commutator.modules.items():
             if module_type.startswith(ModuleType.SHIP.value):
                 try:
