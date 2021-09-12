@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <iosfwd>
 
 #include <Utils/FloatComparator.h>
 #include <Utils/YamlForwardDeclarations.h>
@@ -152,5 +153,7 @@ private:
     double nValue    = 0;
   } m_length;
 };
+
+std::ostream& operator<<(std::ostream& out, Vector const& vector);
 
 } // namespace geomtery

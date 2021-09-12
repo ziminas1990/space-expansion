@@ -1,10 +1,12 @@
 #pragma once
 
+#include <iosfwd>
 #include <float.h>
 #include <math.h>
 #include "Vector.h"
 #include <Utils/YamlForwardDeclarations.h>
 #include <Utils/FloatComparator.h>
+
 
 namespace geometry
 {
@@ -54,5 +56,7 @@ struct Point
   double x;
   double y;
 };
+
+std::ostream& operator<<(std::ostream& out, const Point& point);
 
 } // namespace geomtery

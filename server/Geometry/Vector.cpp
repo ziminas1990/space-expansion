@@ -1,5 +1,6 @@
 #include "Vector.h"
 
+#include <iostream>
 #include <Utils/YamlReader.h>
 #include <Utils/YamlDumper.h>
 
@@ -14,6 +15,11 @@ bool Vector::load(YAML::Node const& node)
 void Vector::dump(YAML::Node& out) const
 {
   utils::YamlDumper(out).add("x", x).add("y", y);
+}
+
+std::ostream& operator<<(std::ostream& out, Vector const& vector)
+{
+  return out << "{" << vector.getX() << ", " << vector.getY() << "}";
 }
 
 } // namespace geomtery

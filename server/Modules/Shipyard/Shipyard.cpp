@@ -58,12 +58,12 @@ void Shipyard::proceed(uint32_t nIntervalUs)
   m_building.progress += progressInc;
 
   if (sendIndication) {
-    sendBuildingReport(spex::IShipyard::BUILD_IN_PROGRESS, m_building.progress);
-  }
-
-  if (m_building.progress > 0.9999) {
-    // Ship has been built. Now it should be added to player's commutator
-    finishBuildingProcedure();
+    if (m_building.progress > 0.9999) {
+      // Ship has been built. Now it should be added to player's commutator
+      finishBuildingProcedure();
+    } else {
+      sendBuildingReport(spex::IShipyard::BUILD_IN_PROGRESS, m_building.progress);
+    }
   }
 }
 
