@@ -18,10 +18,7 @@ conan_basic_setup(TARGETS)
 
 #=========================================================================================
 # Generating protobuf sources:
-# Я так и не понял, каким образом нужно генерить исходники protobuf, поэтому делаем
-# такой хак: достаём путь к директории с компилятором и генерим код так же
-# как и при ручной сборке
-# Have no idea, how to run protobuf compiler in a proper way. So, here is a hack: just
+# Have no idea how to run protobuf compiler in a proper way. So, here is a hack: just
 # get path to compiler and run the compiler manually.
 set(PROTOBUF_COMPILER ${CONAN_BIN_DIRS_PROTOC_INSTALLER}/protoc)
 

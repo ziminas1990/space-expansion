@@ -9,6 +9,8 @@ Shipyard::Status convert(spex::IShipyard::Status eStatus)
       return Shipyard::eSuccess;
     case spex::IShipyard::INTERNAL_ERROR:
       return Shipyard::eInternalError;
+    case spex::IShipyard::CARGO_NOT_FOUND:
+      return Shipyard::eCargoNotFound;
     case spex::IShipyard::BUILD_STARTED:
       return Shipyard::eBuildStarted;
     case spex::IShipyard::BUILD_IN_PROGRESS:
@@ -16,7 +18,7 @@ Shipyard::Status convert(spex::IShipyard::Status eStatus)
     case spex::IShipyard::BUILD_COMPLETE:
       return Shipyard::eBuildComplete;
     case spex::IShipyard::BUILD_FROZEN:
-      return Shipyard::eBuildFreezed;
+      return Shipyard::eBuildFrozen;
     case spex::IShipyard::BUILD_FAILED:
       return Shipyard::eBuildFailed;
     case spex::IShipyard::BUILD_CANCELED:
@@ -48,6 +50,23 @@ bool Shipyard::getSpecification(ShipyardSpecification& spec)
 
   spec.m_nLaborPerSec = response.specification().labor_per_sec();
   return true;
+}
+
+Shipyard::Status Shipyard::bindToCargo(std::string const& container)
+{
+  spex::Message request;
+  spex::IShipyard* pBody = request.mutable_shipyard();
+  pBody->set_bind_to_cargo(container);
+  if (!send(request))
+    return eTransportError;
+
+  spex::IShipyard response;
+  if (!wait(response))
+    return eTimeoutError;
+  if (response.choice_case() != spex::IShipyard::kBindToCargoStatus) {
+    return eUnexpectedMessage;
+  }
+  return convert(response.bind_to_cargo_status());
 }
 
 Shipyard::Status Shipyard::startBuilding(std::string const& sBlueprint,
@@ -86,7 +105,9 @@ Shipyard::Status Shipyard::cancelBuild()
 }
 
 Shipyard::Status Shipyard::waitingWhileBuilding(
-    uint32_t* pSlotId, std::string* pShipName)
+    double *progress,
+    uint32_t* pSlotId,
+    std::string* pShipName)
 {
   while (true) {
     spex::IShipyard response;
@@ -97,6 +118,10 @@ Shipyard::Status Shipyard::waitingWhileBuilding(
     }
 
     Shipyard::Status status = convert(response.building_report().status());
+    if (progress) {
+      *progress = response.building_report().progress();
+    }
+
     if (status == Shipyard::Status::eBuildInProgress) {
       continue;
     } else if (status != Shipyard::Status::eBuildComplete) {

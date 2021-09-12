@@ -10,11 +10,11 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Shipyard);
 namespace modules {
 
 
-
-Shipyard::Shipyard(std::string &&sName, world::PlayerWeakPtr pOwner,
-                   double laborPerSecond, std::string sContainerName)
+Shipyard::Shipyard(std::string &&sName,
+                   world::PlayerWeakPtr pOwner,
+                   double laborPerSecond)
   : BaseModule(TypeName(), std::move(sName), std::move(pOwner)),
-    m_laborPerSecond(laborPerSecond), m_sContainerName(std::move(sContainerName))
+    m_laborPerSecond(laborPerSecond)
 {
   utils::GlobalContainer<Shipyard>::registerSelf(this);
 }
@@ -49,7 +49,7 @@ void Shipyard::proceed(uint32_t nIntervalUs)
 
   // If all consumed resources are in container, then consume them. Otherwise do not
   // consume anything and send freeze inication
-  if (!m_building.pContainer->consumeExactly(resourcesToConsume)) {
+  if (!m_pContainer || !m_pContainer->consumeExactly(resourcesToConsume)) {
     if (sendIndication)
       sendBuildingReport(spex::IShipyard::BUILD_FROZEN, m_building.progress);
     return;
@@ -91,6 +91,9 @@ void Shipyard::handleShipyardMessage(uint32_t nTunnelId,
     case spex::IShipyard::kSpecificationReq:
       sendSpeification(nTunnelId);
       return;
+    case spex::IShipyard::kBindToCargo:
+      bindToCargo(nTunnelId, message.bind_to_cargo());
+      return;
     default:
       return;
   }
@@ -122,6 +125,26 @@ void Shipyard::finishBuildingProcedure()
   switchToIdleState();
 }
 
+void Shipyard::bindToCargo(uint32_t nSessionId, std::string const& name)
+{
+  if (name.empty()) {
+    m_pContainer = nullptr;
+    sendStatus(nSessionId, spex::IShipyard::SUCCESS);
+    return;
+  }
+
+  modules::ResourceContainerPtr pCargo =
+      std::dynamic_pointer_cast<modules::ResourceContainer>(
+        getPlatform()->getModuleByName(name));
+  if (!pCargo) {
+    sendStatus(nSessionId, spex::IShipyard::CARGO_NOT_FOUND);
+    return;
+  }
+
+  m_pContainer = pCargo;
+  sendStatus(nSessionId, spex::IShipyard::SUCCESS);
+}
+
 void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild const& req)
 {
   if (!isIdle()) {
@@ -137,15 +160,12 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
     return;
   }
 
-  m_building = BuildingTask();
-  m_building.pContainer =
-      std::dynamic_pointer_cast<modules::ResourceContainer>(
-        pPlatform->getModuleByName(m_sContainerName));
-  if (!m_building.pContainer) {
-    sendBuildingReport(nSessionId, spex::IShipyard::INTERNAL_ERROR, 0);
+  if (!m_pContainer) {
+    sendBuildingReport(nSessionId, spex::IShipyard::CARGO_NOT_FOUND, 0);
     return;
   }
 
+  m_building = BuildingTask();
   m_building.localLibraryCopy = pOwner->getBlueprints();
   m_building.pShipBlueprint =
       std::dynamic_pointer_cast<blueprints::ShipBlueprint>(
@@ -168,6 +188,13 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
 void Shipyard::cancelBuildReq(uint32_t)
 {
   assert("Cancel build is NOT implemented yet");
+}
+
+void Shipyard::sendStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus) const
+{
+  spex::Message message;
+  message.mutable_shipyard()->set_bind_to_cargo_status(eStatus);
+  sendToClient(nSessionId, message);
 }
 
 void Shipyard::sendSpeification(uint32_t nSessionId)

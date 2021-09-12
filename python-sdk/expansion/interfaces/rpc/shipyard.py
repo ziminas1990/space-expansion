@@ -15,6 +15,7 @@ class ShipyardI(IOTerminal):
     class Status(Enum):
         SUCCESS = "success"
         INTERNAL_ERROR = "internal error"
+        CARGO_NOT_FOUND = "cargo not found"
         BUILD_STARTED = "build started"
         BUILD_IN_PROGRESS = "build in progress"
         BUILD_COMPLETE = "build complete"
@@ -35,6 +36,7 @@ class ShipyardI(IOTerminal):
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
                 ProtobufStatus.INTERNAL_ERROR: ModuleStatus.INTERNAL_ERROR,
+                ProtobufStatus.CARGO_NOT_FOUND: ModuleStatus.CARGO_NOT_FOUND,
                 ProtobufStatus.BUILD_STARTED: ModuleStatus.BUILD_STARTED,
                 ProtobufStatus.BUILD_IN_PROGRESS: ModuleStatus.BUILD_IN_PROGRESS,
                 ProtobufStatus.BUILD_COMPLETE: ModuleStatus.BUILD_COMPLETE,
@@ -67,6 +69,19 @@ class ShipyardI(IOTerminal):
             return ShipyardI.Status.UNEXPECTED_RESPONSE, None
         spec = Specification(labor_per_sec=spec.labor_per_sec)
         return ShipyardI.Status.SUCCESS, spec
+
+    async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
+        request = public.Message()
+        request.shipyard.bind_to_cargo = cargo_name
+        if not self.send(message=request):
+            return ShipyardI.Status.FAILED_TO_SEND_REQUEST
+        response, _ = await self.wait_message(timeout=timeout)
+        if not response:
+            return ShipyardI.Status.RESPONSE_TIMEOUT
+        status = protocol.get_message_field(response, ["shipyard", "bind_to_cargo_status"])
+        if status is None:
+            return ShipyardI.Status.UNEXPECTED_RESPONSE
+        return ShipyardI.Status.from_protobuf(status)
 
     async def start_build(self, blueprint: str, ship_name: str) -> Status:
         request = public.Message()

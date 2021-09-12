@@ -144,14 +144,16 @@ class TestCase(BaseTestFixture):
         station = Ship.get_ship_by_name(commutator, "SweetHome")
         self.assertIsNotNone(station)
 
-        shipyard_large = Shipyard.find_by_name(station, "shipyard-large")
-        self.assertIsNotNone(shipyard_large)
-
         warehouse = ResourceContainer.get_by_name(station, "warehouse")
         self.assertIsNotNone(warehouse)
 
         shipyard_container = ResourceContainer.get_by_name(station, "shipyard-container")
         self.assertIsNotNone(shipyard_container)
+
+        shipyard_large = Shipyard.find_by_name(station, "shipyard-large")
+        self.assertIsNotNone(shipyard_large)
+        self.assertEqual(Shipyard.Status.SUCCESS,
+                         await shipyard_large.bind_to_cargo("shipyard-container"))
 
         # Move half of all resources from warehouse to shipyard's container
         access_key = 1234
@@ -180,7 +182,7 @@ class TestCase(BaseTestFixture):
             ship_name="SCV",
             progress_cb=build_tracker.on_progress))
 
-        # Waiting for 'build started' indication
+        # Waiting for 'build in progress' indication
         status, progress = await build_tracker.next_report()
         self.assertEqual(Shipyard.Status.BUILD_IN_PROGRESS, status)
 

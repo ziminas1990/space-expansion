@@ -15,10 +15,11 @@ public:
   enum Status {
     eSuccess,
     eInternalError,
+    eCargoNotFound,
     eBuildStarted,
     eBuildInProgress,
     eBuildComplete,
-    eBuildFreezed,
+    eBuildFrozen,
     eBuildFailed,
     eBuildCanceled,
     eBlueprintNotFound,
@@ -32,10 +33,12 @@ public:
   };
   
   bool getSpecification(ShipyardSpecification& spec);
+  Status bindToCargo(std::string const& container);
   Status startBuilding(std::string const& sBlueprint, std::string const& sShipName);
   Status cancelBuild();
 
-  Status waitingWhileBuilding(uint32_t *pSlotId = nullptr,
+  Status waitingWhileBuilding(double *progress,
+                              uint32_t *pSlotId = nullptr,
                               std::string *pShipName = nullptr);
     // Receives the 'building_status' message, but ignores them.  If the
     // 'building_complete' message is received, thie function will write ship's slot and

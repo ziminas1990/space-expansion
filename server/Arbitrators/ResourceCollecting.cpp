@@ -22,11 +22,10 @@ bool ResourceCollecting::loadConfiguation(YAML::Node const& data)
 
 uint32_t ResourceCollecting::score(world::PlayerPtr pPlayer)
 {
-  // Calculating total amount of resources, that are stored in containers, that
-  // are connected to shipyards.
+  // Calculating total amount of resources, that are stored in containers in all ships,
+  // that have a shipyard
 
   world::ResourcesArray totalResources;
-  totalResources.fill(0);
 
   for (modules::BaseModulePtr const& pModule
        : pPlayer->getCommutator()->getAllModules()) {
@@ -34,22 +33,23 @@ uint32_t ResourceCollecting::score(world::PlayerPtr pPlayer)
     if (!pShip)
       continue;
 
+    world::ResourcesArray shipResources;
+    bool hasShipyard = false;
     for (modules::BaseModulePtr const& pShipModule :
          pShip->getCommutator()->getAllModules()) {
-      if (pShipModule->getModuleType() != modules::Shipyard::TypeName())
-        continue;
 
-      modules::ShipyardPtr const& pShipyard =
-          std::static_pointer_cast<modules::Shipyard>(pShipModule);
+      std::string const& moduleType = pShipModule->getModuleType();
 
-      std::string const& sContainerName = pShipyard->getContainerName();
-      modules::ResourceContainerPtr const& pContainer =
-          std::dynamic_pointer_cast<modules::ResourceContainer>(
-            pShip->getCommutator()->findModuleByName(sContainerName));
-
-      if (pContainer) {
-        totalResources += pContainer->getResources();
+      if (moduleType == modules::ResourceContainer::TypeName()) {
+        modules::ResourceContainerPtr pContainer =
+            std::static_pointer_cast<modules::ResourceContainer>(pShipModule);
+        shipResources += pContainer->getResources();
+      } else if (moduleType == modules::Shipyard::TypeName()) {
+        hasShipyard = true;
       }
+    }
+    if (hasShipyard) {
+      totalResources += shipResources;
     }
   }
 

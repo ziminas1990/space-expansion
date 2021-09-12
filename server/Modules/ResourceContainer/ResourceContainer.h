@@ -18,6 +18,11 @@ class ResourceContainer :
     public utils::GlobalContainer<ResourceContainer>
 {
 public:
+  static std::string const& TypeName() {
+    const static std::string sTypeName = "ResourceContainer";
+    return sTypeName;
+  }
+
   ResourceContainer(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t nVolume);
 
   // override from BaseModule

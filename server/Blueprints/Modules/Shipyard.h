@@ -19,29 +19,25 @@ public:
     return std::make_shared<modules::Shipyard>(
           std::move(sName),
           std::move(pOwner),
-          m_nLaborPerSec,
-          std::move(m_sContainerName));
+          m_nLaborPerSec);
   }
 
   bool load(YAML::Node const& data) override
   {
     return BaseBlueprint::load(data)
         && utils::YamlReader(data)
-           .read("productivity",   m_nLaborPerSec)
-           .read("container_name", m_sContainerName);
+           .read("productivity",   m_nLaborPerSec);
   }
 
   void dump(YAML::Node& out) const override
   {
     BaseBlueprint::dump(out);
     utils::YamlDumper(out)
-        .add("productivity",   m_nLaborPerSec)
-        .add("container_name", m_sContainerName);
+        .add("productivity",   m_nLaborPerSec);
   }
 
 private:
   uint32_t    m_nLaborPerSec;
-  std::string m_sContainerName;
 };
 
 } // namespace modules

@@ -24,10 +24,9 @@ public:
     return sTypeName;
   }
 
-  Shipyard(std::string&& sName, world::PlayerWeakPtr pOwner,
-           double laborPerSecond, std::string sContainerName);
-
-  std::string const& getContainerName() const { return m_sContainerName; }
+  Shipyard(std::string&& sName,
+           world::PlayerWeakPtr pOwner,
+           double laborPerSecond);
 
   // override from BaseModule
   bool loadState(YAML::Node const& data) override;
@@ -42,9 +41,11 @@ private:
 
   void finishBuildingProcedure();
 
+  void bindToCargo(uint32_t nSessionId, std::string const& name);
   void startBuildReq(uint32_t nSessionId, const spex::IShipyard::StartBuild &req);
   void cancelBuildReq(uint32_t nSessionId);
 
+  void sendStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus) const;
   void sendSpeification(uint32_t nSessionId);
   void sendBuildingReport(spex::IShipyard::Status eStatus, double progress);
   void sendBuildingReport(uint32_t nSessionId,
@@ -54,8 +55,10 @@ private:
 
 private:
   double m_laborPerSecond;
-    // Shipyard efficency (how many labor it produces in second)
-  std::string m_sContainerName;
+    // Shipyard efficency (how much labor it produces per second)
+
+  modules::ResourceContainerPtr m_pContainer;
+    // Container, which resources will be consumed during the build
 
   std::set<uint32_t> m_openedSessions;
 
@@ -65,14 +68,12 @@ private:
     blueprints::ShipBlueprintPtr  pShipBlueprint;
     std::string                   sShipName;
     double                        progress; 
-    modules::ResourceContainerPtr pContainer;
-      // Container, which resources will be consumed
     world::ResourcesArray         resources;
       // How many resources should be consumed to build item
     blueprints::BlueprintsLibrary localLibraryCopy;
       // When building proedures starts, a copy of blueprints library will be
       // created. It is neccessary, because library can be changed, while ship is
-      // being built and that would lead to undefined behavior (I mean not cpp ub!).
+      // being built and that would lead to undefined behavior (I mean not a cpp ub!).
     uint32_t                      nIntervalSinceLastInd;
       // Stores a number of usec, that passed after previos progress IND was sent
   } m_building;

@@ -8,7 +8,6 @@ shipyard_blueprints: Dict[str, ShipyardBlueprint] = {
     "small": ShipyardBlueprint(
         name="Small Shipyard",
         productivity=5,
-        container_name="shipyard-container",
         expenses=ResourcesList({
             ResourceType.e_METALS: 20000,
             ResourceType.e_SILICATES: 10000,
@@ -18,7 +17,6 @@ shipyard_blueprints: Dict[str, ShipyardBlueprint] = {
     "medium": ShipyardBlueprint(
         name="Medium Shipyard",
         productivity=10,
-        container_name="shipyard-container",
         expenses=ResourcesList({
             ResourceType.e_METALS: 33000,
             ResourceType.e_SILICATES: 15000,
@@ -27,7 +25,6 @@ shipyard_blueprints: Dict[str, ShipyardBlueprint] = {
     "large": ShipyardBlueprint(
         name="Large Shipyard",
         productivity=25,
-        container_name="shipyard-container",
         expenses=ResourcesList({
             ResourceType.e_METALS: 60000,
             ResourceType.e_SILICATES: 30000,

@@ -32,6 +32,11 @@ class Shipyard(BaseModule):
             status, self.specification = await channel.get_specification(timeout)
         return status, self.specification
 
+    async def bind_to_cargo(self, cargo_name: str):
+        async with self.rent_session(ShipyardI) as channel:
+            assert isinstance(channel, ShipyardI)
+            return await channel.bind_to_cargo(cargo_name)
+
     async def build_ship(self, blueprint: str, ship_name: str,
                          progress_cb: Optional[BuildingCallback] = None) -> \
             (Status, Optional[str], Optional[int]):
