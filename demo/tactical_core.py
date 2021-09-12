@@ -2,7 +2,7 @@ from typing import Optional
 import asyncio
 
 from expansion import modules
-from expansion.modules import Commutator, SystemClock, ModuleType, Shipyard
+from expansion.modules import Commutator, SystemClock, ModuleType, Shipyard, ResourceContainer
 from expansion.types import TimePoint, Position, Vector
 import logging
 
@@ -77,9 +77,20 @@ class TacticalCore:
             return
         warehouse = ships[0]
 
-        shipyard: Optional[Shipyard] = await Shipyard.find_most_productive(warehouse.commutator())
+        shipyard: Optional[Shipyard] = await Shipyard.find_most_productive(
+            warehouse.commutator())
         if not shipyard:
             self.log.error("Can't get shipyard!")
+            return
+
+        cargo: Optional[ResourceContainer] = await ResourceContainer.find_most_voluminous(
+            warehouse.commutator()
+        )
+        if not cargo:
+            self.log.error("Can't get resource container!")
+            return
+
+        await shipyard.bind_to_cargo(cargo.name)
 
         next_id = 10
         ship_type = "Ship/Civilian-Miner"
