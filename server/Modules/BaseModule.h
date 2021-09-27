@@ -107,7 +107,6 @@ protected:
   inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {
     return network::BufferedPlayerTerminal::send(nSessionId, message);
   }
-  void sendUpdate(spex::Message const& message) const;
 
   void switchToIdleState() {
     if (m_eState == State::eIdle)
@@ -119,11 +118,6 @@ protected:
       return;
     m_eState = State::eActivating;
   }
-
-private:
-  void handleMonitorMessage(uint32_t nSessionId, spex::IMonitor const& monitor);
-
-  uint32_t generateToken() const;
 
 private:
   struct Subscription {
@@ -138,9 +132,6 @@ private:
   Status                    m_eStatus;
   State                     m_eState;
   ships::Ship*              m_pPlatform = nullptr;
-  std::vector<Subscription> m_subscribers;
-
-  static utils::RandomSequence m_tokenGenerator;
 };
 
 using BaseModulePtr     = std::shared_ptr<BaseModule>;

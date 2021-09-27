@@ -97,7 +97,6 @@ public:
   bool wait(spex::IBlueprintsLibrary& out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IShipyard& out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IGame& out, uint16_t nTimeoutMs = 100);
-  bool wait(spex::IMonitor& out, uint16_t nTimeoutMs = 100);
 
   // overrides from SyncPipe<spex::Message>
   void onMessageReceived(spex::Message&& message) override;

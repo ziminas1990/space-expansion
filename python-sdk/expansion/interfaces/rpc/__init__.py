@@ -6,5 +6,4 @@ from .celestial_scanner import CelestialScannerI, Specification as CelestialScan
 from .system_clock import SystemClockI, SystemClock
 from .resource_container import ResourceContainerI
 from .asteroid_miner import AsteroidMinerI, Specification as AsteroidMinerSpec
-from .monitor import Monitor
 from expansion.interfaces.rpc.shipyard import ShipyardI, Specification as ShipyardSpec

@@ -31,9 +31,7 @@ class Ship(Commutator, BaseModule):
         self.state: Optional[rpc.ShipState] = None
 
         # Monitoring facilities
-        self.__monitoring_session: Optional[rpc.Monitor] = None
         self.__monitoring_task: Optional[asyncio.Task] = None
-        self.__monitoring_token: int = 0
 
     async def init(self) -> bool:
         return await super().init()
@@ -82,38 +80,36 @@ class Ship(Commutator, BaseModule):
             self.state = await channel.get_state()
             return self.state
 
-    async def start_monitoring(self, interval_ms: int = 50) -> bool:
-        # If subscription session has not been opened yet we should open it
-        if self.__monitoring_session is None:
-            self.__monitoring_session = await self.open_session(rpc.Monitor)
-            if not isinstance(self.__monitoring_session, rpc.Monitor):  # for type hinting
-                return False
-            status, self.__monitoring_token = await self.__monitoring_session.subscribe()
-            if not status.is_ok():
-                return False
-            self.__monitoring_task = asyncio.get_running_loop().create_task(self.__monitoring())
+    async def start_monitoring(self, interval_ms: int = 50):
+        self.__monitoring_task = asyncio.get_running_loop().create_task(
+            self.__monitoring(interval_ms))
 
-        async with self.rent_session(rpc.ShipI) as session:
-            if not isinstance(session, rpc.ShipI):
-                return False
-            ack = await session.monitor(interval_ms)
-            return ack is not None
-
-    async def stop_monitoring(self) -> bool:
-        if self.__monitoring_session is None:
-            return True
-        status = await self.__monitoring_session.unsubscribe(self.__monitoring_token)
-        return status.is_ok()
+    async def stop_monitoring(self):
+        if self.__monitoring_task:
+            self.__monitoring_task.cancel()
+            self.__monitoring_task = None
 
     def __on_update(self, state: rpc.ShipState):
         self.state = state
         if state.position:
             self.position = state.position
 
-    async def __monitoring(self):
-        await self.__monitoring_session.monitor(
-            ship_state_cb=self.__on_update
-        )
+    async def __monitoring(self, interval_ms: int):
+        try:
+            async with self.open_managed_session(rpc.ShipI) as session:
+                if not isinstance(session, rpc.ShipI):
+                    return False
+                ack = await session.monitor(interval_ms)
+                if ack is None:
+                    return
+                timeout = 5 * interval_ms / 1000
+                while True:
+                    state = await session.wait_state(timeout)
+                    if not state:
+                        return
+                    self.__on_update(state)
+        except asyncio.CancelledError:
+            return
 
     @staticmethod
     def get_ship_by_name(

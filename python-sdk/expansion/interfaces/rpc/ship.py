@@ -48,9 +48,9 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         # Just for better readability
         return self
 
-    async def wait_state(self) -> Optional[State]:
+    async def wait_state(self, timeout: float = 0.5) -> Optional[State]:
         """Await a State message with actual ship's state"""
-        message, timestamp = await self.wait_message(timeout=0.5)
+        message, timestamp = await self.wait_message(timeout)
         if not message:
             return None
         state = get_message_field(message, "ship.state")
@@ -69,7 +69,7 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         After this call you may use 'wait_state()' to receive updates
         """
         request = api.Message()
-        request.ship.monitor = True
+        request.ship.monitor = duration_ms
         if not self.send(message=request):
             return None
         ack, _ = await self.wait_exact("ship.monitor_ack")

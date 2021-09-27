@@ -36,6 +36,8 @@ public:
   modules::BaseModulePtr getModuleByName(std::string const& sName) const;
     // Return module with the specified 'sName'. Has O(log(N)) complicity.
 
+  void onSessionClosed(uint32_t nSessionId) override;
+
 protected:
   void handleShipMessage(uint32_t nSessionId, spex::IShip const& message) override;
   void handleNavigationMessage(
@@ -50,15 +52,22 @@ private:
     eAll = 0xFFFF,
   };
 
+  struct Subscription {
+    uint32_t m_nSessionId = 0;
+    uint64_t m_nMonitoringPeriodUs = 0;
+    uint64_t m_nNextUpdate = 0;
+  };
+
   void sendState(uint32_t nSessionId, int eStateMask = StateMask::eAll) const;
   void sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const;
 
-private:
-  modules::CommutatorPtr m_pCommutator;
-  std::map<std::string, modules::BaseModulePtr> m_Modules;
+  Subscription& getOrCreateSubscription(uint32_t nSessionId);
+  bool cancelSubscription(uint32_t nSessionId);
 
-  uint64_t m_nMonitoringPeriodUs;
-  uint64_t m_nLastUpdateUs;
+private:
+  modules::CommutatorPtr                        m_pCommutator;
+  std::map<std::string, modules::BaseModulePtr> m_Modules;
+  std::vector<Subscription>                     m_subscriptions;
 };
 
 using ShipPtr     = std::shared_ptr<Ship>;

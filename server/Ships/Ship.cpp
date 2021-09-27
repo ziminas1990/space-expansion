@@ -14,9 +14,7 @@ Ship::Ship(std::string const& sShipType, std::string sName, world::PlayerWeakPtr
            double weight, double radius)
   : BaseModule(std::string("Ship/") + sShipType, std::move(sName), std::move(pOwner)),
     newton::PhysicalObject(weight, radius),
-    m_pCommutator(std::make_shared<modules::Commutator>()),
-    m_nMonitoringPeriodUs(0),
-    m_nLastUpdateUs(0)
+    m_pCommutator(std::make_shared<modules::Commutator>())
 {
   GlobalContainer<Ship>::registerSelf(this);
 }
@@ -49,16 +47,18 @@ bool Ship::loadState(YAML::Node const& source)
 }
 
 void Ship::proceed(uint32_t)
-{
-  if (0 == m_nMonitoringPeriodUs) {
-    switchToIdleState();
-    return;
-  }
+{ 
+  const uint64_t now = SystemManager::getIngameTime();
+  for (Subscription& subscription: m_subscriptions) {
+    if (subscription.m_nNextUpdate <= now) {
+      sendState(subscription.m_nSessionId);
 
-  uint64_t dtUs = SystemManager::getIngameTime() - m_nLastUpdateUs;
-  if (dtUs >= m_nMonitoringPeriodUs) {
-    sendState(0);
-    m_nLastUpdateUs += (dtUs - dtUs % m_nMonitoringPeriodUs);
+      subscription.m_nNextUpdate += subscription.m_nMonitoringPeriodUs;
+      if (subscription.m_nNextUpdate < now) {
+        // Seems that we had a freeze, don't need to send a batch of updates
+        subscription.m_nNextUpdate = now + subscription.m_nMonitoringPeriodUs;
+      }
+    }
   }
 }
 
@@ -100,6 +100,11 @@ modules::BaseModulePtr Ship::getModuleByName(std::string const& sName) const
 {
   std::map<std::string, modules::BaseModulePtr>::const_iterator I = m_Modules.find(sName);
   return I != m_Modules.end() ? I->second : modules::BaseModulePtr();
+}
+
+void Ship::onSessionClosed(uint32_t nSessionId)
+{
+  cancelSubscription(nSessionId);
 }
 
 void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
@@ -147,13 +152,15 @@ void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
   }
   sendMonitorAck(nSessionId, nPeriodMs);
 
-  m_nMonitoringPeriodUs = nPeriodMs * 1000;
-  m_nLastUpdateUs = SystemManager::getIngameTime();
   if (nPeriodMs) {
-    sendState(0);
+    Subscription& subscription = getOrCreateSubscription(nSessionId);
+    subscription.m_nMonitoringPeriodUs = nPeriodMs * 1000;
+    subscription.m_nNextUpdate = SystemManager::getIngameTime() +
+        subscription.m_nMonitoringPeriodUs;
+    sendState(nSessionId);
     switchToActiveState();
   } else {
-    switchToIdleState();
+    cancelSubscription(nSessionId);
   }
 }
 
@@ -174,11 +181,7 @@ void Ship::sendState(uint32_t nSessionId, int eStateMask) const
     pPosition->set_vy(getVelocity().getY());
   }
 
-  if (nSessionId) {
-    sendToClient(nSessionId, message);
-  } else {
-    sendUpdate(message);
-  }
+  sendToClient(nSessionId, message);
 }
 
 void Ship::sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const
@@ -186,6 +189,31 @@ void Ship::sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const
   spex::Message message;
   message.mutable_ship()->set_monitor_ack(nPeriodMs);
   sendToClient(nSessionId, message);
+}
+
+Ship::Subscription&
+Ship::getOrCreateSubscription(uint32_t nSessionId)
+{
+  for (Subscription& subscription: m_subscriptions) {
+    if (subscription.m_nSessionId == nSessionId) {
+      return subscription;
+    }
+  }
+  Subscription& subscription = m_subscriptions.emplace_back();
+  subscription.m_nSessionId = nSessionId;
+  return subscription;
+}
+
+bool Ship::cancelSubscription(uint32_t nSessionId)
+{
+  for(size_t i = 0; i < m_subscriptions.size(); ++i) {
+    if (m_subscriptions[i].m_nSessionId == nSessionId) {
+      std::swap(m_subscriptions[i], m_subscriptions.back());
+      m_subscriptions.pop_back();
+      return true;
+    }
+  }
+  return false;
 }
 
 } // namespace modules

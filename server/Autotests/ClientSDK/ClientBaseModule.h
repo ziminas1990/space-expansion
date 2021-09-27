@@ -24,9 +24,6 @@ public:
   PlayerPipePtr getChannel() { return m_pSyncPipe; }
   bool isAttached() const { return m_pSyncPipe != nullptr; }
 
-  MonitoringStatus subscribe(uint32_t& token);
-  MonitoringStatus unsubscribe(uint32_t token);
-
   // Forwarding interface from SyncPipe
   bool send(spex::Message const& message)
   { return m_pSyncPipe && m_pSyncPipe->send(message); }
@@ -35,12 +32,7 @@ public:
   bool wait(MessageType& message, uint16_t nTimeout = 500)
   { return m_pSyncPipe && m_pSyncPipe->wait(message, nTimeout); }
 
-  void dropQueuedMessage()
-  {
-    if (m_pSyncPipe) {
-      m_pSyncPipe->dropAll();
-    }
-  }
+  void dropQueuedMessage();
 
 private:
   PlayerPipePtr m_pSyncPipe;

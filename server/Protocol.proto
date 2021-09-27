@@ -53,29 +53,6 @@ message Position {
   double vy  = 5;
 }
 
-//=============================================================================
-// Common interfaces
-
-
-message IMonitor {
-
-  enum Status {
-    SUCCESS        = 0;
-    LIMIT_EXCEEDED = 1;
-    UNEXPECTED_MSG = 2;
-    INVALID_TOKEN  = 3;
-    CANCELED       = 4;
-  }
-
-  oneof choice {
-    bool   subscribe   = 1;
-    uint32 unsubscribe = 2;
-
-    uint32 token  = 21;
-    Status status = 22;
-  }
-
-}
 
 //=============================================================================
 // Modules interfaces
@@ -261,6 +238,7 @@ message IResourceContainer {
     uint32         open_port         = 2;
     bool           close_port        = 3;
     Transfer       transfer          = 4;
+    bool           monitor           = 5;
     
     Content        content            = 21;
     uint32         port_opened        = 22;
@@ -477,6 +455,5 @@ message Message {
     IShipyard          shipyard           = 23;
     IGame              game               = 24;
     ISystemClock       system_clock       = 25;
-    IMonitor           monitor            = 26;
   }
 }
