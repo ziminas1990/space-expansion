@@ -1,14 +1,11 @@
-from typing import Dict, List, Optional, Callable, Awaitable, Tuple
+from typing import Dict, List, Optional, Callable, Tuple
 
 import expansion.interfaces.rpc as rpc
-from expansion.interfaces.rpc.commutator import Tunnel
 from expansion import utils
 
 from .base_module import BaseModule, TunnelFactory
 
-TunnelOrError = Tuple[Optional[Tunnel], Optional[str]]
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
-ConnectionFactory = Callable[[], Awaitable[rpc.CommutatorI]]
 ModulesFactory = Callable[[str, str, TunnelFactory], ModuleOrError]
 
 
@@ -56,7 +53,8 @@ class Commutator(BaseModule):
     def add_module(self, module_type: str, name: str, slot_id: int) -> bool:
         async def tunnel_factory():
             async with self.rent_session(rpc.CommutatorI) as remote:
-                return await remote.open_tunnel(port=slot_id)
+                status, tunnel = await remote.open_tunnel(port=slot_id)
+                return tunnel, None if status.is_ok() else str(status)
 
         module_instance, error = self.modules_factory(module_type, name, tunnel_factory)
         if error is not None:

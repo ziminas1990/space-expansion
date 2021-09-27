@@ -33,4 +33,19 @@ bool MockedCommutator::sendOpenTunnelFailed(uint32_t nSessionId,
   return sendToClient(nSessionId, message);
 }
 
+bool MockedCommutator::waitTotalSlotsReq(uint32_t nSessionId)
+{
+  spex::ICommutator message;
+  if (!wait(nSessionId, message))
+    return false;
+  return message.choice_case() == spex::ICommutator::kTotalSlotsReq;
+}
+
+bool MockedCommutator::sendTotalSlots(uint32_t nSessionId, uint32_t slots)
+{
+  spex::Message message;
+  message.mutable_commutator()->set_total_slots(slots);
+  return sendToClient(nSessionId, message);
+}
+
 } // namespace autotests

@@ -389,8 +389,8 @@ message ICommutator {
     ModuleInfo module_info         = 22;
     uint32     open_tunnel_report  = 23;
     Status     open_tunnel_failed  = 24;
-    uint32     close_tunnel_report = 25;
-    Status     close_tunnel_failed = 26;
+    Status     close_tunnel_status = 25;
+    bool       close_tunnel_ind    = 26;
   }
 }
 

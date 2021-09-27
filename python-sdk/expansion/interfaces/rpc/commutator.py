@@ -1,6 +1,6 @@
 from typing import Optional, Any, Dict, List, NamedTuple, Tuple
 import logging
-
+from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
@@ -47,8 +47,7 @@ class Tunnel(ProxyChannel):
 
     # Overridden from Channel
     async def close(self):
-        pass
-        #assert False, "Not implemented yet"
+        return await self.commutator.close_tunnel(self.tunnel_id)
 
 
 class ModuleInfo(NamedTuple):
@@ -67,6 +66,32 @@ class CommutatorI(IOTerminal):
     """Commutator is a module, that can be used to access another modules,
     attached to the commutator
     """
+
+    class Status(Enum):
+        SUCCESS = "success"
+        INVALID_SLOT = "invalid slot"
+        MODULE_OFFLINE = "module offline"
+        REJECTED_BY_MODULE = "rejected by module"
+        INVALID_TUNNEL = "invalid tunnel"
+        # Internal SDK statuses:
+        FAILED_TO_SEND_REQUEST = "failed to send request"
+        RESPONSE_TIMEOUT = "response timeout"
+        UNEXPECTED_RESPONSE = "unexpected response"
+
+        def is_ok(self):
+            return self == CommutatorI.Status.SUCCESS
+
+        @staticmethod
+        def convert(status: public.ICommutator.Status) -> "CommutatorI.Status":
+            ProtobufStatus = public.ICommutator.Status
+            ModuleStatus = CommutatorI.Status
+            return {
+                ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
+                ProtobufStatus.INVALID_SLOT: ModuleStatus.INVALID_SLOT,
+                ProtobufStatus.MODULE_OFFLINE: ModuleStatus.MODULE_OFFLINE,
+                ProtobufStatus.REJECTED_BY_MODULE: ModuleStatus.REJECTED_BY_MODULE,
+                ProtobufStatus.INVALID_TUNNEL: ModuleStatus.INVALID_TUNNEL,
+            }[status]
 
     def __init__(self, name: str = __name__):
         super().__init__(name=name)
@@ -160,20 +185,7 @@ class CommutatorI(IOTerminal):
             result.append(ModuleInfo.from_protubuf(module_info))
         return result
 
-    async def attach_to_module(self, port: int, terminal: Terminal) -> Optional[str]:
-        """Open tunnel to the specified 'port' and attach the specified
-        'terminal' to it. Return None on success, or error string on fail."""
-        tunnel, error = await self.open_tunnel(port)
-        if error is not None:
-            assert tunnel is None
-            return error
-        # A channel is attached to the commutator, but tunnels are attached
-        # to the channel directly
-        tunnel.attach_to_terminal(terminal)
-        terminal.attach_channel(tunnel)
-        return None  # No errors
-
-    async def open_tunnel(self, port: int) -> Tuple[Optional[Tunnel], Optional[str]]:
+    async def open_tunnel(self, port: int) -> Tuple[Status, Optional[Tunnel]]:
         """Open tunnel to the specified 'port'. Return (tunnel, None) on
         success, otherwise return (None, error)"""
         request = public.Message()
@@ -182,17 +194,30 @@ class CommutatorI(IOTerminal):
 
         response, _ = await self.wait_message(timeout=0.2)  # it shouldn't take much time
         if not response:
-            return None, "timeout"
+            return CommutatorI.Status.RESPONSE_TIMEOUT, None
         tunnel_id = get_message_field(response, "commutator.open_tunnel_report")
         if tunnel_id is None:
             error = get_message_field(response, "commutator.open_tunnel_failed")
             if not error:
-                error = "unexpected message received"
+                return CommutatorI.Status.UNEXPECTED_RESPONSE, None
             self._logger.warning(f"Failed to open tunnel to port #{port}: {error}")
-            return None, error
+            return CommutatorI.Status.convert(error), None
 
         tunnel = Tunnel(tunnel_id=tunnel_id, commutator=self)
         tunnel.attach_channel(channel=self.channel)
         self.tunnels.update({tunnel.tunnel_id: tunnel})
-        return tunnel, None
+        return CommutatorI.Status.SUCCESS, tunnel
 
+    async def close_tunnel(self, tunnel_id) -> Status:
+        request = public.Message()
+        request.commutator.close_tunnel = tunnel_id
+        self.send(request)
+
+        response, _ = await self.wait_message(timeout=0.2)  # it shouldn't take much time
+        if not response:
+            return CommutatorI.Status.RESPONSE_TIMEOUT
+
+        status = get_message_field(response, "commutator.close_tunnel_status")
+        if status is None:
+            return CommutatorI.Status.UNEXPECTED_RESPONSE
+        return CommutatorI.Status.convert(status)

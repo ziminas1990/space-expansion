@@ -158,4 +158,38 @@ TEST_F(CommutatorTests, TunnelingMessageToOfflineModule)
   ASSERT_FALSE(pMockedCommutator->waitAny(pTunnel->getTunnelId(), 50));
 }
 
+TEST_F(CommutatorTests, CloseTunnel)
+{
+  // 1. Attaching commutator to MockedCommutator
+  MockedCommutatorPtr pMockedCommutator = std::make_shared<MockedCommutator>();
+  pMockedCommutator->attachToChannel(m_pCommutatator);
+  m_pCommutatator->attachModule(pMockedCommutator);
+  pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
+
+  // 1. Open tunnel
+  client::TunnelPtr pTunnel = m_pClient->openTunnel(0);
+  ASSERT_TRUE(pTunnel);
+
+  // 2. Try to send some request
+  client::ClientCommutatorPtr pAnotherClient =
+      std::make_shared<client::ClientCommutator>();
+  pAnotherClient->attachToChannel(pTunnel);
+
+  ASSERT_TRUE(pAnotherClient->sendTotalSlotsReq());
+  uint32_t nTotalSlots = 16;
+  ASSERT_TRUE(pMockedCommutator->waitTotalSlotsReq(pTunnel->getTunnelId()));
+  ASSERT_TRUE(pMockedCommutator->sendTotalSlots(pTunnel->getTunnelId(), nTotalSlots));
+  ASSERT_TRUE(pAnotherClient->waitTotalSlots(nTotalSlots));
+
+  // 3. close channel
+  ASSERT_TRUE(m_pClient->closeTunnel(pTunnel));
+  spex::ICommutator closeInd;
+  ASSERT_TRUE(pTunnel->wait(closeInd));
+  ASSERT_EQ(spex::ICommutator::kCloseTunnelInd, closeInd.choice_case());
+
+  // 4. try to send yet another request (should fail)
+  ASSERT_TRUE(pAnotherClient->sendTotalSlotsReq());
+  ASSERT_FALSE(pMockedCommutator->waitTotalSlotsReq(pTunnel->getTunnelId()));
+}
+
 } // namespace autotests

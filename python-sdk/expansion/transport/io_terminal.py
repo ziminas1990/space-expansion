@@ -5,6 +5,7 @@ import time
 from expansion.protocol import get_message_field
 from expansion.transport import Endpoint, Terminal, Channel
 
+
 class IOTerminal(Endpoint):
     """IOTerminal may be attached to the channel (as a terminal inheritor)
     and can be used by the client code as a channel. It uses internal queue

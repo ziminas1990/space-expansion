@@ -16,6 +16,9 @@ public:
   bool waitOpenTunnel(uint32_t nSessionId, uint32_t nSlotId);
   bool sendOpenTunnelSuccess(uint32_t nSessionId, uint32_t nTunnelId);
   bool sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
+
+  bool waitTotalSlotsReq(uint32_t nSessionId);
+  bool sendTotalSlots(uint32_t nSessionId, uint32_t slots);
 };
 
 using MockedCommutatorPtr = std::shared_ptr<MockedCommutator>;

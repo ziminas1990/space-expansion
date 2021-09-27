@@ -5,18 +5,7 @@ namespace autotests { namespace client {
 
 bool ClientCommutator::getTotalSlots(uint32_t& nTotalSlots)
 {
-  spex::Message request;
-  request.mutable_commutator()->set_total_slots_req(true);
-  if (!send(request))
-    return false;
-
-  spex::ICommutator message;
-  if (!wait(message))
-    return false;
-  if (message.choice_case() != spex::ICommutator::kTotalSlots)
-    return false;
-  nTotalSlots = message.total_slots();
-  return true;
+  return sendTotalSlotsReq() && waitTotalSlots(nTotalSlots);
 }
 
 bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
@@ -60,6 +49,18 @@ TunnelPtr ClientCommutator::openTunnel(uint32_t nSlotId)
   return pTunnel;
 }
 
+bool ClientCommutator::closeTunnel(TunnelPtr pTunnel)
+{
+  if (!sendCloseTunnel(pTunnel->getTunnelId())) {
+    return false;
+  }
+  spex::ICommutator::Status status;
+  if (!waitCloseTunnelStatus(status)) {
+    return false;
+  }
+  return status == spex::ICommutator::SUCCESS;
+}
+
 bool ClientCommutator::sendOpenTunnel(uint32_t nSlotId)
 {
   spex::Message request;
@@ -87,6 +88,51 @@ bool ClientCommutator::waitOpenTunnelFailed()
   spex::ICommutator message;
   return wait(message)
       && message.choice_case() == spex::ICommutator::kOpenTunnelFailed;
+}
+
+bool ClientCommutator::sendCloseTunnel(uint32_t nTunnelId)
+{
+  spex::Message request;
+  request.mutable_commutator()->set_close_tunnel(nTunnelId);
+  return send(request);
+}
+
+bool ClientCommutator::waitCloseTunnelStatus(spex::ICommutator::Status& status)
+{
+  spex::ICommutator message;
+  if (!wait(message)) {
+    return false;
+  }
+  if (message.choice_case() != spex::ICommutator::kCloseTunnelStatus) {
+    return false;
+  }
+  status = message.close_tunnel_status();
+  return true;
+}
+
+bool ClientCommutator::waitCloseTunnelInd()
+{
+  spex::ICommutator message;
+  return wait(message)
+      && message.choice_case() == spex::ICommutator::kCloseTunnelInd;
+}
+
+bool ClientCommutator::sendTotalSlotsReq()
+{
+  spex::Message request;
+  request.mutable_commutator()->set_total_slots_req(true);
+  return send(request);
+}
+
+bool ClientCommutator::waitTotalSlots(uint32_t& nSlots)
+{
+  spex::ICommutator message;
+  if (!wait(message))
+    return false;
+  if (message.choice_case() != spex::ICommutator::kTotalSlots)
+    return false;
+  nSlots = message.total_slots();
+  return true;
 }
 
 bool ClientCommutator::waitGameOverReport(spex::IGame::GameOver& report,

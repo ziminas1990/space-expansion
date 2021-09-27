@@ -23,11 +23,19 @@ public:
   bool getAttachedModulesList(ModulesList& attachedModules);
 
   TunnelPtr openTunnel(uint32_t nSlotId);
+  bool closeTunnel(TunnelPtr pTunnel);
 
   // Additional functions, that are used in autotests:
   bool sendOpenTunnel(uint32_t nSlotId);
   bool waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId = nullptr);
   bool waitOpenTunnelFailed();
+
+  bool sendCloseTunnel(uint32_t nTunnelId);
+  bool waitCloseTunnelStatus(spex::ICommutator::Status& status);
+  bool waitCloseTunnelInd();
+
+  bool sendTotalSlotsReq();
+  bool waitTotalSlots(uint32_t& nSlots);
 
   bool waitGameOverReport(spex::IGame::GameOver &report, uint16_t nTimeout = 500);
 };

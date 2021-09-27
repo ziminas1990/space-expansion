@@ -1,7 +1,7 @@
-from typing import Callable, Awaitable, Any, Tuple, Optional, Type
+from typing import Callable, Awaitable, Tuple, Optional, TYPE_CHECKING
 import logging
 
-from expansion.transport import Terminal, ProxyChannel
+from expansion.transport import ProxyChannel
 
 from .base_module import BaseModule, ModuleType
 from .ship import Ship

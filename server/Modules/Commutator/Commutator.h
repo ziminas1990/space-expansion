@@ -79,12 +79,13 @@ private:
   void onModuleHasBeenAttached(uint32_t nSlotId);
 
   void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
-  void sendCloseTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
+  void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);
+  void sendCloseTunnelInd(uint32_t nTunnelId);
 
 private:
   struct Tunnel {
     bool     m_lUp     = false;
-    uint32_t m_nFather = 0; // Session, that created a tunnel
+    uint32_t m_nParentSessionId = 0; // Session, that created a tunnel
     uint32_t m_nSlotId = 0;
   };
 
