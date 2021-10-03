@@ -30,6 +30,14 @@ void CelestialScanner::proceed(uint32_t nIntervalUs)
   switchToIdleState();
 }
 
+void CelestialScanner::onSessionClosed(uint32_t nSessionId)
+{
+  if (m_nTunnelId == nSessionId) {
+    m_nTunnelId = 0;
+    switchToIdleState();
+  }
+}
+
 void CelestialScanner::handleCelestialScannerMessage(
     uint32_t nTunnelId, spex::ICelestialScanner const& message)
 {
@@ -80,7 +88,6 @@ void CelestialScanner::onScanRequest(
   uint32_t resolution   = nScanningRadiusKm * 1000 / nMinimalRadius;
   m_nScanningTimeLeftUs = 100000 + 2 * RTT_Us + resolution * m_nProcessingTimeUs;
   switchToActiveState();
-
 }
 
 void CelestialScanner::collectAndSendScanResults()

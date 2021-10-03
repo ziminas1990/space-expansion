@@ -168,8 +168,12 @@ bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
     // timestamp to it
     encapsulated->set_timestamp(SystemManager::getIngameTime());
   }
-  return nTunnelId < m_Tunnels.size()
-      && sendToClient(m_Tunnels[nTunnelId].m_nParentSessionId, tunnelPDU);
+  if (nTunnelId < m_Tunnels.size()) {
+    const Tunnel& tunnel = m_Tunnels[nTunnelId];
+    return tunnel.m_lUp
+        && sendToClient(tunnel.m_nParentSessionId, tunnelPDU);
+  }
+  return false;
 }
 
 void Commutator::closeSession(uint32_t nTunnelId)

@@ -22,6 +22,9 @@ public:
 
   void proceed(uint32_t nIntervalUs) override;
 
+  // Override from BaseModule->IProtobufTerminal
+  void onSessionClosed(uint32_t nSessionId) override;
+
 private:
   void handleCelestialScannerMessage(
       uint32_t nTunnelId, spex::ICelestialScanner const& message) override;
