@@ -49,16 +49,11 @@ bool Ship::loadState(YAML::Node const& source)
 void Ship::proceed(uint32_t)
 { 
   const uint64_t now = SystemManager::getIngameTime();
-  for (Subscription& subscription: m_subscriptions) {
-    if (subscription.m_nNextUpdate <= now) {
-      sendState(subscription.m_nSessionId);
 
-      subscription.m_nNextUpdate += subscription.m_nMonitoringPeriodUs;
-      if (subscription.m_nNextUpdate < now) {
-        // Seems that we had a freeze, don't need to send a batch of updates
-        subscription.m_nNextUpdate = now + subscription.m_nMonitoringPeriodUs;
-      }
-    }
+  // Send updates to subscribers
+  uint32_t session;
+  while (m_subscriptions.nextUpdate(session, now)) {
+    sendState(session);
   }
 }
 
@@ -104,7 +99,7 @@ modules::BaseModulePtr Ship::getModuleByName(std::string const& sName) const
 
 void Ship::onSessionClosed(uint32_t nSessionId)
 {
-  cancelSubscription(nSessionId);
+  m_subscriptions.remove(nSessionId);
 }
 
 void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
@@ -151,16 +146,11 @@ void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
     nPeriodMs = 60000;
   }
   sendMonitorAck(nSessionId, nPeriodMs);
-
   if (nPeriodMs) {
-    Subscription& subscription = getOrCreateSubscription(nSessionId);
-    subscription.m_nMonitoringPeriodUs = nPeriodMs * 1000;
-    subscription.m_nNextUpdate = SystemManager::getIngameTime() +
-        subscription.m_nMonitoringPeriodUs;
-    sendState(nSessionId);
+    m_subscriptions.add(nSessionId, nPeriodMs, SystemManager::getIngameTime());
     switchToActiveState();
   } else {
-    cancelSubscription(nSessionId);
+    m_subscriptions.remove(nSessionId);
   }
 }
 
@@ -189,31 +179,6 @@ void Ship::sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const
   spex::Message message;
   message.mutable_ship()->set_monitor_ack(nPeriodMs);
   sendToClient(nSessionId, message);
-}
-
-Ship::Subscription&
-Ship::getOrCreateSubscription(uint32_t nSessionId)
-{
-  for (Subscription& subscription: m_subscriptions) {
-    if (subscription.m_nSessionId == nSessionId) {
-      return subscription;
-    }
-  }
-  Subscription& subscription = m_subscriptions.emplace_back();
-  subscription.m_nSessionId = nSessionId;
-  return subscription;
-}
-
-bool Ship::cancelSubscription(uint32_t nSessionId)
-{
-  for(size_t i = 0; i < m_subscriptions.size(); ++i) {
-    if (m_subscriptions[i].m_nSessionId == nSessionId) {
-      std::swap(m_subscriptions[i], m_subscriptions.back());
-      m_subscriptions.pop_back();
-      return true;
-    }
-  }
-  return false;
 }
 
 } // namespace modules

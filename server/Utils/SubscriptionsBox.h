@@ -3,18 +3,17 @@
 #include <stdint.h>
 #include <vector>
 
-namespace Utils {
+namespace utils {
 
-class SimpleSubscriptionMixin
+class SubscriptionsBox
 {
 public:
-  void addSubscription(uint32_t nSessionId, uint32_t nPeriodMs, uint64_t now);
+  void add(uint32_t nSessionId, uint32_t nPeriodMs, uint64_t now);
   // Add a new subscription with the specified 'nSessionId', that should
-  // be updated every 'nPeriosMs' milliseconds.
-  // Note: attempt to add two or more subscriptions with the same
-  // 'nSessionId' will cause undefined behavior.
+  // be updated every 'nPeriosMs' milliseconds. If subscription with
+  // the specified 'nSessionId' already exists, it will be updated.
 
-  bool removeSubscription(uint32_t nSessionId);
+  bool remove(uint32_t nSessionId);
   // Remove subscription with the specified 'nSessionId'.
 
   bool nextUpdate(uint32_t& nSessionId, uint64_t now);
@@ -23,8 +22,8 @@ public:
   // load it's sessionId to the specified 'nSessionId' and return true.
   // Otherwise return false.
 
-protected:
-  ~SimpleSubscriptionMixin() = default;
+private:
+  void placeItem(size_t i);
 
 private:
   struct Subscription {

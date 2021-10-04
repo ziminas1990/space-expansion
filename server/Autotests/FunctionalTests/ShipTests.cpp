@@ -67,7 +67,6 @@ TEST_F(ShipTests, Monitoring)
 
   ASSERT_TRUE(pShip->monitor(500, nMonitorAck));
   ASSERT_EQ(500, nMonitorAck);
-  ASSERT_TRUE(pShip->waitState(state));
 
   resumeTime();
   for (size_t i = 1; i < 100; ++i) {
@@ -79,7 +78,6 @@ TEST_F(ShipTests, Monitoring)
 
   ASSERT_TRUE(pShip->monitor(1000, nMonitorAck));
   ASSERT_EQ(1000, nMonitorAck);
-  ASSERT_TRUE(pShip->waitState(state));
 
   for (size_t i = 0; i < 10; ++i) {
     uint64_t expectedTime = m_application.getClock().now() + 1000000;
@@ -121,10 +119,6 @@ TEST_F(ShipTests, MultipleSubscriptions)
   }
 
   client::ShipState state;
-
-  for (Subscription& subscription: subscriptions) {
-    ASSERT_TRUE(subscription.first->waitState(state));
-  }
 
   resumeTime();
   for (size_t i = 1; i < 10; ++i) {
@@ -172,12 +166,10 @@ TEST_F(ShipTests, MonitoringLimits)
   // Period is too big
   ASSERT_TRUE(pShip->monitor(100000, nMontorAck));
   ASSERT_EQ(60000, nMontorAck);
-  ASSERT_TRUE(pShip->waitState(state));
 
   // Period is two short
   ASSERT_TRUE(pShip->monitor(50, nMontorAck));
   ASSERT_EQ(100 , nMontorAck);
-  ASSERT_TRUE(pShip->waitState(state));
 }
 
 } // namespace autotests

@@ -7,6 +7,7 @@
 #include <Modules/Commutator/Commutator.h>
 #include <Newton/PhysicalObject.h>
 #include <Utils/GlobalContainer.h>
+#include <Utils/SubscriptionsBox.h>
 
 namespace ships
 {
@@ -52,22 +53,14 @@ private:
     eAll = 0xFFFF,
   };
 
-  struct Subscription {
-    uint32_t m_nSessionId = 0;
-    uint64_t m_nMonitoringPeriodUs = 0;
-    uint64_t m_nNextUpdate = 0;
-  };
-
   void sendState(uint32_t nSessionId, int eStateMask = StateMask::eAll) const;
   void sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const;
-
-  Subscription& getOrCreateSubscription(uint32_t nSessionId);
-  bool cancelSubscription(uint32_t nSessionId);
 
 private:
   modules::CommutatorPtr                        m_pCommutator;
   std::map<std::string, modules::BaseModulePtr> m_Modules;
-  std::vector<Subscription>                     m_subscriptions;
+
+  utils::SubscriptionsBox m_subscriptions;
 };
 
 using ShipPtr     = std::shared_ptr<Ship>;
