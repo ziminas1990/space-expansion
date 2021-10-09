@@ -123,12 +123,12 @@ private:
     while (m_busyModulesIds.getNextId(nModuleId, nIndex)) {
       BaseModule* pModule = utils::GlobalContainer<ModuleType>::Instance(nModuleId);
       if (!pModule) {
-        m_busyModulesIds.forgetIdAtPosition(nIndex);
+        m_busyModulesIds.dropIndex(nIndex);
         continue;
       }
       pModule->proceed(nIntervalUs);
       if (pModule->isDeactivating()) {
-        m_busyModulesIds.forgetIdAtPosition(nIndex);
+        m_busyModulesIds.dropIndex(nIndex);
         pModule->onDeactivated();
       }
     }
