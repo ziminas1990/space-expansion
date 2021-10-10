@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+#include <assert.h>
 #include <random>
 
 namespace utils {
@@ -23,6 +25,21 @@ public:
     uint32_t lowBytes = static_cast<uint32_t>(std::rand());
     uint64_t hiBytes = static_cast<uint32_t>(std::rand());
     return (hiBytes << 32) + lowBytes;
+  }
+
+  std::vector<int> generate(size_t nTotal, int nLeftBound, int nRightBound)
+  {
+    assert(nLeftBound < nRightBound);
+    const int range = nRightBound - nLeftBound + 1;
+
+    std::srand(m_nNextPattern);
+    m_nNextPattern = static_cast<unsigned int>(std::rand());
+
+    std::vector<int> result(nTotal);
+    for (size_t i = 0; i < nTotal; ++i) {
+      result[i] = nLeftBound + std::rand() % range;
+    }
+    return result;
   }
 
 private:
