@@ -4,8 +4,10 @@
 
 namespace utils {
 
-void StringUtils::split(char separator, std::string const& source,
-                        std::string &left, std::string &right)
+void StringUtils::split(char separator,
+                        const std::string_view &source,
+                        std::string &left,
+                        std::string &right)
 {
   size_t nSeparatorIdx = source.find(separator);
   if (nSeparatorIdx == std::string::npos) {
