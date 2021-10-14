@@ -38,7 +38,7 @@ bool ResourcesManagment::transfer(
       if (source.transferRequest(nPortId, nAccessKey, type, resources[type]) !=
           ResourceContainer::eStatusOk)
         return false;
-      if (source.waitTransfer(type, resources[type]) != ResourceContainer::eStatusOk)
+      if (source.waitTransfer(resources[type]) != ResourceContainer::eStatusOk)
         return false;
     }
   }

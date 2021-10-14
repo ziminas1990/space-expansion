@@ -7,6 +7,7 @@
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
 #include <Utils/YamlForwardDeclarations.h>
+#include <Utils/UnorderedVector.h>
 #include <Protocol.pb.h>
 #include <World/Resources.h>
 #include <Utils/SimplePool.h>
@@ -28,6 +29,11 @@ public:
   // override from BaseModule
   bool loadState(YAML::Node const& data) override;
   void proceed(uint32_t nIntervalUs) override;
+  void onSessionClosed(uint32_t nSessionId) override;
+
+  void sendUpdatesIfRequired();
+  // If container's content has changed since previously update,
+  // then send update to each monitoring channel
 
   double putResource(world::Resource::Type type, double amount);
   double putResource(world::ResourcesArray const& resources);
@@ -56,6 +62,7 @@ private:
   void openPort(uint32_t nTunnelId, uint32_t nAccessKey);
   void closePort(uint32_t nTunnelId);
   void transfer(uint32_t nTunnelId, spex::IResourceContainer::Transfer const& req);
+  void monitor(uint32_t nTunnelId);
 
   double consumeResource(world::Resource::Type type, double amount);
   void recalculateUsedSpace();
@@ -112,10 +119,16 @@ private:
   double                m_nUsedSpace;
   world::ResourcesArray m_amount;
 
+  // Monitoring
+  utils::UnorderedVector<uint32_t> m_monitoringSessions;
+  bool                             m_lModifiedFlag;
+
+  // Active transferring session (from this container to another)
   uint32_t m_nOpenedPortId;
   Transfer m_activeTransfer;
   uint32_t m_nProceededTime;
 
+  // All opened ports
   static std::mutex                     m_portsMutex; // shared_mutex?
   static utils::SimplePool<uint32_t, 0> m_freePortsIds;
   static uint32_t                       m_nNextSecretKey;

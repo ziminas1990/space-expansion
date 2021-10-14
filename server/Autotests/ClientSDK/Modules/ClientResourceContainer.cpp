@@ -60,16 +60,7 @@ bool ResourceContainer::getContent(ResourceContainer::Content &content)
 {
   spex::Message request;
   request.mutable_resource_container()->set_content_req(true);
-  if (!send(request))
-    return false;
-
-  spex::IResourceContainer response;
-  if (!wait(response))
-    return false;
-  if (response.choice_case() != spex::IResourceContainer::kContent)
-    return false;
-
-  return fillContent(content, response.content());
+  return send(request) && waitContent(content);
 }
 
 ResourceContainer::Status ResourceContainer::openPort(
@@ -141,35 +132,61 @@ ResourceContainer::Status ResourceContainer::transferRequest(
   return convert(response.transfer_status());
 }
 
-ResourceContainer::Status ResourceContainer::waitTransfer(
-    world::Resource::Type type, double amount)
+bool ResourceContainer::monitor(Content &content)
 {
-  while (true) {
-    spex::IResourceContainer response;
-    if (!wait(response)) {
-      return eStatusError;
-    }
+  spex::Message request;
+  request.mutable_resource_container()->set_monitor(true);
+  return send(request) && waitContent(content);
+}
 
-    switch (response.choice_case()) {
-      case spex::IResourceContainer::kTransferReport: {
-        if (utils::convert(response.transfer_report().type()) != type) {
-          return eTransferGotInvalidReport;
-        }
-        amount -= response.transfer_report().amount();
-        break;
-      }
-      case spex::IResourceContainer::kTransferFinished: {
-        if (std::abs(amount) > 0.001) {
-          return eTransferIncomplete;
-        }
-        return convert(response.transfer_finished());
-      }
-      default:
-        // Got unexpected response
-        assert(false);
-        return eStatusError;
-    }
+ResourceContainer::Status
+ResourceContainer::waitTransferReport(double& amount)
+{
+  spex::IResourceContainer response;
+  if (!wait(response)) {
+    return eStatusError;
   }
+
+  switch (response.choice_case()) {
+    case spex::IResourceContainer::kTransferReport: {
+      amount += response.transfer_report().amount();
+      return ResourceContainer::eTransferInProgress;
+    }
+    case spex::IResourceContainer::kTransferFinished: {
+      return convert(response.transfer_finished());
+    }
+    default:
+      // Got unexpected response
+      assert(false);
+      return eStatusError;
+  }
+}
+
+ResourceContainer::Status ResourceContainer::waitTransfer(double amount)
+{
+  client::ResourceContainer::Status status =
+      client::ResourceContainer::eTransferInProgress;
+  double totalTransferred = 0;
+  while (status == client::ResourceContainer::eTransferInProgress) {
+    status = waitTransferReport(totalTransferred);
+  }
+  if (status != client::ResourceContainer::eStatusOk) {
+    return status;
+  }
+  if (abs(amount - totalTransferred) > 0.001) {
+    return eTransferIncomplete;
+  }
+  return status;
+}
+
+bool ResourceContainer::waitContent(Content &content)
+{
+  spex::IResourceContainer response;
+  if (!wait(response))
+    return false;
+  if (response.choice_case() != spex::IResourceContainer::kContent)
+    return false;
+  return fillContent(content, response.content());
 }
 
 bool ResourceContainer::checkContent(ResourceContainer::Content const& expected)

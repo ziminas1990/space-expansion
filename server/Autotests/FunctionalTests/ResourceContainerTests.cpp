@@ -192,8 +192,7 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
             freighterContainer.transferRequest(
               nPort, nAccessKey, world::Resource::eMetal, freigherContent.metals()));
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
-            freighterContainer.waitTransfer(
-              world::Resource::eMetal, freigherContent.metals()));
+            freighterContainer.waitTransfer(freigherContent.metals()));
 
   stationContent.addMetals(freigherContent.metals());
   freigherContent.setMetals(0);
@@ -206,8 +205,7 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
               nPort, nAccessKey, world::Resource::eSilicate,
               freigherContent.silicates() / 2));
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
-            freighterContainer.waitTransfer(
-              world::Resource::eSilicate, freigherContent.silicates() / 2));
+            freighterContainer.waitTransfer(freigherContent.silicates() / 2));
 
   stationContent.addSilicates(freigherContent.silicates() / 2);
   freigherContent.setSilicates(freigherContent.silicates() / 2);
@@ -220,8 +218,7 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
               nPort, nAccessKey, world::Resource::eIce,
               freigherContent.ice()));
   ASSERT_EQ(client::ResourceContainer::eStatusOk,
-            freighterContainer.waitTransfer(
-              world::Resource::eIce, freigherContent.ice()));
+            freighterContainer.waitTransfer(freigherContent.ice()));
 
   stationContent.addIce(freigherContent.ice());
   freigherContent.setIce(0);
@@ -258,6 +255,87 @@ TEST_F(ResourceContainerTests, TransferNonMaterialResource)
   ASSERT_EQ(client::ResourceContainer::eInvalidResource,
             freighterContainer.transferRequest(
               nPort, nAccessKey, world::Resource::eLabor, 100));
+}
+
+TEST_F(ResourceContainerTests, MonitoringWhileTransfer)
+{
+  resumeTime();
+
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("merchant", "money")
+        .expectSuccess());
+
+  client::Ship freighter;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
+
+  client::Ship station;
+  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
+
+  struct ContainerSessions {
+    client::ResourceContainer m_control;
+    client::ResourceContainer m_monitoring;
+  };
+
+  ContainerSessions stationContainer;
+  ASSERT_TRUE(client::FindResourceContainer(
+                station, stationContainer.m_control, "cargo"));
+  ASSERT_TRUE(client::FindResourceContainer(
+                station, stationContainer.m_monitoring, "cargo"));
+
+  ContainerSessions freighterContainer;
+  ASSERT_TRUE(client::FindResourceContainer(
+                freighter, freighterContainer.m_control, "cargo"));
+  ASSERT_TRUE(client::FindResourceContainer(
+                freighter, freighterContainer.m_monitoring, "cargo"));
+
+
+  client::ResourceContainer::Content stationContent;
+  client::ResourceContainer::Content freighterContent;
+  ASSERT_TRUE(stationContainer.m_monitoring.monitor(stationContent));
+  ASSERT_TRUE(freighterContainer.m_monitoring.monitor(freighterContent));
+
+  uint32_t nAccessKey = 43728;
+  uint32_t nPort      = 0;
+  ASSERT_EQ(client::ResourceContainer::eStatusOk,
+            stationContainer.m_control.openPort(nAccessKey, nPort));
+
+  std::vector<std::pair<world::Resource::Type, double>> transfers = {
+    {world::Resource::eMetal,    freighterContent.metals()},
+    {world::Resource::eIce,      freighterContent.ice()},
+    {world::Resource::eSilicate, freighterContent.silicates()}
+  };
+
+  for (const auto& transfer: transfers) {
+    world::Resource::Type type   = transfer.first;
+    const double          amount = transfer.second;
+
+    ASSERT_EQ(client::ResourceContainer::eStatusOk,
+              freighterContainer.m_control.transferRequest(
+                nPort, nAccessKey, type, amount));
+
+    client::ResourceContainer::Status status;
+    bool   inProgress       = true;
+    double totalTransferred = 0;
+    do {
+      status = freighterContainer.m_control.waitTransferReport(totalTransferred);
+      inProgress = status == client::ResourceContainer::eTransferInProgress;
+      if (inProgress) {
+        // Two updates are expected
+        client::ResourceContainer::Content update;
+        ASSERT_TRUE(stationContainer.m_monitoring.waitContent(update));
+        ASSERT_NEAR(stationContent.amount(type) + totalTransferred,
+                    update.amount(type), 0.1);
+
+        update = client::ResourceContainer::Content();
+        ASSERT_TRUE(freighterContainer.m_monitoring.waitContent(update));
+        ASSERT_NEAR(freighterContent.amount(type) - totalTransferred,
+                    update.amount(type), 0.1);
+      }
+    } while (inProgress);
+    ASSERT_NEAR(amount, totalTransferred, 0.1);
+    ASSERT_EQ(client::ResourceContainer::eStatusOk, status);
+  }
 }
 
 } // namespace autotests

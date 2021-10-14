@@ -23,7 +23,9 @@ uint32_t                             ResourceContainer::m_nNextSecretKey = 1;
 ResourceContainer::ResourceContainer(
     std::string &&sName, world::PlayerWeakPtr pOwner, uint32_t nVolume)
   : BaseModule("ResourceContainer", std::move(sName), std::move(pOwner)),
-    m_nVolume(nVolume), m_nUsedSpace(0),
+    m_nVolume(nVolume),
+    m_nUsedSpace(0),
+    m_lModifiedFlag(false),
     m_nOpenedPortId(m_freePortsIds.getInvalidValue())
 {
   GlobalContainer<ResourceContainer>::registerSelf(this);
@@ -62,15 +64,16 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   ResourceContainer* pReceiver =
       GlobalContainer<ResourceContainer>::Instance(port.m_nContainerId);
 
-  double distanceToReceiver = getPlatform()->getDistanceTo(pReceiver->getPlatform());
+  const double distanceToReceiver =
+      getPlatform()->getDistanceTo(pReceiver->getPlatform());
   if (distanceToReceiver > 200.0) {
     terminateActiveTransfer(spex::IResourceContainer::PORT_TOO_FAR);
     switchToIdleState();
     return;
   }
 
-  double nIntervalSec     = nIntervalUs / 1000000.0;
-  double transferedAmount = weightPerSecond * nIntervalSec;
+  const double nIntervalSec = nIntervalUs / 1000000.0;
+  double transferedAmount   = weightPerSecond * nIntervalSec;
   if (transferedAmount > m_activeTransfer.m_nLeft)
     transferedAmount = m_activeTransfer.m_nLeft;
 
@@ -78,7 +81,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
       consumeResource(m_activeTransfer.m_eResourceType,
                       transferedAmount - m_activeTransfer.m_nReserved);
 
-  double actuallyTransfered =
+  const double actuallyTransfered =
       pReceiver->putResource(m_activeTransfer.m_eResourceType,
                              m_activeTransfer.m_nReserved);
   m_activeTransfer.m_nReserved -= actuallyTransfered;
@@ -90,6 +93,22 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   if (utils::AlmostEqual(m_activeTransfer.m_nLeft, 0)) {
     terminateActiveTransfer(spex::IResourceContainer::SUCCESS);
     switchToIdleState();
+  }
+}
+
+void ResourceContainer::onSessionClosed(uint32_t nSessionId)
+{
+  m_monitoringSessions.removeFirst(nSessionId);
+}
+
+void ResourceContainer::sendUpdatesIfRequired()
+{
+  if (!m_lModifiedFlag) {
+    return;
+  }
+  m_lModifiedFlag = false;
+  for (uint32_t nMonitoringSession: m_monitoringSessions.data()) {
+    sendContent(nMonitoringSession);
   }
 }
 
@@ -106,6 +125,7 @@ double ResourceContainer::putResource(world::Resource::Type type, double amount)
 
   m_amount[type] += amount;
   m_nUsedSpace   += transfferedVolume;
+  m_lModifiedFlag = true;
   return amount;
 }
 
@@ -142,6 +162,7 @@ bool ResourceContainer::consumeExactly(world::ResourcesArray const& resources,
       m_amount[eResource] = 0;
     }
   }
+  m_lModifiedFlag = true;
   recalculateUsedSpace();
   return true;
 }
@@ -164,6 +185,10 @@ void ResourceContainer::handleResourceContainerMessage(
     }
     case spex::IResourceContainer::kTransfer: {
       transfer(nTunnelId, message.transfer());
+      return;
+    }
+    case spex::IResourceContainer::kMonitor: {
+      monitor(nTunnelId);
       return;
     }
     default:
@@ -189,7 +214,9 @@ void ResourceContainer::sendClosePortStatus(
 
 void ResourceContainer::sendContent(uint32_t nTunnelId)
 {
-  static std::vector<std::pair<world::Resource::Type, spex::ResourceType> > types = {
+  using TypesPair = std::pair<world::Resource::Type, spex::ResourceType>;
+  static const std::vector<TypesPair> types =
+  {
     {world::Resource::eMetal,    spex::ResourceType::RESOURCE_METALS},
     {world::Resource::eIce,      spex::ResourceType::RESOURCE_ICE},
     {world::Resource::eSilicate, spex::ResourceType::RESOURCE_SILICATES}
@@ -336,6 +363,12 @@ void ResourceContainer::transfer(
   switchToActiveState();
 }
 
+void ResourceContainer::monitor(uint32_t nTunnelId)
+{
+  m_monitoringSessions.push(nTunnelId);
+  sendContent(nTunnelId);
+}
+
 double ResourceContainer::consumeResource(world::Resource::Type type, double amount)
 {
   amount = std::min(m_amount[type], amount);
@@ -346,6 +379,7 @@ double ResourceContainer::consumeResource(world::Resource::Type type, double amo
     m_nUsedSpace = 0;
   if (m_amount[type] < 0)
     m_amount[type] = 0;
+  m_lModifiedFlag = true;
   return amount;
 }
 

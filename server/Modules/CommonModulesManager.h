@@ -60,7 +60,8 @@ class CommonModulesManager : public conveyor::IAbstractLogic
 public:
   // IAbstractLogic interface
   uint16_t getStagesCount() { return eTotalStages; }
-  bool prephare(uint16_t nStageId, uint32_t, uint64_t)
+
+  bool prephare(uint16_t nStageId, uint32_t nIntervalUs, uint64_t nNowUs)
   {
     switch (nStageId) {
       case eStageHandleMessages:
@@ -69,27 +70,48 @@ public:
       case eStageProceeding:
         m_busyModulesIds.begin();
         return !m_busyModulesIds.empty();
-      default:
-        assert(false);
-		return false;
+      case eTotalStages: {
+        // [[fallthrough]];
+      }
     }
+    return prepareAdditionalStage(
+          nStageId - eTotalStages, nIntervalUs, nNowUs);
   }
 
-  void proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t)
+  void proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t nNowUs)
   {
     switch (nStageId) {
       case eStageHandleMessages:
         handleAllMessages();
-        break;
+        return;
       case eStageProceeding:
         proceedBusyModules(nIntervalUs);
-        break;
-      default:
-        assert(false);
+        return;
+      case eTotalStages: {
+        // [[fallthrough]];
+      }
     }
+    proceedAdditionalStage(nStageId - eTotalStages, nIntervalUs, nNowUs);
   }
 
   size_t getCooldownTimeUs() const { return static_cast<size_t>(nCooldown); }
+
+protected:
+  virtual bool prepareAdditionalStage([[maybe_unused]] uint16_t nStageId,
+                                      [[maybe_unused]] uint32_t nIntervalUs,
+                                      [[maybe_unused]] uint64_t nNowUs) {
+    // Will be called in case inheriter overwrites 'getStagesCount()' and
+    // it returns a number greater then 'eTotalStages'
+    assert(!"If 'getStagesCount()' is overwritten, you must also provide"
+            " corresponding 'prepareAdditionalStage()' implementation!");
+  }
+
+  virtual void proceedAdditionalStage([[maybe_unused]] uint16_t nStageId,
+                                      [[maybe_unused]] uint32_t nIntervalUs,
+                                      [[maybe_unused]] uint64_t nNowUs) {
+    assert(!"If 'getStagesCount()' is overwritten, you must also provide"
+            " corresponding 'proceedAdditionalStage()' implementation!");
+  }
 
 private:
   void handleAllMessages()
@@ -98,9 +120,10 @@ private:
     // If module switched state from Idle to Busy, it will adds module to the list of
     // busy modules (it will be proceeded until is switches to Idle state)
 
+    const size_t nTotalModules =
+        utils::GlobalContainer<ModuleType>::TotalInstancies();
     size_t nId = m_nNextId.fetch_add(1);
-    for (; nId < utils::GlobalContainer<ModuleType>::TotalInstancies();
-         nId = m_nNextId.fetch_add(1))
+    for (; nId < nTotalModules; nId = m_nNextId.fetch_add(1))
     {
       BaseModule* pModule = utils::GlobalContainer<ModuleType>::Instance(nId);
       if (!pModule || !pModule->isOnline())

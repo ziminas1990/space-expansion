@@ -41,6 +41,10 @@ public:
     double silicates() const { return m_amount[world::Resource::eSilicate]; }
     double ice()       const { return m_amount[world::Resource::eIce]; }
 
+    double amount(world::Resource::Type type) const {
+      return m_amount[type];
+    }
+
     Content& setMetals(double amount);
     Content& addMetals(double amount) { return setMetals(metals() + amount); }
 
@@ -63,7 +67,11 @@ public:
   Status closePort();
   Status transferRequest(uint32_t nPortId, uint32_t nAccessKey,
                          world::Resource::Type type, double amount);
-  Status waitTransfer(world::Resource::Type type, double amount);
+  bool monitor(Content& content);
+
+  Status waitTransferReport(double& amount);
+  Status waitTransfer(double amount);
+  bool waitContent(Content& content);
 
   bool checkContent(Content const& expected);
   bool checkContent(world::ResourcesArray const& expected, double delta = 0.01);

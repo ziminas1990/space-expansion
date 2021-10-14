@@ -15,7 +15,9 @@ inline void removeExpiredWeakPtrs(std::vector<std::weak_ptr<T>>& from)
     } else {
       // To remove element, just swap it with the last element and than remove last
       // element
-      from[i] = std::move(from.back());
+      if (i < from.size() - 1) {
+        from[i] = std::move(from.back());
+      }
       from.pop_back();
     }
   }
