@@ -4,8 +4,7 @@ from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport.terminal import Terminal
-from expansion.transport import IOTerminal
+from expansion.transport import IOTerminal, Channel
 from expansion.transport.proxy_channel import ProxyChannel
 from expansion.transport.channel import Channel
 
@@ -77,8 +76,9 @@ class CommutatorI(IOTerminal):
         FAILED_TO_SEND_REQUEST = "failed to send request"
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
+        CHANNEL_CLOSED = "channel closed"
 
-        def is_ok(self):
+        def is_success(self):
             return self == CommutatorI.Status.SUCCESS
 
         @staticmethod
@@ -138,6 +138,7 @@ class CommutatorI(IOTerminal):
         else:
             super().on_receive(message, timestamp)
 
+    @Channel.return_on_close(False, 0)
     async def get_total_slots(self) -> (bool, int):
         """Return total number of devices, attached to this commutator"""
         request = public.Message()
@@ -149,6 +150,7 @@ class CommutatorI(IOTerminal):
         total_slots = get_message_field(response, "commutator.total_slots")
         return total_slots is not None, total_slots
 
+    @Channel.return_on_close(None)
     async def get_module_info(self, slot_id: int)\
             -> Optional[ModuleInfo]:
         """Return information about module, installed into the specified
@@ -166,6 +168,7 @@ class CommutatorI(IOTerminal):
         info = ModuleInfo.from_protubuf(module_info)
         return info
 
+    @Channel.return_on_close(None)
     async def get_all_modules(self) -> Optional[List[ModuleInfo]]:
         """Return all modules, attached to commutator. Modules received will
         be stored to a local cache"""
@@ -185,6 +188,7 @@ class CommutatorI(IOTerminal):
             result.append(ModuleInfo.from_protubuf(module_info))
         return result
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
     async def open_tunnel(self, port: int) -> Tuple[Status, Optional[Tunnel]]:
         """Open tunnel to the specified 'port'. Return (tunnel, None) on
         success, otherwise return (None, error)"""
@@ -208,7 +212,8 @@ class CommutatorI(IOTerminal):
         self.tunnels.update({tunnel.tunnel_id: tunnel})
         return CommutatorI.Status.SUCCESS, tunnel
 
-    async def close_tunnel(self, tunnel_id) -> Status:
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
+    async def close_tunnel(self, tunnel_id: int) -> Status:
         request = public.Message()
         request.commutator.close_tunnel = tunnel_id
         self.send(request)

@@ -1,9 +1,9 @@
-from typing import Optional, NamedTuple, Dict, Callable, List
+from typing import Optional, NamedTuple, Dict, Callable, List, Tuple
 from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport import IOTerminal
+from expansion.transport import IOTerminal, Channel
 from expansion.types import ResourceType, ResourceItem
 
 import expansion.utils as utils
@@ -26,8 +26,9 @@ class ResourceContainerI(IOTerminal):
         FAILED_TO_SEND_REQUEST = "failed to send request"
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
+        CHANNEL_CLOSED = "channel closed"
 
-        def is_ok(self):
+        def is_success(self):
             return self == ResourceContainerI.Status.SUCCESS
 
         @staticmethod
@@ -68,29 +69,37 @@ class ResourceContainerI(IOTerminal):
             used = 100 * self.used / self.volume
             return f"{used:.2f}% used: {self.print_content()}"
 
-
     def __init__(self, name: Optional[str] = None):
         super().__init__(name=name or utils.generate_name(ResourceContainerI))
 
-    async def get_content(self, timeout: float = 0.5) -> Optional[Content]:
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
+    async def get_content(self, timeout: float = 0.5) -> \
+            Tuple[Status, Optional[Content]]:
         request = public.Message()
         request.resource_container.content_req = True
         if not self.send(message=request):
-            return None
+            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
+        return await self.wait_content(timeout)
+
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
+    async def wait_content(self, timeout: float = 0.5) -> \
+            Tuple[Status, Optional[Content]]:
         response, timestamp = await self.wait_message(timeout=timeout)
         if not response:
-            return None
+            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
         content = get_message_field(response, "resource_container.content")
         if not content:
-            return None
-        return ResourceContainerI.Content(
+            return ResourceContainerI.Status.RESPONSE_TIMEOUT, None
+        content = ResourceContainerI.Content(
             timestamp=timestamp,
             volume=content.volume,
             used=content.used,
             resources={ResourceType.from_protobuf(item.type): item.amount
                        for item in content.resources}
         )
+        return ResourceContainerI.Status.SUCCESS, content
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, 0)
     async def open_port(self, access_key: int, timeout: int = 0.5) -> (Status, int):
         """Open a new port with the specified 'access_key'. Return operation status
         and port number"""
@@ -111,6 +120,7 @@ class ResourceContainerI(IOTerminal):
             return ResourceContainerI.Status.convert(error_status), 0
         return ResourceContainerI.Status.UNEXPECTED_RESPONSE, 0
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def close_port(self, timeout: int = 0.5) -> Status:
         """Close an existing opened port"""
         request = public.Message()
@@ -125,6 +135,7 @@ class ResourceContainerI(IOTerminal):
             # Success case
             return ResourceContainerI.Status.convert(status)
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def transfer(self, port: int, access_key: int,
                        resource: ResourceItem,
                        progress_cb: Optional[Callable[[ResourceItem], None]] = None,
@@ -145,7 +156,8 @@ class ResourceContainerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT
-        status = get_message_field(response, "resource_container.transfer_status")
+        status = get_message_field(
+            response, ["resource_container", "transfer_status"])
         if status is None:
             return ResourceContainerI.Status.UNEXPECTED_RESPONSE
         if status != public.IResourceContainer.Status.SUCCESS:
@@ -153,12 +165,13 @@ class ResourceContainerI(IOTerminal):
         # Status is success. Waiting for reports
         while True:
             response, _ = await self.wait_message(timeout=2)
-            report = get_message_field(response, "resource_container.transfer_report")
+            report = get_message_field(response, ["resource_container", "transfer_report"])
             if not report:
                 # May be complete status is received:
-                status = get_message_field(response, "resource_container.transfer_finished")
+                status = get_message_field(response, ["resource_container", "transfer_finished"])
                 return ResourceContainerI.Status.convert(status) \
                     if status is not None else ResourceContainerI.Status.UNEXPECTED_RESPONSE
             # Got transfer report:
             if progress_cb is not None:
                 progress_cb(ResourceItem.from_protobuf(report))
+

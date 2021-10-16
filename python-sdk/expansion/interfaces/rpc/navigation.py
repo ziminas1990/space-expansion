@@ -2,8 +2,8 @@ from typing import Optional
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport import IOTerminal
-from expansion.types import Position, Vector
+from expansion.transport import IOTerminal, Channel
+from expansion.types import Position
 
 import expansion.utils as utils
 
@@ -13,6 +13,7 @@ class INavigation(IOTerminal):
     def __init__(self, name: Optional[str] = None):
         super().__init__(name=name or utils.generate_name(INavigation))
 
+    @Channel.return_on_close(None)
     async def get_position(self, timeout: float = 0.5) -> Optional[Position]:
         """Request current ship's position. Will block until the response
         is received or the specified 'timeout' occurs."""

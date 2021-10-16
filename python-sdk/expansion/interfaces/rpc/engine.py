@@ -2,7 +2,7 @@ from typing import Optional, NamedTuple
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport import IOTerminal
+from expansion.transport import IOTerminal, Channel
 from expansion.types.geometry import Vector
 
 import expansion.utils as utils
@@ -18,6 +18,7 @@ class EngineI(IOTerminal):
         super().__init__(name=name or utils.generate_name(EngineI))
         self.specification: Optional[Specification] = None
 
+    @Channel.return_on_close(None)
     async def get_specification(self, timeout: float = 0.5, reset_cached=False)\
             -> Optional[Specification]:
         if reset_cached:
@@ -37,6 +38,7 @@ class EngineI(IOTerminal):
         self.specification = Specification(max_thrust=spec.max_thrust)
         return self.specification
 
+    @Channel.return_on_close(None)
     async def get_thrust(self, timeout: float = 0.5) -> Optional[Vector]:
         """Return current engine thrust"""
         request = public.Message()
@@ -51,6 +53,7 @@ class EngineI(IOTerminal):
             return None
         return Vector(x=thrust.x, y=thrust.y).set_length(thrust.thrust)
 
+    @Channel.return_on_close(False)
     def set_thrust(self, thrust: Vector, at: int = 0, duration_ms: int = 0) -> bool:
         """Set engine thrust to the specified 'thrust' for the
         specified 'duration_ms' milliseconds. If 'duration_ms' is 0, then

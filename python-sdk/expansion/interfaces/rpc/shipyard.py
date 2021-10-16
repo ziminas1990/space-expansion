@@ -3,7 +3,7 @@ from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 import expansion.protocol as protocol
-from expansion.transport import IOTerminal
+from expansion.transport import IOTerminal, Channel
 from expansion import utils
 
 
@@ -28,6 +28,7 @@ class ShipyardI(IOTerminal):
         FAILED_TO_SEND_REQUEST = "failed to send request"
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
+        CHANNEL_CLOSED = "channel closed"
 
         @staticmethod
         def from_protobuf(status: public.IResourceContainer.Status) -> "ShipyardI.Status":
@@ -55,6 +56,7 @@ class ShipyardI(IOTerminal):
             name = utils.generate_name(ShipyardI)
         super().__init__(name=name)
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
     async def get_specification(self, timeout: float = 0.5) \
             -> (Status, Optional[Specification]):
         request = public.Message()
@@ -70,6 +72,7 @@ class ShipyardI(IOTerminal):
         spec = Specification(labor_per_sec=spec.labor_per_sec)
         return ShipyardI.Status.SUCCESS, spec
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
         request = public.Message()
         request.shipyard.bind_to_cargo = cargo_name
@@ -83,6 +86,7 @@ class ShipyardI(IOTerminal):
             return ShipyardI.Status.UNEXPECTED_RESPONSE
         return ShipyardI.Status.from_protobuf(status)
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def start_build(self, blueprint: str, ship_name: str) -> Status:
         request = public.Message()
         req_body = request.shipyard.start_build
@@ -93,6 +97,7 @@ class ShipyardI(IOTerminal):
         status, _ = await self.wait_building_report()
         return status
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
     async def wait_building_report(self, timeout: float = 1.0) -> \
             (Status, Optional[float]):
         response, _ = await self.wait_message(timeout=timeout)
@@ -103,6 +108,7 @@ class ShipyardI(IOTerminal):
             return ShipyardI.Status.UNEXPECTED_RESPONSE, None
         return ShipyardI.Status.from_protobuf(report.status), report.progress
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None, None)
     async def wait_building_complete(self, timeout: float = 1.0) -> \
             (Status, Optional[str], Optional[int]):
         response, _ = await self.wait_message(timeout=timeout)

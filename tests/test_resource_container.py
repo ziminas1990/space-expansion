@@ -108,7 +108,7 @@ class TestCase(BaseTestFixture):
         # Opening a port
         access_key = 12456
         status, port = await cargo.open_port(access_key=access_key)
-        self.assertTrue(status.is_ok())
+        self.assertTrue(status.is_success())
         self.assertNotEqual(0, port)
 
         self.assertEqual(port, cargo.get_opened_port()[0])
@@ -127,7 +127,7 @@ class TestCase(BaseTestFixture):
 
         # Opening a port again
         status, port = await cargo.open_port(access_key=access_key)
-        self.assertTrue(status.is_ok())
+        self.assertTrue(status.is_success())
         self.assertNotEqual(0, port)
 
     @BaseTestFixture.run_as_sync
@@ -151,7 +151,7 @@ class TestCase(BaseTestFixture):
         # Opening a port on miner_2
         access_key = 12456
         status, port = await miner_2_cargo.open_port(access_key=access_key)
-        self.assertTrue(status.is_ok())
+        self.assertTrue(status.is_success())
         self.assertNotEqual(0, port)
 
         total_transferred_amount: float = 0.0  # Will be accumulated in progress callback
@@ -205,7 +205,7 @@ class TestCase(BaseTestFixture):
         # Opening a port on miner_2
         access_key = 12456
         status, port = await miner_2_cargo.open_port(access_key=access_key)
-        self.assertTrue(status.is_ok())
+        self.assertTrue(status.is_success())
         self.assertNotEqual(0, port)
 
         # Invalid access key

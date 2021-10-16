@@ -1,9 +1,8 @@
 from typing import Any, Optional, Tuple
 import asyncio
-import time
 
 from expansion.protocol import get_message_field
-from expansion.transport import Endpoint, Terminal, Channel
+from expansion.transport import Endpoint, Terminal, Channel, ChannelClosed
 
 
 class IOTerminal(Endpoint):
@@ -33,7 +32,11 @@ class IOTerminal(Endpoint):
         specified 'timeout' seconds. Return a message and a optional timestamp, when
         the message was sent."""
         try:
-            return await asyncio.wait_for(self.queue.get(), timeout=timeout)
+            message, timestamp = \
+                await asyncio.wait_for(self.queue.get(), timeout=timeout)
+            if get_message_field(message, ["commutator", "close_tunnel_ind"]):
+                raise ChannelClosed()
+            return message, timestamp
         except asyncio.TimeoutError:
             return None, None
 

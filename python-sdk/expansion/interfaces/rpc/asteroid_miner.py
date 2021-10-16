@@ -3,9 +3,9 @@ from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 import expansion.protocol as protocol
-from expansion.transport import IOTerminal
+from expansion.transport import IOTerminal, Channel
 import expansion.utils as utils
-from expansion.types import ResourceType, ResourceItem, ResourcesDict
+from expansion.types import ResourceType, ResourcesDict
 
 
 class Specification(NamedTuple):
@@ -30,8 +30,9 @@ class AsteroidMinerI(IOTerminal):
         FAILED_TO_SEND_REQUEST = "failed to send request"
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
+        CHANNEL_CLOSED = "channel was closed"
 
-        def is_ok(self):
+        def is_success(self):
             return self == AsteroidMinerI.Status.SUCCESS
 
         @staticmethod
@@ -57,6 +58,7 @@ class AsteroidMinerI(IOTerminal):
             name = utils.generate_name(AsteroidMinerI)
         super().__init__(name=name)
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
     async def get_specification(self, timeout: float = 0.5)\
             -> (Status, Optional[Specification]):
         status = AsteroidMinerI.Status
@@ -75,6 +77,7 @@ class AsteroidMinerI(IOTerminal):
                              yield_per_cycle=spec.yield_per_cycle)
         return status.SUCCESS, spec
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
         """Bind miner to the container with the specified 'cargo_name'"""
         request = public.Message()
@@ -90,6 +93,7 @@ class AsteroidMinerI(IOTerminal):
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
         return AsteroidMinerI.Status.from_protobuf(protobuf_status)
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def start_mining(self,
                            asteroid_id: int,
                            progress_cb: MiningReportCallback,
@@ -109,14 +113,14 @@ class AsteroidMinerI(IOTerminal):
         Status = AsteroidMinerI.Status
         
         spec_status, spec = await self.get_specification()
-        if not spec_status.is_ok():
+        if not spec_status.is_success():
             return spec_status
 
         if not self._send_start_mining(asteroid_id=asteroid_id):
             return Status.FAILED_TO_SEND_REQUEST
 
         mining_status = await self._wait_start_mining_status(timeout=timeout)
-        if not mining_status.is_ok():
+        if not mining_status.is_success():
             return mining_status
 
         report_timeout: float = 2.1 * spec.cycle_time_ms / 1000.0
@@ -124,14 +128,15 @@ class AsteroidMinerI(IOTerminal):
         status = Status.INTERNAL_ERROR
         while resume:
             status, resources = await self._wait_mining_report(report_timeout)
-            resume = status.is_ok() and progress_cb(Status.SUCCESS, resources)
+            resume = status.is_success() and progress_cb(Status.SUCCESS, resources)
 
-        if status.is_ok():
+        if status.is_success():
             # Mining was interrupted by the player, so we should send stop_mining
             # to the module
             await self.stop_mining()
         return status
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def stop_mining(self, timeout: float = 0.5) -> Status:
         """Stop the mining process"""
         request = public.Message()

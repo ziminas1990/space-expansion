@@ -1,5 +1,5 @@
 from .terminal import Terminal
-from .channel import Channel
+from .channel import Channel, ChannelClosed
 from .endpoint import Endpoint
 from .proxy_channel import ProxyChannel
 from .io_terminal import IOTerminal

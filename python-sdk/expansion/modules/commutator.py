@@ -53,8 +53,9 @@ class Commutator(BaseModule):
     def add_module(self, module_type: str, name: str, slot_id: int) -> bool:
         async def tunnel_factory():
             async with self.rent_session(rpc.CommutatorI) as remote:
+                assert isinstance(remote, rpc.CommutatorI)
                 status, tunnel = await remote.open_tunnel(port=slot_id)
-                return tunnel, None if status.is_ok() else str(status)
+                return tunnel, None if status.is_success() else str(status)
 
         module_instance, error = self.modules_factory(module_type, name, tunnel_factory)
         if error is not None:

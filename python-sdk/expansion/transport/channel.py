@@ -1,8 +1,15 @@
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 import abc
 import logging
 
 from expansion import utils
+
+if TYPE_CHECKING:
+    from expansion.transport.terminal import Terminal
+
+
+class ChannelClosed(Exception):
+    pass
 
 
 class Channel(abc.ABC):
@@ -74,3 +81,16 @@ class Channel(abc.ABC):
     async def close(self):
         """Close channel"""
         pass
+
+    @staticmethod
+    def return_on_close(*return_on_close):
+        """This decorator  adds handling of 'ChannelClosed' exception.
+        If exception arises, wrapped function returns 'return_on_close'"""
+        def _decorator(func):
+            def _wrapper(*args, **kwargs):
+                try:
+                    return func(*args, **kwargs)
+                except ChannelClosed:
+                    return return_on_close
+            return _wrapper
+        return _decorator

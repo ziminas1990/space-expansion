@@ -36,10 +36,13 @@ class ResourceContainer(BaseModule):
     async def get_content(self,
                           timeout: float = 0.5,
                           expiration_ms: int = 250) -> Optional[Content]:
-        if not self._is_actual(self.cache.content, expiration_ms):
-            async with self.rent_session(ResourceContainerI) as channel:
-                self.cache.content = await channel.get_content(timeout),\
-                                     time.monotonic() * 1000
+        if self._is_actual(self.cache.content, expiration_ms):
+            return self.cache.content[0]
+
+        async with self.rent_session(ResourceContainerI) as channel:
+            assert isinstance(channel, ResourceContainerI)
+            status, content = await channel.get_content(timeout)
+            self.cache.content = content, time.monotonic() * 1000
         return self.cache.content[0]
 
     async def open_port(self, access_key: int, timeout: int = 0.5) -> (Status, int):
@@ -81,6 +84,26 @@ class ResourceContainer(BaseModule):
             status = await session.transfer(port, access_key, resource, _progress_cb, timeout)
             await session.close()
             return status
+
+    async def monitor(
+            self,
+            callback: Callable[[Status, Optional[Content]], None]) -> Status:
+        async with self.open_managed_session(ResourceContainerI) as session:
+            if not session:
+                return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
+            assert isinstance(session, ResourceContainerI)
+            status, content = await session.monitor()
+            if not status.is_success():
+                return status
+            callback(status, content)
+            while True:
+                status, content = await session.monitor(timeout=60)
+                if status.is_success():
+                    callback(status, content)
+                elif status == ResourceContainerI.Status.RESPONSE_TIMEOUT:
+                    continue
+                else:
+                    callback(status, None)
 
     @staticmethod
     def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:

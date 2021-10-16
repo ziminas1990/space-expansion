@@ -3,7 +3,7 @@ from enum import Enum
 import logging
 from abc import ABC, abstractmethod
 
-from expansion.transport import IOTerminal
+from expansion.transport import IOTerminal, Channel
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
 
@@ -20,8 +20,9 @@ class SystemClockI(ABC):
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
         NO_SUCH_CALLBACK = "no such callback"
+        CHANNEL_CLOSED = "channel closed"
 
-        def is_ok(self):
+        def is_success(self):
             return self == SystemClockI.Status.SUCCESS
 
         @staticmethod
@@ -68,6 +69,7 @@ class SystemClockI(ABC):
         """Send 'detach_generator' request and wait for status response"""
         pass
 
+
 class SystemClock(SystemClockI, IOTerminal):
     def __init__(self, name: Optional[str] = None, trace_mode: bool = False):
         super().__init__(name=name, trace_mode=trace_mode)
@@ -75,6 +77,7 @@ class SystemClock(SystemClockI, IOTerminal):
             name = utils.generate_name(SystemClock)
         self.logger = logging.getLogger(name)
 
+    @Channel.return_on_close(None)
     async def time(self, timeout: float = 0.1) -> Optional[int]:
         """Return current server time"""
         request = public.Message()
@@ -86,6 +89,7 @@ class SystemClock(SystemClockI, IOTerminal):
             return None
         return get_message_field(response, "system_clock.time")
 
+    @Channel.return_on_close(None)
     async def wait_until(self, time: int, timeout: float) -> Optional[int]:
         """Wait until server time reaches the specified 'time'
 
@@ -99,6 +103,7 @@ class SystemClock(SystemClockI, IOTerminal):
             return None
         return get_message_field(response, "system_clock.ring")
 
+    @Channel.return_on_close(None)
     async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
         """Wait for the specified 'period' microseconds
 
@@ -112,6 +117,7 @@ class SystemClock(SystemClockI, IOTerminal):
             return None
         return get_message_field(response, "system_clock.ring")
 
+    @Channel.return_on_close(None)
     async def wait_timestamp(self, timeout: float = 0.5) -> Optional[int]:
         """Wait for a 'time' message, that carries current system clock's time"""
         response, _ = await self.wait_message(timeout=timeout)
@@ -120,6 +126,7 @@ class SystemClock(SystemClockI, IOTerminal):
             return None
         return get_message_field(response, "system_clock.time")
 
+    @Channel.return_on_close(None)
     async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
         """Return generator's tick in microseconds"""
         request = public.Message()
@@ -131,6 +138,7 @@ class SystemClock(SystemClockI, IOTerminal):
             return None
         return get_message_field(response, "system_clock.generator_tick_us")
 
+    @Channel.return_on_close(SystemClockI.Status.CHANNEL_CLOSED)
     async def attach_to_generator(self, timeout: float = 0.5) -> SystemClockI.Status:
         """Send 'attach_generator' request and wait for status response"""
         request = public.Message()
@@ -139,6 +147,7 @@ class SystemClock(SystemClockI, IOTerminal):
             return SystemClockI.Status.FAILED_TO_SEND_REQUEST
         return await self._receive_generator_status(timeout)
 
+    @Channel.return_on_close(SystemClockI.Status.CHANNEL_CLOSED)
     async def detach_from_generator(self, timeout: float = 5) -> SystemClockI.Status:
         """Send 'detach_generator' request and wait for status response"""
         request = public.Message()
@@ -147,6 +156,7 @@ class SystemClock(SystemClockI, IOTerminal):
             return SystemClockI.Status.FAILED_TO_SEND_REQUEST
         return await self._receive_generator_status(timeout)
 
+    @Channel.return_on_close(SystemClockI.Status.CHANNEL_CLOSED)
     async def _receive_generator_status(self, timeout: float) -> SystemClockI.Status:
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
