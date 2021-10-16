@@ -54,7 +54,7 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         message, timestamp = await self.wait_message(timeout)
         if not message:
             return None
-        state = get_message_field(message, "ship.state")
+        state = get_message_field(message, ["ship", "state"])
         return State.build(state, timestamp) if state else None
 
     @Channel.return_on_close(None)

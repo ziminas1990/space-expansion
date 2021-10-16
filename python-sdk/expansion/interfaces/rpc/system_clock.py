@@ -87,7 +87,7 @@ class SystemClock(SystemClockI, IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        return get_message_field(response, "system_clock.time")
+        return get_message_field(response, ["system_clock", "time"])
 
     @Channel.return_on_close(None)
     async def wait_until(self, time: int, timeout: float) -> Optional[int]:
@@ -101,7 +101,7 @@ class SystemClock(SystemClockI, IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        return get_message_field(response, "system_clock.ring")
+        return get_message_field(response, ["system_clock", "ring"])
 
     @Channel.return_on_close(None)
     async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
@@ -115,7 +115,7 @@ class SystemClock(SystemClockI, IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        return get_message_field(response, "system_clock.ring")
+        return get_message_field(response, ["system_clock", "ring"])
 
     @Channel.return_on_close(None)
     async def wait_timestamp(self, timeout: float = 0.5) -> Optional[int]:
@@ -124,7 +124,7 @@ class SystemClock(SystemClockI, IOTerminal):
         if not response:
             self.logger.warning("Timeout while waiting generator time message")
             return None
-        return get_message_field(response, "system_clock.time")
+        return get_message_field(response, ["system_clock", "time"])
 
     @Channel.return_on_close(None)
     async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
@@ -136,7 +136,7 @@ class SystemClock(SystemClockI, IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        return get_message_field(response, "system_clock.generator_tick_us")
+        return get_message_field(response, ["system_clock", "generator_tick_us"])
 
     @Channel.return_on_close(SystemClockI.Status.CHANNEL_CLOSED)
     async def attach_to_generator(self, timeout: float = 0.5) -> SystemClockI.Status:
@@ -162,5 +162,5 @@ class SystemClock(SystemClockI, IOTerminal):
         if not response:
             return SystemClockI.Status.RESPONSE_TIMEOUT
 
-        protobuf_status = get_message_field(response, "system_clock.generator_status")
+        protobuf_status = get_message_field(response, ["system_clock", "generator_status"])
         return SystemClockI.Status.from_protobuf(protobuf_status)

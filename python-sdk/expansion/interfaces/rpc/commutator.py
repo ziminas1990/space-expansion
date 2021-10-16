@@ -147,7 +147,7 @@ class CommutatorI(IOTerminal):
         response, _ = await self.wait_message()
         if not response:
             return False, 0
-        total_slots = get_message_field(response, "commutator.total_slots")
+        total_slots = get_message_field(response, ["commutator", "total_slots"])
         return total_slots is not None, total_slots
 
     @Channel.return_on_close(None)
@@ -162,7 +162,7 @@ class CommutatorI(IOTerminal):
         response, _ = await self.wait_message()
         if not response:
             return None
-        module_info = get_message_field(response, "commutator.module_info")
+        module_info = get_message_field(response, ["commutator", "module_info"])
         if not module_info:
             return None
         info = ModuleInfo.from_protubuf(module_info)
@@ -182,7 +182,7 @@ class CommutatorI(IOTerminal):
         result: List[ModuleInfo] = []
         for i in range(total_slots):
             response, _ = await self.wait_message()
-            module_info = get_message_field(response, "commutator.module_info")
+            module_info = get_message_field(response, ["commutator", "module_info"])
             if not module_info:
                 return None
             result.append(ModuleInfo.from_protubuf(module_info))
@@ -199,9 +199,9 @@ class CommutatorI(IOTerminal):
         response, _ = await self.wait_message(timeout=0.2)  # it shouldn't take much time
         if not response:
             return CommutatorI.Status.RESPONSE_TIMEOUT, None
-        tunnel_id = get_message_field(response, "commutator.open_tunnel_report")
+        tunnel_id = get_message_field(response, ["commutator", "open_tunnel_report"])
         if tunnel_id is None:
-            error = get_message_field(response, "commutator.open_tunnel_failed")
+            error = get_message_field(response, ["commutator", "open_tunnel_failed"])
             if not error:
                 return CommutatorI.Status.UNEXPECTED_RESPONSE, None
             self._logger.warning(f"Failed to open tunnel to port #{port}: {error}")
@@ -222,7 +222,7 @@ class CommutatorI(IOTerminal):
         if not response:
             return CommutatorI.Status.RESPONSE_TIMEOUT
 
-        status = get_message_field(response, "commutator.close_tunnel_status")
+        status = get_message_field(response, ["commutator", "close_tunnel_status"])
         if status is None:
             return CommutatorI.Status.UNEXPECTED_RESPONSE
         return CommutatorI.Status.convert(status)

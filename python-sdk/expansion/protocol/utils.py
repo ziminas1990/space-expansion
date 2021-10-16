@@ -1,8 +1,7 @@
 from typing import Any, List, Optional, Union
 
 
-def get_message_field(message: Any,
-                      path: Union[List[str], str]) -> Optional[Any]:
+def get_message_field(message: Any, path: List[str]) -> Optional[Any]:
     """Read a field with the specified 'path' in the specified 'message'
 
      login_response = extract_message(response, "access.login")
@@ -17,12 +16,8 @@ def get_message_field(message: Any,
     if not message:
         return None
 
-    if isinstance(path, List):
-        field_names = path
-    else:
-        field_names = path.split('.')
     field = message
-    for name in field_names:
+    for name in path:
         if field.WhichOneof('choice') != name:
             return None
         field = getattr(field, name)

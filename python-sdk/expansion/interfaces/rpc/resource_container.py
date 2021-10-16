@@ -87,7 +87,8 @@ class ResourceContainerI(IOTerminal):
         response, timestamp = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
-        content = get_message_field(response, "resource_container.content")
+        content = get_message_field(
+            response, ["resource_container", "content"])
         if not content:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT, None
         content = ResourceContainerI.Content(
@@ -110,12 +111,14 @@ class ResourceContainerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT, 0
-        port_id = get_message_field(response, "resource_container.port_opened")
+        port_id = get_message_field(
+            response, ["resource_container", "port_opened"])
         if port_id is not None:
             # Success case
             return ResourceContainerI.Status.SUCCESS, port_id
 
-        error_status = get_message_field(response, "resource_container.open_port_failed")
+        error_status = get_message_field(
+            response, ["resource_container", "open_port_failed"])
         if error_status is not None:
             return ResourceContainerI.Status.convert(error_status), 0
         return ResourceContainerI.Status.UNEXPECTED_RESPONSE, 0
@@ -130,10 +133,12 @@ class ResourceContainerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT
-        status = get_message_field(response, "resource_container.close_port_status")
+        status = get_message_field(
+            response, ["resource_container", "close_port_status"])
         if status is not None:
             # Success case
             return ResourceContainerI.Status.convert(status)
+
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def transfer(self, port: int, access_key: int,

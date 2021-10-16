@@ -69,7 +69,7 @@ class AsteroidMinerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return status.RESPONSE_TIMEOUT, None
-        spec = protocol.get_message_field(response, "asteroid_miner.specification")
+        spec = protocol.get_message_field(response, ["asteroid_miner", "specification"])
         if not spec:
             return status.UNEXPECTED_RESPONSE, None
         spec = Specification(max_distance=spec.max_distance,
@@ -88,7 +88,7 @@ class AsteroidMinerI(IOTerminal):
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT
         protobuf_status = protocol.get_message_field(
-            response, "asteroid_miner.bind_to_cargo_status")
+            response, ["asteroid_miner", "bind_to_cargo_status"])
         if protobuf_status is None:
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
         return AsteroidMinerI.Status.from_protobuf(protobuf_status)
@@ -147,7 +147,7 @@ class AsteroidMinerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT
-        status = protocol.get_message_field(response, "asteroid_miner.stop_mining_status")
+        status = protocol.get_message_field(response, ["asteroid_miner", "stop_mining_status"])
         if status is None:
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
         return AsteroidMinerI.Status.from_protobuf(status)
@@ -161,7 +161,7 @@ class AsteroidMinerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT
-        mining_status = protocol.get_message_field(response, "asteroid_miner.start_mining_status")
+        mining_status = protocol.get_message_field(response, ["asteroid_miner", "start_mining_status"])
         if mining_status is None:
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
         return AsteroidMinerI.Status.from_protobuf(mining_status)
@@ -171,7 +171,7 @@ class AsteroidMinerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT, None
-        report = protocol.get_message_field(response, "asteroid_miner.mining_report")
+        report = protocol.get_message_field(response, ["asteroid_miner", "mining_report"])
         if report is not None:
             resources = {
                 ResourceType.from_protobuf(item.type): item.amount
@@ -180,7 +180,7 @@ class AsteroidMinerI(IOTerminal):
             return AsteroidMinerI.Status.SUCCESS, resources
 
         # May be mining was interrupted, that is why we haven't received the report?
-        stop_ind = protocol.get_message_field(response, "asteroid_miner.mining_is_stopped")
+        stop_ind = protocol.get_message_field(response, ["asteroid_miner", "mining_is_stopped"])
         if stop_ind is not None:
             return AsteroidMinerI.Status.from_protobuf(stop_ind), None
 

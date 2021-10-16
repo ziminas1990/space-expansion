@@ -43,7 +43,7 @@ class CelestialScannerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        spec = protocol.get_message_field(response, "celestial_scanner.specification")
+        spec = protocol.get_message_field(response, ["celestial_scanner", "specification"])
         if not spec:
             return None
         return Specification(max_radius_km=spec.max_radius_km,
@@ -75,15 +75,15 @@ class CelestialScannerI(IOTerminal):
         continue_scanning = True
         while continue_scanning:
             response, _ = await self.wait_message(timeout=timeout)
-            body = protocol.get_message_field(response, "celestial_scanner")
+            body = protocol.get_message_field(response, ["celestial_scanner"])
             if not body:
                 error = "No response"
                 result_cb(None, error)
                 return error
 
-            report = protocol.get_message_field(body, "scanning_report")
+            report = protocol.get_message_field(body, ["scanning_report"])
             if not report:
-                fail = protocol.get_message_field(body, "scanning_failed")
+                fail = protocol.get_message_field(body, ["scanning_failed"])
                 error = str(fail) if fail else self.__unexpected_msg_str(fail)
                 result_cb(None, error)
                 return error

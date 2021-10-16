@@ -108,11 +108,11 @@ class SystemClock:
 
     async def _await_status(self, timeout_sec: float = 0.05) -> Optional[Status]:
         response, _ = await self._socket.wait_message(timeout=timeout_sec)
-        status = get_message_field(response, "system_clock.status")
+        status = get_message_field(response, ["system_clock", "status"])
         return Status.from_protobuf(mode=status) if status is not None else None
 
     async def _await_time(self, timeout_sec: float = 0.05) -> Optional[int]:
         response, _ = await self._socket.wait_message(timeout=timeout_sec)
-        time = get_message_field(response, "system_clock.now")
+        time = get_message_field(response, ["system_clock", "now"])
         return time
 

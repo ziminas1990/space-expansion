@@ -2,7 +2,6 @@ from typing import Optional, Callable, Awaitable, Tuple, TYPE_CHECKING
 
 from expansion.interfaces.rpc import AsteroidMinerI, AsteroidMinerSpec
 from expansion import utils
-from expansion.types import ResourceType
 from expansion.modules import ModuleType, BaseModule
 
 if TYPE_CHECKING:
@@ -37,6 +36,7 @@ class AsteroidMiner(BaseModule):
     async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
         """Bind miner to the container with the specified 'cargo_name'"""
         async with self.rent_session(AsteroidMinerI) as channel:
+            assert isinstance(channel, AsteroidMinerI)
             status = await channel.bind_to_cargo(cargo_name, timeout)
             if status == AsteroidMinerI.Status.SUCCESS:
                 self.cargo_name = cargo_name

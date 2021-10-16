@@ -23,5 +23,5 @@ class Access:
         self._socket.send(message)
 
         response, _ = await self._socket.wait_message()
-        token: Optional[int] = get_message_field(response, 'access.success')
+        token: Optional[int] = get_message_field(response, ["access", "success"])
         return token is not None, token

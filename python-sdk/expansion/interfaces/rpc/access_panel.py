@@ -27,9 +27,9 @@ class AccessPanelI:
         self.socket.send(message)
 
         response, _ = await self.socket.wait_message()
-        port: Optional[int] = get_message_field(response, 'accessPanel.access_granted')
+        port: Optional[int] = get_message_field(response, ["accessPanel", "access_granted"])
         if port:
             return port, None
 
-        error: Optional[str] = get_message_field(response, 'accessPanel.access_rejected')
+        error: Optional[str] = get_message_field(response, ["accessPanel", "access_rejected"])
         return 0, error if error is not None else "Unexpected response"

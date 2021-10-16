@@ -24,7 +24,7 @@ class INavigation(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        position = get_message_field(response, "navigation.position")
+        position = get_message_field(response, ["navigation", "position"])
         if not position:
             return None
         assert response.timestamp is not None
