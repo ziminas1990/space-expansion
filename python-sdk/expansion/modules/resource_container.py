@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Awaitable, Tuple, TYPE_CHECKING
+from typing import Optional, Callable, Awaitable, Tuple, AsyncIterable, TYPE_CHECKING
 import time
 
 from expansion.interfaces.rpc import ResourceContainerI
@@ -85,25 +85,24 @@ class ResourceContainer(BaseModule):
             await session.close()
             return status
 
-    async def monitor(
-            self,
-            callback: Callable[[Status, Optional[Content]], None]) -> Status:
+    async def monitor(self) -> AsyncIterable[Tuple[Status, Optional[Content]]]:
         async with self.open_managed_session(ResourceContainerI) as session:
             if not session:
-                return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
+                yield ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
+                raise StopAsyncIteration
             assert isinstance(session, ResourceContainerI)
             status, content = await session.monitor()
+            yield status, None
             if not status.is_success():
-                return status
-            callback(status, content)
+                raise StopAsyncIteration
             while True:
                 status, content = await session.monitor(timeout=60)
-                if status.is_success():
-                    callback(status, content)
-                elif status == ResourceContainerI.Status.RESPONSE_TIMEOUT:
+                yield status, None
+                if status.is_success() or \
+                        status == ResourceContainerI.Status.RESPONSE_TIMEOUT:
                     continue
                 else:
-                    callback(status, None)
+                    raise StopAsyncIteration
 
     @staticmethod
     def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:

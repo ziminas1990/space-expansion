@@ -46,7 +46,7 @@ class CelestialScanner(BaseModule):
             scanning_radius_km=scanning_radius_km,
             minimal_radius_m=minimal_radius_m)
         if timeout == 0:
-            return 0, "Can't calculate expected timeout"
+            return "Can't calculate expected timeout"
         if timeout < 0.2:
             timeout = 0.2
 

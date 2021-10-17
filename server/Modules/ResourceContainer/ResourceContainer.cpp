@@ -107,8 +107,11 @@ void ResourceContainer::sendUpdatesIfRequired()
     return;
   }
   m_lModifiedFlag = false;
-  for (uint32_t nMonitoringSession: m_monitoringSessions.data()) {
-    sendContent(nMonitoringSession);
+  for (size_t i = 0; i < m_monitoringSessions.size(); ++i) {
+    uint32_t nMonitoringSession = m_monitoringSessions[i];
+    if (!sendContent(nMonitoringSession)) {
+      m_monitoringSessions.remove(i--);
+    }
   }
 }
 
@@ -212,7 +215,7 @@ void ResourceContainer::sendClosePortStatus(
   sendToClient(nTunnelId, response);
 }
 
-void ResourceContainer::sendContent(uint32_t nTunnelId)
+bool ResourceContainer::sendContent(uint32_t nTunnelId)
 {
   using TypesPair = std::pair<world::Resource::Type, spex::ResourceType>;
   static const std::vector<TypesPair> types =
@@ -238,7 +241,7 @@ void ResourceContainer::sendContent(uint32_t nTunnelId)
   }
   pBody->set_used(m_nUsedSpace);
   pBody->set_volume(m_nVolume);
-  sendToClient(nTunnelId, response);
+  return sendToClient(nTunnelId, response);
 }
 
 void ResourceContainer::sendTransferStatus(

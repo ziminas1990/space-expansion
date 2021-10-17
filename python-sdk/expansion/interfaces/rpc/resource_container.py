@@ -139,6 +139,17 @@ class ResourceContainerI(IOTerminal):
             # Success case
             return ResourceContainerI.Status.convert(status)
 
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
+    async def monitor(self, timeout: float = 0.5) -> Tuple[Status, Optional[Content]]:
+        """Start monitoring session.
+        Note: monitoring session can't be closed. The only way to stop
+        monitoring session is close the channel.
+        """
+        request = public.Message()
+        request.resource_container.monitor = True
+        if not self.send(message=request):
+            return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
+        return await self.wait_content(timeout)
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def transfer(self, port: int, access_key: int,

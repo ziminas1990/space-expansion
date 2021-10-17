@@ -53,7 +53,7 @@ private:
 
   void sendOpenPortFailed(uint32_t nTunnelId, spex::IResourceContainer::Status reason);
   void sendClosePortStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);
-  void sendContent(uint32_t nTunnelId);
+  bool sendContent(uint32_t nTunnelId);
   void sendTransferStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);
   void sendTransferReport(uint32_t nTunnelId, world::Resource::Type type, double amount);
 
