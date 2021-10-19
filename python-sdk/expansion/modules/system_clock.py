@@ -26,15 +26,19 @@ class SystemClock(rpc.SystemClockI, BaseModule):
 
         self.cached_time: Callable[[], int] = self.server_time.predict_usec
 
-    async def sync(self, timeout: float = 0.5) -> bool:
+    @BaseModule.use_session(
+        terminal_type=rpc.SystemClock,
+        return_on_unreachable=False,
+        return_on_cancel=False)
+    async def sync(self,
+                   timeout: float = 0.5,
+                   session: rpc.SystemClock = None) -> bool:
         """Sync local system clock with server"""
-        async with self.rent_session(rpc.SystemClock) as channel:
-            if not channel:
-                return False
-            ingame_time = await channel.time()
-            if ingame_time is None:
-                return False
-            self.server_time.update(ingame_time)
+        assert session is not None
+        ingame_time = await session.time()
+        if ingame_time is None:
+            return False
+        self.server_time.update(ingame_time)
 
     async def time(self, predict: bool = True, timeout: float = 0.5) -> int:
         """Update the cached time and return it"""
@@ -50,45 +54,62 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         """
         return self.server_time
 
-    async def wait_until(self, time: int, timeout: float = 0) \
+    @BaseModule.use_session(
+        terminal_type=rpc.SystemClock,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def wait_until(self,
+                         time: int,
+                         timeout: float = 0,
+                         session: rpc.SystemClock = None) \
             -> Optional[int]:
         """Wait until server time reaches the specified 'time'
 
         On success update cached time and return cached time, otherwise
         return None"""
+        assert session is not None
         if isclose(timeout, 0):
             dt = time - self.server_time.predict_usec()
             timeout = 1.2 * dt / 10**6 if dt > 0.1 else 0.1
 
-        async with self.rent_session(rpc.SystemClock) as channel:
-            if channel is None:
-                return None
-            time = await channel.wait_until(time=time, timeout=timeout)
-            if time:
-                self.server_time.update(time)
-            return self.server_time.predict_usec()
+        time = await session.wait_until(time=time, timeout=timeout)
+        if time:
+            self.server_time.update(time)
+        return self.server_time.predict_usec()
 
-    async def wait_for(self, period_us: int, timeout: float = 0) -> Optional[int]:
+    @BaseModule.use_session(
+        terminal_type=rpc.SystemClock,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def wait_for(self,
+                       period_us: int,
+                       timeout: float = 0,
+                       session: rpc.SystemClock = None) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
+        assert session is not None
         if isclose(timeout, 0):
             timeout = max(1.2 * period_us / 10 ** 6, 0.1)
 
-        async with self.rent_session(rpc.SystemClock) as channel:
-            if channel is None:
-                return None
-            time = await channel.wait_for(period_us=period_us, timeout=timeout)
-            if time:
-                self.server_time.update(time)
-            return self.server_time.predict_usec()
+        if session is None:
+            return None
+        time = await session.wait_for(period_us=period_us, timeout=timeout)
+        if time:
+            self.server_time.update(time)
+        return self.server_time.predict_usec()
 
-    async def get_generator_tick_us(self, timeout: float = 0.5) -> Optional[int]:
+    @BaseModule.use_session(
+        terminal_type=rpc.SystemClock,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def get_generator_tick_us(self,
+                                    timeout: float = 0.5,
+                                    session: rpc.SystemClock = None)\
+            -> Optional[int]:
         """Return generator's tick long (in microseconds). Once the
         value is retrieved from the server, it will be cached"""
+        assert session is not None
         if self.tick_us is None:
-            async with self.rent_session(rpc.SystemClock) as channel:
-                if channel is None:
-                    return None
-                self.tick_us = await channel.get_generator_tick_us(timeout=timeout)
+            self.tick_us = await session.get_generator_tick_us(timeout=timeout)
         return self.tick_us
 
     async def attach_to_generator(self, timeout: float = 0.5) -> "SystemClockI.Status":

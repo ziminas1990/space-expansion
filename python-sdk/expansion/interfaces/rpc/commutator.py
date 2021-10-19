@@ -196,7 +196,7 @@ class CommutatorI(IOTerminal):
         request.commutator.open_tunnel = port
         self.send(request)
 
-        response, _ = await self.wait_message(timeout=0.2)  # it shouldn't take much time
+        response, _ = await self.wait_message(timeout=0.1)  # it shouldn't take much time
         if not response:
             return CommutatorI.Status.RESPONSE_TIMEOUT, None
         tunnel_id = get_message_field(response, ["commutator", "open_tunnel_report"])

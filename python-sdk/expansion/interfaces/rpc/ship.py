@@ -75,5 +75,5 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         request.ship.monitor = duration_ms
         if not self.send(message=request):
             return None
-        ack, _ = await self.wait_exact("ship.monitor_ack")
+        ack, _ = await self.wait_exact(["ship", "monitor_ack"])
         return ack

@@ -1,6 +1,6 @@
 import abc
 import time
-from typing import Tuple, Optional, Any
+from typing import Tuple, Optional, Any, List
 from expansion.transport import Channel, Terminal
 from expansion.protocol import get_message_field
 
@@ -14,7 +14,7 @@ class Endpoint(Channel, Terminal, abc.ABC):
         the message was sent."""
         pass
 
-    async def wait_exact(self, message: str, timeout: float = 1.0) \
+    async def wait_exact(self, message: List[str], timeout: float = 1.0) \
             -> Tuple[Optional[Any], Optional[int]]:
         """Await for the specified 'message' but not more than 'timeout' seconds.
         Ignore all other received messages. Return expected message and timestamp or

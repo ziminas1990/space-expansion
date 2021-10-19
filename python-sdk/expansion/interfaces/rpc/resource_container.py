@@ -27,6 +27,7 @@ class ResourceContainerI(IOTerminal):
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
         CHANNEL_CLOSED = "channel closed"
+        CANCELED = "operation canceled"
 
         def is_success(self):
             return self == ResourceContainerI.Status.SUCCESS

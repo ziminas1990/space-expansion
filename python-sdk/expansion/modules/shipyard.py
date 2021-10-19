@@ -21,51 +21,67 @@ class Shipyard(BaseModule):
                          name=name or utils.generate_name(Shipyard))
         self.specification: Optional[ShipyardSpec] = None
 
-    async def get_specification(self, timeout: float = 0.5, reset_cached=False) \
+    @BaseModule.use_session(
+        terminal_type=ShipyardI,
+        return_on_unreachable=(Status.FAILED_TO_SEND_REQUEST, None),
+        return_on_cancel=(Status.CANCELED, None))
+    async def get_specification(self,
+                                timeout: float = 0.5,
+                                reset_cached=False,
+                                session: Optional[ShipyardI] = None) \
             -> Tuple[Status, Optional[ShipyardSpec]]:
+        assert session is not None
         if reset_cached:
             self.specification = None
         if self.specification:
             return ShipyardI.Status.SUCCESS, self.specification
-        async with self.rent_session(ShipyardI) as channel:
-            assert isinstance(channel, ShipyardI)
-            status, self.specification = await channel.get_specification(timeout)
+        status, self.specification = await session.get_specification(timeout)
         return status, self.specification
 
-    async def bind_to_cargo(self, cargo_name: str):
-        async with self.rent_session(ShipyardI) as channel:
-            assert isinstance(channel, ShipyardI)
-            return await channel.bind_to_cargo(cargo_name)
+    @BaseModule.use_session(
+        terminal_type=ShipyardI,
+        return_on_unreachable=Status.FAILED_TO_SEND_REQUEST,
+        return_on_cancel=Status.CANCELED)
+    async def bind_to_cargo(self,
+                            cargo_name: str,
+                            session: Optional[ShipyardI] = None) \
+            -> Status:
+        assert session is not None
+        return await session.bind_to_cargo(cargo_name)
 
-    async def build_ship(self, blueprint: str, ship_name: str,
-                         progress_cb: Optional[BuildingCallback] = None) -> \
+    @BaseModule.use_session(
+        terminal_type=ShipyardI,
+        exclusive=True,
+        return_on_unreachable=(Status.FAILED_TO_SEND_REQUEST, None, None),
+        return_on_cancel=(Status.CANCELED, None, None))
+    async def build_ship(self,
+                         blueprint: str,
+                         ship_name: str,
+                         progress_cb: Optional[BuildingCallback] = None,
+                         session: Optional[ShipyardI] = None) -> \
             (Status, Optional[str], Optional[int]):
+        assert session is not None
         Status = ShipyardI.Status
-        async with self.open_managed_session(ShipyardI) as building_session:
-            if not building_session:
-                return ShipyardI.Status.FAILED_TO_SEND_REQUEST, None, None
-            assert isinstance(building_session, ShipyardI)
+        status = await session.start_build(blueprint, ship_name)
+        if not status.BUILD_STARTED:
+            return status, None, None
 
-            status = await building_session.start_build(blueprint, ship_name)
-            if not status.BUILD_STARTED:
-                return status, None, None
+        while True:
+            status, progress = await session.wait_building_report()
+            if progress_cb:
+                progress_cb(status, progress)
+            if status in {Status.BUILD_IN_PROGRESS, Status.BUILD_FROZEN}:
+                # Just waiting for next message
+                continue
+            elif status == ShipyardI.Status.BUILD_COMPLETE:
+                break
+            # Seems that some error occurred
+            return status, None, None
 
-            while True:
-                status, progress = await building_session.wait_building_report()
-                if progress_cb:
-                    progress_cb(status, progress)
-                if status in {Status.BUILD_IN_PROGRESS, Status.BUILD_FROZEN}:
-                    # Just waiting for next message
-                    continue
-                elif status == ShipyardI.Status.BUILD_COMPLETE:
-                    break
-                # Seems that some error occurred
-                return status, None, None
-
-            # Got report with COMPLETE status. Waiting for a final
-            # 'building_complete' message
-            # Waiting for building reports
-            return await building_session.wait_building_complete()
+        # Got report with COMPLETE status. Waiting for a final
+        # 'building_complete' message
+        # Waiting for building reports
+        return await session.wait_building_complete()
 
     @staticmethod
     def find_by_name(commutator: "Commutator", name: str) -> Optional["Shipyard"]:

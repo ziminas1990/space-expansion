@@ -31,6 +31,7 @@ class AsteroidMinerI(IOTerminal):
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
         CHANNEL_CLOSED = "channel was closed"
+        CANCELED = "operation was canceled"
 
         def is_success(self):
             return self == AsteroidMinerI.Status.SUCCESS

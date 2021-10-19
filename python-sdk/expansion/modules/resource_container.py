@@ -33,43 +33,76 @@ class ResourceContainer(BaseModule):
         return None"""
         return self.opened_port
 
-    async def get_content(self,
-                          timeout: float = 0.5,
-                          expiration_ms: int = 250) -> Optional[Content]:
+    @BaseModule.use_session(
+        terminal_type=ResourceContainerI,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def get_content(
+            self,
+            timeout: float = 0.5,
+            expiration_ms: int = 250,
+            session: Optional[ResourceContainerI] = None)\
+            -> Optional[Content]:
+        assert session is not None
         if self._is_actual(self.cache.content, expiration_ms):
             return self.cache.content[0]
 
-        async with self.rent_session(ResourceContainerI) as channel:
-            assert isinstance(channel, ResourceContainerI)
-            status, content = await channel.get_content(timeout)
-            self.cache.content = content, time.monotonic() * 1000
+        status, content = await session.get_content(timeout)
+        self.cache.content = content, time.monotonic() * 1000
         return self.cache.content[0]
 
-    async def open_port(self, access_key: int, timeout: int = 0.5) -> (Status, int):
+    @BaseModule.use_session(
+        terminal_type=ResourceContainerI,
+        return_on_unreachable=(Status.FAILED_TO_SEND_REQUEST, 0),
+        return_on_cancel=(Status.CANCELED, 0))
+    async def open_port(
+            self,
+            access_key: int,
+            timeout: int = 0.5,
+            session: Optional[ResourceContainerI] = None)\
+            -> (Status, int):
         """Open a new port with the specified 'access_key'. Return operation status
         and port number"""
-        async with self.rent_session(ResourceContainerI) as channel:
-            status, port = await channel.open_port(access_key, timeout)
-            if status == ResourceContainer.Status.SUCCESS:
-                self.opened_port = port, access_key
-            return status, port
+        assert session is not None
+        status, port = await session.open_port(access_key, timeout)
+        if status == ResourceContainer.Status.SUCCESS:
+            self.opened_port = port, access_key
+        return status, port
 
-    async def close_port(self, timeout: int = 0.5) -> Status:
+    @BaseModule.use_session(
+        terminal_type=ResourceContainerI,
+        return_on_unreachable=Status.FAILED_TO_SEND_REQUEST,
+        return_on_cancel=Status.CANCELED)
+    async def close_port(
+            self,
+            timeout: int = 0.5,
+            session: Optional[ResourceContainerI] = None) -> Status:
         """Close an existing opened port"""
-        async with self.rent_session(ResourceContainerI) as channel:
-            status = await channel.close_port(timeout)
-            if status == ResourceContainer.Status.SUCCESS:
-                self.opened_port = None
-            return status
+        assert session is not None
+        status = await session.close_port(timeout)
+        if status == ResourceContainer.Status.SUCCESS:
+            self.opened_port = None
+        return status
 
-    async def transfer(self, port: int, access_key: int,
-                       resource: ResourceItem,
-                       progress_cb: Optional[Callable[[ResourceItem], None]] = None,
-                       timeout: int = 0.5) -> Status:
+    @BaseModule.use_session(
+        terminal_type=ResourceContainerI,
+        exclusive=True,
+        return_on_unreachable=Status.FAILED_TO_SEND_REQUEST,
+        return_on_cancel=Status.CANCELED)
+    async def transfer(
+            self,
+            port: int,
+            access_key: int,
+            resource: ResourceItem,
+            progress_cb: Optional[Callable[[ResourceItem], None]] = None,
+            timeout: int = 0.5,
+            session: Optional[ResourceContainerI] = None) -> Status:
         """Transfer the specified 'resource' to the specified 'port' with the
         specified 'access_key'. The optionally specified 'progress_cb' will be
         called to report transferring status (a total amount of transferred
         resources)."""
+        assert session is not None
+
         def _progress_cb(item: ResourceItem):
             # Content must be changed, so we should reset a
             # cached content data
@@ -77,16 +110,12 @@ class ResourceContainer(BaseModule):
             if progress_cb is not None:
                 progress_cb(item)
 
-        async with self.open_managed_session(ResourceContainerI) as session:
-            if not session:
-                return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
-            assert isinstance(session, ResourceContainerI)
-            status = await session.transfer(port, access_key, resource, _progress_cb, timeout)
-            await session.close()
-            return status
+        status = await session.transfer(port, access_key, resource, _progress_cb, timeout)
+        await session.close()
+        return status
 
     async def monitor(self) -> AsyncIterable[Tuple[Status, Optional[Content]]]:
-        async with self.open_managed_session(ResourceContainerI) as session:
+        async with self.open_exclusive_session(ResourceContainerI) as session:
             if not session:
                 yield ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
                 raise StopAsyncIteration

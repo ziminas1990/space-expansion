@@ -29,6 +29,7 @@ class ShipyardI(IOTerminal):
         RESPONSE_TIMEOUT = "response timeout"
         UNEXPECTED_RESPONSE = "unexpected response"
         CHANNEL_CLOSED = "channel closed"
+        CANCELED = "operation canceled"
 
         @staticmethod
         def from_protobuf(status: public.IResourceContainer.Status) -> "ShipyardI.Status":

@@ -36,15 +36,21 @@ class Ship(Commutator, BaseModule):
     async def init(self) -> bool:
         return await super().init()
 
-    async def sync(self, timeout: float = 0.5) -> bool:
+    @BaseModule.use_session(
+        terminal_type=rpc.ShipI,
+        return_on_unreachable=False,
+        return_on_cancel=False)
+    async def sync(self,
+                   timeout: float = 0.5,
+                   session: Optional[rpc.ShipI] = None) -> bool:
         """Update ship's information."""
-        async with self.rent_session(rpc.ShipI) as channel:
-            position = await channel.navigation().get_position(timeout=timeout)
-            if position is not None:
-                self.position = position
-                return True
-            else:
-                return False
+        assert session is not None
+        position = await session.navigation().get_position(timeout=timeout)
+        if position is not None:
+            self.position = position
+            return True
+        else:
+            return False
 
     async def get_position(self,
                            at_us: Optional[int] = None,
@@ -71,20 +77,26 @@ class Ship(Commutator, BaseModule):
     def predict_position(self, at: Optional[int] = None) -> Optional[Position]:
         return self.position.predict(at=at) if self.position else None
 
-    async def get_state(self, cache_expiring_ms: int = 50) -> Optional[rpc.ShipState]:
+    @BaseModule.use_session(
+        terminal_type=rpc.ShipI,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def get_state(self,
+                        cache_expiring_ms: int = 50,
+                        session: Optional[rpc.ShipI] = None) \
+            -> Optional[rpc.ShipState]:
         """Return current ship's state"""
+        assert session is not None
         if self.state and not self.state.expired(cache_expiring_ms):
             return self.state
+        self.state = await session.get_state()
+        return self.state
 
-        async with self.rent_session(rpc.ShipI) as channel:
-            self.state = await channel.get_state()
-            return self.state
-
-    async def start_monitoring(self, interval_ms: int = 50):
+    def start_monitoring(self, interval_ms: int = 50):
         self.__monitoring_task = asyncio.get_running_loop().create_task(
             self.__monitoring(interval_ms))
 
-    async def stop_monitoring(self):
+    def stop_monitoring(self):
         if self.__monitoring_task:
             self.__monitoring_task.cancel()
             self.__monitoring_task = None
@@ -94,22 +106,25 @@ class Ship(Commutator, BaseModule):
         if state.position:
             self.position = state.position
 
-    async def __monitoring(self, interval_ms: int):
-        try:
-            async with self.open_managed_session(rpc.ShipI) as session:
-                if not isinstance(session, rpc.ShipI):
-                    return False
-                ack = await session.monitor(interval_ms)
-                if ack is None:
-                    return
-                timeout = 5 * interval_ms / 1000
-                while True:
-                    state = await session.wait_state(timeout)
-                    if not state:
-                        return
-                    self.__on_update(state)
-        except asyncio.CancelledError:
+    @BaseModule.use_session(
+        terminal_type=rpc.ShipI,
+        exclusive=True,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def __monitoring(
+            self,
+            interval_ms: int,
+            session: Optional[rpc.ShipI] = None):
+        assert session is not None
+        ack = await session.monitor(interval_ms)
+        if ack is None:
             return
+        timeout = 5 * interval_ms / 1000
+        while True:
+            state = await session.wait_state(timeout)
+            if not state:
+                return
+            self.__on_update(state)
 
     @staticmethod
     def get_ship_by_name(

@@ -1,6 +1,7 @@
 from typing import Any, Optional, TYPE_CHECKING
 import abc
 import logging
+import functools
 
 from expansion import utils
 
@@ -87,9 +88,10 @@ class Channel(abc.ABC):
         """This decorator  adds handling of 'ChannelClosed' exception.
         If exception arises, wrapped function returns 'return_on_close'"""
         def _decorator(func):
-            def _wrapper(*args, **kwargs):
+            @functools.wraps(func)
+            async def _wrapper(*args, **kwargs):
                 try:
-                    return func(*args, **kwargs)
+                    return await func(*args, **kwargs)
                 except ChannelClosed:
                     return return_on_close
             return _wrapper

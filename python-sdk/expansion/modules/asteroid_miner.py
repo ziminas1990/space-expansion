@@ -3,6 +3,7 @@ from typing import Optional, Callable, Awaitable, Tuple, TYPE_CHECKING
 from expansion.interfaces.rpc import AsteroidMinerI, AsteroidMinerSpec
 from expansion import utils
 from expansion.modules import ModuleType, BaseModule
+from expansion.transport import Channel
 
 if TYPE_CHECKING:
     from expansion.modules import Commutator, TunnelFactory
@@ -23,28 +24,50 @@ class AsteroidMiner(BaseModule):
         self.cargo_name: Optional[str] = None
         # A name of the resource container, to which the miner is attached
 
-    async def get_specification(self, timeout: float = 0.5, reset_cached=False) \
+    @BaseModule.use_session(
+        terminal_type=AsteroidMinerI,
+        return_on_unreachable=(Status.FAILED_TO_SEND_REQUEST, None),
+        return_on_cancel=(Status.CANCELED, None))
+    async def get_specification(
+            self,
+            timeout: float = 0.5,
+            reset_cached=False,
+            session: Optional[AsteroidMinerI] = None) \
             -> Tuple[Status, Optional[AsteroidMinerSpec]]:
+        assert session is not None
         if reset_cached:
             self.specification = None
         if self.specification:
             return AsteroidMinerI.Status.SUCCESS, self.specification
-        async with self.rent_session(AsteroidMinerI) as channel:
-            status, self.specification = await channel.get_specification(timeout)
+        status, self.specification = await session.get_specification(timeout)
         return status, self.specification
 
-    async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
+    @BaseModule.use_session(
+        terminal_type=AsteroidMinerI,
+        return_on_unreachable=Status.FAILED_TO_SEND_REQUEST,
+        return_on_cancel=Status.CANCELED)
+    async def bind_to_cargo(
+            self,
+            cargo_name: str,
+            timeout: float = 0.5,
+            session: Optional[AsteroidMinerI] = None) -> Status:
         """Bind miner to the container with the specified 'cargo_name'"""
-        async with self.rent_session(AsteroidMinerI) as channel:
-            assert isinstance(channel, AsteroidMinerI)
-            status = await channel.bind_to_cargo(cargo_name, timeout)
-            if status == AsteroidMinerI.Status.SUCCESS:
-                self.cargo_name = cargo_name
-            return status
+        assert session is not None
+        status = await session.bind_to_cargo(cargo_name, timeout)
+        if status == AsteroidMinerI.Status.SUCCESS:
+            self.cargo_name = cargo_name
+        return status
 
-    async def start_mining(self,
-                           asteroid_id: int,
-                           progress_cb: AsteroidMinerI.MiningReportCallback)\
+    @BaseModule.use_session(
+        terminal_type=AsteroidMinerI,
+        return_on_unreachable=Status.FAILED_TO_SEND_REQUEST,
+        return_on_cancel=Status.CANCELED,
+        exclusive=True)
+    async def start_mining(
+            self,
+            asteroid_id: int,
+            progress_cb: AsteroidMinerI.MiningReportCallback,
+            session: Optional[AsteroidMinerI] = None)\
             -> Status:
         """Start mining asteroid with the specified 'asteroid_id'.
         The specified 'progress_cb' will be called in the following cases:
@@ -58,18 +81,21 @@ class AsteroidMiner(BaseModule):
            in this case a value, returned by callback, will be ignored and the mining
            process will be interrupted.
         """
-        async with self.open_managed_session(AsteroidMinerI) as session:
-            assert isinstance(session, AsteroidMinerI)
-            if not session:
-                return AsteroidMinerI.Status.FAILED_TO_SEND_REQUEST
-            status = await session.start_mining(asteroid_id, progress_cb)
-            await session.close()
-            return status
+        assert session is not None
+        status = await session.start_mining(asteroid_id, progress_cb)
+        await session.close()
+        return status
 
-    async def stop_mining(self, timeout: float = 0.5) -> Status:
+    @BaseModule.use_session(
+        terminal_type=AsteroidMinerI,
+        return_on_unreachable=Status.FAILED_TO_SEND_REQUEST,
+        return_on_cancel=Status.CANCELED)
+    async def stop_mining(self,
+                          timeout: float = 0.5,
+                          session: Optional[AsteroidMinerI] = None) -> Status:
         """Stop the mining process"""
-        async with self.rent_session(AsteroidMinerI) as channel:
-            return await channel.stop_mining(timeout)
+        assert session is not None
+        return await session.stop_mining(timeout)
 
     @staticmethod
     def find_by_name(commutator: "Commutator", name: str) -> Optional["AsteroidMiner"]:

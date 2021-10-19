@@ -1,4 +1,5 @@
 from base_test_fixture import BaseTestFixture
+from inspect import getfullargspec
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 
@@ -116,10 +117,12 @@ class TestCase(BaseTestFixture):
         scanner = modules.get_celestial_scanner(miner, "scanner")
         self.assertIsNotNone(scanner)
 
-        result, error = await scanner.scan_sync(scanning_radius_km=20, minimal_radius_m=300)
+        result, error = await scanner.scan_sync(scanning_radius_km=20,
+                                                minimal_radius_m=300)
         self.assertIsNone(error)
         self.assertEqual([], result)
 
-        result, error = await scanner.scan_sync(scanning_radius_km=20, minimal_radius_m=200)
+        result, error = await scanner.scan_sync(scanning_radius_km=20,
+                                                minimal_radius_m=200)
         self.assertIsNone(error)
         self.assertEqual(1, len(result))

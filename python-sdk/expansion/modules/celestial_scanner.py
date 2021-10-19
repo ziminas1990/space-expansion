@@ -19,20 +19,33 @@ class CelestialScanner(BaseModule):
                          name=name or utils.generate_name(CelestialScanner))
         self.specification: Optional[CelestialScannerSpec] = None
 
-    async def get_specification(self, timeout: float = 0.5, reset_cached=False) \
+    @BaseModule.use_session(
+        terminal_type=CelestialScannerI,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def get_specification(
+            self,
+            timeout: float = 0.5,
+            reset_cached=False,
+            session: Optional[CelestialScannerI] = None) \
             -> Optional[CelestialScannerSpec]:
+        assert session is not None
         if reset_cached:
             self.specification = None
         if self.specification:
             return self.specification
-        async with self.rent_session(CelestialScannerI) as channel:
-            self.specification = await channel.get_specification(timeout)
+        self.specification = await session.get_specification(timeout)
         return self.specification
 
+    @BaseModule.use_session(
+        terminal_type=CelestialScannerI,
+        return_on_unreachable="Channel was closed",
+        return_on_cancel="Operation was canceled")
     async def scan(self,
                    scanning_radius_km: int,
                    minimal_radius_m: int,
-                   scanning_cb: ScanningCallback) \
+                   scanning_cb: ScanningCallback,
+                   session: Optional[CelestialScannerI] = None) \
             -> Optional[str]:
         """Scanning all bodies within a 'scanning_radius_km' radius.
 
@@ -40,44 +53,61 @@ class CelestialScanner(BaseModule):
         ignored. The 'scanning_cb' callback will be called when another portion
         of data received from the server. After all data received callback
         will be called for the last time with (None, None) argument.
-        Retun None on success otherwise return error string
+        Return None on success otherwise return error string
         """
+        assert session is not None
         timeout = 2 * await self.expected_scanning_time(
             scanning_radius_km=scanning_radius_km,
-            minimal_radius_m=minimal_radius_m)
+            minimal_radius_m=minimal_radius_m,
+            session=session)
         if timeout == 0:
             return "Can't calculate expected timeout"
         if timeout < 0.2:
             timeout = 0.2
 
-        async with self.rent_session(CelestialScannerI) as channel:
-            return await channel.scan(
-                scanning_radius_km,
-                minimal_radius_m,
-                scanning_cb,
-                timeout)
+        return await session.scan(
+            scanning_radius_km,
+            minimal_radius_m,
+            scanning_cb,
+            timeout)
 
-    async def scan_sync(self, scanning_radius_km: int, minimal_radius_m: int) \
+    @BaseModule.use_session(
+        terminal_type=CelestialScannerI,
+        return_on_unreachable=(None, "Channel was closed"),
+        return_on_cancel=(None, "Operation was canceled"))
+    async def scan_sync(self,
+                        scanning_radius_km: int,
+                        minimal_radius_m: int,
+                        session: CelestialScannerI = None) \
             -> (ObjectsList, Error):
-        """Same as 'scan()' but withou user's callback"""
+        """Same as 'scan()' but without user's callback"""
+        assert session is not None
         timeout = 2 * await self.expected_scanning_time(
             scanning_radius_km=scanning_radius_km,
-            minimal_radius_m=minimal_radius_m)
+            minimal_radius_m=minimal_radius_m,
+            session=session)
         if timeout == 0:
             return 0, "Can't calculate expected timeout"
         if timeout < 0.2:
             timeout = 0.2
 
-        async with self.rent_session(CelestialScannerI) as channel:
-            return await channel.scan_sync(
-                scanning_radius_km,
-                minimal_radius_m,
-                timeout)
+        return await session.scan_sync(
+            scanning_radius_km,
+            minimal_radius_m,
+            timeout)
 
-    async def expected_scanning_time(self, scanning_radius_km: int, minimal_radius_m: int) -> float:
+    @BaseModule.use_session(
+        terminal_type=CelestialScannerI,
+        return_on_unreachable=0,
+        return_on_cancel=0)
+    async def expected_scanning_time(self,
+                                     scanning_radius_km: int,
+                                     minimal_radius_m: int,
+                                     session: CelestialScannerI = None) -> float:
         """Return time, that should be required by scanner to finish scanning
         request with the specified 'scanning_radius_km' and 'minimal_radius_m'"""
-        spec = await self.get_specification()
+        assert session is not None
+        spec = await self.get_specification(session=session)
         if not spec:
             return 0
         resolution = (1000 * scanning_radius_km) / minimal_radius_m
