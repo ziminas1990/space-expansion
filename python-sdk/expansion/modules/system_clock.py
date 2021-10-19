@@ -130,18 +130,24 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         with self.mutex:
             self.time_callback.remove(time_cb)
 
-    async def _time_watcher(self):
-        async with self.rent_session(rpc.SystemClock) as channel:
-            status = await channel.attach_to_generator()
-            if status != rpc.SystemClockI.Status.GENERATOR_ATTACHED:
-                self.logger.error("Can't attach to the system clock's generator!")
-                return
-            while len(self.time_callback) > 0:
-                current_time = await channel.wait_timestamp()
-                if current_time is None:
-                    # Ignoring error
-                    continue
-                self.server_time.update(current_time)
-                for time_cb in self.time_callback:
-                    time_cb(self.server_time)
-            await channel.detach_from_generator()
+    @BaseModule.use_session(
+        terminal_type=rpc.SystemClock,
+        exclusive=True,
+        return_on_unreachable=None,
+        return_on_cancel=None)
+    async def _time_watcher(
+            self,
+            session: Optional[rpc.SystemClock] = None):
+        status = await session.attach_to_generator()
+        if status != rpc.SystemClockI.Status.GENERATOR_ATTACHED:
+            self.logger.error("Can't attach to the system clock's generator!")
+            return
+        while len(self.time_callback) > 0:
+            current_time = await session.wait_timestamp()
+            if current_time is None:
+                # Ignoring error
+                continue
+            self.server_time.update(current_time)
+            for time_cb in self.time_callback:
+                time_cb(self.server_time)
+        await session.detach_from_generator()

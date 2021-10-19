@@ -17,6 +17,16 @@ class RootCommutator(Commutator):
         self.mutex = asyncio.Lock()
         self.remote: Optional[rpc.CommutatorI] = None
 
+    # Overrides Commutator implementation
+    async def init(self) -> bool:
+        return await super().init(session=self.remote)
+
+    # Overrides Commutator implementation
+    async def _open_tunnel(self, slot_id: int):
+        async with self.mutex:
+            status, tunnel = await self.remote.open_tunnel(port=slot_id)
+            return tunnel, None if status.is_success() else str(status)
+
     async def login(self,
                     server_ip: str, login_port: int,
                     login: str, password: str,
@@ -36,24 +46,7 @@ class RootCommutator(Commutator):
         assert self.remote is not None
         return None
 
-    # Overrides BaseModule's implementation
-    @contextlib.asynccontextmanager
-    async def rent_session(self, terminal_type: Type = rpc.CommutatorI) \
-            -> ContextManager[rpc.CommutatorI]:
-        """This function will always return the same session, because
-        root commutator can't spawn a new channels to the remote side. So
-        this function will block until the channel is used by someone else"""
-        assert terminal_type == rpc.CommutatorI
-        try:
-            await self.mutex.acquire()
-            assert self.remote is not None, \
-                "Not connected to the remote side. Are you logged in?"
-            yield self.remote
-        finally:
-            self.mutex.release()
-
     @staticmethod
     async def __open_tunnel_fake():
-        # This function should be never called, because the 'lock_channel'
-        # call is overridden!
+        # This function should never be called
         assert False

@@ -72,19 +72,6 @@ class BaseTestFixture(unittest.TestCase):
         # At this point server should stop himself, but to be sure:
         self.server.stop()
 
-    async def login_old(self, player: str) -> (Optional[rpc.CommutatorI], Optional[str]):
-        if player not in self.config.players:
-            return None, f"Player {player} doesn't exist!"
-        general_cfg = self.config.general
-        port = self.login_ports.pop()
-        return await procedures.login(
-            server_ip="127.0.0.1",
-            login_port=general_cfg.login_udp_port,
-            login=self.config.players[player].login,
-            password=self.config.players[player].password,
-            local_ip="127.0.0.1",
-            local_port=port)
-
     async def login(self, player: str, server_ip: str, local_ip: str) \
             -> (Optional[modules.Commutator], Optional[str]):
         general_cfg = self.config.general

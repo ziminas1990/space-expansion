@@ -52,34 +52,6 @@ class BaseModule:
     async def init(self) -> bool:
         return True
 
-    @contextlib.asynccontextmanager
-    async def rent_session(self,
-                           terminal_type: Type,
-                           retires: int = 3) -> ContextManager[Optional[Endpoint]]:
-        """Rent a session for a simple request/response communications.
-        After session is not needed anymore, it will be put back
-        to a session pools for further reuse.
-        """
-        terminal: Optional[Endpoint] = None
-        try:
-            try:
-                terminal = self._sessions.setdefault(terminal_type, []).pop(-1)
-            except IndexError:
-                # No terminals to reuse
-                terminal = await self.open_session(terminal_type, retires)
-            finally:
-                assert terminal is not None
-                yield terminal
-        except asyncio.CancelledError as exc:
-            # Tunnel could be in unknown state now (may be it is still waiting for
-            # answer). So we can't afford to reuse it in the future
-            await terminal.close()
-            terminal = None
-            raise exc
-        finally:
-            if terminal:
-                self._sessions.setdefault(terminal_type, []).append(terminal)
-
     async def open_session(self,
                            terminal_type: Type,
                            retries: int = 3) -> Optional[Endpoint]:

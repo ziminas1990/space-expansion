@@ -24,13 +24,18 @@ class Commutator(BaseModule):
         # Map: module_type -> module_name -> module
         self._connections: List[rpc.CommutatorI] = []
 
-    async def init(self) -> bool:
+    @BaseModule.use_session(
+        terminal_type=rpc.CommutatorI,
+        return_on_unreachable=False,
+        return_on_cancel=False)
+    async def init(
+            self,
+            session: Optional[rpc.CommutatorI] = None) -> bool:
         """Retrieve an information about all modules, attached to the
         commutator. Should be called after module is instantiated"""
         self.modules_info.clear()
 
-        async with self.rent_session(rpc.CommutatorI) as channel:
-            modules: List[rpc.ModuleInfo] = await channel.get_all_modules()
+        modules: List[rpc.ModuleInfo] = await session.get_all_modules()
 
         if modules is None:
             self.logger.warning(f"Failed to get modules list!")
@@ -50,12 +55,19 @@ class Commutator(BaseModule):
 
         return True
 
+    @BaseModule.use_session(
+        terminal_type=rpc.CommutatorI,
+        return_on_unreachable=(None, "Unreachable"),
+        return_on_cancel=(None, "Canceled"))
+    async def _open_tunnel(self,
+                     slot_id: int,
+                     session: Optional[rpc.CommutatorI] = None):
+        status, tunnel = await session.open_tunnel(port=slot_id)
+        return tunnel, None if status.is_success() else str(status)
+
     def add_module(self, module_type: str, name: str, slot_id: int) -> bool:
         async def tunnel_factory():
-            async with self.rent_session(rpc.CommutatorI) as remote:
-                assert isinstance(remote, rpc.CommutatorI)
-                status, tunnel = await remote.open_tunnel(port=slot_id)
-                return tunnel, None if status.is_success() else str(status)
+            return await self._open_tunnel(slot_id)
 
         module_instance, error = self.modules_factory(module_type, name, tunnel_factory)
         if error is not None:
