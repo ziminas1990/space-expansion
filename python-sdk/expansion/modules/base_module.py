@@ -108,8 +108,8 @@ class BaseModule:
 
     @staticmethod
     def use_session(
-            terminal_type: Type,
             *,
+            terminal_type: Type,
             return_on_unreachable: Any,
             retires: int = 3,
             return_on_cancel: Optional[Any] = None,
@@ -153,18 +153,13 @@ class BaseModule:
                     return return_on_unreachable
 
                 # Pass session to wrapped function
+                reuse_session: bool = not exclusive
                 try:
-                    result = await func(*args, **kwargs, session=session)
-                    # Everything fine, so we can put session to pool
-                    # for further reuse
-                    if not exclusive:
-                        self._sessions.setdefault(terminal_type, [])\
-                            .append(session)
-                    return result
+                    return await func(*args, **kwargs, session=session)
                 except asyncio.CancelledError as e:
                     # Something went wrong, so we can't afford to reuse this
                     # session anymore
-                    await session.close()
+                    reuse_session = False
                     if return_on_cancel is not None:
                         return return_on_cancel
                     else:
@@ -172,7 +167,60 @@ class BaseModule:
                 except Exception as e:
                     # Something went wrong, so we can't afford to reuse this
                     # session anymore
-                    await session.close()
+                    reuse_session = False
                     raise e
+                finally:
+                    if reuse_session:
+                        self._sessions.setdefault(terminal_type, []) \
+                            .append(session)
+                    else:
+                        await session.close()
+            return _wrapper
+        return _decorator
+
+    @staticmethod
+    def use_session_for_generators(
+            *,
+            terminal_type: Type,
+            return_on_unreachable: Any,
+            stop_on_cancel: bool = True,
+            retires: int = 3):
+        """This is a equivalent for 'use_session()' but for generators.
+        Make up to 'retires' attempts to open a new session
+        with the specified 'terminal_type' pass it to the
+        underlying generator. If all attempts fail, return
+        'return_on_unreachable' value.
+        Receive all values from then wrapped generator and pass them
+        to the client. Then close the session.
+        If CancelError exception arises, then throw StopIteration if
+        the specified 'stop_on_cancel' is true, otherwise re-raise the
+        exception.
+        If any other exception occurs, it should be re-raised as
+        well.
+        """
+
+        def _decorator(generator):
+            @decorator
+            async def _wrapper(*args, **kwargs):
+                assert "session" not in kwargs
+
+                self: BaseModule = args[0]
+                session: Optional[Endpoint] = await self.open_session(terminal_type, retires)
+                if session is None:
+                    yield return_on_unreachable
+                    return
+
+                # Pass session to wrapped function
+                try:
+                    async for v in generator(*args, **kwargs, session=session):
+                        yield v
+                    return
+                except asyncio.CancelledError:
+                    if stop_on_cancel:
+                        raise StopAsyncIteration
+                    else:
+                        raise
+                finally:
+                    await session.close()
             return _wrapper
         return _decorator

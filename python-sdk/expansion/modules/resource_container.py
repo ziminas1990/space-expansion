@@ -114,24 +114,21 @@ class ResourceContainer(BaseModule):
         await session.close()
         return status
 
-    async def monitor(self) -> AsyncIterable[Tuple[Status, Optional[Content]]]:
-        async with self.open_exclusive_session(ResourceContainerI) as session:
-            if not session:
-                yield ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
-                raise StopAsyncIteration
-            assert isinstance(session, ResourceContainerI)
-            status, content = await session.monitor()
+    @BaseModule.use_session_for_generators(
+        terminal_type=ResourceContainerI,
+        return_on_unreachable=(Status.FAILED_TO_SEND_REQUEST, None)
+    )
+    async def monitor(self,
+                      session: Optional[ResourceContainerI] = None) \
+            -> AsyncIterable[Tuple[Status, Optional[Content]]]:
+        assert session is not None
+        status, content = await session.monitor()
+        yield status, None
+        if not status.is_success():
+            return
+        while status.is_success() or status.is_timeout():
+            status, content = await session.monitor(timeout=60)
             yield status, None
-            if not status.is_success():
-                raise StopAsyncIteration
-            while True:
-                status, content = await session.monitor(timeout=60)
-                yield status, None
-                if status.is_success() or \
-                        status == ResourceContainerI.Status.RESPONSE_TIMEOUT:
-                    continue
-                else:
-                    raise StopAsyncIteration
 
     @staticmethod
     def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:

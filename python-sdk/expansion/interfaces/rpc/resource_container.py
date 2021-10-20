@@ -32,6 +32,9 @@ class ResourceContainerI(IOTerminal):
         def is_success(self):
             return self == ResourceContainerI.Status.SUCCESS
 
+        def is_timeout(self):
+            return self == ResourceContainerI.Status.RESPONSE_TIMEOUT
+
         @staticmethod
         def convert(status: public.IResourceContainer.Status) -> "ResourceContainerI.Status":
             ProtobufStatus = public.IResourceContainer.Status
