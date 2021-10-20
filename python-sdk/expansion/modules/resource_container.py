@@ -123,12 +123,12 @@ class ResourceContainer(BaseModule):
             -> AsyncIterable[Tuple[Status, Optional[Content]]]:
         assert session is not None
         status, content = await session.monitor()
-        yield status, None
+        yield status, content
         if not status.is_success():
             return
         while status.is_success() or status.is_timeout():
-            status, content = await session.monitor(timeout=60)
-            yield status, None
+            status, content = await session.wait_content(timeout=60)
+            yield status, content
 
     @staticmethod
     def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:

@@ -1,4 +1,6 @@
-from typing import Optional
+import asyncio
+import logging
+from typing import Optional, List
 
 from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
@@ -212,3 +214,91 @@ class TestCase(BaseTestFixture):
         status = await miner_1_cargo.transfer(port=port, access_key=access_key-1,
                                               resource=ResourceItem(ResourceType.e_METALS, 30000))
         self.assertEqual(ResourceContainerI.Status.INVALID_ACCESS_KEY, status)
+
+    @BaseTestFixture.run_as_sync
+    async def test_transfer_monitoring(self):
+        await self.system_clock_fast_forward(speed_multiplier=25)
+
+        commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        self.assertIsNotNone(miner_1)
+        miner_1_cargo = modules.get_cargo(commutator=miner_1, name='cargo')
+        self.assertIsNotNone(miner_1_cargo)
+
+        miner_2 = modules.get_ship(commutator, ShipType.MINER.value, "miner-2")
+        self.assertIsNotNone(miner_2)
+        miner_2_cargo = modules.get_cargo(commutator=miner_2, name='cargo')
+        self.assertIsNotNone(miner_2_cargo)
+
+        # Opening a port on miner_2
+        access_key = 12456
+        status, port = await miner_2_cargo.open_port(access_key=access_key)
+        self.assertTrue(status.is_success())
+        self.assertNotEqual(0, port)
+
+        # Will be collected during transferring
+        transactions: List[ResourceItem] = []
+        # Will be collected in monitoring tasks
+        miner_1_cargo_journal: List[ResourceContainerI.Content] = []
+        miner_2_cargo_journal: List[ResourceContainerI.Content] = []
+
+        async def do_monitoring(
+                container: modules.ResourceContainer,
+                journal: List[ResourceContainerI.Content]) \
+                -> ResourceContainerI.Status:
+            async for status, content in container.monitor():
+                if content:
+                    journal.append(content)
+                else:
+                    return status
+            return ResourceContainerI.Status.SUCCESS
+
+        miner_1_cargo_monitoring = asyncio.create_task(
+            do_monitoring(miner_1_cargo, miner_1_cargo_journal),
+        )
+
+        miner_2_cargo_monitoring = asyncio.create_task(
+            do_monitoring(miner_2_cargo, miner_2_cargo_journal),
+        )
+
+        status = await miner_1_cargo.transfer(
+            port=port,
+            access_key=access_key,
+            progress_cb=transactions.append,
+            resource=ResourceItem(ResourceType.e_METALS, 30000))
+
+        # Wait some additional time for monitoring events
+        await asyncio.sleep(0.2)
+
+        self.assertTrue(miner_1_cargo_monitoring.cancel())
+        self.assertTrue(miner_2_cargo_monitoring.cancel())
+        await asyncio.wait([miner_1_cargo_monitoring,
+                            miner_2_cargo_monitoring])
+
+        # Check that all data are consistent
+        self.assertEqual(len(miner_1_cargo_journal), len(miner_2_cargo_journal))
+        self.assertEqual(len(miner_1_cargo_journal), len(transactions) + 1)
+        self.assertEqual(len(miner_2_cargo_journal), len(transactions) + 1)
+
+        current_content = miner_1_cargo_journal[0]
+        for updated_content, transaction in \
+                zip(miner_1_cargo_journal[1:], transactions):
+            resource_type = transaction.resource_type
+            amount = transaction.amount
+            self.assertAlmostEqual(
+                updated_content.resources[resource_type],
+                current_content.resources[resource_type] - amount)
+            current_content = updated_content
+
+        current_content = miner_2_cargo_journal[0]
+        for updated_content, transaction in \
+                zip(miner_2_cargo_journal[1:], transactions):
+            resource_type = transaction.resource_type
+            amount = transaction.amount
+            self.assertAlmostEqual(
+                updated_content.resources[resource_type],
+                current_content.resources[resource_type] + amount)
+            current_content = updated_content

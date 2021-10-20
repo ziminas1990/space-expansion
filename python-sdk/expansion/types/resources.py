@@ -54,6 +54,7 @@ class ResourceType(Enum):
         fitted into the specified 'volume'"""
         return volume * ResourceType.density(resource_type)
 
+
 class ResourceItem(NamedTuple):
     """Represent a single resource item"""
     resource_type: ResourceType
