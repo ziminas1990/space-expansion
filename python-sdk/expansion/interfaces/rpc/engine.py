@@ -54,7 +54,7 @@ class EngineI(IOTerminal):
         return Vector(x=thrust.x, y=thrust.y).set_length(thrust.thrust)
 
     @Channel.return_on_close(False)
-    def set_thrust(self, thrust: Vector, at: int = 0, duration_ms: int = 0) -> bool:
+    async def set_thrust(self, thrust: Vector, at: int = 0, duration_ms: int = 0) -> bool:
         """Set engine thrust to the specified 'thrust' for the
         specified 'duration_ms' milliseconds. If 'duration_ms' is 0, then
         the thrust will be set until another command.

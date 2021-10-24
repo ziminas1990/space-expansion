@@ -71,4 +71,4 @@ class Engine(BaseModule):
         Return true if a request has been sent
         """
         assert session is not None
-        return session.set_thrust(thrust=thrust, at=at, duration_ms=duration_ms)
+        return await session.set_thrust(thrust=thrust, at=at, duration_ms=duration_ms)

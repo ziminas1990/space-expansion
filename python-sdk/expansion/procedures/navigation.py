@@ -604,15 +604,14 @@ def approach_to_plan(position: Position,
         k += 0.01
     return None
 
+
 async def follow_flight_plan(
         ship: Ship,
         engine: Engine,
         plan: FlightPlan,
         system_clock: rpc.SystemClockI) -> bool:
-    token = random.randint(0, 100)
-    now = await system_clock.time()
     for maneuver in plan.maneuvers:
-        now = await system_clock.wait_until(time=maneuver.at - 25000)
+        await system_clock.wait_until(time=maneuver.at - 25000)
 
         ship_state = await ship.get_state()
         if ship_state is None:
@@ -624,7 +623,6 @@ async def follow_flight_plan(
                 at=maneuver.at,
                 duration_ms=round(maneuver.duration / 1000)):
             return False
-
 
     # Waiting last maneuver to finish
     if plan.maneuvers:

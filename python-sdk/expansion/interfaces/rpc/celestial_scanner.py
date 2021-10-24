@@ -1,6 +1,8 @@
 from typing import Optional, NamedTuple, List, Callable, Any
+from enum import Enum
 
 import expansion.protocol as protocol
+import expansion.protocol.Protocol_pb2 as public
 from expansion.transport import IOTerminal, Channel
 import expansion.utils as utils
 import expansion.types as types
@@ -16,6 +18,31 @@ Error = Optional[str]
 
 
 class CelestialScannerI(IOTerminal):
+
+    class Status(Enum):
+        SUCCESS = "success"
+        SCANNER_BUSY = "scanner busy"
+        # Internal SDK statuses:
+        FAILED_TO_SEND_REQUEST = "failed to send request"
+        RESPONSE_TIMEOUT = "response timeout"
+        UNEXPECTED_RESPONSE = "unexpected response"
+        CHANNEL_CLOSED = "channel closed"
+        CANCELED = "operation canceled"
+
+        def is_success(self):
+            return self == CelestialScannerI.Status.SUCCESS
+
+        def is_timeout(self):
+            return self == CelestialScannerI.Status.RESPONSE_TIMEOUT
+
+        @staticmethod
+        def convert(status: public.ICelestialScanner.Status) -> "CelestialScannerI.Status":
+            ProtobufStatus = public.ICelestialScanner.Status
+            ModuleStatus = CelestialScannerI.Status
+            return {
+                ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
+                ProtobufStatus.SCANNER_BUSY: ModuleStatus.SCANNER_BUSY,
+            }[status]
 
     def __init__(self, name: Optional[str] = None):
         super().__init__(name=name or utils.generate_name(CelestialScannerI))
@@ -36,7 +63,7 @@ class CelestialScannerI(IOTerminal):
     @Channel.return_on_close(None)
     async def get_specification(self, timeout: float = 0.5)\
             -> Optional[Specification]:
-        request = protocol.Message()
+        request = public.Message()
         request.celestial_scanner.specification_req = True
         if not self.send(message=request):
             return None
@@ -84,7 +111,10 @@ class CelestialScannerI(IOTerminal):
             report = protocol.get_message_field(body, ["scanning_report"])
             if not report:
                 fail = protocol.get_message_field(body, ["scanning_failed"])
-                error = str(fail) if fail else self.__unexpected_msg_str(fail)
+                if fail:
+                    error = CelestialScannerI.Status.convert(fail).value
+                else:
+                    self.__unexpected_msg_str(fail)
                 result_cb(None, error)
                 return error
 
