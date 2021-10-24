@@ -42,7 +42,7 @@ class TacticalCore:
         # Getting all available ships:
         remote_ships = modules.get_all_ships(self.root_commutator)
         for remote_ship in remote_ships:
-            if not await remote_ship.start_monitoring():
+            if not remote_ship.start_monitoring():
                 self.log.warning(f"Failed to start monitoring ship {remote_ship.name}")
             self.player.ships[remote_ship.name] = Ship(remote_ship, self.system_clock)
 
@@ -90,6 +90,11 @@ class TacticalCore:
             self.log.error("Can't get resource container!")
             return
 
+        async def monitor_cargo():
+            async for content in cargo.monitor():
+                self.log.info(f"Shipyard cargo: {content}")
+
+        asyncio.create_task(monitor_cargo())
         await shipyard.bind_to_cargo(cargo.name)
 
         next_id = 10
@@ -111,7 +116,7 @@ class TacticalCore:
             if not success:
                 self.log.error(f"Failed to init miner {name}")
                 continue
-            await remote_ship.start_monitoring()
+            remote_ship.start_monitoring()
             self.player.ships.update({name: miner})
             self.random_mining.add_ship(miner)
 

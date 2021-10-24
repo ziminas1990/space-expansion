@@ -86,7 +86,7 @@ class SimpleMining(BaseTask):
         Status = AsteroidMiner.Status
 
         status: Status = await self._miner.bind_to_cargo(self._container.name)
-        if not status.is_ok():
+        if not status.is_success():
             self.add_journal_record(
                 f"Failed to attach '{self._miner.name}' miner to "
                 f"'{self._container.name}' container: {status}")
@@ -97,7 +97,7 @@ class SimpleMining(BaseTask):
             self.add_journal_record(content.print_status())
 
         def mining_progress(status, resources) -> bool:
-            if status.is_ok:
+            if status.is_success():
                 asyncio.create_task(print_content())
                 return True
             else:
@@ -106,7 +106,7 @@ class SimpleMining(BaseTask):
 
         status = await self._miner.start_mining(self.asteroid_id, mining_progress)
         self.add_journal_record(f"Mining complete with status {status}")
-        return status.is_ok() or status == Status.NO_SPACE_AVAILABLE
+        return status.is_success() or status == Status.NO_SPACE_AVAILABLE
 
     async def _return_to_warehouse(self) -> bool:
         return await self.ship.navigator.move_to(await self.warehouse.get_position())
@@ -127,7 +127,7 @@ class SimpleMining(BaseTask):
             status, port = await target_container.open_port(
                 access_key=access_key
             )
-            if not status.is_ok:
+            if not status.is_success():
                 self.add_journal_record(f"Failed to open port: {status}")
                 return False
 
@@ -147,6 +147,6 @@ class SimpleMining(BaseTask):
                 access_key=access_key,
                 resource=resource,
                 progress_cb=transfer_status)
-            if not status.is_ok():
+            if not status.is_success():
                 self.add_journal_record(f"Can't transfer {resource} to warehouse: {status}")
         return True
