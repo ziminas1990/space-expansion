@@ -46,13 +46,15 @@ TEST(IdArrayTests, remove_while_iterating)
   }
 
   for (int prime: primes) {
-    int expectedSum = 0;
+    int expectedSum  = 0;
+    int expectedSize = 0;
     int id;
     size_t index;
     array.begin();
     while (array.getNextId(id, index)) {
       if (id % prime) {
         expectedSum += id;
+        ++expectedSize;
       } else {
         array.dropIndex(index);
       }
@@ -65,6 +67,7 @@ TEST(IdArrayTests, remove_while_iterating)
       sum += id;
     }
     ASSERT_EQ(expectedSum, sum);
+    ASSERT_EQ(expectedSize, array.size());
   }
 }
 
@@ -74,53 +77,56 @@ TEST(IdArrayTests, remove_while_iterating_mt)
     boost::fibers::barrier barrier(totalThreads + 1);
 
     utils::IdArray<int> array;
-    int expectedSum = 0;
     for (int i = 100; i < 10000; ++i) {
       array.push(i);
-      expectedSum += i;
     }
 
-    std::atomic_int summ;
-    summ.store(0);
-    auto remove_specials = [&array, &barrier, &summ]() {
-      barrier.wait();
-      size_t index;
-      int id;
-      while (array.getNextId(id, index)) {
-        if (is_special(id)) {
-          array.dropIndex(index);
+    for (int prime: {3, 5, 7, 11}) {
+
+      std::atomic_int summ;
+      summ.store(0);
+      auto remove_specials = [&array, &barrier, &summ, &prime]() {
+        barrier.wait();
+        size_t index;
+        int id;
+        while (array.getNextId(id, index)) {
+          if (id % prime == 0) {
+            array.dropIndex(index);
+          } else {
+            summ.fetch_add(id);
+          }
         }
-        summ.fetch_add(id);
+      };
+
+      std::vector<std::thread> threads;
+      for (size_t i = 0; i < totalThreads; ++i) {
+        // Spawn a number of threads, that will remove from array all values,
+        // devidable by 'prime'
+        threads.emplace_back(remove_specials);
       }
-    };
 
-    std::vector<std::thread> threads;
-    for (size_t i = 0; i < totalThreads; ++i) {
-      // For each prime from 'primes' create a thread, that will
-      // remove from 'array' all numbers, which are devisible by 'prime'
-      threads.emplace_back(remove_specials);
-    }
-
-    // Prepare array for iteration
-    array.begin();
-    // Run all threads (they are waiting on the barrier)
-    barrier.wait();
-    // Wait all threads to finish
-    for (auto& thread : threads) {
-      thread.join();
-    }
-
-    ASSERT_EQ(expectedSum, summ.load()) << "total threads = " << totalThreads;
-
-    // Check 'array' content: all special ids must be removed
-    array.begin();
-    {
-      size_t index;
-      int id;
-      while (array.getNextId(id, index)) {
-        ASSERT_FALSE(is_special(id))
-            << "id = " << id << ", totalThreads = " << totalThreads;
+      // Prepare array for iteration
+      array.begin();
+      // Run all threads (they are waiting on the barrier)
+      barrier.wait();
+      // Wait all threads to finish
+      for (auto& thread : threads) {
+        thread.join();
       }
+
+      // Check 'array' content: all special ids must be removed
+      array.begin();
+      int expectedSum = 0;
+      {
+        size_t index;
+        int id;
+        while (array.getNextId(id, index)) {
+          ASSERT_FALSE(id % prime == 0)
+              << "id = " << id << ", totalThreads = " << totalThreads;
+          expectedSum += id;
+        }
+      }
+      ASSERT_EQ(expectedSum, summ.load()) << "total threads = " << totalThreads;
     }
   }
 }
