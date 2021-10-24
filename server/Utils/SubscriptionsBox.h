@@ -22,6 +22,9 @@ public:
   // load it's sessionId to the specified 'nSessionId' and return true.
   // Otherwise return false.
 
+  size_t total() const { return m_subscriptions.size(); }
+  // Return total number of active subscriptions
+
 private:
   void placeItem(size_t i);
 

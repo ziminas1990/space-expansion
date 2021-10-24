@@ -67,7 +67,7 @@ bool checkForUpdates(utils::SubscriptionsBox& box,
   return box.nextUpdate(nSessionId, nowMs * 1000) == false;
 }
 
-TEST(SimpleSubscriptionMixin, updates)
+TEST(SubscriptionsBoxTest, updates)
 {
   utils::SubscriptionsBox box;
 
@@ -80,16 +80,18 @@ TEST(SimpleSubscriptionMixin, updates)
   box.add(5, 711, 4000000);
   expectations.addSubscription(5, 4000, 711);
 
+  size_t iteration = 0;
   for (const Expectation& expectation: expectations.m_expectations) {
     ASSERT_TRUE(checkForUpdates(
                   box,
                   expectation.m_timeMs,
                   expectation.m_updates))
-        << "At " << expectation.m_timeMs;
+        << "iteration #" << iteration << " at " << expectation.m_timeMs;
+    ++iteration;
   }
 }
 
-TEST(SimpleSubscriptionMixin, remove)
+TEST(SubscriptionsBoxTest, remove)
 {  
   utils::SubscriptionsBox box;
 
@@ -129,7 +131,7 @@ TEST(SimpleSubscriptionMixin, remove)
   }
 }
 
-TEST(SimpleSubscriptionMixin, collapse_expectations)
+TEST(SubscriptionsBoxTest, collapse_expectations)
 {
   utils::SubscriptionsBox box;
 

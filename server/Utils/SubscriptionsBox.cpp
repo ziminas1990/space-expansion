@@ -51,7 +51,7 @@ bool SubscriptionsBox::nextUpdate(uint32_t& nSessionId,
     return false;
   }
 
-  Subscription& subscription = m_subscriptions.front();
+  Subscription subscription = m_subscriptions.front();  // NOT a ref!
   if (subscription.m_nNextUpdate > now) {
     // Most likely path
     return false;
@@ -65,14 +65,16 @@ bool SubscriptionsBox::nextUpdate(uint32_t& nSessionId,
 
   // Keep subscriptions vector sorted
   const uint64_t nNextUpdate = subscription.m_nNextUpdate;
-  const size_t nTotal = m_subscriptions.size();
+  const size_t   nTotal      = m_subscriptions.size();
   for (size_t i = 1; i < nTotal; ++i) {
     if (nNextUpdate > m_subscriptions[i].m_nNextUpdate) {
-      std::swap(m_subscriptions[i-1], m_subscriptions[i]);
+      m_subscriptions[i-1] = m_subscriptions[i];
     } else {
-      break;
+      m_subscriptions[i-1] = subscription;
+      return true;
     }
   }
+  m_subscriptions.back() = subscription;
   return true;
 }
 
@@ -80,15 +82,17 @@ void SubscriptionsBox::placeItem(size_t i)
 {
   // Move item #i to the correct position in the 'm_subscribers'
   // vector in order to keep vector elements sorted
+  Subscription item = m_subscriptions[i];  // NOT a ref!
   const bool lMovingLeft =
-      i && m_subscriptions[i-1].m_nNextUpdate > m_subscriptions[i].m_nNextUpdate;
+      i && m_subscriptions[i-1].m_nNextUpdate > item.m_nNextUpdate;
 
   if (lMovingLeft) {
     while(i) {
       if (m_subscriptions[i].m_nNextUpdate < m_subscriptions[i-1].m_nNextUpdate) {
-        std::swap(m_subscriptions[i-1], m_subscriptions[i]);
+        m_subscriptions[i-1] = m_subscriptions[i];
         --i;
       } else {
+        m_subscriptions[i] = item;
         break;
       }
     }
@@ -96,9 +100,10 @@ void SubscriptionsBox::placeItem(size_t i)
     const size_t total = m_subscriptions.size();
     while(i < total - 1) {
       if (m_subscriptions[i].m_nNextUpdate > m_subscriptions[i+1].m_nNextUpdate) {
-        std::swap(m_subscriptions[i], m_subscriptions[i+1]);
+        m_subscriptions[i+1] = m_subscriptions[i];
         ++i;
       } else {
+        m_subscriptions[i] = item;
         break;
       }
     }
