@@ -116,7 +116,6 @@ message IShip {
     uint32 monitor   = 2;
 
     State state        = 21;
-    uint32 monitor_ack = 22;
   }
 }
 

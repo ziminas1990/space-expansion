@@ -10,9 +10,15 @@ DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 namespace ships
 {
 
-Ship::Ship(std::string const& sShipType, std::string sName, world::PlayerWeakPtr pOwner,
-           double weight, double radius)
-  : BaseModule(std::string("Ship/") + sShipType, std::move(sName), std::move(pOwner)),
+Ship::Ship(
+    std::string const& sShipType,
+    std::string sName,
+    world::PlayerWeakPtr pOwner,
+    double weight,
+    double radius)
+  : BaseModule(std::string("Ship/") + sShipType,
+               std::move(sName),
+               std::move(pOwner)),
     newton::PhysicalObject(weight, radius),
     m_pCommutator(std::make_shared<modules::Commutator>())
 {
@@ -93,7 +99,7 @@ void Ship::detachFromChannel()
 
 modules::BaseModulePtr Ship::getModuleByName(std::string const& sName) const
 {
-  std::map<std::string, modules::BaseModulePtr>::const_iterator I = m_Modules.find(sName);
+  auto I = m_Modules.find(sName);
   return I != m_Modules.end() ? I->second : modules::BaseModulePtr();
 }
 
@@ -119,7 +125,8 @@ void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
   }
 }
 
-void Ship::handleNavigationMessage(uint32_t nSessionId, spex::INavigation const& message)
+void Ship::handleNavigationMessage(uint32_t nSessionId,
+                                   spex::INavigation const& message)
 {
   switch (message.choice_case()) {
     case spex::INavigation::kPositionReq: {
@@ -145,7 +152,7 @@ void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
   } else if (nPeriodMs > 60000) {
     nPeriodMs = 60000;
   }
-  sendMonitorAck(nSessionId, nPeriodMs);
+  sendState(nSessionId);
   if (nPeriodMs) {
     m_subscriptions.add(nSessionId, nPeriodMs, SystemManager::getIngameTime());
     switchToActiveState();
@@ -171,13 +178,6 @@ void Ship::sendState(uint32_t nSessionId, int eStateMask) const
     pPosition->set_vy(getVelocity().getY());
   }
 
-  sendToClient(nSessionId, message);
-}
-
-void Ship::sendMonitorAck(uint32_t nSessionId, uint32_t nPeriodMs) const
-{
-  spex::Message message;
-  message.mutable_ship()->set_monitor_ack(nPeriodMs);
   sendToClient(nSessionId, message);
 }
 

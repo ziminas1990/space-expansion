@@ -67,13 +67,12 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         return await self.wait_state()
 
     @Channel.return_on_close(None)
-    async def monitor(self, duration_ms: int) -> Optional[int]:
-        """Start ship's state monitoring. Return actual monitoring duration.
+    async def monitor(self, duration_ms: int) -> Optional[State]:
+        """Start ship's state monitoring. Return current state.
         After this call you may use 'wait_state()' to receive updates
         """
         request = api.Message()
         request.ship.monitor = duration_ms
         if not self.send(message=request):
             return None
-        ack, _ = await self.wait_exact(["ship", "monitor_ack"])
-        return ack
+        return await self.wait_state()

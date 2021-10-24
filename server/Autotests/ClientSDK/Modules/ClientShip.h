@@ -21,7 +21,7 @@ public:
   bool getPosition(geometry::Point& position);
 
   bool getState(ShipState& state);
-  bool monitor(uint32_t nPeriodMs, uint32_t &nMonitorAck);
+  bool monitor(uint32_t nPeriodMs, ShipState &state);
 
   bool waitState(ShipState& state, uint16_t nTimeout = 500);
 };
