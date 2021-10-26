@@ -1,12 +1,16 @@
 from typing import Any, Optional, TYPE_CHECKING
 import abc
 import logging
-import functools
 
 from expansion import utils
 
 if TYPE_CHECKING:
     from expansion.transport.terminal import Terminal
+    from decorator import decorator
+else:
+    #from functools import wraps as decorator
+    def decorator(func):
+        return func
 
 
 class ChannelClosed(Exception):
@@ -88,7 +92,7 @@ class Channel(abc.ABC):
         """This decorator  adds handling of 'ChannelClosed' exception.
         If exception arises, wrapped function returns 'return_on_close'"""
         def _decorator(func):
-            @functools.wraps(func)
+            @decorator
             async def _wrapper(*args, **kwargs):
                 try:
                     return await func(*args, **kwargs)

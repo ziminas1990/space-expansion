@@ -4,6 +4,7 @@
 #include <vector>
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
+#include <Utils/SubscriptionsBox.h>
 #include <Protocol.pb.h>
 
 namespace modules {
@@ -24,16 +25,12 @@ protected:
 private:
   void waitFor(uint32_t nSessionId, uint64_t time);
   void waitUntil(uint32_t nSessionId, uint64_t time);
-  void attachGenerator(uint32_t nSessionId);
-  void detachGenerator(uint32_t nSessionId);
+  void monitoring(uint32_t nSessionId, uint32_t nIntervalMs);
 
   void sendTime(uint32_t nSessionId);
   void sendRing(uint32_t nSessionId, uint64_t time);
-  void sendGeneratorTick(uint32_t nSessionId);
-  void sendGeneratorStatus(uint32_t nSessionId, spex::ISystemClock::Status eStatus);
 
   void drawnLastRing();
-  void forgetGeneratorSession(uint32_t nSessionId);
   void forgetRingSession(uint32_t nSessionId);
 private:
 
@@ -49,15 +46,12 @@ private:
     uint64_t nWhen;
   };
 
-  uint64_t m_nLastCycleTime;
-  // When the last generator cycle ended
-
   std::vector<Ring> m_rings;
   // Array of all rings, that should be sent. Array is sorted in
   // desending ring time (first element has the biggest timestamp)
 
-  std::vector<uint32_t> m_generatorSessions;
-  // All sessions, that attached to the generator
+  utils::SubscriptionsBox m_subscriptions;
+  // All sessions that requested monitoring
 };
 
 using SystemClockPtr = std::shared_ptr<SystemClock>;

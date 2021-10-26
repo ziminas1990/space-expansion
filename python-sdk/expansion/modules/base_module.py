@@ -217,7 +217,7 @@ class BaseModule:
                     return
                 except asyncio.CancelledError:
                     if stop_on_cancel:
-                        raise StopAsyncIteration
+                        return
                     else:
                         raise
                 finally:

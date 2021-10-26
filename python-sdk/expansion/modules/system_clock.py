@@ -1,4 +1,4 @@
-from typing import Optional, Set, Callable, Awaitable
+from typing import Optional, Set, Callable, Awaitable, AsyncGenerator
 import threading
 import asyncio
 from math import isclose
@@ -20,7 +20,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
                          name=name or utils.generate_name(SystemClock))
         self.tick_us: Optional[int] = None
         self.server_time: types.TimePoint = types.TimePoint(0)
-        self.time_callback: Set[Callable[[types.TimePoint], None]] = set()
+        self.time_callbacks: Set[Callable[[types.TimePoint], None]] = set()
         # A set of a callbacks, which wants to receive timestamps
         self.mutex: threading.Lock = threading.Lock()
 
@@ -90,64 +90,29 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         if isclose(timeout, 0):
             timeout = max(1.2 * period_us / 10 ** 6, 0.1)
 
-        if session is None:
-            return None
         time = await session.wait_for(period_us=period_us, timeout=timeout)
         if time:
             self.server_time.update(time)
         return self.server_time.predict_usec()
 
-    @BaseModule.use_session(
+    @BaseModule.use_session_for_generators(
         terminal_type=rpc.SystemClock,
-        return_on_unreachable=None,
-        return_on_cancel=None)
-    async def get_generator_tick_us(self,
-                                    timeout: float = 0.5,
-                                    session: rpc.SystemClock = None)\
-            -> Optional[int]:
-        """Return generator's tick long (in microseconds). Once the
-        value is retrieved from the server, it will be cached"""
+        return_on_unreachable=None)
+    async def monitor(self,
+                      interval_ms: int,
+                      session: rpc.SystemClock = None) \
+            -> AsyncGenerator[Optional[int], None]:
+        """Start monitoring. Will yield current server time every
+        'interval_ms' milliseconds
+        """
         assert session is not None
-        if self.tick_us is None:
-            self.tick_us = await session.get_generator_tick_us(timeout=timeout)
-        return self.tick_us
+        timeout = interval_ms * 10 / 1000
 
-    async def attach_to_generator(self, timeout: float = 0.5) -> "SystemClockI.Status":
-        """Send 'attach_generator' request and wait for status response"""
-        assert False, "Not supported on this level! Use 'subscribe()' instead!"
-
-    async def detach_from_generator(self, timeout: float = 5) -> "SystemClockI.Status":
-        """Send 'detach_generator' request and wait for status response"""
-        assert False, "Not supported on this level! Use 'Unsubscribe()' instead!"
-
-    def subscribe(self, time_cb: Callable[[types.TimePoint], None]):
-        with self.mutex:
-            self.time_callback.add(time_cb)
-            if len(self.time_callback) == 1:
-                asyncio.get_running_loop().create_task(self._time_watcher())
-
-    def unsubscribe(self, time_cb: Callable[[types.TimePoint], None]):
-        with self.mutex:
-            self.time_callback.remove(time_cb)
-
-    @BaseModule.use_session(
-        terminal_type=rpc.SystemClock,
-        exclusive=True,
-        return_on_unreachable=None,
-        return_on_cancel=None)
-    async def _time_watcher(
-            self,
-            session: Optional[rpc.SystemClock] = None):
-        status = await session.attach_to_generator()
-        if status != rpc.SystemClockI.Status.GENERATOR_ATTACHED:
-            self.logger.error("Can't attach to the system clock's generator!")
+        timestamp = await session.monitoring(interval_ms)
+        yield timestamp
+        if timestamp is None:
             return
-        while len(self.time_callback) > 0:
-            current_time = await session.wait_timestamp()
-            if current_time is None:
-                # Ignoring error
-                continue
-            self.server_time.update(current_time)
-            for time_cb in self.time_callback:
-                time_cb(self.server_time)
-        await session.detach_from_generator()
+
+        while timestamp:
+            timestamp = await session.wait_timestamp(timeout)
+            yield timestamp

@@ -1,5 +1,7 @@
 import asyncio
-import logging
+import math
+from typing import List
+from dataclasses import dataclass
 
 from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
@@ -147,19 +149,41 @@ class TestSystemClock(BaseTestFixture):
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
 
-        generator_tick = await system_clock.get_generator_tick_us()
-        self.assertIsNotNone(generator_tick)
-        current_time = types.TimePoint(0, static=True)
+        @dataclass
+        class Session:
+            interval: int
+            timestamps: List[int]
+            task = None
 
-        def time_cb(time: types.TimePoint):
-            nonlocal current_time
-            current_time = time
-            logging.debug(f"on time_cb() with time={current_time}")
+        async def start_monitoring(session: Session):
+            async for timestamps in system_clock.monitor(session.interval):
+                session.timestamps.append(timestamps)
 
-        system_clock.subscribe(time_cb)
+        sessions = [Session(110, []),
+                    Session(75, []),
+                    Session(55, []),
+                    Session(20, [])]
 
-        for i in range(10):
-            success, time = await self.system_clock_proceed(500, timeout_s=1)
-            await asyncio.sleep(0.02)  # waiting for all events to be handled
-            delta = time - current_time.usec()
-            self.assertLessEqual(delta, generator_tick)
+        # Run all monitoring sessions
+        _, started_at = await self.system_clock_stop()
+        for session in sessions:
+            session.task = asyncio.create_task(start_monitoring(session))
+
+        # Wait 30 seconds of ingame time
+        await self.system_clock_fast_forward(speed_multiplier=5)
+        await system_clock.wait_for(10 * 10**6, timeout=5)
+        _, end_at = await self.system_clock_stop()
+
+        duration_ms = int((end_at - started_at) / 1000)
+
+        for session in sessions:
+            session.task.cancel()
+
+        for session in sessions:
+            await session.task
+            self.assertEqual(math.floor(duration_ms / session.interval),
+                             len(session.timestamps))
+            for i in range(1, len(session.timestamps)):
+                self.assertEqual(
+                    session.interval * 1000,
+                    session.timestamps[i] - session.timestamps[i-1])

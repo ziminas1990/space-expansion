@@ -4,13 +4,10 @@
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::SystemClock);
 
-const uint32_t generator_tick_us = 20000;
-
 namespace modules {
 
 SystemClock::SystemClock(std::string&& sName, world::PlayerWeakPtr pOwner)
-  : BaseModule ("SystemClock", std::move(sName), std::move(pOwner)),
-    m_nLastCycleTime(0)
+  : BaseModule ("SystemClock", std::move(sName), std::move(pOwner))
 {
   GlobalContainer<SystemClock>::registerSelf(this);
 }
@@ -29,18 +26,12 @@ void SystemClock::proceed(uint32_t)
     }
   }
 
-  uint32_t cyclesPassed = static_cast<uint32_t>(
-        (now - m_nLastCycleTime) / generator_tick_us);
-  if (cyclesPassed) {
-    m_nLastCycleTime += cyclesPassed * generator_tick_us;
-    if (m_nLastCycleTime < now)
-      m_nLastCycleTime = now;
-    for (uint32_t session: m_generatorSessions) {
-      sendTime(session);
-    }
+  uint32_t nSessionId = 0;
+  while (m_subscriptions.nextUpdate(nSessionId, now)) {
+    sendTime(nSessionId);
   }
 
-  if (m_rings.empty() && m_generatorSessions.empty()) {
+  if (m_rings.empty() && m_subscriptions.total() == 0) {
     switchToIdleState();
   }
 }
@@ -59,14 +50,8 @@ void SystemClock::handleSystemClockMessage(
     case spex::ISystemClock::kWaitUntil:
       waitUntil(nSessionId, message.wait_until());
       return;
-    case spex::ISystemClock::kAttachGenerator:
-      attachGenerator(nSessionId);
-      return;
-    case spex::ISystemClock::kDetachGenerator:
-      detachGenerator(nSessionId);
-      return;
-    case spex::ISystemClock::kGeneratorTickReq:
-      sendGeneratorTick(nSessionId);
+    case spex::ISystemClock::kMonitor:
+      monitoring(nSessionId, message.monitor());
       return;
     default:
       return;
@@ -75,7 +60,7 @@ void SystemClock::handleSystemClockMessage(
 
 void SystemClock::onSessionClosed(uint32_t nSessionId)
 {
-  forgetGeneratorSession(nSessionId);
+  m_subscriptions.remove(nSessionId);
   forgetRingSession(nSessionId);
 }
 
@@ -93,26 +78,13 @@ void SystemClock::waitUntil(uint32_t nSessionId, uint64_t time)
   switchToActiveState();
 }
 
-void SystemClock::attachGenerator(uint32_t nSessionId)
+void SystemClock::monitoring(uint32_t nSessionId, uint32_t nIntervalMs)
 {
-  for (uint32_t nSession: m_generatorSessions) {
-    if (nSessionId == nSession) {
-      // Already attached
-      sendGeneratorStatus(nSessionId, spex::ISystemClock::GENERATOR_ATTACHED);
-      return;
-    }
+  if (nIntervalMs < 20) {
+    nIntervalMs = 20;
   }
-  m_generatorSessions.push_back(nSessionId);
-  if (m_generatorSessions.size() == 1) {
-    switchToActiveState();
-  }
-  sendGeneratorStatus(nSessionId, spex::ISystemClock::GENERATOR_ATTACHED);
-}
-
-void SystemClock::detachGenerator(uint32_t nSessionId)
-{
-  forgetGeneratorSession(nSessionId);
-  sendGeneratorStatus(nSessionId, spex::ISystemClock::GENERATOR_DETACHED);
+  m_subscriptions.add(nSessionId, nIntervalMs, SystemManager::getIngameTime());
+  switchToActiveState();
 }
 
 void SystemClock::sendTime(uint32_t nSessionId)
@@ -131,23 +103,6 @@ void SystemClock::sendRing(uint32_t nSessionId, uint64_t time)
   sendToClient(nSessionId, message);
 }
 
-void SystemClock::sendGeneratorTick(uint32_t nSessionId)
-{
-  spex::Message message;
-  spex::ISystemClock* body = message.mutable_system_clock();
-  body->set_generator_tick_us(generator_tick_us);
-  sendToClient(nSessionId, message);
-}
-
-void SystemClock::sendGeneratorStatus(uint32_t nSessionId,
-                                      spex::ISystemClock::Status eStatus)
-{
-  spex::Message message;
-  spex::ISystemClock* body = message.mutable_system_clock();
-  body->set_generator_status(eStatus);
-  sendToClient(nSessionId, message);
-}
-
 void SystemClock::drawnLastRing()
 {
   size_t const length = m_rings.size();
@@ -156,17 +111,6 @@ void SystemClock::drawnLastRing()
       break;
     }
     std::swap(m_rings[i-1], m_rings[i]);
-  }
-}
-
-void SystemClock::forgetGeneratorSession(uint32_t nSessionId)
-{
-  for (size_t i = 0; i < m_generatorSessions.size(); ++i) {
-    if (m_generatorSessions[i] == nSessionId) {
-      m_generatorSessions[i] = m_generatorSessions.back();
-      m_generatorSessions.pop_back();
-      break;
-    }
   }
 }
 
