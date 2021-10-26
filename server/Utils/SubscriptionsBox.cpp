@@ -44,21 +44,20 @@ bool SubscriptionsBox::remove(uint32_t nSessionId)
   return true;
 }
 
-bool SubscriptionsBox::nextUpdate(uint32_t& nSessionId,
-                                         uint64_t now)
+bool SubscriptionsBox::nextUpdate(uint32_t& nSessionId, uint64_t now)
 {
   if (m_subscriptions.empty()) {
     return false;
   }
 
-  Subscription subscription = m_subscriptions.front();  // NOT a ref!
-  if (subscription.m_nNextUpdate > now) {
+  if (m_subscriptions.front().m_nNextUpdate > now) {
     // Most likely path
     return false;
   }
 
   // Subscription should be updated
-  nSessionId = subscription.m_nSessionId;
+  Subscription subscription = m_subscriptions.front();  // NOT a ref!
+  nSessionId                = subscription.m_nSessionId;
   do {
     subscription.m_nNextUpdate += subscription.m_nMonitoringPeriodUs;
   } while (subscription.m_nNextUpdate <= now);
@@ -88,26 +87,28 @@ void SubscriptionsBox::placeItem(size_t i)
 
   if (lMovingLeft) {
     while(i) {
-      if (m_subscriptions[i].m_nNextUpdate < m_subscriptions[i-1].m_nNextUpdate) {
-        m_subscriptions[i-1] = m_subscriptions[i];
+      if (m_subscriptions[i-1].m_nNextUpdate > item.m_nNextUpdate) {
+        m_subscriptions[i] = m_subscriptions[i-1];
         --i;
       } else {
         m_subscriptions[i] = item;
-        break;
+        return;
       }
     }
   } else {
     const size_t total = m_subscriptions.size();
     while(i < total - 1) {
-      if (m_subscriptions[i].m_nNextUpdate > m_subscriptions[i+1].m_nNextUpdate) {
-        m_subscriptions[i+1] = m_subscriptions[i];
+      if (item.m_nNextUpdate > m_subscriptions[i+1].m_nNextUpdate) {
+        m_subscriptions[i] = m_subscriptions[i+1];
         ++i;
       } else {
         m_subscriptions[i] = item;
-        break;
+        return;
       }
     }
   }
+  // i = 0 or total - 1
+  m_subscriptions[i] = item;
 }
 
 }  // namespace Utils
