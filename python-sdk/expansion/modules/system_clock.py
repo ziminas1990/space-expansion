@@ -112,7 +112,11 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         yield timestamp
         if timestamp is None:
             return
+        if self.server_time.usec() < timestamp:
+            self.server_time.update(timestamp)
 
         while timestamp:
             timestamp = await session.wait_timestamp(timeout)
+            if self.server_time.usec() < timestamp:
+                self.server_time.update(timestamp)
             yield timestamp
