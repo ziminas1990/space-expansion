@@ -26,6 +26,8 @@ class TacticalCore:
         self.asteroids_tracker: Optional[AsteroidTracker] = None
         self.random_mining: Optional[RandomMining] = None
 
+        self.time_montiroing_task: Optional[asyncio.Task] = None
+
     async def initialize(self) -> bool:
         # Initializing root commutator and system clock
         if not await self.root_commutator.init():
@@ -36,8 +38,8 @@ class TacticalCore:
         if self.system_clock is None:
             self.log.error("SystemClock not found!")
             return False
-        self.time = await self.system_clock.time()
-        self.system_clock.subscribe(self._on_time_cb)
+
+        self.time_montiroing_task = asyncio.create_task(self.monitor_time())
 
         # Getting all available ships:
         remote_ships = modules.get_all_ships(self.root_commutator)
@@ -151,5 +153,9 @@ class TacticalCore:
             # Nothing to do here
             await asyncio.sleep(0.1)
 
-    def _on_time_cb(self, time: TimePoint):
-        self.time = time
+    async def monitor_time(self):
+        while True:
+            async for _ in self.system_clock.monitor(40):
+                self.time = self.system_clock.time_point()
+            # Something went wrong. Try again in 250 milliseconds
+            await asyncio.sleep(0.25)
