@@ -75,4 +75,5 @@ class ResourceItem(NamedTuple):
     def __str__(self):
         return f"{self.resource_type.value}: {self.amount}"
 
+
 ResourcesDict = Dict[ResourceType, ResourceItem]

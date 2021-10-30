@@ -28,6 +28,7 @@ class ModuleType(Enum):
     CELESTIAL_SCANNER = "CelestialScanner"
     ASTEROID_MINER = "AsteroidMiner"
     SHIPYARD = "Shipyard"
+    BLUEPRINTS_LIBRARY = "BlueprintsLibrary"
 
 
 class BaseModule:

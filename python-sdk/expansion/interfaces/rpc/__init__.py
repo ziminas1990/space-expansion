@@ -7,3 +7,7 @@ from .system_clock import SystemClockI, SystemClock
 from .resource_container import ResourceContainerI
 from .asteroid_miner import AsteroidMinerI, Specification as AsteroidMinerSpec
 from expansion.interfaces.rpc.shipyard import ShipyardI, Specification as ShipyardSpec
+from expansion.interfaces.rpc.blueprints_library import (
+    BlueprintsLibraryI,
+    Status as BlueprintsLibraryStatus
+)
