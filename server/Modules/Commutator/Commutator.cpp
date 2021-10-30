@@ -326,23 +326,29 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
   m_ReusableTunnels.push(nTunnelId);
 }
 
-void Commutator::commutateMessage(uint32_t nTunnelId, spex::Message const& message)
+void Commutator::commutateMessage(
+    uint32_t nTunnelId,
+    spex::Message const& message)
 {
-  if (message.timestamp() && message.timestamp() > SystemManager::getIngameTime()) {
+  if (message.timestamp() &&
+      message.timestamp() > SystemManager::getIngameTime()) {
     m_delayedMessages.emplace_back(nTunnelId, message);
     switchToActiveState();
     return;
   }
 
-  if (nTunnelId >= m_Tunnels.size() || nTunnelId == 0)
-    return;
-  Tunnel& tunnel = m_Tunnels[nTunnelId];
-  if (!tunnel.m_lUp || tunnel.m_nSlotId >= m_Slots.size())
-    return;
-  BaseModulePtr& pModule = m_Slots[tunnel.m_nSlotId];
-  if (!pModule || !pModule->isOnline())
-    return;
-  pModule->onMessageReceived(nTunnelId, message);
+  if (nTunnelId < m_Tunnels.size() && nTunnelId != 0) {
+    Tunnel& tunnel = m_Tunnels[nTunnelId];
+    if (tunnel.m_lUp && tunnel.m_nSlotId < m_Slots.size()) {
+      BaseModulePtr& pModule = m_Slots[tunnel.m_nSlotId];
+      if (pModule && pModule->isOnline()) {
+        pModule->onMessageReceived(nTunnelId, message);
+        return;
+      }
+    }
+  }
+  // Seems that tunnel is closed or doesn't exist
+  sendCloseTunnelInd(nTunnelId);
 }
 
 void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
