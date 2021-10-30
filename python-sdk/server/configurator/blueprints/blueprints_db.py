@@ -1,4 +1,4 @@
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, List, TYPE_CHECKING
 
 from server.configurator.modules import ShipBlueprint
 from server.configurator.blueprints.base_blueprint import ModuleType, BlueprintId, BaseBlueprint
