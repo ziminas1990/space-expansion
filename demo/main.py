@@ -54,10 +54,12 @@ async def main():
     main_window = MainWindow(tactical_core, controller)
     main_window.show()
 
-    while not core_task.done():
-        await asyncio.sleep(0.02)
-        main_window.update()
-        app.processEvents()
-
+    try:
+        while not core_task.done():
+            await asyncio.sleep(0.02)
+            main_window.update()
+            app.processEvents()
+    except asyncio.CancelledError as ex:
+        logging.error(ex)
 
 asyncio.run(main())
