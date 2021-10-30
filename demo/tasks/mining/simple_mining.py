@@ -94,7 +94,8 @@ class SimpleMining(BaseTask):
 
         async def print_content():
             content = await self._container.get_content(timeout=1)
-            self.add_journal_record(content.print_status())
+            if content:
+                self.add_journal_record(content.print_status())
 
         def mining_progress(status, resources) -> bool:
             if status.is_success():
