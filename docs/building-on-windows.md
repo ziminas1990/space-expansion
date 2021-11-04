@@ -55,7 +55,11 @@ Set up additinal remotes:
 conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
 ```
 
-Add `revisions_enabled=1` in the `[general]` section of your conan.conf file
+Open your `conan.conf` file:
+```
+notepad.exe $HOME/.conan/conan.conf
+```
+and add `revisions_enabled=1` in the `[general]` section (see ["How to activate the revisions"](https://docs.conan.io/en/latest/versioning/revisions.html#how-to-activate-the-revisions). It is required by `bincrafters` remote.
 
 ### Optional
 This step can be skipped, but it can be usefull if you encountered some error and trying to figure out what was wrong.
