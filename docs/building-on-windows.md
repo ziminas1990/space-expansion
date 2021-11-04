@@ -49,7 +49,15 @@ conan --version
 Conan version 1.23.0
 ```
 
-## Prepharing conan (optional)
+## Prepharing conan
+Add `bincrafters` remotes for Conan:
+```
+conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+```
+
+Add `revisions_enabled=1` in the `[general]` section of your conan.conf file
+
+### Optional
 This step can be skipped, but it can be usefull if you encountered some error and trying to figure out what was wrong.
 Conan profile specifies, which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
 
@@ -109,11 +117,6 @@ Create build directory and move into it:
 ```
 mkdir $SPEX_BUILD_DIR
 cd $SPEX_BUILD_DIR
-```
-
-Add `bincrafters` remotes for Conan:
-```
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 ```
 
 Run conan to build all required dependencies:
