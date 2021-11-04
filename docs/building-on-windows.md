@@ -111,6 +111,11 @@ mkdir $SPEX_BUILD_DIR
 cd $SPEX_BUILD_DIR
 ```
 
+Add `bincrafters` remotes for Conan:
+```
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+```
+
 Run conan to build all required dependencies:
 ```powershell
 conan install $SPEX_SOURCE_DIR/server/conanfile.txt --build=missing
