@@ -1,7 +1,6 @@
 
 from .base_module import BaseModule, ModuleType
 from .commutator import Commutator
-from .root_commutator import RootCommutator
 from .system_clock import SystemClock
 from .ship import Ship
 from .engine import Engine, EngineSpec

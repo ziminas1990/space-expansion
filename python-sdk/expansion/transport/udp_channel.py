@@ -42,6 +42,9 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
             family=socket.AF_INET
         )
         self.local_addr = self.transport.get_extra_info("sockname")
+        # Update name if it is required
+        self.channel_name = self.channel_name.replace(
+            "{port}", str(self.local_addr[1]))
         return self.transport is not None
 
     async def open(self, remote_ip: str, remote_port: int) -> bool:

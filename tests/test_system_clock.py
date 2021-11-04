@@ -10,7 +10,6 @@ from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
 
 import expansion.modules as modules
-import expansion.types as types
 
 
 class TestSystemClock(BaseTestFixture):
@@ -105,41 +104,45 @@ class TestSystemClock(BaseTestFixture):
         self.assertTrue(success)
 
         task_1 = asyncio.get_running_loop().create_task(
-            system_clock.wait_for(period_us=20000, timeout=1))
+            system_clock.wait_for(period_us=2 * 10**6, timeout=1))
         task_2 = asyncio.get_running_loop().create_task(
-            system_clock.wait_until(time=time + 100000, timeout=1))
+            system_clock.wait_until(time=time + 10 * 10**6, timeout=1))
         task_3 = asyncio.get_running_loop().create_task(
-            system_clock.wait_until(time=time + 50000, timeout=1))
+            system_clock.wait_until(time=time + 5 * 10**6, timeout=1))
         task_4 = asyncio.get_running_loop().create_task(
-            system_clock.wait_for(500000, timeout=1))
+            system_clock.wait_for(50 * 10**6, timeout=1))
         await asyncio.sleep(0.01)  # proceeding the loop to actually spawn a tasks
 
-        success, time = await self.system_clock_proceed(20, timeout_s=1)
+        # Proceed 2 seconds
+        success, time = await self.system_clock_proceed(2*10**3, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_1.done())
 
         task_1 = asyncio.get_running_loop().create_task(
-            system_clock.wait_for(period_us=30000, timeout=1))
+            system_clock.wait_for(period_us=3 * 10**6, timeout=1))
 
-        success, time = await self.system_clock_proceed(30, timeout_s=1)
-        await asyncio.sleep(0.01)  # To exclude possible network latency influence
+        # Proceed 3 more seconds
+        success, time = await self.system_clock_proceed(3 * 10**3, timeout_s=1)
+        await asyncio.sleep(0.1)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_3.done())
         self.assertTrue(task_1.done())
 
-        success, time = await self.system_clock_proceed(50, timeout_s=1)
+        # Proceed 5 more seconds
+        success, time = await self.system_clock_proceed(5 * 10**3, timeout_s=1)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_2.done())
 
-        success, time = await self.system_clock_proceed(450, timeout_s=1)
+        # Finally, proceed 46 seconds
+        success, time = await self.system_clock_proceed(46 * 10**3, timeout_s=5)
         await asyncio.sleep(0.01)  # To exclude possible network latency influence
         self.assertTrue(success)
         self.assertTrue(task_4.done())
 
     @BaseTestFixture.run_as_sync
-    async def test_generator(self):
+    async def test_monitoring(self):
         await self.system_clock_fast_forward(10)
 
         commutator, error = await self.login(player='player',
@@ -181,9 +184,12 @@ class TestSystemClock(BaseTestFixture):
 
         for session in sessions:
             await session.task
-            self.assertEqual(math.floor(duration_ms / session.interval),
-                             len(session.timestamps))
-            for i in range(1, len(session.timestamps)):
+            total_timestamps = len(session.timestamps)
+            self.assertGreater(total_timestamps, 0)
+            session_duration = (end_at - session.timestamps[0]) / 1000
+            total_expected = 1 + math.floor(session_duration / session.interval)
+            self.assertEqual(total_expected, total_timestamps)
+            for i in range(1, total_timestamps):
                 self.assertEqual(
                     session.interval * 1000,
                     session.timestamps[i] - session.timestamps[i-1])

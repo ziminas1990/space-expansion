@@ -4,7 +4,7 @@ from enum import Enum
 
 import expansion.protocol.Protocol_pb2 as public
 from expansion.protocol.utils import get_message_field
-from expansion.transport import IOTerminal, Channel
+from expansion.transport import IOTerminal
 from expansion.transport.proxy_channel import ProxyChannel
 from expansion.transport.channel import Channel
 
