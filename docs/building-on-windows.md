@@ -132,4 +132,4 @@ When you run cmake configuration for the first time, it should also the similar 
 -- The C compiler identification is MSVC 19.25.28610.4
 -- The CXX compiler identification is MSVC 19.25.28610.4
 ```
-**Make sure** that both cmake and conan use the same compiler!
+**Make sure** that both cmake and conan are using the same compiler!
