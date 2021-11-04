@@ -95,8 +95,8 @@ Note that the *SPEX_SOURCE_DIR* and *SPEX_BUILD_DIR* shouldn't be the same direc
 
 For example, you can initialize them as follow:
 ```powershell
-$SPEX_SOURCE_DIR="$HOME\Projects\space-expansion-server"
-$SPEX_BUILD_DIR="$HOME\Projects\space-expansion-server-build"
+$SPEX_SOURCE_DIR="$HOME\Projects\space-expansion"
+$SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
 ```
 
 Clone the server's sources and switch to `release-1.0` branch:
@@ -125,7 +125,7 @@ cmake --build . --config Release
 
 # Troubleshooting
 ## CMake
-When you run cmake configuration for the first time, it should also output the similar log:
+When you run cmake configuration for the first time, it should also the similar log:
 ```powershell
 -- Building for: Visual Studio 16 2019
 -- Selecting Windows SDK version 10.0.18362.0 to target Windows 10.0.18363.
