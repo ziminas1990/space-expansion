@@ -50,7 +50,7 @@ Conan version 1.23.0
 ```
 
 ## Prepharing conan
-Add `bincrafters` remotes for Conan:
+Set up additinal remotes:
 ```
 conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
 ```
