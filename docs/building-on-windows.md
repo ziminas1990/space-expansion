@@ -145,3 +145,15 @@ When you run cmake configuration for the first time, it should also the similar 
 -- The CXX compiler identification is MSVC 19.25.28610.4
 ```
 **Make sure** that both cmake and conan are using the same compiler!
+
+
+# Run integration tests
+Install additional python dependencies
+```
+pip install pytest
+```
+
+Set up environment:
+```
+$env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk;$SPEX_SOURCE_DIR\tests"
+```
