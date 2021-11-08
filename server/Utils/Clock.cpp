@@ -1,10 +1,11 @@
 #include "Clock.h"
 #include <assert.h>
 #include <iostream>
+#include <chrono>
 
 namespace utils {
 
-inline uint64_t timeSinceUs(std::chrono::system_clock::time_point point)
+inline uint64_t timeSinceUs(std::chrono::high_resolution_clock::time_point point)
 {
   auto now = std::chrono::high_resolution_clock::now();
   return static_cast<uint64_t>(
@@ -18,7 +19,7 @@ void Clock::start(bool lColdStart)
     m_eState = eDebugMode;
   }
   m_startedAt    = std::chrono::high_resolution_clock::now();
-  m_inGameTimeUs   = 0;
+  m_inGameTimeUs = 0;
   m_nDeviationUs = 0;
 }
 

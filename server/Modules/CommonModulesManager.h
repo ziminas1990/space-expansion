@@ -104,6 +104,7 @@ protected:
     // it returns a number greater then 'eTotalStages'
     assert(!"If 'getStagesCount()' is overwritten, you must also provide"
             " corresponding 'prepareAdditionalStage()' implementation!");
+    return false;
   }
 
   virtual void proceedAdditionalStage([[maybe_unused]] uint16_t nStageId,
@@ -120,10 +121,11 @@ private:
     // If module switched state from Idle to Busy, it will adds module to the list of
     // busy modules (it will be proceeded until is switches to Idle state)
 
-    const size_t nTotalModules =
+    const uint32_t nTotalModules =
         utils::GlobalContainer<ModuleType>::TotalInstancies();
-    size_t nId = m_nNextId.fetch_add(1);
-    for (; nId < nTotalModules; nId = m_nNextId.fetch_add(1))
+    uint32_t nId = static_cast<uint32_t>(m_nNextId.fetch_add(1));
+    for (; nId < nTotalModules;
+         nId = static_cast<uint32_t>(m_nNextId.fetch_add(1)))
     {
       BaseModule* pModule = utils::GlobalContainer<ModuleType>::Instance(nId);
       if (!pModule || !pModule->isOnline())

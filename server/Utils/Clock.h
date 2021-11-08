@@ -61,7 +61,7 @@ public:
 private:
   State m_eState = eRealTimeMode;
 
-  std::chrono::system_clock::time_point m_startedAt;
+  std::chrono::high_resolution_clock::time_point m_startedAt;
     // Time when the clock has been started
   uint64_t m_inGameTimeUs = 0;
     // How much time has passed in the game's world since it has been run

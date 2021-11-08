@@ -68,7 +68,7 @@ public:
   // Return all objects in caontainers as an array. Note that array may
   // contain null pointers (due to perfomance reason).
   static std::vector<Inheriter*> const& getAllInstancies() { return m_AllInstances; }
-  static uint32_t   TotalInstancies() { return m_AllInstances.size(); }
+  static uint32_t   TotalInstancies() { return static_cast<uint32_t>(m_AllInstances.size()); }
   static Inheriter* Instance(uint32_t nInstanceId) {
     assert(nInstanceId < m_AllInstances.size());
     return m_AllInstances[nInstanceId];

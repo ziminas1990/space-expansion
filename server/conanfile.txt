@@ -1,5 +1,5 @@
 [requires]
-boost/1.69.0@conan/stable
+boost/1.69.0
 protobuf/3.9.1@bincrafters/stable
 protoc_installer/3.9.1@bincrafters/stable
 yaml-cpp/0.6.2@bincrafters/stable
@@ -16,7 +16,7 @@ boost:without_serialization   = False
 # Boost components, that are not required:
 boost:without_math            = True
 boost:without_wave            = True
-boost:without_container       = True
+#boost:without_container       = True
 boost:without_contract        = True
 boost:without_graph           = True
 boost:without_iostreams       = True
@@ -25,13 +25,11 @@ boost:without_log             = True
 boost:without_program_options = True
 boost:without_random          = True
 boost:without_mpi             = True
-boost:without_coroutine       = True
-boost:without_context         = True
-boost:without_chrono          = True
-boost:without_atomic          = True
-boost:without_filesystem      = True
+#boost:without_context         = True
+#boost:without_filesystem      = True
+#boost:without_chrono          = True
+#boost:without_atomic          = True
 boost:without_graph_parallel  = True
-boost:without_filesystem      = True
 boost:without_python          = True
 boost:without_stacktrace      = True
 boost:without_test            = True
