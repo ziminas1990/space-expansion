@@ -59,7 +59,7 @@ Open your `conan.conf` file:
 ```
 notepad.exe $HOME/.conan/conan.conf
 ```
-and add `revisions_enabled=1` in the `[general]` section (see ["How to activate the revisions"](https://docs.conan.io/en/latest/versioning/revisions.html#how-to-activate-the-revisions). It is required by `bincrafters` remote.
+and add `revisions_enabled=1` in the `[general]` section (see ["How to activate the revisions"](https://docs.conan.io/en/latest/versioning/revisions.html#how-to-activate-the-revisions)). It is required by `bincrafters` remote.
 
 ### Optional
 This step can be skipped, but it can be usefull if you encountered some error and trying to figure out what was wrong.
@@ -111,10 +111,9 @@ $SPEX_SOURCE_DIR="$HOME\Projects\space-expansion"
 $SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
 ```
 
-Clone the server's sources and switch to `release-1.0` branch:
+Clone the server's sources:
 ```powershell
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
-git checkout release-1.0
 ```
 
 Create build directory and move into it:
@@ -168,15 +167,11 @@ Scripts\Activate
 
 Install required dependencies:
 ```
-pip install pyyaml
+pip install pyyaml protobuf==3.9.1
 ```
+**NOTE:** please, make sure that protobuf package version matches the protobuf version, specified in `conanfile.txt` ($SPEX_SOURCE_DIR/server/conanfile.txt)!
 
 # Run integration tests
-Install additional python dependencies
-```
-pip install pytest
-```
-
 Set up environment:
 ```
 $env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk"
