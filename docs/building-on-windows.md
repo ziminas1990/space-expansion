@@ -156,4 +156,11 @@ pip install pytest
 Set up environment:
 ```
 $env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk;$SPEX_SOURCE_DIR\tests"
+$env:PATH="$env:PATH;$SPEX_BUILD_DIR\bin"
+```
+Now `space-expansion-server` executable should be avaliable from CLI.
+
+Finally, run the tests:
+```
+py.test $SPEX_SOURCE_DIR\tests
 ```
