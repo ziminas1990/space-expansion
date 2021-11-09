@@ -146,6 +146,30 @@ When you run cmake configuration for the first time, it should also the similar 
 ```
 **Make sure** that both cmake and conan are using the same compiler!
 
+# Prepare python SDK
+This step is required in case you are going to use Python SDK or run integration tests.
+
+Create python virtual environment for space-expansion:
+```
+$SPEX_VENV_DIR="$HOME\Projects\space-expansion-venv"
+python -m venv create $SPEX_VENV_DIR
+```
+
+In order to run `activate.ps1` you might need to set up execution policy for the current user:
+```
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+```
+
+Activating virtual environment:
+```
+cd $SPEX_VENV_DIR
+Scripts\Activate
+```
+
+Install required dependencies:
+```
+pip install pyyaml
+```
 
 # Run integration tests
 Install additional python dependencies
@@ -155,12 +179,13 @@ pip install pytest
 
 Set up environment:
 ```
-$env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk;$SPEX_SOURCE_DIR\tests"
+$env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk"
 $env:PATH="$env:PATH;$SPEX_BUILD_DIR\bin"
 ```
 Now `space-expansion-server` executable should be avaliable from CLI.
 
 Finally, run the tests:
 ```
-py.test $SPEX_SOURCE_DIR\tests
+cd $SPEX_SOURCE_DIR\tests
+python -m unittest
 ```
