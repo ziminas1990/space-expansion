@@ -1,8 +1,8 @@
-from typing import Dict, List, TYPE_CHECKING
+from typing import Dict
 
 from server.configurator.modules import ShipBlueprint
 from server.configurator.blueprints.base_blueprint import ModuleType, BlueprintId, BaseBlueprint
-
+from server.configurator.resources import ResourcesList
 
 class BlueprintsDict:
     def __init__(self):
@@ -59,3 +59,10 @@ class BlueprintsDB:
             "Modules": modules,
             "Ships": ships
         }
+
+    def ship_expenses(self, ship: ShipBlueprint) -> ResourcesList:
+        total = ship.expenses
+        for module_blueprint_id in ship.modules.values():
+            module_blueprint = self.blueprints[module_blueprint_id]
+            total += module_blueprint.expenses
+        return total

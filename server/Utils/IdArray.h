@@ -78,8 +78,8 @@ public:
   {
     while(true) {
       index = m_nNextIndex.fetch_add(-1);
-      assert(m_ids[index] != nInvalidValue);
       if (index < m_ids.size()) {
+        assert(m_ids[index] != nInvalidValue);
         if (m_ids[index] != nInvalidValue) {
           id = m_ids[index];
           return true;

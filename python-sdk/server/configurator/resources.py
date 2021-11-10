@@ -13,6 +13,23 @@ class ResourcesList:
     def verify(self):
         pass
 
+    def __iadd__(self, other: "ResourcesList") -> "ResourcesList":
+        for resource_type, amount in other.resources.items():
+            total = self.resources.setdefault(resource_type, 0) + amount
+            self.resources.update({resource_type: total})
+        return self
+
+    def contains(self, other: "ResourcesList") -> bool:
+        for resource_type, amount in other.resources.items():
+            if resource_type == ResourceType.e_LABOR:
+                continue
+            try:
+                if self.resources[resource_type] < amount:
+                    return False
+            except KeyError:
+                return False
+        return True
+
     def to_pod(self):
         self.verify()
         data = {}

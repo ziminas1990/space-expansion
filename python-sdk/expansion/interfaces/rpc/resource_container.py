@@ -19,6 +19,7 @@ class ResourceContainerI(IOTerminal):
         PORT_IS_NOT_OPENED = "port is not opened"
         PORT_HAS_BEEN_CLOSED = "port has been closed"
         INVALID_ACCESS_KEY = "invalid access key"
+        INVALID_RESOURCE_TYPE = "invalid resource type"
         PORT_TOO_FAR = "receiver is too far"
         TRANSFER_IN_PROGRESS = "transfer in progress"
         NOT_ENOUGH_RESOURCES = "not enough resources"
@@ -47,6 +48,7 @@ class ResourceContainerI(IOTerminal):
                 ProtobufStatus.PORT_IS_NOT_OPENED: ModuleStatus.PORT_IS_NOT_OPENED,
                 ProtobufStatus.PORT_HAS_BEEN_CLOSED: ModuleStatus.PORT_HAS_BEEN_CLOSED,
                 ProtobufStatus.INVALID_ACCESS_KEY: ModuleStatus.INVALID_ACCESS_KEY,
+                ProtobufStatus.INVALID_RESOURCE_TYPE: ModuleStatus.INVALID_RESOURCE_TYPE,
                 ProtobufStatus.PORT_TOO_FAR: ModuleStatus.PORT_TOO_FAR,
                 ProtobufStatus.TRANSFER_IN_PROGRESS: ModuleStatus.TRANSFER_IN_PROGRESS,
                 ProtobufStatus.NOT_ENOUGH_RESOURCES: ModuleStatus.NOT_ENOUGH_RESOURCES,

@@ -13,6 +13,7 @@ from server.configurator.modules import (
 )
 from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
+from server.configurator.resources import ResourcesList
 
 from expansion.modules import Ship, Shipyard, ResourceContainer
 from expansion.types import ResourceType, ResourceItem
@@ -67,6 +68,9 @@ class ProgressTracker():
 
     async def wait_frozen_report(self, timeout: float = 3) -> Optional[float]:
         return await self.wait_report(Shipyard.Status.BUILD_FROZEN, timeout)
+
+    async def wait_progress_report(self, timeout: float = 3) -> Optional[float]:
+        return await self.wait_report(Shipyard.Status.BUILD_IN_PROGRESS, timeout)
 
 
 class TestCase(BaseTestFixture):
@@ -155,55 +159,60 @@ class TestCase(BaseTestFixture):
         self.assertEqual(Shipyard.Status.SUCCESS,
                          await shipyard_large.bind_to_cargo("shipyard-container"))
 
-        # Move half of all resources from warehouse to shipyard's container
+        # Open port on shipyard's container
         access_key = 1234
         status, port = await shipyard_container.open_port(access_key)
         self.assertEqual(ResourceContainer.Status.SUCCESS, status)
 
+        ship_expenses = self.configuration.blueprints.ship_expenses(
+            miner_blueprint
+        )
+
         content = await warehouse.get_content()
         self.assertIsNotNone(content)
-
-        await self.system_clock_fast_forward(100, 10000)
-        for resource, amount in content.resources.items():
-            status = await warehouse.transfer(
-                port,
-                access_key,
-                ResourceItem(resource, amount/2))
-            self.assertEqual(ResourceContainer.Status.SUCCESS, status)
-        await self.system_clock_play()
+        self.assertTrue(ResourcesList(content.resources).contains(ship_expenses))
 
         # Building a ship
         async def proceed():
             await self.system_clock_proceed(450, 1, 50000)
-        build_tracker = ProgressTracker(proceed=proceed)
 
+        build_tracker = ProgressTracker(proceed=proceed)
         task = asyncio.create_task(shipyard_large.build_ship(
             blueprint=str(miner_blueprint.id),
             ship_name="SCV",
             progress_cb=build_tracker.on_progress))
 
-        # Waiting for 'build in progress' indication
-        status, progress = await build_tracker.next_report()
-        self.assertEqual(Shipyard.Status.BUILD_IN_PROGRESS, status)
+        progress = await build_tracker.wait_frozen_report()
 
-        # Waiting for 'build frozen' indication since a lack of
-        # the resources
-        for i in range(10):
-            progress = await build_tracker.wait_frozen_report()
-            self.assertIsNotNone(progress)
-            self.assertGreater(progress, 0.5)
+        # Since there are no resources in shipyard's container,
+        # BUILD_FROZEN indication is expected
+        self.assertIsNotNone(progress)
+        self.assertAlmostEqual(0, progress)
 
-        # Move the rest of the resources to the shipyard container
-        await self.system_clock_fast_forward(100, 10000)
-        content = await warehouse.get_content()
-        self.assertIsNotNone(content)
-        for resource, amount in content.resources.items():
-            status = await warehouse.transfer(
-                port,
-                access_key,
-                ResourceItem(resource, amount / 2))
-            self.assertEqual(ResourceContainer.Status.SUCCESS, status)
-        await self.system_clock_play()
+        delta = 0.001
+        for i in range(1, 11):
+            # Move to shipyard's container 10% of all required resources
+            await self.system_clock_fast_forward(100, 10000)
+            for resource, amount in ship_expenses.resources.items():
+                if resource == ResourceType.e_LABOR:
+                    continue
+                status = await warehouse.transfer(
+                    port,
+                    access_key,
+                    ResourceItem(resource, amount / 10))
+                self.assertEqual(ResourceContainer.Status.SUCCESS, status, f"Iteration {i}")
+            await self.system_clock_play()
+            # Waiting for progress indications
+            while progress + delta < 0.1 * i:
+                progress = await build_tracker.wait_progress_report()
+                self.assertIsNotNone(progress, f"Iteration {i}")
+            self.assertAlmostEqual(progress, 0.1 * i, delta=delta)
+            if i < 10:
+                # Shipyard's container is empty
+                for j in range(10):
+                    progress = await build_tracker.wait_frozen_report()
+                    self.assertIsNotNone(progress, f"Iteration {i}.{j}")
+                    self.assertAlmostEqual(progress, 0.1 * i, delta=delta)
 
         # Waiting for 'build complete' indication
         progress = await build_tracker.wait_complete_report()

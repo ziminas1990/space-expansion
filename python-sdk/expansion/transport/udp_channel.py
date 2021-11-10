@@ -34,15 +34,14 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     def set_trace_mode(self, on: bool):
         self.__trace_mode = on
 
-    async def bind(self, local_addr: Tuple[str, int]) -> bool:
-        self.local_addr = local_addr
-
+    async def bind(self) -> bool:
         loop = asyncio.get_running_loop()
         self.transport, _ = await loop.create_datagram_endpoint(
             protocol_factory=lambda: self,
-            local_addr=self.local_addr,
+            local_addr=("0.0.0.0", 0),  # Let system to use chose a port
             family=socket.AF_INET
         )
+        self.local_addr = self.transport.get_extra_info("sockname")
         return self.transport is not None
 
     async def open(self, remote_ip: str, remote_port: int) -> bool:
@@ -64,7 +63,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         if not self.transport:
             return None
         if not self.local_addr:
-            self.local_addr = self.transport.get_extra_info("peername")
+            self.local_addr = self.transport.get_extra_info("sockname")
         return self.local_addr
 
     # Override from Channel

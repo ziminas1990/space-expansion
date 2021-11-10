@@ -24,7 +24,6 @@ class BaseTestFixture(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(BaseTestFixture, self).__init__(*args, **kwargs)
         self.server: Server = Server()
-        self.login_ports = list(range(5000, 5100))
         self.administrator: privileged.Administrator = privileged.Administrator()
         self.config: Optional["Configuration"] = None
 
@@ -83,15 +82,13 @@ class BaseTestFixture(unittest.TestCase):
     async def login(self, player: str, server_ip: str, local_ip: str) \
             -> (Optional[modules.Commutator], Optional[str]):
         general_cfg = self.config.general
-        port = self.login_ports.pop()
         commutator = modules.RootCommutator(name="Root")
         error = await commutator.login(
             server_ip=server_ip,
             login_port=general_cfg.login_udp_port,
             login=self.config.players[player].login,
             password=self.config.players[player].password,
-            local_ip=local_ip,
-            local_port=port)
+            local_ip=local_ip)
         if error is not None or not await commutator.init():
             return None, error
         return commutator, None

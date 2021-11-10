@@ -12,15 +12,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 async def login(server_ip: str, login_port: int,
                 login: str, password: str,
-                local_ip: str, local_port: int) -> (Optional[CommutatorI], Optional[str]):
+                local_ip: str) -> (Optional[CommutatorI], Optional[str]):
     """Login on server and return root commutator.
     On success return (Commutator, None) pair. Otherwise return (None, error).
     This procedure will send login request to the specified 'server_ip' and
     'login_port' with the specified 'login' and 'password'. The specified
-    'local_ip' and 'local_port' will be used to bind local UDP socket.
+    'local_ip' will be passed to server as client IP.
     Example:
         commutator, error = login("192.168.0.15", 6842, "Rotshild", "Money",
-                                  "192.168.0.10", 4742)
+                                  "192.168.0.7")
         if error:
             self._logger.error(f"Failed to login: {error}"
             exit(1)
@@ -36,8 +36,9 @@ async def login(server_ip: str, login_port: int,
     # UDP channel, that will be used for further communication with server
     player_channel = UdpChannel(on_closed_cb=lambda: print("Closed!"),
                                 channel_name="Player UDP")
-    if not await player_channel.bind(local_addr=(local_ip, local_port)):
-        return None, f"Failed to bind main UDP connection on {local_ip}{local_port}!"
+    if not await player_channel.bind():
+        return None, f"Failed to bind UDP socket on {local_ip}!"
+    local_port = player_channel.local_addr[1]
 
     # Creating protobuf channel, that will be used for login procedure (first)
     # and further communication (after Login)

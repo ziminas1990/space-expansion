@@ -30,15 +30,14 @@ class RootCommutator(Commutator):
     async def login(self,
                     server_ip: str, login_port: int,
                     login: str, password: str,
-                    local_ip: str, local_port: int) -> Optional[str]:
+                    local_ip: str) -> Optional[str]:
         assert self.remote is None, "Already logged in!"
         self.remote, error = await procedures.login(
             server_ip=server_ip,
             login_port=login_port,
             login=login,
             password=password,
-            local_ip=local_ip,
-            local_port=local_port)
+            local_ip=local_ip)
         if error is not None:
             error = f"Failed to login: {error}"
             self.logger.warning(error)
