@@ -49,7 +49,19 @@ conan --version
 Conan version 1.23.0
 ```
 
-## Prepharing conan (optional)
+## Prepharing conan
+Set up additinal remotes:
+```
+conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
+```
+
+Open your `conan.conf` file:
+```
+notepad.exe $HOME/.conan/conan.conf
+```
+and add `revisions_enabled=1` in the `[general]` section (see ["How to activate the revisions"](https://docs.conan.io/en/latest/versioning/revisions.html#how-to-activate-the-revisions)). It is required by `bincrafters` remote.
+
+### Optional
 This step can be skipped, but it can be usefull if you encountered some error and trying to figure out what was wrong.
 Conan profile specifies, which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
 
@@ -95,14 +107,13 @@ Note that the *SPEX_SOURCE_DIR* and *SPEX_BUILD_DIR* shouldn't be the same direc
 
 For example, you can initialize them as follow:
 ```powershell
-$SPEX_SOURCE_DIR="$HOME\Projects\space-expansion-server"
-$SPEX_BUILD_DIR="$HOME\Projects\space-expansion-server-build"
+$SPEX_SOURCE_DIR="$HOME\Projects\space-expansion"
+$SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
 ```
 
-Clone the server's sources and switch to `release-1.0` branch:
+Clone the server's sources:
 ```powershell
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
-git checkout release-1.0
 ```
 
 Create build directory and move into it:
@@ -125,11 +136,51 @@ cmake --build . --config Release
 
 # Troubleshooting
 ## CMake
-When you run cmake configuration for the first time, it should also output the similar log:
+When you run cmake configuration for the first time, it should also the similar log:
 ```powershell
 -- Building for: Visual Studio 16 2019
 -- Selecting Windows SDK version 10.0.18362.0 to target Windows 10.0.18363.
 -- The C compiler identification is MSVC 19.25.28610.4
 -- The CXX compiler identification is MSVC 19.25.28610.4
 ```
-**Make sure** that both cmake and conan use the same compiler!
+**Make sure** that both cmake and conan are using the same compiler!
+
+# Prepare python SDK
+This step is required in case you are going to use Python SDK or run integration tests.
+
+Create python virtual environment for space-expansion:
+```
+$SPEX_VENV_DIR="$HOME\Projects\space-expansion-venv"
+python -m venv create $SPEX_VENV_DIR
+```
+
+In order to run `activate.ps1` you might need to set up execution policy for the current user:
+```
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+```
+
+Activating virtual environment:
+```
+cd $SPEX_VENV_DIR
+Scripts\Activate
+```
+
+Install required dependencies:
+```
+pip install pyyaml protobuf==3.9.1
+```
+**NOTE:** please, make sure that protobuf package version matches the protobuf version, specified in `conanfile.txt` ($SPEX_SOURCE_DIR/server/conanfile.txt)!
+
+# Run integration tests
+Set up environment:
+```
+$env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk"
+$env:SPEX_SERVER_BINARY="$SPEX_BUILD_DIR\bin\space-expansion-server.exe"
+```
+**Note:** please, make sure that `$env:SPEX_SERVER_BINARY` contains real binary path.
+
+Finally, run the tests:
+```
+cd $SPEX_SOURCE_DIR\tests
+python -m unittest
+```
