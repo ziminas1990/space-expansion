@@ -101,7 +101,7 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
   // have a lot of sessions (nSessionsLimit is just 8)
   if (!error)
   { 
-    for(uint32_t nSessionId = 0; nSessionId <= m_nSessionsLimit; ++nSessionId) {
+    for(uint32_t nSessionId = 0; nSessionId < m_nSessionsLimit; ++nSessionId) {
       if (m_senderAddress == m_Sessions[nSessionId]) {
         m_pTerminal->onMessageReceived(
               nSessionId, BinaryMessage(m_pReceiveBuffer, nTotalBytes));
@@ -116,7 +116,7 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
     }
 
     // Looking for free sessionId
-    for(uint32_t nSessionId = 0; nSessionId <= m_nSessionsLimit; ++nSessionId) {
+    for(uint32_t nSessionId = 0; nSessionId < m_nSessionsLimit; ++nSessionId) {
       if (m_Sessions[nSessionId] == udp::endpoint() &&
           m_pTerminal->openSession(nSessionId))
       {

@@ -1,3 +1,4 @@
+import time
 from typing import Optional, TYPE_CHECKING
 import unittest
 import asyncio
@@ -6,7 +7,7 @@ import datetime
 
 from server.configurator.general import AdministratorCfg
 from server.server import Server
-
+from expansion.utils import set_asyncio_policy
 import expansion.procedures as procedures
 import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
@@ -17,6 +18,8 @@ if TYPE_CHECKING:
 
 
 class BaseTestFixture(unittest.TestCase):
+
+    event_loop = None
 
     def __init__(self, *args, **kwargs):
         super(BaseTestFixture, self).__init__(*args, **kwargs)
@@ -36,6 +39,9 @@ class BaseTestFixture(unittest.TestCase):
         pass
 
     def setUp(self) -> None:
+        set_asyncio_policy()
+        BaseTestFixture.event_loop = asyncio.new_event_loop()
+
         self.config = self.get_configuration()
         if self.config.general.administrator_cfg is None:
             self.config.general.administrator_cfg = AdministratorCfg(
@@ -45,6 +51,7 @@ class BaseTestFixture(unittest.TestCase):
             )
 
         self.server.run(self.config)
+        time.sleep(0.5)
 
         @BaseTestFixture.run_as_sync
         async def login_as_administrator() -> (bool, Optional[str]):
@@ -71,6 +78,7 @@ class BaseTestFixture(unittest.TestCase):
         stop_system_clock()
         # At this point server should stop himself, but to be sure:
         self.server.stop()
+        BaseTestFixture.event_loop = None
 
     async def login(self, player: str, server_ip: str, local_ip: str) \
             -> (Optional[modules.Commutator], Optional[str]):
@@ -192,9 +200,9 @@ class BaseTestFixture(unittest.TestCase):
             granularity_us=self.time_granularity_us)
 
     @staticmethod
-    def run_as_sync(test_func):
+    def run_as_sync(func):
         """This decorator turns coroutine in a regular method, that can be called
         without 'await' keyword."""
         def sync_runner(*args, **kwargs):
-            return asyncio.get_event_loop().run_until_complete(test_func(*args, **kwargs))
+            return BaseTestFixture.event_loop.run_until_complete(func(*args, **kwargs))
         return sync_runner

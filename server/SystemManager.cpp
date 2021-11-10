@@ -98,6 +98,7 @@ void SystemManager::run(bool lColdStart)
 
   uint64_t nOneSecondsTimeout  = 1000000;
 
+  std::cout << "Server has been started" << std::endl;
   printStatisticHeader();
 
   while (!m_clock.isTerminated()) {

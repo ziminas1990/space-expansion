@@ -43,7 +43,7 @@ class SystemClock:
         message.token = self._token
         return self._socket.send(message)
 
-    async def get_time(self, timeout_sec: float = 0.01) -> Optional[int]:
+    async def get_time(self, timeout_sec: float = 0.1) -> Optional[int]:
         """Request current in-game time. Return number of microseconds
         since the game has been started"""
         message = privileged.Message()
@@ -52,7 +52,7 @@ class SystemClock:
             return None
         return await self._await_time(timeout_sec=timeout_sec)
 
-    async def get_mode(self, timeout_sec: float = 0.01) -> Optional[Status]:
+    async def get_mode(self, timeout_sec: float = 0.1) -> Optional[Status]:
         """Request current clock mode"""
         message = privileged.Message()
         message.system_clock.mode_req = True
@@ -60,7 +60,7 @@ class SystemClock:
             return None
         return await self._await_status(timeout_sec=timeout_sec)
 
-    async def switch_to_real_time(self, timeout_sec: float = 0.05) -> bool:
+    async def switch_to_real_time(self, timeout_sec: float = 0.1) -> bool:
         """Switch clock to the real time mode (if clock is in debug mode)"""
         message = privileged.Message()
         message.system_clock.switch_to_real_time = True
@@ -68,7 +68,7 @@ class SystemClock:
             return False
         return await self._await_status(timeout_sec=timeout_sec) == Status.MODE_REAL_TIME
 
-    async def switch_to_debug_mode(self, timeout_sec: float = 0.05) -> bool:
+    async def switch_to_debug_mode(self, timeout_sec: float = 0.1) -> bool:
         """Switch clock to the debug mode (if clock is in real time mode)"""
         message = privileged.Message()
         message.system_clock.switch_to_debug_mode = True
@@ -76,7 +76,7 @@ class SystemClock:
             return False
         return await self._await_status(timeout_sec=timeout_sec) == Status.MODE_DEBUG
 
-    async def terminate(self, timeout_sec: float = 0.05) -> bool:
+    async def terminate(self, timeout_sec: float = 0.1) -> bool:
         """Terminate system clock (server will stop)"""
         message = privileged.Message()
         message.system_clock.terminate = True
@@ -84,7 +84,7 @@ class SystemClock:
             return False
         return await self._await_status(timeout_sec=timeout_sec) == Status.MODE_TERMINATED
 
-    async def set_tick_duration(self, tick_duration_usec: int, timeout_sec: float = 0.01) -> bool:
+    async def set_tick_duration(self, tick_duration_usec: int, timeout_sec: float = 0.1) -> bool:
         """Set one tick duration to the specified 'tick_duration_usec'
         microseconds (if clock is in debug mode)."""
         message = privileged.Message()
@@ -106,13 +106,15 @@ class SystemClock:
         time: Optional[int] = await self._await_time(timeout_sec=timeout_sec)
         return time is not None, time
 
-    async def _await_status(self, timeout_sec: float = 0.05) -> Optional[Status]:
+    async def _await_status(self, timeout_sec: float = 0.1) -> Optional[Status]:
         response, _ = await self._socket.wait_message(timeout=timeout_sec)
         status = get_message_field(response, ["system_clock", "status"])
         return Status.from_protobuf(mode=status) if status is not None else None
 
-    async def _await_time(self, timeout_sec: float = 0.05) -> Optional[int]:
+    async def _await_time(self, timeout_sec: float = 0.1) -> Optional[int]:
         response, _ = await self._socket.wait_message(timeout=timeout_sec)
         time = get_message_field(response, ["system_clock", "now"])
+        if time is None:
+            return None
         return time
 
