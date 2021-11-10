@@ -175,9 +175,9 @@ pip install pyyaml protobuf==3.9.1
 Set up environment:
 ```
 $env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk"
-$env:PATH="$env:PATH;$SPEX_BUILD_DIR\bin"
+$env:SPEX_SERVER_BINARY="$SPEX_BUILD_DIR\bin\space-expansion-server.exe"
 ```
-Now `space-expansion-server` executable should be avaliable from CLI.
+**Note:** please, make sure that `$env:SPEX_SERVER_BINARY` contains real binary path.
 
 Finally, run the tests:
 ```
