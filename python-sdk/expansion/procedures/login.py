@@ -12,16 +12,6 @@ from expansion.modules import Commutator
 logging.basicConfig(level=logging.DEBUG)
 
 
-async def create_client_udp_socket() -> Optional[UdpChannel]:
-    client = UdpChannel(
-        on_closed_cb=lambda: logging.warning(
-            f"Socket is closed!"),
-        channel_name=f"UDP")
-    if await client.bind():
-        return client
-    return None
-
-
 async def login(server_ip: str,
                 login_port: int,
                 login: str,
