@@ -1,12 +1,12 @@
 import asyncio
-from typing import List, Optional, Any, Callable, ContextManager, Awaitable, Tuple, Type, Dict, TYPE_CHECKING
-import contextlib
+from typing import List, Optional, Any, Callable, Awaitable, Tuple, Type, Dict, TYPE_CHECKING
 import logging
 from enum import Enum
 import time
 
 if TYPE_CHECKING:
     from decorator import decorator
+    from expansion.modules import Commutator
 else:
     def decorator(func):
         return func
@@ -15,9 +15,6 @@ from expansion.transport import ProxyChannel, Endpoint
 
 TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
 TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
-
-if TYPE_CHECKING:
-    from expansion.modules import Commutator
 
 
 class ModuleType(Enum):

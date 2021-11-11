@@ -37,7 +37,7 @@ public:
   void     proceed(uint16_t, uint32_t, uint64_t) override {}
   size_t   getCooldownTimeUs() const override {
 #ifndef AUTOTESTS_MODE
-    return 100000;
+    return 10000;
 #else
     // In autotests mode we can't afford to let logics to sleep for unpredictable period
     // of time

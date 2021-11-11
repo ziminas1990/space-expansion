@@ -9,7 +9,6 @@ from server.configurator.general import AdministratorCfg
 from server.server import Server
 from expansion.utils import set_asyncio_policy
 import expansion.procedures as procedures
-import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
 import expansion.interfaces.privileged as privileged
 
@@ -80,17 +79,17 @@ class BaseTestFixture(unittest.TestCase):
         BaseTestFixture.event_loop = None
 
     async def login(self, player: str, server_ip: str, local_ip: str) \
-            -> (Optional[modules.Commutator], Optional[str]):
+            -> (Optional[modules.Commutator], str):
         general_cfg = self.config.general
-        commutator = modules.RootCommutator(name="Root")
-        error = await commutator.login(
+        commutator = await procedures.login(
             server_ip=server_ip,
             login_port=general_cfg.login_udp_port,
             login=self.config.players[player].login,
             password=self.config.players[player].password,
             local_ip=local_ip)
-        if error is not None or not await commutator.init():
-            return None, error
+        if not await commutator.init():
+            # TODO: release commutators resources
+            return None, "Failed to init root commutator"
         return commutator, None
 
     async def _proceed_time(self, proceed_ms: int, timeout_s: float) -> (bool, Optional[int]):
