@@ -1,3 +1,4 @@
+import asyncio
 import os
 from typing import Optional
 from queue import Queue, Empty
@@ -16,15 +17,19 @@ class Server:
     in the 'PATH' environment variable
     """
 
-    def __init__(self):
+    @staticmethod
+    async def create_async_queue():
+        return Queue()
+
+    def __init__(self,):
         self.server_process: Optional[subprocess.Popen] = None
-        self.output_queue = Queue()
+        self.output_queue = None  # Queue must be created inside a coroutine
         self.stdout_reader = None
         # Why delete=False? Because of Windows...
         self.config_file = tempfile.NamedTemporaryFile(
             mode="w", encoding="UTF-8", delete=False)
 
-    def run(self, configuration: Configuration):
+    async def run(self, configuration: Configuration):
         self.config_file.write(yaml.dump(configuration.to_pod()))
         self.config_file.close()
 
@@ -40,6 +45,9 @@ class Server:
         assert self.is_running()
 
         # Run thread to read and store logs
+        self.output_queue = await asyncio.wait_for(
+            Server.create_async_queue(), timeout=1)
+
         def read_server_stdout():
             while self.is_running():
                 line = self.server_process.stdout.readline().decode("UTF-8")
@@ -53,6 +61,8 @@ class Server:
 
     def wait_log(self, *, substr: str, timeout: float = 1) \
             -> (bool, Optional[str]):
+        assert self.output_queue is not None, \
+            "Seems that server hst not been run"
         stop_at = time.time() + timeout
         while stop_at > time.time():
             try:

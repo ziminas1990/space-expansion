@@ -10,9 +10,9 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::ResourceContainer);
 namespace modules {
 
 
-//========================================================================================
+//==============================================================================
 // ResourceContainer
-//========================================================================================
+//==============================================================================
 
 std::mutex                           ResourceContainer::m_portsMutex;
 utils::SimplePool<uint32_t, 0>       ResourceContainer::m_freePortsIds;
@@ -103,14 +103,12 @@ void ResourceContainer::onSessionClosed(uint32_t nSessionId)
 
 void ResourceContainer::sendUpdatesIfRequired()
 {
-  if (!m_lModifiedFlag) {
-    return;
-  }
-  m_lModifiedFlag = false;
-  for (size_t i = 0; i < m_monitoringSessions.size(); ++i) {
-    uint32_t nMonitoringSession = m_monitoringSessions[i];
-    if (!sendContent(nMonitoringSession)) {
-      m_monitoringSessions.remove(i--);
+  if (m_lModifiedFlag) {
+    m_lModifiedFlag = false;
+    for (size_t i = 0; i < m_monitoringSessions.size(); ++i) {
+      if (!sendContent(m_monitoringSessions[i])) {
+        m_monitoringSessions.remove(i);
+      }
     }
   }
 }

@@ -22,8 +22,8 @@ class BaseTestFixture(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(BaseTestFixture, self).__init__(*args, **kwargs)
+
         self.server: Server = Server()
-        self.administrator: privileged.Administrator = privileged.Administrator()
         self.config: Optional["Configuration"] = None
 
         # Time management:
@@ -36,9 +36,8 @@ class BaseTestFixture(unittest.TestCase):
     def get_configuration(self) -> "Configuration":
         pass
 
-    def setUp(self) -> None:
-        set_asyncio_policy()
-        BaseTestFixture.event_loop = asyncio.new_event_loop()
+    async def async_setUp(self) -> None:
+        self.administrator: privileged.Administrator = privileged.Administrator()
 
         self.config = self.get_configuration()
         if self.config.general.administrator_cfg is None:
@@ -48,32 +47,36 @@ class BaseTestFixture(unittest.TestCase):
                 password='iampower'
             )
 
-        self.server.run(self.config)
-        time.sleep(0.5)
+        await self.server.run(self.config)
+        await asyncio.sleep(0.5)
 
-        @BaseTestFixture.run_as_sync
-        async def login_as_administrator() -> (bool, Optional[str]):
-            """Login as administrator"""
-            admin_cfg = self.config.general.administrator_cfg
-            return await self.administrator.login(
-                ip_address="127.0.0.1",
-                port=admin_cfg.udp_port,
-                login=admin_cfg.login,
-                password=admin_cfg.password)
+        admin_cfg = self.config.general.administrator_cfg
+        status, error = await self.administrator.login(
+            ip_address="127.0.0.1",
+            port=admin_cfg.udp_port,
+            login=admin_cfg.login,
+            password=admin_cfg.password)
 
-        status, error = login_as_administrator()
         if not status:
             # Since the administrator channel has not been opened,
             # there could be no other way to stop the server
             self.server.stop()
             assert status, error
 
+    def setUp(self) -> None:
+        set_asyncio_policy()
+        BaseTestFixture.event_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(BaseTestFixture.event_loop)
+
+        BaseTestFixture.event_loop.run_until_complete(
+            self.async_setUp()
+        )
+
     def tearDown(self) -> None:
-        @BaseTestFixture.run_as_sync
         async def stop_system_clock():
             """Stop the server's system clock (server will terminate)"""
             return await self.administrator.get_clock().terminate()
-        stop_system_clock()
+        BaseTestFixture.event_loop.run_until_complete(stop_system_clock())
         # At this point server should stop himself, but to be sure:
         self.server.stop()
         BaseTestFixture.event_loop = None

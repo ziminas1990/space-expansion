@@ -217,7 +217,7 @@ class TestCase(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_transfer_monitoring(self):
-        await self.system_clock_fast_forward(speed_multiplier=25)
+        await self.system_clock_fast_forward(speed_multiplier=10)
 
         commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
         self.assertIsNotNone(commutator)

@@ -15,6 +15,7 @@ class IOTerminal(Endpoint):
     def __init__(self, name: Optional[str] = None,
                  trace_mode: bool = False,
                  *args, **kwargs):
+        assert asyncio.get_running_loop() is not None
         super().__init__(channel_name=name, terminal_name=name, *args, **kwargs)
         self.queue: asyncio.Queue = asyncio.Queue()
         self.channel: Optional[Channel] = None
