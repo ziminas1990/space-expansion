@@ -8,6 +8,7 @@
 #include <Utils/Spinlock.h>
 #include <Utils/YamlForwardDeclarations.h>
 #include <World/Resources.h>
+#include <World/ObjectTypes.h>
 
 namespace world {
 
@@ -53,6 +54,10 @@ public:
   }
 
   ResourcesArray yield(double amount);
+
+  world::ObjectType getType() const override {
+    return world::ObjectType::eAsteroid;
+  }
 
 private:
   AsteroidComposition        m_composition;

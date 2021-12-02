@@ -42,6 +42,10 @@ public:
 
   void onSessionClosed(uint32_t nSessionId) override;
 
+  world::ObjectType getType() const override {
+    return world::ObjectType::eShip;
+  }
+
 protected:
   void handleShipMessage(uint32_t nSessionId, spex::IShip const& message) override;
   void handleNavigationMessage(
