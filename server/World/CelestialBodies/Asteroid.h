@@ -36,7 +36,9 @@ struct AsteroidComposition
 class Asteroid;
 using AsteroidsContainer = utils::GlobalContainer<Asteroid>;
 
-class Asteroid : public newton::PhysicalObject, public AsteroidsContainer
+class Asteroid :
+    public newton::PhysicalObject,
+    public utils::GlobalObject<Asteroid>
 {
 public:
   Asteroid();
@@ -50,7 +52,7 @@ public:
   AsteroidComposition const& getComposition() const { return m_composition; }
 
   uint32_t getAsteroidId() const {
-    return utils::GlobalContainer<Asteroid>::getInstanceId();
+    return utils::GlobalObject<Asteroid>::getInstanceId();
   }
 
   ResourcesArray yield(double amount);

@@ -16,7 +16,7 @@ namespace modules {
 
 class ResourceContainer :
     public BaseModule,
-    public utils::GlobalContainer<ResourceContainer>
+    public utils::GlobalObject<ResourceContainer>
 {
 public:
   static std::string const& TypeName() {
@@ -49,7 +49,7 @@ private:
   void handleResourceContainerMessage(
       uint32_t nTunnelId, spex::IResourceContainer const& message) override;
 
-  uint32_t selfId() const { return GlobalContainer<ResourceContainer>::getInstanceId(); }
+  uint32_t selfId() const { return GlobalObject<ResourceContainer>::getInstanceId(); }
 
   void sendOpenPortFailed(uint32_t nTunnelId, spex::IResourceContainer::Status reason);
   void sendClosePortStatus(uint32_t nTunnelId, spex::IResourceContainer::Status status);

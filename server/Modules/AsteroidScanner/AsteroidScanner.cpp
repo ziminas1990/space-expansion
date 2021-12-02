@@ -16,7 +16,7 @@ AsteroidScanner::AsteroidScanner(std::string&& sName, world::PlayerWeakPtr pOwne
   : BaseModule("AsteroidScanner", std::move(sName), std::move(pOwner)),
     m_nMaxDistance(nMaxDistance), m_nScanningTimeMs(nScanningTimeMs)
 {
-  GlobalContainer<AsteroidScanner>::registerSelf(this);
+  GlobalObject<AsteroidScanner>::registerSelf(this);
 }
 
 void AsteroidScanner::proceed(uint32_t nIntervalUs)
@@ -92,7 +92,7 @@ void AsteroidScanner::onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId)
 
 world::Asteroid* AsteroidScanner::getAndCheckAsteroid(uint32_t nAsteroidId)
 {
-  if (nAsteroidId >= world::AsteroidsContainer::TotalInstancies()) {
+  if (nAsteroidId >= world::AsteroidsContainer::Total()) {
     return nullptr;
   }
   world::Asteroid* pAsteroid = world::AsteroidsContainer::Instance(nAsteroidId);

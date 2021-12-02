@@ -11,7 +11,7 @@ bool ResourceContainerManager::prepareAdditionalStage(
     [[maybe_unused]] uint64_t nNowUs)
 {
   m_nNextId.store(0);
-  return !AllModules::empty();
+  return !AllModules::Empty();
 }
 
 void ResourceContainerManager::proceedAdditionalStage(
@@ -20,7 +20,7 @@ void ResourceContainerManager::proceedAdditionalStage(
     [[maybe_unused]] uint64_t nNowUs)
 {
   uint32_t nId = m_nNextId.fetch_add(1);
-  const size_t nTotalModules = AllModules::TotalInstancies();
+  const size_t nTotalModules = AllModules::Total();
   for (; nId < nTotalModules; nId = m_nNextId.fetch_add(1))
   {
     ResourceContainer* pModule = AllModules::Instance(nId);

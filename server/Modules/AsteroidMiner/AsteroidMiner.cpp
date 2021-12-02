@@ -21,7 +21,7 @@ AsteroidMiner::AsteroidMiner(std::string sName, world::PlayerWeakPtr pOwner,
     m_nYeildPerCycle(nYieldPerCycle),
     m_nCycleProgressUs(0), m_nTunnelId(0)
 {
-  GlobalContainer<AsteroidMiner>::registerSelf(this);
+  GlobalObject<AsteroidMiner>::registerSelf(this);
 }
 
 void AsteroidMiner::proceed(uint32_t nIntervalUs)
@@ -169,7 +169,7 @@ void AsteroidMiner::onSpecificationRequest(uint32_t nTunnelId)
 
 world::Asteroid* AsteroidMiner::getAsteroid(uint32_t nAsteroidId)
 {
-  if (nAsteroidId >= world::AsteroidsContainer::TotalInstancies()) {
+  if (nAsteroidId >= world::AsteroidsContainer::Total()) {
     return nullptr;
   }
   return world::AsteroidsContainer::Instance(nAsteroidId);

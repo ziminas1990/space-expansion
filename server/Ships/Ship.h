@@ -15,7 +15,7 @@ namespace ships
 class Ship :
     public modules::BaseModule,
     public newton::PhysicalObject,
-    public utils::GlobalContainer<Ship>
+    public utils::GlobalObject<Ship>
 {
 public:
   Ship(std::string const& sShipType,

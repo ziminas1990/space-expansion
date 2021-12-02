@@ -8,7 +8,7 @@
 
 namespace modules {
 
-class Engine : public BaseModule, public utils::GlobalContainer<Engine>
+class Engine : public BaseModule, public utils::GlobalObject<Engine>
 {
 public:
   Engine(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t maxThrust);

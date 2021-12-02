@@ -11,7 +11,7 @@ namespace newton {
 PhysicalObject::PhysicalObject(double weight, double radius)
   : m_radius(radius)
 {
-  GlobalContainer<PhysicalObject>::registerSelf(this);
+  GlobalObject<PhysicalObject>::registerSelf(this);
   setWeight(weight);
   m_externalForces.reserve(4);
 }

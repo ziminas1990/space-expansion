@@ -9,7 +9,7 @@
 
 namespace modules {
 
-class SystemClock : public BaseModule, public utils::GlobalContainer<SystemClock>
+class SystemClock : public BaseModule, public utils::GlobalObject<SystemClock>
 {
 public:
   SystemClock(std::string&& sName, world::PlayerWeakPtr pOwner);

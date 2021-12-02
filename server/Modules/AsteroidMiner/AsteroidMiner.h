@@ -16,7 +16,7 @@ namespace modules {
 
 class AsteroidMiner :
     public BaseModule,
-    public utils::GlobalContainer<AsteroidMiner>
+    public utils::GlobalObject<AsteroidMiner>
 {
 public:
   AsteroidMiner(std::string sName, world::PlayerWeakPtr pOwner,

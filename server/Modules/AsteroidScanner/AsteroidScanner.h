@@ -14,7 +14,7 @@ namespace modules {
 
 class AsteroidScanner :
     public BaseModule,
-    public utils::GlobalContainer<AsteroidScanner>
+    public utils::GlobalObject<AsteroidScanner>
 {
 public:
   AsteroidScanner(std::string&& sName, world::PlayerWeakPtr pOwner,

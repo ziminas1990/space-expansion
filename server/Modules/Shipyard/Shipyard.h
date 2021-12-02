@@ -16,7 +16,7 @@ namespace modules {
 
 class Shipyard :
     public BaseModule,
-    public utils::GlobalContainer<Shipyard>
+    public utils::GlobalObject<Shipyard>
 {
 public:
   static std::string const& TypeName() {

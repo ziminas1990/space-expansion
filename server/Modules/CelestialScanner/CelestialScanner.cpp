@@ -17,7 +17,7 @@ CelestialScanner::CelestialScanner(
   : BaseModule("CelestialScanner", std::move(sName), std::move(pOwner)),
     m_nMaxScanningRadiusKm(nMaxScanningRadiusKm), m_nProcessingTimeUs(nProcessingTimeUs)
 {
-  GlobalContainer<CelestialScanner>::registerSelf(this);
+  GlobalObject<CelestialScanner>::registerSelf(this);
 }
 
 void CelestialScanner::proceed(uint32_t nIntervalUs)
@@ -93,7 +93,7 @@ void CelestialScanner::onScanRequest(
 void CelestialScanner::collectAndSendScanResults()
 {
   std::vector<world::Asteroid*> const& allAsteroids =
-      world::AsteroidsContainer::getAllInstancies();
+      world::AsteroidsContainer::AllInstancies();
   double maxRadiusSqr = 1000 * m_nScanningRadiusKm;
   maxRadiusSqr *= maxRadiusSqr;
   geometry::Point const& selfPosition = getPlatform()->getPosition();

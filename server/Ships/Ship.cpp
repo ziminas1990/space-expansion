@@ -22,7 +22,7 @@ Ship::Ship(
     newton::PhysicalObject(weight, radius),
     m_pCommutator(std::make_shared<modules::Commutator>())
 {
-  GlobalContainer<Ship>::registerSelf(this);
+  GlobalObject<Ship>::registerSelf(this);
 }
 
 Ship::~Ship()

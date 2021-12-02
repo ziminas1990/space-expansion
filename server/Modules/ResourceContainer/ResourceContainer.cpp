@@ -28,7 +28,7 @@ ResourceContainer::ResourceContainer(
     m_lModifiedFlag(false),
     m_nOpenedPortId(m_freePortsIds.getInvalidValue())
 {
-  GlobalContainer<ResourceContainer>::registerSelf(this);
+  GlobalObject<ResourceContainer>::registerSelf(this);
   m_amount.fill(0);
 }
 
@@ -60,9 +60,10 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
     return;
   }
 
-  assert(port.m_nContainerId < GlobalContainer<ResourceContainer>::TotalInstancies());
+  assert(port.m_nContainerId <
+         utils::GlobalContainer<ResourceContainer>::Total());
   ResourceContainer* pReceiver =
-      GlobalContainer<ResourceContainer>::Instance(port.m_nContainerId);
+      utils::GlobalContainer<ResourceContainer>::Instance(port.m_nContainerId);
 
   const double distanceToReceiver =
       getPlatform()->getDistanceTo(pReceiver->getPlatform());

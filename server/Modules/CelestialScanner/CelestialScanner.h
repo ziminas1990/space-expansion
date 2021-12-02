@@ -14,7 +14,7 @@ namespace modules {
 
 class CelestialScanner :
     public BaseModule,
-    public utils::GlobalContainer<CelestialScanner>
+    public utils::GlobalObject<CelestialScanner>
 {
 public:
   CelestialScanner(std::string&& sName, world::PlayerWeakPtr pOwner,

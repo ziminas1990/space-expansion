@@ -9,7 +9,7 @@ namespace modules {
 SystemClock::SystemClock(std::string&& sName, world::PlayerWeakPtr pOwner)
   : BaseModule ("SystemClock", std::move(sName), std::move(pOwner))
 {
-  GlobalContainer<SystemClock>::registerSelf(this);
+  GlobalObject<SystemClock>::registerSelf(this);
 }
 
 void SystemClock::proceed(uint32_t)

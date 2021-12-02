@@ -12,7 +12,7 @@ namespace modules {
 
 class Commutator :
     public BaseModule,
-    public utils::GlobalContainer<Commutator>,
+    public utils::GlobalObject<Commutator>,
     public network::IPlayerChannel
 {
   static const size_t m_nSessionsLimit = 8;
