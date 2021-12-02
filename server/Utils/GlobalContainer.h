@@ -6,6 +6,7 @@
 
 #include "SimplePool.h"
 #include "Mutex.h"
+#include <World/ObjectTypes.h>
 
 // Inhteriter should contain its namespaces! For ex: "newton::PhysicalObject"
 // AvoidDummyWarningHack - hack to avoid dummy warning about extra ";"
@@ -34,6 +35,9 @@ class IContainerObserver;
 // 1. put DECLARE_GLOBAL_CONTAINER_CPP somewhere in your cpp-file with Inheriter
 //    name (with all namespaces!)
 // 2. call GlobalContainer<Inheriter>::registerSelf(this) in your constructor
+//
+// Optionally you may also:
+// 1. override virtual "getType()"
 template<typename Inheriter>
 class GlobalContainer
 {
@@ -42,7 +46,7 @@ public:
 
   GlobalContainer() : m_nInstanceId(m_IdPool.getNext())
   {
-    // valid pointer would be written when inheriter calls registerSelf(this)
+    // valid pointer should be written when inheriter calls registerSelf(this)
     registerSelf(nullptr);
   }
 
@@ -57,6 +61,10 @@ public:
         pObserver->onRemoved(m_nInstanceId);
       }
     }
+  }
+
+  virtual world::ObjectType getType()       const {
+    return world::ObjectType::eUnspecified;
   }
 
   uint32_t getInstanceId() const { return m_nInstanceId; }

@@ -9,6 +9,7 @@
 #include <Geometry/Point.h>
 #include <Geometry/Vector.h>
 #include <Utils/YamlForwardDeclarations.h>
+#include <World/ObjectTypes.h>
 
 namespace newton {
 
@@ -37,8 +38,13 @@ public:
 
 public:
   PhysicalObject(double weight, double radius);
+  virtual ~PhysicalObject() = default;
 
   bool loadState(YAML::Node const& source, LoadMask mask = LoadMask().loadAll());
+
+  world::ObjectType getType() const override {
+    return world::ObjectType::ePhysicalObject;
+  }
 
   double                  getWeight()   const { return m_weight;   }
   double                  getRadius()   const { return m_radius;   }
