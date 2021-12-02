@@ -61,7 +61,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   }
 
   assert(port.m_nContainerId <
-         utils::GlobalContainer<ResourceContainer>::TotalInstancies());
+         utils::GlobalContainer<ResourceContainer>::Total());
   ResourceContainer* pReceiver =
       utils::GlobalContainer<ResourceContainer>::Instance(port.m_nContainerId);
 

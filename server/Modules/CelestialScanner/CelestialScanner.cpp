@@ -93,7 +93,7 @@ void CelestialScanner::onScanRequest(
 void CelestialScanner::collectAndSendScanResults()
 {
   std::vector<world::Asteroid*> const& allAsteroids =
-      world::AsteroidsContainer::getAllInstancies();
+      world::AsteroidsContainer::AllInstancies();
   double maxRadiusSqr = 1000 * m_nScanningRadiusKm;
   maxRadiusSqr *= maxRadiusSqr;
   geometry::Point const& selfPosition = getPlatform()->getPosition();

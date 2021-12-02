@@ -20,8 +20,8 @@ void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
   double nIntervalSec = nIntervalUs / 1000000.0;
 
   uint32_t begin = m_nNextObjectId.fetch_add(step);
-  while (begin < AllObjects::TotalInstancies()) {
-    uint32_t end = std::min(begin + step, AllObjects::TotalInstancies());
+  while (begin < AllObjects::Total()) {
+    uint32_t end = std::min(begin + step, AllObjects::Total());
     for (uint32_t nId = begin; nId < end; ++nId) {
       PhysicalObject* pObject = AllObjects::Instance(nId);
       if (pObject) {

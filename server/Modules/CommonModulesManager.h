@@ -66,7 +66,7 @@ public:
     switch (nStageId) {
       case eStageHandleMessages:
         m_nNextId = 0;
-        return !utils::GlobalContainer<ModuleType>::empty();
+        return !utils::GlobalContainer<ModuleType>::Empty();
       case eStageProceeding:
         m_busyModulesIds.begin();
         return !m_busyModulesIds.empty();
@@ -122,7 +122,7 @@ private:
     // busy modules (it will be proceeded until is switches to Idle state)
 
     const uint32_t nTotalModules =
-        utils::GlobalContainer<ModuleType>::TotalInstancies();
+        utils::GlobalContainer<ModuleType>::Total();
     uint32_t nId = static_cast<uint32_t>(m_nNextId.fetch_add(1));
     for (; nId < nTotalModules;
          nId = static_cast<uint32_t>(m_nNextId.fetch_add(1)))

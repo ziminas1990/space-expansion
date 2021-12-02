@@ -13,14 +13,14 @@
 #define DECLARE_GLOBAL_CONTAINER_CPP(Inheriter) \
   namespace utils { \
   template<> \
-  ThreadSafePool<uint32_t> GlobalContainer<Inheriter>::m_IdPool = ThreadSafePool<uint32_t>(); \
+  ThreadSafePool<uint32_t> GlobalContainer<Inheriter>::gIdPool = ThreadSafePool<uint32_t>(); \
   template<> \
-  Mutex GlobalContainer<Inheriter>::m_AllInstancesMutex = Mutex(); \
+  Mutex GlobalContainer<Inheriter>::gMutex = Mutex(); \
   template<> \
-  std::vector<Inheriter*> GlobalContainer<Inheriter>::m_AllInstances = std::vector<Inheriter*>(); \
+  std::vector<Inheriter*> GlobalContainer<Inheriter>::gInstances = std::vector<Inheriter*>(); \
   template<> \
   std::vector<GlobalContainer<Inheriter>::IObserver*>\
-  GlobalContainer<Inheriter>::m_observers = \
+  GlobalContainer<Inheriter>::gObservers = \
     std::vector<GlobalContainer<Inheriter>::IObserver*>(); \
   } \
   class AvoidDummyWarningHack
@@ -42,51 +42,53 @@ class GlobalContainer
 public:
   using IObserver = IContainerObserver<Inheriter>;
 
-  static uint32_t getNextId()            { return m_IdPool.getNext(); }
-  static void     releaseId(uint32_t id) { m_IdPool.release(id); }
-
   // WARNING: all static functions are not thread safe. You may call them from
-  // several threads because they preform only read operation. But modifing container
-  // (create new objects or delete existing) while reading may lead to race condition.
+  // several threads because they preform only read operation. But modifing
+  // container (create new objects or delete existing) while reading may lead
+  // to race condition.
 
+  static std::vector<Inheriter*> const& AllInstancies() { return gInstances; }
   // Return all objects in caontainers as an array. Note that array may
   // contain null pointers (due to perfomance reason).
-  static std::vector<Inheriter*> const& getAllInstancies() { return m_AllInstances; }
-  static uint32_t   TotalInstancies() { return static_cast<uint32_t>(m_AllInstances.size()); }
+
+  static uint32_t   Total() { return static_cast<uint32_t>(gInstances.size()); }
+
   static Inheriter* Instance(uint32_t nInstanceId) {
-    assert(nInstanceId < m_AllInstances.size());
-    return m_AllInstances[nInstanceId];
-  }
-  static bool empty() { return m_AllInstances.empty(); }
-
-  static void addObserver(IObserver* pObserver) {
-    // I assume, that application should not register a lot of
-    // observers, because it may lead to slow down
-    assert(m_observers.size() < 3);
-    m_observers.push_back(pObserver);
+    assert(nInstanceId < gInstances.size());
+    return gInstances[nInstanceId];
   }
 
-  static void removeObserver(IObserver* pObserver) {
-    size_t nTotalObservers = m_observers.size();
+  static bool Empty() { return gInstances.empty(); }
+
+  static void AttachObserver(IObserver* pObserver) {
+    // I assume that application should not register a lot of
+    // gObservers because it may slows it down
+    assert(gObservers.size() < 3);
+    gObservers.push_back(pObserver);
+  }
+
+  static void DetachObserver(IObserver* pObserver) {
+    size_t nTotalgObservers = gObservers.size();
     size_t i = 0;
-    for (; i <= nTotalObservers; ++i) {
-      if (m_observers[i] == pObserver)
-        break;
+    for (; i <= nTotalgObservers; ++i) {
+      if (gObservers[i] == pObserver) {
+        gObservers[i] = gObservers.back();
+        gObservers.pop_back();
+        return;
+      }
     }
-    if (i == m_observers.size()) {
-      assert("Attempt to remove not registered observer" == nullptr);
+    if (i == gObservers.size()) {
+      assert(!"Attempt to detach not registered observer");
       return;
     }
-    m_observers[i] = m_observers.back();
-    m_observers.pop_back();
   }
 
 private:
-  static ThreadSafePool<uint32_t> m_IdPool;
+  static ThreadSafePool<uint32_t> gIdPool;
     // ObjectIds, that can be reused to new objects
-  static Mutex                    m_AllInstancesMutex;
-  static std::vector<Inheriter*>  m_AllInstances;
-  static std::vector<IObserver*>  m_observers;
+  static Mutex                    gMutex;
+  static std::vector<Inheriter*>  gInstances;
+  static std::vector<IObserver*>  gObservers;
 };
 
 
@@ -105,7 +107,7 @@ class GlobalObject
 public:
   using IObserver = IContainerObserver<Inheriter>;
 
-  GlobalObject() : m_nInstanceId(Container::getNextId())
+  GlobalObject() : m_nInstanceId(Container::gIdPool.getNext())
   {
     // valid pointer should be written when inheriter calls registerSelf(this)
     registerSelf(nullptr);
@@ -113,12 +115,12 @@ public:
 
   virtual ~GlobalObject()
   {
-    std::lock_guard<Mutex> guard(Container::m_AllInstancesMutex);
-    assert(m_nInstanceId < Container::m_AllInstances.size());
-    if (m_nInstanceId < Container::m_AllInstances.size()) {
-      Container::m_AllInstances[m_nInstanceId] = nullptr;
-      Container::releaseId(m_nInstanceId);
-      for (IObserver* pObserver: Container::m_observers) {
+    std::lock_guard<Mutex> guard(Container::gMutex);
+    assert(m_nInstanceId < Container::gInstances.size());
+    if (m_nInstanceId < Container::gInstances.size()) {
+      Container::gInstances[m_nInstanceId] = nullptr;
+      Container::gIdPool.release(m_nInstanceId);
+      for (IObserver* pObserver: Container::gObservers) {
         pObserver->onRemoved(m_nInstanceId);
       }
     }
@@ -133,16 +135,16 @@ public:
 protected:
   void registerSelf(Inheriter* pSelf)
   {
-    std::lock_guard<Mutex> guard(Container::m_AllInstancesMutex);
-    assert(m_nInstanceId <= Container::m_AllInstances.size());
-    if (m_nInstanceId == Container::m_AllInstances.size()) {
-      if (!Container::m_AllInstances.capacity())
-        Container::m_AllInstances.reserve(0xFF);
-      Container::m_AllInstances.push_back(pSelf);
+    std::lock_guard<Mutex> guard(Container::gMutex);
+    assert(m_nInstanceId <= Container::gInstances.size());
+    if (m_nInstanceId == Container::gInstances.size()) {
+      if (!Container::gInstances.capacity())
+        Container::gInstances.reserve(0xFF);
+      Container::gInstances.push_back(pSelf);
     } else {
-      Container::m_AllInstances[m_nInstanceId] = pSelf;
+      Container::gInstances[m_nInstanceId] = pSelf;
     }
-    for (IObserver* pObserver: Container::m_observers) {
+    for (IObserver* pObserver: Container::gObservers) {
       pObserver->onRegistered(m_nInstanceId, pSelf);
     }
   }
@@ -158,9 +160,9 @@ template<typename ObjectsType>
 class IContainerObserver
 {
 public:
-  IContainerObserver() { GlobalContainer<ObjectsType>::addObserver(this); }
+  IContainerObserver() { GlobalContainer<ObjectsType>::AttachObserver(this); }
   virtual ~IContainerObserver() {
-    GlobalContainer<ObjectsType>::removeObserver(this);
+    GlobalContainer<ObjectsType>::DetachObserver(this);
   }
 
   virtual void onRegistered(size_t nObjectId, ObjectsType* pObject) = 0;
@@ -168,7 +170,7 @@ public:
 };
 
 
-// This class return all instances of obects with type 'ObjectType' as array
+// This class return all gInstances of obects with type 'ObjectType' as array
 // of 'ObjectType' pointers
 // For example, 'BaseObjectsContainer<Asteroid>' container returns all asteroids
 // as array of 'Asteroid*'
@@ -180,7 +182,7 @@ public:
 
   // Return all objects as array. Note that array may contan null pointers!
   virtual std::vector<ObjectType*> const& getObjects() const {
-    return GlobalContainer<ObjectType>::getAllInstancies();
+    return GlobalContainer<ObjectType>::AllInstancies();
   }
 };
 
@@ -210,7 +212,7 @@ public:
   ConcreteObjectsContainer()
   {
     std::vector<ConcreteObjectType*> const& allObjects =
-        GlobalContainer<ConcreteObjectType>::getAllInstancies();
+        GlobalContainer<ConcreteObjectType>::AllInstancies();
 
     m_baseObjects.reserve(allObjects.size() * 1.1);
     m_baseObjects.insert(m_baseObjects.end(), allObjects.begin(), allObjects.end());
