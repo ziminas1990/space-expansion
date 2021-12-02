@@ -13,7 +13,7 @@
 
 namespace newton {
 
-class PhysicalObject : public utils::GlobalContainer<PhysicalObject>
+class PhysicalObject : public utils::GlobalObject<PhysicalObject>
 {
   friend class NewtonEngine;
   const double m_minimalWeight = 0.001;

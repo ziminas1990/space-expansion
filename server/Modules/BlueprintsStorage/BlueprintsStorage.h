@@ -14,7 +14,7 @@ namespace modules {
 
 class BlueprintsStorage :
     public BaseModule,
-    public utils::GlobalContainer<BlueprintsStorage>
+    public utils::GlobalObject<BlueprintsStorage>
 {
 public:
   BlueprintsStorage(world::PlayerWeakPtr pOwner);

@@ -31,43 +31,19 @@ namespace utils {
 template<typename ObjectsType>
 class IContainerObserver;
 
-// NOTE: Inheriting this class you MUST:
-// 1. put DECLARE_GLOBAL_CONTAINER_CPP somewhere in your cpp-file with Inheriter
-//    name (with all namespaces!)
-// 2. call GlobalContainer<Inheriter>::registerSelf(this) in your constructor
-//
-// Optionally you may also:
-// 1. override virtual "getType()"
+template<typename ObjectsType>
+class GlobalObject;
+
+
 template<typename Inheriter>
 class GlobalContainer
 {
+  friend class GlobalObject<Inheriter>;
 public:
   using IObserver = IContainerObserver<Inheriter>;
 
-  GlobalContainer() : m_nInstanceId(m_IdPool.getNext())
-  {
-    // valid pointer should be written when inheriter calls registerSelf(this)
-    registerSelf(nullptr);
-  }
-
-  virtual ~GlobalContainer()
-  {
-    std::lock_guard<Mutex> guard(m_AllInstancesMutex);
-    assert(m_nInstanceId < m_AllInstances.size());
-    if (m_nInstanceId < m_AllInstances.size()) {
-      m_AllInstances[m_nInstanceId] = nullptr;
-      m_IdPool.release(m_nInstanceId);
-      for (IObserver* pObserver: m_observers) {
-        pObserver->onRemoved(m_nInstanceId);
-      }
-    }
-  }
-
-  virtual world::ObjectType getType()       const {
-    return world::ObjectType::eUnspecified;
-  }
-
-  uint32_t getInstanceId() const { return m_nInstanceId; }
+  static uint32_t getNextId()            { return m_IdPool.getNext(); }
+  static void     releaseId(uint32_t id) { m_IdPool.release(id); }
 
   // WARNING: all static functions are not thread safe. You may call them from
   // several threads because they preform only read operation. But modifing container
@@ -105,31 +81,74 @@ public:
     m_observers.pop_back();
   }
 
+private:
+  static ThreadSafePool<uint32_t> m_IdPool;
+    // ObjectIds, that can be reused to new objects
+  static Mutex                    m_AllInstancesMutex;
+  static std::vector<Inheriter*>  m_AllInstances;
+  static std::vector<IObserver*>  m_observers;
+};
+
+
+// NOTE: Inheriting this class you MUST:
+// 1. put DECLARE_GLOBAL_CONTAINER_CPP somewhere in your cpp-file with Inheriter
+//    name (with all namespaces!)
+// 2. call GlobalContainer<Inheriter>::registerSelf(this) in your constructor
+//
+// Optionally you may also:
+// 1. override virtual "getType()"
+template<typename Inheriter>
+class GlobalObject
+{
+  using Container = GlobalContainer<Inheriter>;
+
+public:
+  using IObserver = IContainerObserver<Inheriter>;
+
+  GlobalObject() : m_nInstanceId(Container::getNextId())
+  {
+    // valid pointer should be written when inheriter calls registerSelf(this)
+    registerSelf(nullptr);
+  }
+
+  virtual ~GlobalObject()
+  {
+    std::lock_guard<Mutex> guard(Container::m_AllInstancesMutex);
+    assert(m_nInstanceId < Container::m_AllInstances.size());
+    if (m_nInstanceId < Container::m_AllInstances.size()) {
+      Container::m_AllInstances[m_nInstanceId] = nullptr;
+      Container::releaseId(m_nInstanceId);
+      for (IObserver* pObserver: Container::m_observers) {
+        pObserver->onRemoved(m_nInstanceId);
+      }
+    }
+  }
+
+  virtual world::ObjectType getType()       const {
+    return world::ObjectType::eUnspecified;
+  }
+
+  uint32_t getInstanceId() const { return m_nInstanceId; }
+
 protected:
   void registerSelf(Inheriter* pSelf)
   {
-    std::lock_guard<Mutex> guard(m_AllInstancesMutex);
-    assert(m_nInstanceId <= m_AllInstances.size());
-    if (m_nInstanceId == m_AllInstances.size()) {
-      if (!m_AllInstances.capacity())
-        m_AllInstances.reserve(0xFF);
-      m_AllInstances.push_back(pSelf);
+    std::lock_guard<Mutex> guard(Container::m_AllInstancesMutex);
+    assert(m_nInstanceId <= Container::m_AllInstances.size());
+    if (m_nInstanceId == Container::m_AllInstances.size()) {
+      if (!Container::m_AllInstances.capacity())
+        Container::m_AllInstances.reserve(0xFF);
+      Container::m_AllInstances.push_back(pSelf);
     } else {
-      m_AllInstances[m_nInstanceId] = pSelf;
+      Container::m_AllInstances[m_nInstanceId] = pSelf;
     }
-    for (IObserver* pObserver: m_observers) {
+    for (IObserver* pObserver: Container::m_observers) {
       pObserver->onRegistered(m_nInstanceId, pSelf);
     }
   }
 
 private:
   uint32_t m_nInstanceId;
-
-  static ThreadSafePool<uint32_t> m_IdPool;
-    // ObjectIds, that can be reused to new objects
-  static Mutex                    m_AllInstancesMutex;
-  static std::vector<Inheriter*>  m_AllInstances;
-  static std::vector<IObserver*>  m_observers;
 };
 
 
@@ -140,7 +159,9 @@ class IContainerObserver
 {
 public:
   IContainerObserver() { GlobalContainer<ObjectsType>::addObserver(this); }
-  virtual ~IContainerObserver() { GlobalContainer<ObjectsType>::removeObserver(this); }
+  virtual ~IContainerObserver() {
+    GlobalContainer<ObjectsType>::removeObserver(this);
+  }
 
   virtual void onRegistered(size_t nObjectId, ObjectsType* pObject) = 0;
   virtual void onRemoved(size_t nObjectId) = 0;

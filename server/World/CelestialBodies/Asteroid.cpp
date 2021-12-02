@@ -12,7 +12,7 @@ namespace world {
 
 Asteroid::Asteroid() : newton::PhysicalObject(0, 0)
 {
-  AsteroidsContainer::registerSelf(this);
+  utils::GlobalObject<Asteroid>::registerSelf(this);
 }
 
 Asteroid::Asteroid(double radius,
@@ -23,7 +23,7 @@ Asteroid::Asteroid(double radius,
     m_composition(std::move(distribution)),
     m_randomizer(seed)
 {
-  utils::GlobalContainer<Asteroid>::registerSelf(this);
+  utils::GlobalObject<Asteroid>::registerSelf(this);
 }
 
 bool Asteroid::loadState(YAML::Node const& data)

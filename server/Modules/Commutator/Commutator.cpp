@@ -13,7 +13,7 @@ namespace modules
 Commutator::Commutator()
   : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
 {
-  GlobalContainer<Commutator>::registerSelf(this);
+  GlobalObject<Commutator>::registerSelf(this);
   // Slot #0 should not be used. It make
   m_Tunnels.emplace_back();
 }

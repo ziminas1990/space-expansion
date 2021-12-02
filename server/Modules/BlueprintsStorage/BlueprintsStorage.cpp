@@ -31,7 +31,7 @@ static void importProperties(YAML::Node const& from, spex::Property* to)
 BlueprintsStorage::BlueprintsStorage(world::PlayerWeakPtr pOwner)
   : BaseModule("BlueprintsLibrary", "Central", pOwner)
 {
-  GlobalContainer<BlueprintsStorage>::registerSelf(this);
+  GlobalObject<BlueprintsStorage>::registerSelf(this);
 }
 
 void BlueprintsStorage::handleBlueprintsStorageMessage(

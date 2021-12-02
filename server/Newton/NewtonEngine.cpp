@@ -6,6 +6,8 @@
 namespace newton
 {
 
+using AllObjects = utils::GlobalContainer<PhysicalObject>;
+
 bool NewtonEngine::prephare(uint16_t, uint32_t, uint64_t)
 {
   m_nNextObjectId.store(0);
@@ -18,10 +20,10 @@ void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
   double nIntervalSec = nIntervalUs / 1000000.0;
 
   uint32_t begin = m_nNextObjectId.fetch_add(step);
-  while (begin < PhysicalObject::TotalInstancies()) {
-    uint32_t end = std::min(begin + step, PhysicalObject::TotalInstancies());
+  while (begin < AllObjects::TotalInstancies()) {
+    uint32_t end = std::min(begin + step, AllObjects::TotalInstancies());
     for (uint32_t nId = begin; nId < end; ++nId) {
-      PhysicalObject* pObject = PhysicalObject::Instance(nId);
+      PhysicalObject* pObject = AllObjects::Instance(nId);
       if (pObject) {
         // acc_t - acceleration * time
         geometry::Vector acc_t;

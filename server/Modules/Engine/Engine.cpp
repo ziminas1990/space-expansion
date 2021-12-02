@@ -9,7 +9,7 @@ Engine::Engine(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t maxThr
   : BaseModule ("Engine", std::move(sName), std::move(pOwner)),
     m_maxThrust(maxThrust)
 {
-  GlobalContainer<Engine>::registerSelf(this);
+  GlobalObject<Engine>::registerSelf(this);
 }
 
 void Engine::proceed(uint32_t nIntervalUs)

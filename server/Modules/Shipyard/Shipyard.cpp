@@ -16,7 +16,7 @@ Shipyard::Shipyard(std::string &&sName,
   : BaseModule(TypeName(), std::move(sName), std::move(pOwner)),
     m_laborPerSecond(laborPerSecond)
 {
-  utils::GlobalContainer<Shipyard>::registerSelf(this);
+  utils::GlobalObject<Shipyard>::registerSelf(this);
 }
 
 bool Shipyard::loadState(YAML::Node const& /*data*/)

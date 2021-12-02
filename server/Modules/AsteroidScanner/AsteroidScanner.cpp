@@ -16,7 +16,7 @@ AsteroidScanner::AsteroidScanner(std::string&& sName, world::PlayerWeakPtr pOwne
   : BaseModule("AsteroidScanner", std::move(sName), std::move(pOwner)),
     m_nMaxDistance(nMaxDistance), m_nScanningTimeMs(nScanningTimeMs)
 {
-  GlobalContainer<AsteroidScanner>::registerSelf(this);
+  GlobalObject<AsteroidScanner>::registerSelf(this);
 }
 
 void AsteroidScanner::proceed(uint32_t nIntervalUs)

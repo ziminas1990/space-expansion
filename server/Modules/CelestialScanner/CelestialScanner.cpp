@@ -17,7 +17,7 @@ CelestialScanner::CelestialScanner(
   : BaseModule("CelestialScanner", std::move(sName), std::move(pOwner)),
     m_nMaxScanningRadiusKm(nMaxScanningRadiusKm), m_nProcessingTimeUs(nProcessingTimeUs)
 {
-  GlobalContainer<CelestialScanner>::registerSelf(this);
+  GlobalObject<CelestialScanner>::registerSelf(this);
 }
 
 void CelestialScanner::proceed(uint32_t nIntervalUs)
