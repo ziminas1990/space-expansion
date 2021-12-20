@@ -12,7 +12,7 @@ public:
   void unlock() { m_lFlag.clear(std::memory_order_release); }
 
 private:
-  std::atomic_flag m_lFlag = ATOMIC_FLAG_INIT ;
+  std::atomic_flag m_lFlag = ATOMIC_FLAG_INIT;
 };
 
 } // namespace utils
