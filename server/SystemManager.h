@@ -10,6 +10,7 @@
 #include "Modules/AccessPanel/AccessPanel.h"
 #include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
+#include <World/Grid.h>
 #include <World/World.h>
 #include "Blueprints/BlueprintsLibrary.h"
 #include <Utils/Clock.h>

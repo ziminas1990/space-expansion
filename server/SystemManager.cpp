@@ -9,7 +9,7 @@
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Ships/ShipsManager.h"
 #include "Conveyor/Proceeders.h"
-#include "World/Resources.h"
+#include <World/Resources.h>
 #include <Arbitrators/ArbitratorsFactory.h>
 #include <Utils/Printers.h>
 
