@@ -15,8 +15,9 @@ class ResourcesArray;
 
 namespace utils {
 
-// This reader supports only types, that are required, so, it doesn't have any template
-// functions in interface. It allows to include yaml.h ONLY in UtilsReader.cpp
+// This reader supports only types, that are required, so it doesn't have any
+// template functions in interface. It allows to include yaml.h ONLY in
+// UtilsReader.cpp
 class YamlReader
 {
 public:
@@ -27,6 +28,7 @@ public:
 
   // Built-in types:
   // TODO: replace with template?
+  YamlReader& read(char const* pName, uint8_t& value);
   YamlReader& read(char const* pName, uint16_t& value);
   YamlReader& read(char const* pName, uint32_t& value);
   YamlReader& read(char const* pName, double& value);

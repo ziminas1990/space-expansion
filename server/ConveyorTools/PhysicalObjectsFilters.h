@@ -92,7 +92,7 @@ public:
 protected:
   bool filter(newton::PhysicalObject const* pObj) override
   {
-    return m_rectangle.isCoveredByCicle(pObj->getPosition(), pObj->getRadius());
+    return m_rectangle.isCoveredByCircle(pObj->getPosition(), pObj->getRadius());
   }
 
 private:

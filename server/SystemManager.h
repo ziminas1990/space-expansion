@@ -94,6 +94,7 @@ private:
   modules::ShipyardManagerPtr          m_pShipyardManager;
   modules::SystemClockManagerPtr       m_pSystemClockManager;
 
+  // Receiving stacks
   network::UdpDispatcherPtr     m_pUdpDispatcher;
 
   network::UdpSocketPtr         m_pLoginSocket;
@@ -104,6 +105,8 @@ private:
   network::PrivilegedChannelPtr m_pPrivilegedChannel;
   AdministratorPanelPtr         m_pAdministratorPanel;
 
+  // World
+  world::Grid             m_globalGrid;
   world::World            m_world;
   world::PlayerStoragePtr m_pPlayersStorage;
 

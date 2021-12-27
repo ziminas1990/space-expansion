@@ -18,6 +18,21 @@ PortsPoolCfg PortsPoolCfgReader::read(YAML::Node const& data)
       .setEnd(end);
 }
 
+GlobalGridCfg GlobalGridCfgReader::read(const YAML::Node &data)
+{
+  uint8_t  nGridSize;
+  uint16_t nCellWidthKm;
+  if (!utils::YamlReader(data)
+      .read("grid-size", nGridSize)
+      .read("cell-width-km", nCellWidthKm)
+      .isOk()) {
+    return GlobalGridCfg();
+  }
+  return GlobalGridCfg()
+      .setGridSize(nGridSize)
+      .setCellWidthKm(nCellWidthKm);
+}
+
 AdministratorCfg AdministratorCfgReader::read(YAML::Node const& data)
 {
   uint16_t    nPort;
@@ -59,7 +74,9 @@ ApplicationCfg ApplicationCfgReader::read(YAML::Node const& data)
         AdministratorCfgReader::read(data["administrator"]))
       .setClockInitialState(isClockFreezed)
       .setPortsPool(
-        PortsPoolCfgReader::read(data["ports-pool"]));
+        PortsPoolCfgReader::read(data["ports-pool"]))
+      .setGlobalGrid(
+        GlobalGridCfgReader::read(data["administrator"]));
 }
 
 } // namespace config

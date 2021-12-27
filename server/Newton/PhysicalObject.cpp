@@ -9,7 +9,7 @@ DECLARE_GLOBAL_CONTAINER_CPP(newton::PhysicalObject);
 namespace newton {
 
 PhysicalObject::PhysicalObject(double weight, double radius)
-  : m_radius(radius)
+  : m_radius(radius), m_pCell(nullptr)
 {
   GlobalObject<PhysicalObject>::registerSelf(this);
   setWeight(weight);

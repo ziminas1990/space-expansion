@@ -11,6 +11,10 @@
 #include <Utils/YamlForwardDeclarations.h>
 #include <World/ObjectTypes.h>
 
+namespace world {
+class Cell;
+}
+
 namespace newton {
 
 class PhysicalObject : public utils::GlobalObject<PhysicalObject>
@@ -77,6 +81,7 @@ private:
   double           m_radius;
   geometry::Point  m_position;
   geometry::Vector m_velocity;
+  world::Cell*     m_pCell;
   utils::Spinlock  m_spinlock;
 
   // Number of external forces

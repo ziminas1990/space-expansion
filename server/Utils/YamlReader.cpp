@@ -34,6 +34,12 @@ YamlReader::YamlReader(YAML::Node const& source)
   : source(source), noProblems(true)
 {}
 
+YamlReader &YamlReader::read(const char *pName, uint8_t &value)
+{
+  noProblems &= readSomeValue(source, pName, value);
+  return *this;
+}
+
 YamlReader &YamlReader::read(const char *pName, uint16_t &value)
 {
   noProblems &= readSomeValue(source, pName, value);

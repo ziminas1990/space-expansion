@@ -13,9 +13,9 @@
 #include <Arbitrators/ArbitratorsFactory.h>
 #include <Utils/Printers.h>
 
-//========================================================================================
+//==============================================================================
 // SystemManager
-//========================================================================================
+//==============================================================================
 
 static utils::Clock* g_clock = nullptr;
 
@@ -193,6 +193,11 @@ bool SystemManager::createAllComponents()
           std::time(nullptr));
   }
 
+  m_globalGrid = world::Grid(
+        m_configuration.getGlobalGridCfg().gridSize(),
+        m_configuration.getGlobalGridCfg().cellWidthKm());
+  world::Grid::setGlobal(&m_globalGrid);
+
   m_pPlayersStorage     = std::make_shared<world::PlayersStorage>();
   return true;
 }
@@ -223,6 +228,7 @@ bool SystemManager::linkComponents()
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);
 
+  // Building the conveyor
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
   if (m_pAdministratorPanel) {

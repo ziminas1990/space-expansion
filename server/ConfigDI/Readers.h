@@ -12,6 +12,12 @@ public:
   static PortsPoolCfg read(YAML::Node const& data);
 };
 
+class GlobalGridCfgReader
+{
+public:
+  static GlobalGridCfg read(YAML::Node const& data);
+};
+
 class AdministratorCfgReader
 {
 public:
