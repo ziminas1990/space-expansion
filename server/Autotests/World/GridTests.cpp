@@ -3,9 +3,20 @@
 #include <Utils/Randomizer.h>
 #include <Geometry/Point.h>
 #include <Geometry/Vector.h>
+#include <Geometry/Rectangle.h>
 #include <boost/fiber/barrier.hpp>
 
 namespace world {
+
+static bool hasIntersections(
+    const Cell& cell, const geometry::Rectangle& rect)
+{
+  return cell.left()   < rect.right()
+      && cell.right()  > rect.left()
+      && cell.top()    > rect.bottom()
+      && cell.bottom() < rect.top();
+}
+
 
 TEST(GridTests, CellContainsTest) {
   const int32_t left   = -20;
@@ -55,10 +66,10 @@ struct Point {
 
 Point createPoint(uint32_t id, Grid& grid, double velocityMps)
 {
-  double x = utils::Randomizer::yeild<double>(grid.left(),   grid.right());
-  double y = utils::Randomizer::yeild<double>(grid.left(),   grid.right());
+  double x = utils::Randomizer::yield<double>(grid.left(),   grid.right());
+  double y = utils::Randomizer::yield<double>(grid.left(),   grid.right());
   geometry::Vector velocity;
-  utils::Randomizer::yeild(velocity, velocityMps);
+  utils::Randomizer::yield(velocity, velocityMps);
   if (velocity.getLength() < velocityMps / 10) {
     velocity.setLength(velocityMps / 10);
   }
@@ -68,8 +79,8 @@ Point createPoint(uint32_t id, Grid& grid, double velocityMps)
 }
 
 TEST(GridTests, TrackSinglePoint) {
-  for (uint32_t i = 0; i < 100; ++i) {
-    Grid grid(0xFF, 250);
+  for (uint32_t i = 0; i < 200; ++i) {
+    Grid grid(0xFF, 50);
 
     utils::Randomizer::setPattern(i);
     Point point = createPoint(i, grid, 10);
@@ -88,13 +99,15 @@ TEST(GridTests, TrackSinglePoint) {
 }
 
 TEST(GridTests, TrackMultiplePoints) {
+  const uint32_t nTotalPoints = 1000;
+
   for (uint32_t i = 0; i < 10; ++i) {
     utils::Randomizer::setPattern(i);
     Grid grid(64, 500);
 
     std::vector<Point> points;
-    points.reserve(1000);
-    for (size_t i = 0; i < 500; ++i) {
+    points.reserve(nTotalPoints);
+    for (size_t i = 0; i < nTotalPoints; ++i) {
       points.push_back(createPoint(i, grid, 250));
     }
 
@@ -143,7 +156,7 @@ TEST(GridTests, TrackMultiplePoints) {
 
 TEST(GridTests, TrackMultiplePointsMultiThreaded) {
   const size_t totalThread = 6;
-  const size_t totalPoints = 1000;
+  const size_t totalPoints = 2000;
 
   for (uint32_t gridWidth: {1, 2, 4, 8, 16, 32}) {
     utils::Randomizer::setPattern(gridWidth);
@@ -235,6 +248,39 @@ TEST(GridTests, TrackMultiplePointsMultiThreaded) {
     for (const Cell& cell: grid.cells()) {
       ASSERT_EQ(0, cell.getObjects().size());
     }
+  }
+}
+
+TEST(GridTests, CellIterator) {
+  const Grid grid(64, 10);
+  const geometry::Rectangle arena = grid.asRect().extend(1.4);
+
+  for (uint32_t i = 0; i < 20000; ++i) {
+    utils::Randomizer::setPattern(i);
+
+    geometry::Rectangle rect;
+    utils::Randomizer::yield(rect, arena);
+
+    Grid::iterator I = grid.range(
+          rect.left(), rect.bottom(), rect.width(), rect.height());
+
+    size_t totalCells = 0;
+    for(Grid::iterator end = grid.end(); I != end; ++I) {
+      const Cell& cell = *I;
+      ASSERT_TRUE(hasIntersections(cell, rect)) << "Iteration #" << i;
+      ++totalCells;
+    }
+
+    // Iterate through all cells and check how many cells really has
+    // intersections with 'rect'
+    size_t expectedTotalCells = 0;
+    for (const Cell& cell: grid) {
+      if (hasIntersections(cell, rect)) {
+        ++expectedTotalCells;
+      }
+    }
+
+    ASSERT_EQ(expectedTotalCells, totalCells) << "Iteration #" << i;
   }
 }
 
