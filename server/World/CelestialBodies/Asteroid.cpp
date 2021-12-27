@@ -48,7 +48,7 @@ ResourcesArray Asteroid::yield(double amount)
 {
   ResourcesArray mined;
 
-  m_spinlock.lock();
+  std::lock_guard<utils::Mutex> guard(m_mutex);
   amount = std::min(amount, getWeight());
 
   // Generating resources composition in the mined chunk
@@ -73,8 +73,6 @@ ResourcesArray Asteroid::yield(double amount)
     m_composition.m_stakes[eType] = (total - mined[eType]) / weight;
   }
   changeWeight(-amount);
-
-  m_spinlock.unlock();
   return mined;
 }
 

@@ -5,7 +5,7 @@
 
 #include <Utils/GlobalContainer.h>
 #include <Newton/PhysicalObject.h>
-#include <Utils/Spinlock.h>
+#include <Utils/Mutex.h>
 #include <Utils/YamlForwardDeclarations.h>
 #include <World/Resources.h>
 #include <World/ObjectTypes.h>
@@ -65,7 +65,7 @@ private:
   AsteroidComposition        m_composition;
   std::default_random_engine m_randomizer;
 
-  utils::Spinlock m_spinlock;
+  utils::Mutex m_mutex;
 };
 
 using AsteroidUptr = std::unique_ptr<Asteroid>;

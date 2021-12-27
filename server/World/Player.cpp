@@ -14,8 +14,10 @@ Player::Player(std::string&& sLogin,
     m_blueprints(std::move(blueprints))
 {}
 
-PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary blueprints,
-                       YAML::Node const& state)
+PlayerPtr Player::load(
+    std::string sLogin,
+    blueprints::BlueprintsLibrary blueprints,
+    YAML::Node const& state)
 { 
   PlayerPtr pPlayer =
       std::shared_ptr<Player>(
@@ -40,7 +42,7 @@ PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary bluepri
 
   YAML::Node const& shipsState = state["ships"];
   if (!shipsState.IsDefined()) {
-    // Player has no ships (looooser!)
+    // Player has no ships (proval!)
     return pPlayer;
   }
 
@@ -52,7 +54,8 @@ PlayerPtr Player::load(std::string sLogin, blueprints::BlueprintsLibrary bluepri
     assert(!sShipName.empty() && !sShipType.empty());
 
     blueprints::BaseBlueprintPtr pShipBlueprint =
-        pPlayer->m_blueprints.getBlueprint(blueprints::BlueprintName("Ship", sShipType));
+        pPlayer->m_blueprints.getBlueprint(
+          blueprints::BlueprintName("Ship", sShipType));
     assert(pShipBlueprint);
     if (!pShipBlueprint)
       return PlayerPtr();
