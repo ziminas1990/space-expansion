@@ -10,6 +10,7 @@
 #include "Modules/AccessPanel/AccessPanel.h"
 #include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
+#include <World/Grid.h>
 #include <World/World.h>
 #include "Blueprints/BlueprintsLibrary.h"
 #include <Utils/Clock.h>
@@ -94,6 +95,7 @@ private:
   modules::ShipyardManagerPtr          m_pShipyardManager;
   modules::SystemClockManagerPtr       m_pSystemClockManager;
 
+  // Receiving stacks
   network::UdpDispatcherPtr     m_pUdpDispatcher;
 
   network::UdpSocketPtr         m_pLoginSocket;
@@ -104,6 +106,8 @@ private:
   network::PrivilegedChannelPtr m_pPrivilegedChannel;
   AdministratorPanelPtr         m_pAdministratorPanel;
 
+  // World
+  world::Grid             m_globalGrid;
   world::World            m_world;
   world::PlayerStoragePtr m_pPlayersStorage;
 

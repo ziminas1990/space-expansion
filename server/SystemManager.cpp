@@ -9,13 +9,13 @@
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Ships/ShipsManager.h"
 #include "Conveyor/Proceeders.h"
-#include "World/Resources.h"
+#include <World/Resources.h>
 #include <Arbitrators/ArbitratorsFactory.h>
 #include <Utils/Printers.h>
 
-//========================================================================================
+//==============================================================================
 // SystemManager
-//========================================================================================
+//==============================================================================
 
 static utils::Clock* g_clock = nullptr;
 
@@ -186,12 +186,18 @@ bool SystemManager::createAllComponents()
   m_pLoginChannel       = std::make_shared<network::PlayerChannel>();
   m_pAccessPanel        = std::make_shared<modules::AccessPanel>();
 
-  if (m_configuration.getAdministratorCfg().isValid()) {
+  std::stringstream problem;
+  if (m_configuration.getAdministratorCfg().isValid(problem)) {
     m_pPrivilegedChannel  = std::make_shared<network::PrivilegedChannel>();
     m_pAdministratorPanel = std::make_shared<AdministratorPanel>(
           m_configuration.getAdministratorCfg(),
           std::time(nullptr));
   }
+
+  m_globalGrid = world::Grid(
+        m_configuration.getGlobalGridCfg().gridSize(),
+        m_configuration.getGlobalGridCfg().cellWidthKm());
+  world::Grid::setGlobal(&m_globalGrid);
 
   m_pPlayersStorage     = std::make_shared<world::PlayersStorage>();
   return true;
@@ -223,6 +229,7 @@ bool SystemManager::linkComponents()
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);
 
+  // Building the conveyor
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
   if (m_pAdministratorPanel) {

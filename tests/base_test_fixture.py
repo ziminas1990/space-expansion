@@ -47,6 +47,11 @@ class BaseTestFixture(unittest.TestCase):
                 password='iampower'
             )
 
+        if self.config.general.global_grid is None:
+            self.config.general.set_global_grid(
+                grid_size=100, cell_width_km=1000
+            )
+
         await self.server.run(self.config)
         await asyncio.sleep(0.5)
 

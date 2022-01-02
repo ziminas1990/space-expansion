@@ -105,6 +105,10 @@ config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
         config::PortsPoolCfg()
         .setBegin(25000)
         .setEnd(25100))
+      .setGlobalGrid(
+        config::GlobalGridCfg()
+        .setGridSize(32)
+        .setCellWidthKm(500))
       .setAdministratorCfg(
         config::AdministratorCfg()
         .setPort(4372)

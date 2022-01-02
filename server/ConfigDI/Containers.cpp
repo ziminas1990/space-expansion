@@ -3,9 +3,9 @@
 namespace config
 {
 
-//========================================================================================
+//==============================================================================
 // PortsPoolCfg
-//========================================================================================
+//==============================================================================
 
 PortsPoolCfg& PortsPoolCfg::setBegin(uint16_t nBegin)
 {
@@ -19,9 +19,25 @@ PortsPoolCfg& PortsPoolCfg::setEnd(uint16_t nEnd)
   return *this;
 }
 
-//========================================================================================
+//==============================================================================
+// GlobalGridCfg
+//==============================================================================
+
+GlobalGridCfg& GlobalGridCfg::setGridSize(uint16_t nGridSize)
+{
+  m_nGridSize = nGridSize;
+  return *this;
+}
+
+GlobalGridCfg& GlobalGridCfg::setCellWidthKm(uint16_t nCellWidthKm)
+{
+  m_nCellWidthKm = nCellWidthKm;
+  return *this;
+}
+
+//==============================================================================
 // AdministratorCfg
-//========================================================================================
+//==============================================================================
 
 AdministratorCfg& AdministratorCfg::setPort(uint16_t nPort)
 {
@@ -41,9 +57,9 @@ AdministratorCfg& AdministratorCfg::setPassord(std::string sPassword)
   return *this;
 }
 
-//========================================================================================
+//==============================================================================
 // ApplicationCfg
-//========================================================================================
+//==============================================================================
 
 ApplicationCfg::ApplicationCfg()
   : m_nTotalThreads(1), m_nLoginUdpPort(0xFFFF)
@@ -71,6 +87,12 @@ ApplicationCfg &ApplicationCfg::setLoginUdpPort(uint16_t nLoginUdpPort)
 ApplicationCfg &ApplicationCfg::setPortsPool(IPortsPoolCfg const& cfg)
 {
   m_portsPool = cfg;
+  return *this;
+}
+
+ApplicationCfg &ApplicationCfg::setGlobalGrid(const IGlobalGridCfg &cfg)
+{
+  m_globalGrid = cfg;
   return *this;
 }
 

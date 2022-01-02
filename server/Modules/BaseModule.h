@@ -37,7 +37,9 @@ private:
   };
 
 public:
-  BaseModule(std::string sModuleType, std::string moduleName, world::PlayerWeakPtr pOwner)
+  BaseModule(std::string sModuleType,
+             std::string moduleName,
+             world::PlayerWeakPtr pOwner)
     : m_sModuleType(std::move(sModuleType)),
       m_sModuleName(std::move(moduleName)),
       m_pOwner(std::move(pOwner)),

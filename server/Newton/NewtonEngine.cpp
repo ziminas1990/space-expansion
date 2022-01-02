@@ -1,4 +1,5 @@
 #include "NewtonEngine.h"
+#include <World/Grid.h>
 
 #include <mutex>
 #include <algorithm>
@@ -16,12 +17,12 @@ bool NewtonEngine::prephare(uint16_t, uint32_t, uint64_t)
 
 void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
 {
-  const uint32_t step = 64;
-  double nIntervalSec = nIntervalUs / 1000000.0;
+  const uint32_t step         = 64;
+  const double   nIntervalSec = nIntervalUs / 1000000.0;
 
   uint32_t begin = m_nNextObjectId.fetch_add(step);
   while (begin < AllObjects::Total()) {
-    uint32_t end = std::min(begin + step, AllObjects::Total());
+    const uint32_t end = std::min(begin + step, AllObjects::Total());
     for (uint32_t nId = begin; nId < end; ++nId) {
       PhysicalObject* pObject = AllObjects::Instance(nId);
       if (pObject) {
@@ -35,6 +36,18 @@ void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
         movement.add(acc_t, nIntervalSec * 0.5);
         pObject->m_position.translate(movement);
         pObject->m_velocity += acc_t;
+
+        if (pObject->m_pCell) {
+          pObject->m_pCell = pObject->m_pCell->track(
+                pObject->getInstanceId(),
+                pObject->m_position.x,
+                pObject->m_position.y);
+        } else {
+          pObject->m_pCell = world::Grid::getGlobal()->add(
+                pObject->getInstanceId(),
+                pObject->m_position.x,
+                pObject->m_position.y);
+        }
       }
     }
     begin = m_nNextObjectId.fetch_add(step);

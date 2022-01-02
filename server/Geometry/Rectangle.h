@@ -29,7 +29,14 @@ struct Rectangle
     m_position[1] = rightDown;
   }
 
-  bool isCoveredByCicle(Point const& center, double r) const
+  double left()   const { return m_position[0].x; }
+  double right()  const { return m_position[1].x; }
+  double top()    const { return m_position[0].y; }
+  double bottom() const { return m_position[1].y; }
+  double width()  const { return right() - left(); }
+  double height() const { return top() - bottom(); }
+
+  bool isCoveredByCircle(Point const& center, double r) const
   {
     // Check if at least one point of the circle with the specified 'center'
     // and 'r' is belong to the rectangle
@@ -37,6 +44,27 @@ struct Rectangle
         && center.x - r < m_position[1].x
         && center.y - r < m_position[0].y
         && center.y + r > m_position[1].y;
+  }
+
+  Point center() const {
+    return Point((m_position[0].x + m_position[1].x) / 2,
+                 (m_position[0].y + m_position[1].y) / 2);
+  }
+
+  template<typename NumericType>
+  Rectangle& extend(NumericType k) {
+    const Point& c = center();
+    for (Point& point: m_position) {
+      point.x = c.x + (point.x - c.x) * k;
+      point.y = c.y + (point.y - c.y) * k;
+    }
+    return *this;
+  }
+
+  template<typename NumericType>
+  Rectangle extend(NumericType k) const {
+    Rectangle r = *this;
+    return r.extend(k);
   }
 
   Point m_position[2];
