@@ -23,7 +23,7 @@ PortsPoolCfg& PortsPoolCfg::setEnd(uint16_t nEnd)
 // GlobalGridCfg
 //==============================================================================
 
-GlobalGridCfg& GlobalGridCfg::setGridSize(uint8_t nGridSize)
+GlobalGridCfg& GlobalGridCfg::setGridSize(uint16_t nGridSize)
 {
   m_nGridSize = nGridSize;
   return *this;

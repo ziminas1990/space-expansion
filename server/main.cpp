@@ -27,8 +27,9 @@ int main(int argc, char* argv[])
   config::ApplicationCfg applicationCfg =
       config::ApplicationCfgReader::read(configuration["application"]);
 
-  if (!applicationCfg.isValid()) {
-    std::cerr << "FAILED to read application configuration!" << std::endl;
+  std::stringstream problem;
+  if (!applicationCfg.isValid(problem)) {
+    std::cerr << "Configuration error! " << problem.str() << std::endl;
     return 1;
   }
 

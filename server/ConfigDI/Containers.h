@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <iostream>
 #include "Interfaces.h"
 
 namespace config
@@ -15,8 +16,19 @@ public:
     : m_nBegin(other.begin()), m_nEnd(other.end())
   {}
 
-  bool isValid() const {
-    return m_nBegin && m_nEnd && m_nEnd > m_nBegin;
+  bool isValid(std::ostream& problem) const {
+    const char* prefix = "Wrong ports pool configuration: ";
+    if (!m_nBegin || !m_nEnd) {
+      problem << prefix << "invalid ports pool bounds: " <<
+                 m_nBegin << " to " << m_nEnd;
+      return false;
+    }
+    if (m_nEnd <= m_nBegin) {
+      problem << prefix << "right bound (" << m_nEnd <<
+                 ") must be greater than left bound (" << m_nBegin << ")";
+      return false;
+    }
+    return true;
   }
 
   PortsPoolCfg& setBegin(uint16_t nBegin);
@@ -44,19 +56,28 @@ public:
     , m_nGridSize(other.gridSize())
   {}
 
-  bool isValid() const {
-    return m_nCellWidthKm > 0 && m_nGridSize > 0;
+  bool isValid(std::ostream& problem) const {
+    const char* prefix = "wrong global grid configuration: ";
+    if (m_nCellWidthKm == 0) {
+      problem << prefix << "cell width must be greater than 0";
+      return false;
+    }
+    if (m_nGridSize == 0 || m_nGridSize > 300) {
+      problem << prefix << "grid size value must be between (0, 300)";
+      return false;
+    }
+    return true;
   }
 
-  GlobalGridCfg& setGridSize(uint8_t nGridSize);
+  GlobalGridCfg& setGridSize(uint16_t nGridSize);
   GlobalGridCfg& setCellWidthKm(uint16_t nCellWidthKm);
 
-  uint8_t  gridSize()    const override { return m_nGridSize; }
+  uint16_t gridSize()    const override { return m_nGridSize; }
   uint16_t cellWidthKm() const override { return m_nCellWidthKm; }
 
 private:
   uint16_t m_nCellWidthKm;
-  uint8_t  m_nGridSize;
+  uint16_t m_nGridSize;
 };
 
 
@@ -71,8 +92,21 @@ public:
       m_sPassword(other.getPassword())
   {}
 
-  bool isValid() const {
-    return m_nPort != 0 && !m_sLogin.empty() && !m_sPassword.empty();
+  bool isValid(std::ostream& problem) const {
+    const char* prefix = "Wrong administrator configuration: ";
+    if (m_nPort == 0) {
+      problem << prefix << "listen port can't be 0";
+      return false;
+    }
+    if (m_sLogin.empty()) {
+      problem << prefix << "login can't be empty";
+      return false;
+    }
+    if (m_sPassword.empty()) {
+      problem << prefix << "password can't be empty";
+      return false;
+    }
+    return true;
   }
 
   AdministratorCfg& setPort(uint16_t nPort);
@@ -96,11 +130,18 @@ public:
   ApplicationCfg();
   ApplicationCfg(IApplicationCfg const& other);
 
-  bool isValid() const {
-    return m_nTotalThreads
-        && m_nLoginUdpPort
-        && m_portsPool.isValid()
-        && m_globalGrid.isValid();
+  bool isValid(std::ostream& problem) const {
+    const char* prefix = "Wrong app general configuration: ";
+    if (!m_nTotalThreads) {
+      problem << prefix << "total thread must be greater than 0";
+      return false;
+    }
+    if (!m_nLoginUdpPort) {
+      problem << prefix << "login port must be greater than 0";
+      return false;
+    }
+    return m_portsPool.isValid(problem)
+        && m_globalGrid.isValid(problem);
   }
 
   ApplicationCfg& setTotalThreads(uint16_t nTotalThreads);

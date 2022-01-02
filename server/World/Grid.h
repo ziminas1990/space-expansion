@@ -69,7 +69,7 @@ public:
 
 class Grid {
   uint32_t          m_cellWidth = 0;
-  uint8_t           m_width     = 0;
+  uint16_t          m_width     = 0;
   std::vector<Cell> m_cells;
   Cell              m_parentCell;
 
@@ -136,7 +136,7 @@ public:
   static Grid* getGlobal() { return g_globalGrid; }
 
   Grid();
-  Grid(uint8_t width, uint32_t cellWidth);
+  Grid(uint16_t width, uint32_t cellWidth);
 
   int32_t left()   const { return m_parentCell.left(); }
   int32_t right()  const { return m_parentCell.right(); }

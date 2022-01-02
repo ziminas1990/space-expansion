@@ -10,7 +10,7 @@ Grid::Grid()
   : m_parentCell(this, 0, 0, 0)
 {}
 
-Grid::Grid(uint8_t width, uint32_t cellWidth)
+Grid::Grid(uint16_t width, uint32_t cellWidth)
   : m_cellWidth(cellWidth)
   , m_width(width)
   , m_parentCell(this, 0, 0, cellWidth)  // Will be inited later

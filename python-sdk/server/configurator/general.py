@@ -15,6 +15,33 @@ class AdministratorCfg(NamedTuple):
     login: Optional[str] = None
     password: Optional[str] = None
 
+    def verify(self):
+        assert self.login and len(self.login) > 4
+        assert self.password and len(self.password) > 6
+        assert 0 < self.udp_port < 65535
+
+    def to_pod(self):
+        return {
+            "udp-port": self.udp_port,
+            "login": self.login,
+            "password": self.password
+        }
+
+
+class GlobalGrid(NamedTuple):
+    grid_size: Optional[int] = None
+    cell_width_km: Optional[int] = None
+
+    def verify(self):
+        assert self.grid_size and 0 < self.grid_size < 255
+        assert self.cell_width_km and 0 < self.cell_width_km
+
+    def to_pod(self):
+        return {
+            "grid-size": self.grid_size,
+            "cell-width-km": self.cell_width_km
+        }
+
 
 class General:
     """
@@ -26,11 +53,13 @@ class General:
                  login_udp_port: Optional[int] = None,
                  initial_state: Optional[ApplicationMode] = None,
                  ports_pool: Optional[Tuple[int, int]] = None,
+                 global_grid: Optional[GlobalGrid] = None,
                  administrator_cfg: Optional[AdministratorCfg] = None):
         self.total_threads: Optional[int] = total_threads
         self.login_udp_port: Optional[int] = login_udp_port
         self.initial_state: Optional[ApplicationMode] = initial_state
         self.ports_pool: Optional[Tuple[int, int]] = ports_pool
+        self.global_grid = global_grid
         self.administrator_cfg: Optional[AdministratorCfg] = administrator_cfg
 
     def set_total_threads(self, total_thread: int) -> 'General':
@@ -55,6 +84,11 @@ class General:
         self.ports_pool = (being, end)
         return self
 
+    def set_global_grid(self, grid_size: int, cell_width_km: int):
+        self.global_grid = GlobalGrid(grid_size, cell_width_km)
+        self.global_grid.verify()
+        return self
+
     def add_administrator_interface(self, udp_port: int, login :str, password: str):
         """The administrator interface will be created on port 'udp_port'. The
         specified 'login' and 'password' should be used to login as administrator."""
@@ -69,13 +103,14 @@ class General:
         assert self.total_threads and self.total_threads > 0
         assert self.login_udp_port and 0 < self.login_udp_port < 65535
         assert self.initial_state
-        assert self.ports_pool and 0 < self.ports_pool[0] < self.ports_pool[1] < 65535
+        assert self.ports_pool and \
+               0 < self.ports_pool[0] < self.ports_pool[1] < 65535
         assert self.login_udp_port < self.ports_pool[0] or \
                self.login_udp_port > self.ports_pool[1]
+        assert self.global_grid is not None
+        self.global_grid.verify()
         if self.administrator_cfg:
-            assert self.administrator_cfg.login and len(self.administrator_cfg.login) > 4
-            assert self.administrator_cfg.password and len(self.administrator_cfg.password) > 6
-            assert 0 < self.administrator_cfg.udp_port < 65535
+            self.administrator_cfg.verify()
             assert self.administrator_cfg.udp_port < self.ports_pool[0] or \
                    self.administrator_cfg.udp_port > self.ports_pool[1]
             assert self.administrator_cfg.udp_port != self.login_udp_port
@@ -90,13 +125,10 @@ class General:
                 "begin": self.ports_pool[0],
                 "end": self.ports_pool[1]
             },
+            "global-grid": self.global_grid.to_pod()
         }
         if self.administrator_cfg:
             pod.update({
-                "administrator": {
-                    "udp-port": self.administrator_cfg.udp_port,
-                    "login": self.administrator_cfg.login,
-                    "password": self.administrator_cfg.password
-                }
+                "administrator": self.administrator_cfg.to_pod()
             })
         return pod

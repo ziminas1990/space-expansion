@@ -8,9 +8,9 @@
 namespace utils
 {
 
-//========================================================================================
+//==============================================================================
 // helpers functions
-//========================================================================================
+//==============================================================================
 
 template<typename T>
 inline bool readSomeValue(YAML::Node const& node, char const* pName, T& value)
@@ -26,19 +26,13 @@ inline bool readSomeValue(YAML::Node const& node, char const* pName, T& value)
   }
 }
 
-//========================================================================================
+//==============================================================================
 // YamlReader
-//========================================================================================
+//==============================================================================
 
 YamlReader::YamlReader(YAML::Node const& source)
   : source(source), noProblems(true)
 {}
-
-YamlReader &YamlReader::read(const char *pName, uint8_t &value)
-{
-  noProblems &= readSomeValue(source, pName, value);
-  return *this;
-}
 
 YamlReader &YamlReader::read(const char *pName, uint16_t &value)
 {

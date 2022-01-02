@@ -20,7 +20,7 @@ PortsPoolCfg PortsPoolCfgReader::read(YAML::Node const& data)
 
 GlobalGridCfg GlobalGridCfgReader::read(const YAML::Node &data)
 {
-  uint8_t  nGridSize;
+  uint16_t nGridSize;
   uint16_t nCellWidthKm;
   if (!utils::YamlReader(data)
       .read("grid-size", nGridSize)
@@ -76,7 +76,7 @@ ApplicationCfg ApplicationCfgReader::read(YAML::Node const& data)
       .setPortsPool(
         PortsPoolCfgReader::read(data["ports-pool"]))
       .setGlobalGrid(
-        GlobalGridCfgReader::read(data["administrator"]));
+        GlobalGridCfgReader::read(data["global-grid"]));
 }
 
 } // namespace config

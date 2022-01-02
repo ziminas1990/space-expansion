@@ -17,8 +17,8 @@ bool NewtonEngine::prephare(uint16_t, uint32_t, uint64_t)
 
 void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
 {
-  const uint32_t step = 64;
-  const double nIntervalSec = nIntervalUs / 1000000.0;
+  const uint32_t step         = 64;
+  const double   nIntervalSec = nIntervalUs / 1000000.0;
 
   uint32_t begin = m_nNextObjectId.fetch_add(step);
   while (begin < AllObjects::Total()) {

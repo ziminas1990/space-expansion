@@ -186,7 +186,8 @@ bool SystemManager::createAllComponents()
   m_pLoginChannel       = std::make_shared<network::PlayerChannel>();
   m_pAccessPanel        = std::make_shared<modules::AccessPanel>();
 
-  if (m_configuration.getAdministratorCfg().isValid()) {
+  std::stringstream problem;
+  if (m_configuration.getAdministratorCfg().isValid(problem)) {
     m_pPrivilegedChannel  = std::make_shared<network::PrivilegedChannel>();
     m_pAdministratorPanel = std::make_shared<AdministratorPanel>(
           m_configuration.getAdministratorCfg(),
