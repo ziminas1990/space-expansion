@@ -196,7 +196,7 @@ bool SystemManager::createAllComponents()
 
   m_globalGrid = world::Grid(
         m_configuration.getGlobalGridCfg().gridSize(),
-        m_configuration.getGlobalGridCfg().cellWidthKm());
+        m_configuration.getGlobalGridCfg().cellWidthKm() * 1000);
   world::Grid::setGlobal(&m_globalGrid);
 
   m_pPlayersStorage     = std::make_shared<world::PlayersStorage>();

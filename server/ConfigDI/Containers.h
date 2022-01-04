@@ -56,18 +56,7 @@ public:
     , m_nGridSize(other.gridSize())
   {}
 
-  bool isValid(std::ostream& problem) const {
-    const char* prefix = "wrong global grid configuration: ";
-    if (m_nCellWidthKm == 0) {
-      problem << prefix << "cell width must be greater than 0";
-      return false;
-    }
-    if (m_nGridSize == 0 || m_nGridSize > 300) {
-      problem << prefix << "grid size value must be between (0, 300)";
-      return false;
-    }
-    return true;
-  }
+  bool isValid(std::ostream& problem) const;
 
   GlobalGridCfg& setGridSize(uint16_t nGridSize);
   GlobalGridCfg& setCellWidthKm(uint16_t nCellWidthKm);

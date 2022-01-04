@@ -23,6 +23,19 @@ PortsPoolCfg& PortsPoolCfg::setEnd(uint16_t nEnd)
 // GlobalGridCfg
 //==============================================================================
 
+bool GlobalGridCfg::isValid(std::ostream &problem) const {
+  const char* prefix = "wrong global grid configuration: ";
+  if (m_nCellWidthKm < 1 || m_nCellWidthKm > 1000000) {
+    problem << prefix << "grid size value must be between [1, 1000000]";
+    return false;
+  }
+  if (m_nGridSize == 0 || m_nGridSize > 300) {
+    problem << prefix << "grid size value must be between (0, 300)";
+    return false;
+  }
+  return true;
+}
+
 GlobalGridCfg& GlobalGridCfg::setGridSize(uint16_t nGridSize)
 {
   m_nGridSize = nGridSize;
@@ -69,6 +82,8 @@ ApplicationCfg::ApplicationCfg(IApplicationCfg const& other)
   : m_nTotalThreads(other.getTotalThreads()),
     m_nLoginUdpPort(other.getLoginUdpPort()),
     m_portsPool(other.getPortsPoolcfg()),
+    m_globalGrid(other.getGlobalGridCfg()),
+    m_lIsClockFreezed(other.isClockFreezed()),
     m_administratorCfg(other.getAdministratorCfg())
 {}
 
