@@ -107,8 +107,8 @@ config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
         .setEnd(25100))
       .setGlobalGrid(
         config::GlobalGridCfg()
-        .setGridSize(32)
-        .setCellWidthKm(500))
+        .setGridSize(100)
+        .setCellWidthKm(20))
       .setAdministratorCfg(
         config::AdministratorCfg()
         .setPort(4372)

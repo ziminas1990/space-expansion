@@ -130,7 +130,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
     resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(celestialScanner.scan(1, 5, asteroids));
-    EXPECT_EQ(1, asteroids.size());
+    ASSERT_EQ(1, asteroids.size());
 
     uint32_t nAsteroidId = asteroids.front().nId;
     client::AsteroidScanner::AsteroidInfo composition;
@@ -151,7 +151,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
     resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(celestialScanner.scan(1, 5, asteroids));
-    EXPECT_EQ(1, asteroids.size());
+    ASSERT_EQ(1, asteroids.size());
 
     uint32_t nAsteroidId = asteroids.front().nId;
     client::AsteroidScanner::AsteroidInfo composition;

@@ -50,6 +50,10 @@ public:
     return world::ObjectType::ePhysicalObject;
   }
 
+  bool is(world::ObjectType expectedType) const {
+    return getType() == expectedType;
+  }
+
   double                  getWeight()   const { return m_weight;   }
   double                  getRadius()   const { return m_radius;   }
   geometry::Point  const& getPosition() const { return m_position; }

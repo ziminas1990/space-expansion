@@ -69,11 +69,11 @@ protected:
       "    - { pattern:        736628372,",
       "        center:         { x: 100000, y: 0 },",
       "        area_radius_km: 30,",
-      "        total:          10 }",
+      "        total:          100 }",
       "    - { pattern:        736628372,",
       "        center:         { x: 0, y: 100000 },",
       "        area_radius_km: 30,",
-      "        total:          10 }"
+      "        total:          100 }"
     };
     std::stringstream ss;
     for (std::string const& line : data)
@@ -118,7 +118,7 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
   resumeTime();
   std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
   ASSERT_TRUE(scanner.scan(1000, 5, asteroids));
-  EXPECT_EQ(22, asteroids.size());
+  EXPECT_EQ(202, asteroids.size());
 }
 
 TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
@@ -147,7 +147,7 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
       EXPECT_LE(shipPosition.distance(asteroid.position), nScanRadiusKm * 1000);
 
     if (nScanRadiusKm == 31) {
-      EXPECT_EQ(11, asteroids.size());
+      EXPECT_EQ(101, asteroids.size());
     }
   }
 }
@@ -176,7 +176,7 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
       EXPECT_GE(asteroid.radius, nMinimalRadius);
 
     if (nMinimalRadius == 5) {
-      EXPECT_EQ(22, asteroids.size());
+      EXPECT_EQ(202, asteroids.size());
     }
   }
 }
@@ -222,7 +222,7 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
     resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(scanner.scan(31, 5, asteroids));
-    EXPECT_EQ(11, asteroids.size());
+    EXPECT_EQ(101, asteroids.size());
   }
 
   // Moving to second cloud and scanning it
@@ -236,7 +236,7 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
     resumeTime();
     std::vector<client::CelestialScanner::AsteroidInfo> asteroids;
     ASSERT_TRUE(scanner.scan(31, 5, asteroids));
-    EXPECT_EQ(11, asteroids.size());
+    EXPECT_EQ(101, asteroids.size());
   }
 }
 

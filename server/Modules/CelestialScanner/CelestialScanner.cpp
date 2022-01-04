@@ -1,7 +1,9 @@
 #include "CelestialScanner.h"
 
 #include <Ships/Ship.h>
+#include <Newton/PhysicalObject.h>
 #include <World/CelestialBodies/Asteroid.h>
+#include <World/Grid.h>
 #include <Utils/YamlReader.h>
 
 #include <math.h>
@@ -92,19 +94,34 @@ void CelestialScanner::onScanRequest(
 
 void CelestialScanner::collectAndSendScanResults()
 {
-  std::vector<world::Asteroid*> const& allAsteroids =
-      world::AsteroidsContainer::AllInstancies();
+  geometry::Point const& selfPosition = getPlatform()->getPosition();
+  world::Grid* pGrid = world::Grid::getGlobal();
+  world::Grid::iterator itCell =
+      pGrid->range<double>(
+        selfPosition.x - m_nScanningRadiusKm * 1000,
+        selfPosition.y - m_nScanningRadiusKm * 1000,
+        2 * 1000 * m_nScanningRadiusKm,
+        2 * 1000 * m_nScanningRadiusKm);
+
   double maxRadiusSqr = 1000 * m_nScanningRadiusKm;
   maxRadiusSqr *= maxRadiusSqr;
-  geometry::Point const& selfPosition = getPlatform()->getPosition();
 
-  std::vector<world::Asteroid*> scannedAsteroids;
+  std::vector<const world::Asteroid*> scannedAsteroids;
   scannedAsteroids.reserve(32);
-  for (world::Asteroid* pAsteroid : allAsteroids) {
-    if (!pAsteroid || pAsteroid->getRadius() < m_nMinimalRadius)
-      continue;
-    if (selfPosition.distanceSqr(pAsteroid->getPosition()) < maxRadiusSqr)
-      scannedAsteroids.push_back(pAsteroid);
+  for (auto end = pGrid->end(); itCell != end; ++itCell) {
+    for (const uint32_t nObjectId: itCell->getObjects().data()) {
+      const newton::PhysicalObject* pObject =
+          utils::GlobalContainer<newton::PhysicalObject>::Instance(nObjectId);
+      if (pObject->is(world::ObjectType::eAsteroid)) {
+        const world::Asteroid* pAsteroid =
+            static_cast<const world::Asteroid*>(pObject);
+        if (pAsteroid->getRadius() < m_nMinimalRadius) {
+          continue;
+        }
+        if (selfPosition.distanceSqr(pAsteroid->getPosition()) < maxRadiusSqr)
+          scannedAsteroids.push_back(pAsteroid);
+      }
+    }
   }
 
   if (scannedAsteroids.empty()) {
@@ -124,7 +141,7 @@ void CelestialScanner::collectAndSendScanResults()
     auto pBatch = pBody->mutable_asteroids();
     for (size_t j = 0; j < 10 && i < scannedAsteroids.size(); ++j, ++i)
     {
-      world::Asteroid* pAsteroid = scannedAsteroids[i];
+      const world::Asteroid* pAsteroid = scannedAsteroids[i];
 
       spex::ICelestialScanner::AsteroidInfo* pInfo = pBatch->Add();
       pInfo->set_id(pAsteroid->getAsteroidId());
