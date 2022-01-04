@@ -62,10 +62,10 @@ public:
   GlobalGridCfg& setCellWidthKm(uint16_t nCellWidthKm);
 
   uint16_t gridSize()    const override { return m_nGridSize; }
-  uint16_t cellWidthKm() const override { return m_nCellWidthKm; }
+  uint32_t cellWidthKm() const override { return m_nCellWidthKm; }
 
 private:
-  uint16_t m_nCellWidthKm;
+  uint32_t m_nCellWidthKm;
   uint16_t m_nGridSize;
 };
 

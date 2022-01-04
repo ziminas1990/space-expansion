@@ -21,7 +21,7 @@ public:
   virtual ~IGlobalGridCfg() = default;
 
   virtual uint16_t gridSize()    const = 0;
-  virtual uint16_t cellWidthKm() const = 0;
+  virtual uint32_t cellWidthKm() const = 0;
 };
 
 class IAdministratorCfg

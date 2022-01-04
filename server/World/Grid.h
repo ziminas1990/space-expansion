@@ -42,8 +42,8 @@ public:
 
   template<typename NumericType>
   bool contains(NumericType x, NumericType y) const {
-    return (x >= m_x) && (x - m_x) < m_width
-        && (y >= m_y) && (y - m_y) < m_width;
+    return (x >= m_x) && static_cast<uint32_t>(x - m_x) < m_width
+        && (y >= m_y) && static_cast<uint32_t>(y - m_y) < m_width;
   }
 
   template<typename NumericType>
