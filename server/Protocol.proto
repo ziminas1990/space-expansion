@@ -54,6 +54,13 @@ message Position {
 }
 
 
+enum ObjectType {
+  OBJECT_UNKNOWN  = 0;
+  OBJECT_ASTEROID = 1;
+  OBJECT_SHIP     = 2;
+}
+
+
 //=============================================================================
 // Modules interfaces
 
@@ -171,6 +178,30 @@ message ICelestialScanner {
   }
 }
 
+message IPassiveScanner {
+
+  message ObjectData {
+    ObjectType objectType = 1;
+    uint32     id         = 2;
+    double     x          = 3;
+    double     y          = 4;
+    float      vx         = 5;
+    float      vy         = 6;
+    float      r          = 7;
+  }
+
+  message Update {
+    repeated ObjectData update    = 2;
+  }
+
+  oneof choice {
+    bool   monitor = 1;
+
+    Update update  = 21;
+  }
+}
+
+
 message IAsteroidScanner {
 
   enum Status {
@@ -285,7 +316,6 @@ message IAsteroidMiner {
   }
 
 }
-
 
 message IBlueprintsLibrary {
 
@@ -437,12 +467,13 @@ message Message {
     INavigation        navigation         = 16;
     IEngine            engine             = 17;
     ICelestialScanner  celestial_scanner  = 18;
-    IAsteroidScanner   asteroid_scanner   = 19;
-    IResourceContainer resource_container = 20;
-    IAsteroidMiner     asteroid_miner     = 21;
-    IBlueprintsLibrary blueprints_library = 22;
-    IShipyard          shipyard           = 23;
-    IGame              game               = 24;
-    ISystemClock       system_clock       = 25;
+    IPassiveScanner    passive_scanner    = 19;
+    IAsteroidScanner   asteroid_scanner   = 20;
+    IResourceContainer resource_container = 21;
+    IAsteroidMiner     asteroid_miner     = 22;
+    IBlueprintsLibrary blueprints_library = 23;
+    IShipyard          shipyard           = 24;
+    IGame              game               = 25;
+    ISystemClock       system_clock       = 26;
   }
 }
