@@ -181,13 +181,13 @@ message ICelestialScanner {
 message IPassiveScanner {
 
   message ObjectData {
-    ObjectType objectType = 1;
-    uint32     id         = 2;
-    double     x          = 3;
-    double     y          = 4;
-    float      vx         = 5;
-    float      vy         = 6;
-    float      r          = 7;
+    ObjectType object_type = 1;
+    uint32     id          = 2;
+    double     x           = 3;
+    double     y           = 4;
+    float      vx          = 5;
+    float      vy          = 6;
+    float      r           = 7;
   }
 
   message Update {
@@ -197,7 +197,8 @@ message IPassiveScanner {
   oneof choice {
     bool   monitor = 1;
 
-    Update update  = 21;
+    bool   monitor_ack = 21;
+    Update update      = 22;
   }
 }
 

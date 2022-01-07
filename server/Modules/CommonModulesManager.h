@@ -15,19 +15,20 @@ namespace modules
 enum class Cooldown {
   eSystemClock       =      0,
   eCommutator        =      0,
-  eDefault           =  10100,
-  eShip              =  10200,
-  eEngine            =  30300,
-  eAsteroidMiner     = 154000,
-  eAsteroidScanner   = 155000,
-  eShipYard          = 156000,
-  eCelestialScanner  = 207000,
-  eResourceContainer = 208000,
-  eBlueprintsStorage = 209000,
+  eDefault           =  10101,
+  eShip              =  10202,
+  eEngine            =  30303,
+  ePassiveScanner    =  50405,
+  eAsteroidMiner     = 150507,
+  eAsteroidScanner   = 150611,
+  eShipYard          = 150713,
+  eCelestialScanner  = 200817,
+  eResourceContainer = 200919,
+  eBlueprintsStorage = 200123,
 };
 #else
-// In autotests mode we can't afford to let logics to sleep for unpredictable period
-// of time
+// In autotests mode we can't afford to let logics to sleep for unpredictable
+// period of time
 enum class Cooldown {
   eSystemClock       = 0,
   eCommutator        = 0,
@@ -37,6 +38,7 @@ enum class Cooldown {
   eAsteroidScanner   = 0,
   eAsteroidMiner     = 0,
   eCelestialScanner  = 0,
+  ePassiveScanner    = 0,
   eResourceContainer = 307000,
   eBlueprintsStorage = 308000,
   eShipYard          = 309000,

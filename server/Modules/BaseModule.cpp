@@ -60,7 +60,8 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       return;
     }
     case spex::Message::kPassiveScanner: {
-      handlePassivScannerMessage(nSessionId, message.passive_scanner());
+      handlePassiveScannerMessage(nSessionId, message.passive_scanner());
+      return;
     }
     case spex::Message::kAccessPanel: {
       // Only AccessPanel is able to handle such massaged, but it is NOT a subclass of

@@ -27,6 +27,7 @@
 #include "Modules/BlueprintsStorage/BlueprintsStorageManager.h"
 #include "Modules/Shipyard/ShipyardManager.h"
 #include "Modules/SystemClock/SystemClockManager.h"
+#include "Modules/PassiveScanner/PassiveScannerManager.h"
 #include "Arbitrators/BaseArbitrator.h"
 #include <ConveyorTools/ObjectsFilter.h>
 
@@ -88,6 +89,7 @@ private:
   modules::CommutatorManagerPtr        m_pCommutatorsManager;
   modules::EngineManagerPtr            m_pEnginesManager;
   modules::CelestialScannerManagerPtr  m_pCelestialScannerManager;
+  modules::PassiveScannerManagerPtr    m_pPassiveScannerManager;
   modules::AsteroidScannerManagerPtr   m_pAsteroidScannerManager;
   modules::ResourceContainerManagerPtr m_pResourceContainerManager;
   modules::AsteroidMinerManagerPtr     m_pAsteroidMinerManager;

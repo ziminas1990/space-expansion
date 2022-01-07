@@ -46,6 +46,10 @@ public:
     return world::ObjectType::eShip;
   }
 
+  uint32_t getShipId() const {
+    return GlobalObject<Ship>::getInstanceId();
+  }
+
 protected:
   void handleShipMessage(uint32_t nSessionId, spex::IShip const& message) override;
   void handleNavigationMessage(

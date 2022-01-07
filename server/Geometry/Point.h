@@ -23,8 +23,8 @@ struct Point
 
   double distanceSqr(Point const& other) const
   {
-    double dx = x - other.x;
-    double dy = y - other.y;
+    const double dx = x - other.x;
+    const double dy = y - other.y;
     return dx * dx + dy * dy;
   }
 
