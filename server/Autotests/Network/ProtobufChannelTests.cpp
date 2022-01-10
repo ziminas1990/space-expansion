@@ -2,7 +2,7 @@
 #include <google/protobuf/util/message_differencer.h>
 #include <Network/ProtobufChannel.h>
 #include <Protocol.pb.h>
-#include <Autotests/TestUtils/ProtobufSyncPipe.h>
+#include <Autotests/Mocks/MockedBaseModule.h>
 
 namespace autotests
 {
@@ -14,7 +14,7 @@ public:
   void SetUp() override
   {
     m_pChannel        = std::make_shared<network::PlayerChannel>();
-    m_pMockedTerminal = std::make_shared<ProtobufSyncPipe>();
+    m_pMockedTerminal = std::make_shared<MockedBaseModule>();
 
     m_pChannel->attachToTerminal(m_pMockedTerminal);
 
@@ -30,7 +30,7 @@ protected:
 
 protected:
   network::PlayerChannelPtr m_pChannel;
-  ProtobufSyncPipePtr       m_pMockedTerminal;
+  MockedBaseModulePtr       m_pMockedTerminal;
 };
 
 void ProtobufChannelTests::sendMessage(spex::Message const& message)

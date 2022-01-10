@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <Protocol.pb.h>
-#include <Autotests/TestUtils/ProtobufSyncPipe.h>
 #include <Autotests/Mocks/MockedBaseModule.h>
 #include <Modules/BaseModule.h>
 

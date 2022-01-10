@@ -4,48 +4,52 @@
 #include <queue>
 #include <functional>
 #include <Modules/BaseModule.h>
-#include <Autotests/TestUtils/ProtobufSyncPipe.h>
 
 namespace autotests
 {
 
-class MockedBaseModule :
-    public modules::BaseModule,
-    public ProtobufSyncPipe
+class MockedBaseModule : public modules::BaseModule
 {
+  using MessagesQueue = std::queue<spex::Message>;
+  using SessionsQueue = std::map<uint32_t, MessagesQueue>;
+
 public:
   MockedBaseModule(std::string&& sModuleType = "MockedBaseModule")
     : modules::BaseModule(std::move(sModuleType), std::string(), world::PlayerWeakPtr())
   {}
 
-  // We should call only ProtobufSyncPipe implementation of this functions
+  void setEnviromentProceeder(std::function<void()> fProceeder)
+  { m_fEnviromentProceeder = std::move(fProceeder); }
+
+  // Waiting message in already opened session nSessionId
+  bool waitAny(uint32_t nSessionId, uint16_t nTimeoutMs = 100);
+  bool waitAny(uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs = 100);
+
+  bool wait(uint32_t nSessionId, spex::IAccessPanel &out, uint16_t nTimeoutMs = 100);
+  bool wait(uint32_t nSessionId, spex::ICommutator &out, uint16_t nTimeoutMs = 100);
+  bool wait(uint32_t nSessionId, spex::INavigation &out, uint16_t nTimeoutMs = 100);
+
+  // Expect, that no message will be received in session
+  bool expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs);
+
   // overrides from ITerminal interface
-  bool openSession(uint32_t nSessionId) override
-  {
-    return ProtobufSyncPipe::openSession(nSessionId);
-  }
+  bool openSession(uint32_t /*nSessionId*/) override { return true; }
+  void onMessageReceived(
+      uint32_t nSessionId, spex::Message const& message) override;
+  void onSessionClosed(uint32_t /*nSessionId*/) override {}
+  void attachToChannel(network::IPlayerChannelPtr pChannel) override;
+  void detachFromChannel() override;
 
-  void onMessageReceived(uint32_t nSessionId, spex::Message const& frame) override
-  {
-    ProtobufSyncPipe::onMessageReceived(nSessionId, frame);
-  }
+private:
+  bool waitConcrete(uint32_t nSessionId,
+                    spex::Message::ChoiceCase eExpectedChoice,
+                    spex::Message &out,
+                    uint16_t nTimeoutMs = 500);
 
-  void onSessionClosed(uint32_t nSessionId) override
-  {
-    ProtobufSyncPipe::onSessionClosed(nSessionId);
-  }
-
-  void attachToChannel(network::IPlayerChannelPtr pChannel) override
-  {
-    ProtobufSyncPipe::attachToChannel(pChannel);
-    modules::BaseModule::attachToChannel(pChannel);
-  }
-
-  void detachFromChannel() override
-  {
-    ProtobufSyncPipe::detachFromChannel();
-    modules::BaseModule::detachFromChannel();
-  }
+private:
+  network::IPlayerChannelPtr  m_pAttachedChannel;
+  std::function<void()>       m_fEnviromentProceeder;
+  mutable SessionsQueue       m_Sessions;
 };
 
 using MockedBaseModulePtr = std::shared_ptr<MockedBaseModule>;

@@ -1,9 +1,9 @@
-#include "ProtobufSyncPipe.h"
+#include "MockedBaseModule.h"
 #include <Utils/WaitingFor.h>
 
 namespace autotests {
 
-bool ProtobufSyncPipe::waitAny(uint32_t nSessionId, uint16_t nTimeoutMs)
+bool MockedBaseModule::waitAny(uint32_t nSessionId, uint16_t nTimeoutMs)
 {
   std::function<bool()> fPredicate = [this, nSessionId]() {
     auto itSession = m_Sessions.find(nSessionId);
@@ -12,7 +12,7 @@ bool ProtobufSyncPipe::waitAny(uint32_t nSessionId, uint16_t nTimeoutMs)
   return utils::waitFor(fPredicate, m_fEnviromentProceeder, nTimeoutMs);
 }
 
-bool ProtobufSyncPipe::waitAny(
+bool MockedBaseModule::waitAny(
     uint32_t nSessionId, spex::Message &out, uint16_t nTimeoutMs)
 {
   if (!waitAny(nSessionId, nTimeoutMs))
@@ -23,8 +23,8 @@ bool ProtobufSyncPipe::waitAny(
   return true;
 }
 
-bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::IAccessPanel &out,
-                            uint16_t nTimeoutMs)
+bool MockedBaseModule::wait(
+    uint32_t nSessionId, spex::IAccessPanel &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(nSessionId, spex::Message::kAccessPanel, message, nTimeoutMs))
@@ -33,7 +33,7 @@ bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::IAccessPanel &out,
   return true;
 }
 
-bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::ICommutator &out,
+bool MockedBaseModule::wait(uint32_t nSessionId, spex::ICommutator &out,
                             uint16_t nTimeoutMs)
 {
   spex::Message message;
@@ -43,8 +43,8 @@ bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::ICommutator &out,
   return true;
 }
 
-bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::INavigation &out,
-                            uint16_t nTimeoutMs)
+bool MockedBaseModule::wait(
+    uint32_t nSessionId, spex::INavigation &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
   if(!waitConcrete(nSessionId, spex::Message::kNavigation, message, nTimeoutMs))
@@ -53,22 +53,35 @@ bool ProtobufSyncPipe::wait(uint32_t nSessionId, spex::INavigation &out,
   return true;
 }
 
-bool ProtobufSyncPipe::expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs)
+bool MockedBaseModule::expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs)
 {
   spex::Message message;
   return !waitAny(nSessionId, message, nTimeoutMs);
 }
 
-void ProtobufSyncPipe::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
+void MockedBaseModule::onMessageReceived(
+    uint32_t nSessionId, spex::Message const& message)
 {
   m_Sessions[nSessionId].push(message);
 }
 
-bool ProtobufSyncPipe::waitConcrete(
+void MockedBaseModule::attachToChannel(network::IPlayerChannelPtr pChannel)
+{
+  m_pAttachedChannel = pChannel;
+  modules::BaseModule::attachToChannel(pChannel);
+}
+
+void MockedBaseModule::detachFromChannel()
+{
+  m_pAttachedChannel.reset();
+  modules::BaseModule::detachFromChannel();
+}
+
+bool MockedBaseModule::waitConcrete(
     uint32_t nSessionId, spex::Message::ChoiceCase eExpectedChoice,
     spex::Message &out, uint16_t nTimeoutMs)
 {
   return waitAny(nSessionId, out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
 }
 
-} // namespace autotest
+} // namespace autotests

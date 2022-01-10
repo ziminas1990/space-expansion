@@ -5,7 +5,6 @@
 #include <Conveyor/Conveyor.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/Commutator/CommutatorManager.h>
-#include <Autotests/TestUtils/ProtobufSyncPipe.h>
 #include <Autotests/TestUtils/BidirectionalChannel.h>
 #include <Autotests/TestUtils/SessionsMux.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
