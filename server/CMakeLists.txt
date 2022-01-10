@@ -6,8 +6,13 @@ option(autotests-mode "Build autotest binary" OFF)
 option(build-debug    "Bulding debug version" OFF)
 option(build-32bit    "Bulding 32bit binary"  OFF)
 option(spinlocks-only "Using spinlocks instead of mutex" OFF)
+option(with-asan      "Use address sanitizer" OFF)
 
 project(${PROJECT_NAME} VERSION 0.1.0)
+
+if (WIN32 AND with-asan)
+  message(FATAL_ERROR, "Addres sanitizer (with-asan) is not avaliable")
+endif ()
 
 if (build-debug)
   set(CMAKE_BUILD_TYPE Debug)
@@ -66,6 +71,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
 )
+
 if (UNIX)
   set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Werror=return-type"
@@ -80,6 +86,14 @@ if (build-32bit)
   set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS " -m32")
   set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS   " -m32")
 endif (build-32bit)
+
+if (with-asan AND UNIX)
+  set_property(TARGET ${PROJECT_NAME}
+               APPEND_STRING PROPERTY COMPILE_FLAGS
+               " -fsanitize=address -fno-omit-frame-pointer")
+  set_property(TARGET ${PROJECT_NAME}
+               APPEND_STRING PROPERTY LINK_FLAGS " -fsanitize=address")
+endif ()
 
 if (autotests-mode)
   target_compile_definitions(${PROJECT_NAME} PRIVATE AUTOTESTS_MODE)
