@@ -23,16 +23,20 @@ public:
 };
 
 template<typename FrameType>
+using IChannelPtr = std::shared_ptr<IChannel<FrameType>>;
+
+template<typename FrameType>
 class ITerminal
 {
 public:
   virtual ~ITerminal() = default;
 
   virtual void onMessageReceived(FrameType&& message) = 0;
-};
 
-template<typename FrameType>
-using IChannelPtr = std::shared_ptr<IChannel<FrameType>>;
+  virtual void attachToDownlevel(IChannelPtr<FrameType> pDownlevel) = 0;
+  virtual void detachDownlevel() = 0;
+
+};
 
 template<typename FrameType>
 using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;

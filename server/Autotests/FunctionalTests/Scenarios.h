@@ -85,7 +85,8 @@ public:
     RunProceduresScenario(FunctionalTestFixture *pEnv);
 
     RunProceduresScenario& add(client::AbstractProcedurePtr pProcedure);
-    RunProceduresScenario& wait(uint32_t nIntervalMs = 50, uint16_t nTimeoutMs = 500,
+    RunProceduresScenario& wait(uint32_t nIntervalMs = 50,
+                                uint16_t nTimeoutMs = 500,
                                 uint32_t nTickUs = 5000);
 
   protected:

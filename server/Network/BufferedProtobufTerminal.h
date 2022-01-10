@@ -49,7 +49,7 @@ private:
     BufferedMessage(uint32_t nSessionId, FrameType const& message)
       : m_nSessionId(nSessionId), m_body(message)
     {}
-    uint32_t      m_nSessionId = 0;
+    uint32_t  m_nSessionId = 0;
     FrameType m_body;
   };
 

@@ -18,12 +18,6 @@ class SyncPipe : public IChannel<FrameType>,
                  public ITerminal<FrameType>
 {
 public:
-  void attachToDownlevel(IChannelPtr<FrameType> pDownlevel) {
-    m_pDownlevel = pDownlevel;
-  }
-
-  void detachDownlevel() { m_pDownlevel.reset(); }
-
   void setProceeder(std::function<void()> fEnviromentProceeder) {
     m_fEnviromentProceeder = std::move(fEnviromentProceeder);
   }
@@ -55,6 +49,12 @@ public:
   {
     m_receivedMessages.push(std::move(message));
   }
+
+  void attachToDownlevel(IChannelPtr<FrameType> pDownlevel) override {
+    m_pDownlevel = pDownlevel;
+  }
+
+  void detachDownlevel() override { m_pDownlevel.reset(); }
 
   // overrides from IChannel<FrameType> interface
   bool send(FrameType const& message) override

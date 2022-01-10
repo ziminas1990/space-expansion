@@ -3,39 +3,45 @@
 #include <map>
 #include <memory>
 #include <Network/Interfaces.h>
-#include <Autotests/ClientSDK/Interfaces.h>
+#include <Autotests/TestUtils/DirectChannel.h>
 
 namespace autotests
 {
 
-// Allows two terminals communicate with each other
-//
-//  +------------+          +----------------------+          +------------+
-//  |  Terminal  | <------> | BidirectionalChannel | <------> |  Terminal  |
-//  +------------+          +----------------------+          +------------+
-//
-
-class BidirectionalChannel :
-    public client::IPlayerChannel,
-    public network::IPlayerChannel
+class BidirectionalChannel
 {
-public:
-
-  void attachToClientSide(client::IPlayerTerminalWeakPtr pClientLink);
-
-  // overrides from IChannel interface
-  bool send(uint32_t nSessionId, spex::Message const& message) const override;
-  void closeSession(uint32_t) override {}
-  bool isValid() const override;
-  void attachToTerminal(network::IPlayerTerminalPtr pServer) override;
-  void detachFromTerminal() override { m_pServer.reset(); }
-
-  // overrides from client::IClientChannel
-  bool send(spex::Message const& message) override;
-
 private:
-  network::IPlayerTerminalPtr  m_pServer;
-  client::IPlayerTerminalWeakPtr m_pClientLink;
+  DirectPlayerChannelPtr m_pTx;
+    // Is used to send requests from client to server
+
+  DirectPlayerChannelPtr m_pRx;
+    // Is used to send responses from server to client
+
+public:
+  BidirectionalChannel()
+    : m_pTx(std::make_shared<DirectPlayerChannel>())
+    , m_pRx(std::make_shared<DirectPlayerChannel>())
+  {}
+
+  ~BidirectionalChannel() {
+    unlink();
+  }
+
+  void link(network::IPlayerTerminalPtr pClientSide,
+            network::IPlayerTerminalPtr pServerSide)
+    // Set up a linke between 'pClientSide' and 'pServerSide'
+  {
+    pClientSide->attachToChannel(m_pTx);
+    pServerSide->attachToChannel(m_pRx);
+    m_pTx->attachToTerminal(pServerSide);
+    m_pRx->attachToTerminal(pClientSide);
+  }
+
+  void unlink() {
+    m_pTx->detachFromTerminal();
+    m_pRx->detachFromTerminal();
+  }
+
 };
 
 using BidirectionalChannelPtr = std::shared_ptr<BidirectionalChannel>;

@@ -1,13 +1,51 @@
-#include "CommutatorTests.h"
+#include <list>
+
+#include <gtest/gtest.h>
+
+#include <Conveyor/Conveyor.h>
+#include <Modules/Commutator/Commutator.h>
+#include <Modules/Commutator/CommutatorManager.h>
+#include <Autotests/TestUtils/ProtobufSyncPipe.h>
+#include <Autotests/TestUtils/BidirectionalChannel.h>
+#include <Autotests/TestUtils/SessionsMux.h>
+#include <Autotests/Mocks/Modules/MockedCommutator.h>
+
+#include <Autotests/ClientSDK/SyncPipe.h>
+#include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/Mocks/MockedBaseModule.h>
 #include <Conveyor/Proceeders.h>
 
 namespace autotests {
 
-CommutatorTests::CommutatorTests()
-  : m_Conveyor(1),
-    m_fConveyorProceeder([this](){ proceedEnviroment(); })
-{}
+class CommutatorTests : public ::testing::Test
+{
+public:
+  CommutatorTests()
+    : m_Conveyor(1),
+      m_fConveyorProceeder([this](){ proceedEnviroment(); })
+  {}
+
+  void SetUp() override;
+  void TearDown() override;
+
+private:
+  void proceedEnviroment();
+
+protected:
+  // Components on server side
+  conveyor::Conveyor            m_Conveyor;
+  std::function<void()>         m_fConveyorProceeder;
+  modules::CommutatorManagerPtr m_pCommutatorManager;
+  modules::CommutatorPtr        m_pCommutatator;
+
+  // Component, that connects client and server sides
+  BidirectionalChannelPtr       m_pChannel;
+
+  // Components on client side
+  SessionMuxPtr                 m_pSessionMux;
+  client::PlayerPipePtr         m_pProtobufPipe;
+  client::ClientCommutatorPtr   m_pClient;
+};
 
 void CommutatorTests::SetUp()
 {
@@ -17,12 +55,15 @@ void CommutatorTests::SetUp()
   // | pTunnels |   |  pClient  |
   // +----------+   +-----------+
   //      |               |
-  //      +-------+-------+                           ?   ?   ?
+  //      +-------+-------+
+  //              |
+  //      +----------------+
+  //      | pProtobufPipe  |
+  //      +----------------+                          ?   ?   ?
   //              |                                   |   |   |
-  //      +----------------+                     ++===============++
-  //      | pProtobufPipe  |                     ||  pCommutator  ||
-  //      +----------------+                     ++===============++
-  //              |                                       |
+  //      +----------------+                      +---------------+
+  //      |   pSessionMux  |                      |  pCommutator  |
+  //      +----------------+                      +---------------+
   //              |              +----------+             |
   //              +--------------| pChannel |-------------+
   //                             +----------+
@@ -32,26 +73,27 @@ void CommutatorTests::SetUp()
   m_pCommutatator      = std::make_shared<modules::Commutator>();
   m_pChannel           = std::make_shared<BidirectionalChannel>();
 
-  m_pChannel           = std::make_shared<BidirectionalChannel>();
-  m_pClient            = std::make_shared<client::ClientCommutator>();
+  // Components on client side
+  m_pSessionMux        = std::make_shared<SessionMux>();
   m_pProtobufPipe      = std::make_shared<client::PlayerPipe>();
+  m_pClient            = std::make_shared<client::ClientCommutator>();
 
   // Setting up components
   m_Conveyor.addLogicToChain(m_pCommutatorManager);
   m_pProtobufPipe->setProceeder(m_fConveyorProceeder);
 
   // Linking components
-  m_pCommutatator->attachToChannel(m_pChannel);
-  m_pChannel->attachToTerminal(m_pCommutatator);
-  m_pChannel->attachToClientSide(m_pProtobufPipe);
-  m_pProtobufPipe->attachToDownlevel(m_pChannel);
+  m_pChannel->link(m_pSessionMux, m_pCommutatator);
+  m_pSessionMux->openSession(1, m_pProtobufPipe);
   m_pClient->attachToChannel(m_pProtobufPipe);
 }
 
 void CommutatorTests::TearDown()
 {
   m_pProtobufPipe->detachDownlevel();
-  m_pChannel->detachFromTerminal();
+  m_pSessionMux->closeSession(1);
+  m_pChannel->unlink();
+  m_pCommutatator->detachFromModules();
   m_pCommutatator->detachFromChannel();
 }
 
@@ -60,9 +102,9 @@ void CommutatorTests::proceedEnviroment()
   m_Conveyor.proceed(10000);
 }
 
-//========================================================================================
+//==============================================================================
 // Tests
-//========================================================================================
+//==============================================================================
 
 TEST_F(CommutatorTests, GetSlotsCount)
 {
