@@ -23,7 +23,7 @@ private:
   int32_t   m_y;
   uint32_t  m_width;
 
-  std::unique_ptr<utils::Mutex>    m_pMutex;
+  utils::Mutex                     m_mutex;
   utils::UnorderedVector<uint32_t> m_objectsIds;
 
 public:
@@ -31,10 +31,25 @@ public:
     : m_pOwner(pOwner),
       m_x(x),
       m_y(y),
-      m_width(width),
-      m_pMutex(new utils::Mutex())
+      m_width(width)
   {}
 
+  Cell(const Cell& other)
+    : m_pOwner(other.m_pOwner),
+      m_x(other.m_x),
+      m_y(other.m_y),
+      m_width(other.m_width),
+      m_objectsIds(other.m_objectsIds)
+  {}
+
+  world::Cell& operator=(world::Cell&& other) {
+    m_pOwner = std::move(other.m_pOwner);
+    m_x = std::move(other.m_x);
+    m_y = std::move(other.m_y);
+    m_width = std::move(other.m_width);
+    m_objectsIds = std::move(other.m_objectsIds);
+    return *this;
+  }
   int32_t left()   const { return m_x; }
   int32_t right()  const { return m_x + static_cast<int32_t>(m_width); }
   int32_t bottom() const { return m_y; }
@@ -42,8 +57,8 @@ public:
 
   template<typename NumericType>
   bool contains(NumericType x, NumericType y) const {
-    return (x >= m_x) && static_cast<uint32_t>(x - m_x) < m_width
-        && (y >= m_y) && static_cast<uint32_t>(y - m_y) < m_width;
+    return (x >= m_x) && static_cast<uint64_t>(x - m_x) < m_width
+        && (y >= m_y) && static_cast<uint64_t>(y - m_y) < m_width;
   }
 
   template<typename NumericType>
@@ -77,7 +92,9 @@ class Grid {
   size_t indexOf(NumericType x, NumericType y) const {
     const int32_t i = (x - m_parentCell.left()) / m_cellWidth;
     const int32_t j = (y - m_parentCell.bottom()) / m_cellWidth;
-    return static_cast<size_t>(j * m_width + i);
+    const size_t index = static_cast<size_t>(j * m_width + i);
+    assert(index < m_cells.size());
+    return index;
   }
 
   static Grid* g_globalGrid;
@@ -140,7 +157,15 @@ public:
   static Grid* getGlobal() { return g_globalGrid; }
 
   Grid();
-  Grid(uint16_t width, uint32_t cellWidth);
+  Grid(uint16_t nWidth, uint32_t nCellWidth);
+
+  // These are deleted, because default implementation produces inconsistent
+  // Grid object (cell's 'm_pOwner' member points to old Grid objects).
+  Grid(const Grid& other) = delete;
+  Grid(Grid&& other) = delete;
+
+  void build(uint16_t nWidth, uint32_t nCellWidth);
+    // Rebuild the grid.
 
   int32_t left()   const { return m_parentCell.left(); }
   int32_t right()  const { return m_parentCell.right(); }
@@ -198,12 +223,12 @@ inline Cell *Cell::track(uint32_t nObjectId, NumericType x, NumericType y) {
   Cell *pNewCell = m_pOwner->getCell(x, y);
   if (pNewCell) {
     assert(pNewCell->contains(x, y));
-    std::lock_guard guard(*pNewCell->m_pMutex);
+    std::lock_guard guard(pNewCell->m_mutex);
     assert(!pNewCell->m_objectsIds.has(nObjectId));
     pNewCell->m_objectsIds.push(nObjectId, false);
   }
 
-  std::lock_guard guard(*m_pMutex);
+  std::lock_guard guard(m_mutex);
   m_objectsIds.removeFirst(nObjectId);
   assert(!m_objectsIds.has(nObjectId));
   return pNewCell;

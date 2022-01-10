@@ -7,14 +7,22 @@ Grid* Grid::g_globalGrid = nullptr;
 
 
 Grid::Grid()
-  : m_parentCell(this, 0, 0, 0)
+  : m_parentCell(nullptr, 0, 0, 0)
 {}
 
 Grid::Grid(uint16_t nWidth, uint32_t nCellWidth)
   : m_cellWidth(nCellWidth)
   , m_width(nWidth)
-  , m_parentCell(this, 0, 0, nCellWidth)  // Will be inited later
+  , m_parentCell(nullptr, 0, 0, nCellWidth)  // Will be inited later
 {
+  build(m_width, m_cellWidth);
+}
+
+void Grid::build(uint16_t nWidth, uint32_t nCellWidth)
+{
+  m_width     = nWidth;
+  m_cellWidth = nCellWidth;
+
   const uint64_t nLength = static_cast<uint64_t>(nWidth * nCellWidth);
   assert(nLength < 0xFFFFFFFF);
   const int32_t nHalfSize = static_cast<int32_t>(nLength / 2);

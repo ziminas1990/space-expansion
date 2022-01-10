@@ -195,7 +195,7 @@ bool SystemManager::createAllComponents()
           std::time(nullptr));
   }
 
-  m_globalGrid = world::Grid(
+  m_globalGrid.build(
         m_configuration.getGlobalGridCfg().gridSize(),
         m_configuration.getGlobalGridCfg().cellWidthKm() * 1000);
   world::Grid::setGlobal(&m_globalGrid);
