@@ -1,6 +1,6 @@
 #include "SystemClock.h"
 
-#include <SystemManager.h>
+#include <Utils/Clock.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::SystemClock);
 
@@ -14,7 +14,7 @@ SystemClock::SystemClock(std::string&& sName, world::PlayerWeakPtr pOwner)
 
 void SystemClock::proceed(uint32_t)
 {
-  uint64_t const now = SystemManager::getIngameTime();
+  const uint64_t now = utils::GlobalClock::now();
   while (!m_rings.empty()) {
     if (!m_rings.back().isValid()) {
       m_rings.pop_back();
@@ -66,7 +66,7 @@ void SystemClock::onSessionClosed(uint32_t nSessionId)
 
 void SystemClock::waitFor(uint32_t nSessionId, uint64_t time)
 {
-  m_rings.emplace_back(nSessionId, SystemManager::getIngameTime() + time);
+  m_rings.emplace_back(nSessionId, utils::GlobalClock::now() + time);
   drawnLastRing();
   switchToActiveState();
 }
@@ -83,7 +83,7 @@ void SystemClock::monitoring(uint32_t nSessionId, uint32_t nIntervalMs)
   if (nIntervalMs < 20) {
     nIntervalMs = 20;
   }
-  m_subscriptions.add(nSessionId, nIntervalMs, SystemManager::getIngameTime());
+  m_subscriptions.add(nSessionId, nIntervalMs, utils::GlobalClock::now());
   switchToActiveState();
 }
 
@@ -91,7 +91,7 @@ void SystemClock::sendTime(uint32_t nSessionId)
 {
   spex::Message message;
   spex::ISystemClock* body = message.mutable_system_clock();
-  body->set_time(SystemManager::getIngameTime());
+  body->set_time(utils::GlobalClock::now());
   sendToClient(nSessionId, message);
 }
 

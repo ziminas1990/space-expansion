@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <Protocol.pb.h>
 
-#include <SystemManager.h>
+#include <Utils/Clock.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
 
@@ -101,7 +101,7 @@ void Commutator::broadcast(spex::Message const& message)
 
 void Commutator::proceed(uint32_t)
 {
-  uint64_t nNow = SystemManager::getIngameTime();
+  const uint64_t nNow = utils::GlobalClock::now();
   for(size_t i = 0; i < m_delayedMessages.size(); ++i) {
     StoredMessage& message = m_delayedMessages[i];
     if(message.m_message.timestamp() < nNow) {
@@ -166,7 +166,7 @@ bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
   if (encapsulated->choice_case() != spex::Message::kEncapsulated) {
     // If we are the top-level commutator for this message, then we should add
     // timestamp to it
-    encapsulated->set_timestamp(SystemManager::getIngameTime());
+    encapsulated->set_timestamp(utils::GlobalClock::now());
   }
   if (nTunnelId < m_Tunnels.size()) {
     const Tunnel& tunnel = m_Tunnels[nTunnelId];
@@ -331,7 +331,7 @@ void Commutator::commutateMessage(
     spex::Message const& message)
 {
   if (message.timestamp() &&
-      message.timestamp() > SystemManager::getIngameTime()) {
+      message.timestamp() > utils::GlobalClock::now()) {
     m_delayedMessages.emplace_back(nTunnelId, message);
     switchToActiveState();
     return;

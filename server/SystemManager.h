@@ -50,10 +50,6 @@ public:
     return m_pFilteringManager;
   }
 
-  static uint64_t getIngameTime();
-    // Return current ingame time in microseconds. System manager must be
-    // started before this function is called.
-
 private:
   bool createAllComponents();
   bool configureComponents();

@@ -1,6 +1,6 @@
 #include "PassiveScanner.h"
 
-#include <SystemManager.h>
+#include <Utils/Clock.h>
 #include <Newton/PhysicalObject.h>
 #include <Ships/Ship.h>
 #include <World/CelestialBodies/Asteroid.h>
@@ -55,7 +55,7 @@ PassiveScanner::PassiveScanner(
 
 void PassiveScanner::proceed(uint32_t)
 {
-  const uint64_t nowUs = SystemManager::getIngameTime();
+  const uint64_t nowUs = utils::GlobalClock::now();
 
   if (nowUs - m_nLastGlobalUpdateUs > m_nMaxUpdateTimeUs) {
     proceedGlobalScan();
@@ -200,7 +200,7 @@ void PassiveScanner::proceedGlobalScan()
 
   const world::Grid*     pGrid       = world::Grid::getGlobal();
   const geometry::Point& position    = getPlatform()->getPosition();
-  const uint64_t         nowUs       = SystemManager::getIngameTime();
+  const uint64_t         nowUs       = utils::GlobalClock::now();
 
   // Should sort 'm_detectedObjects' by objectsId in order to use binary
   // search

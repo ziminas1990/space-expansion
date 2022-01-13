@@ -81,4 +81,19 @@ private:
   mutable uint64_t m_nPeriodDurationUs   = 0;
 };
 
+class GlobalClock {
+private:
+  static Clock* g_pGlobalClock;
+
+public:
+  static void set(Clock* pClock) { g_pGlobalClock = pClock; }
+  static void reset() { g_pGlobalClock = nullptr; }
+
+  static Clock* instance() { return g_pGlobalClock; }
+
+  static uint64_t now() {
+    return g_pGlobalClock ? g_pGlobalClock->now() : 0;
+  }
+};
+
 } // namespace utils

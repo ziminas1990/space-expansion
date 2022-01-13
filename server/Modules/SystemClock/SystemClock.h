@@ -32,8 +32,8 @@ private:
 
   void drawnLastRing();
   void forgetRingSession(uint32_t nSessionId);
-private:
 
+private:
   struct Ring {
     Ring() : nSessionId(0), nWhen(0) {}
     Ring(uint32_t nSessionId, uint64_t nWhen)

@@ -2,8 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include <Utils/YamlReader.h>
-
-#include <SystemManager.h>
+#include <Utils/Clock.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 
@@ -54,7 +53,7 @@ bool Ship::loadState(YAML::Node const& source)
 
 void Ship::proceed(uint32_t)
 { 
-  const uint64_t now = SystemManager::getIngameTime();
+  const uint64_t now = utils::GlobalClock::now();
 
   // Send updates to subscribers
   uint32_t session;
@@ -154,7 +153,7 @@ void Ship::handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs)
   }
   sendState(nSessionId);
   if (nPeriodMs) {
-    m_subscriptions.add(nSessionId, nPeriodMs, SystemManager::getIngameTime());
+    m_subscriptions.add(nSessionId, nPeriodMs, utils::GlobalClock::now());
     switchToActiveState();
   } else {
     m_subscriptions.remove(nSessionId);

@@ -17,8 +17,6 @@
 // SystemManager
 //==============================================================================
 
-static utils::Clock* g_clock = nullptr;
-
 SystemManager::~SystemManager()
 {
   m_pAccessPanel->detachFromChannel();
@@ -89,8 +87,9 @@ bool SystemManager::loadWorldState(YAML::Node const& data)
 #ifndef AUTOTESTS_MODE
 void SystemManager::run(bool lColdStart)
 {
-  assert(g_clock == nullptr && "Another system manage is running?");
-  g_clock = &m_clock;
+  assert(utils::GlobalClock::instance() == nullptr
+         && "Another system manager is running?");
+  utils::GlobalClock::set(&m_clock);
   const uint32_t nMinTickLengthUs = 100;
 
   startConveyor();
@@ -116,7 +115,7 @@ void SystemManager::run(bool lColdStart)
   }
 
   stopConveyor();
-  g_clock = nullptr;
+  utils::GlobalClock::reset();
 }
 
 void SystemManager::nextCycle()
@@ -124,17 +123,12 @@ void SystemManager::nextCycle()
   assert("This function can be used only from autotests" == nullptr);
 }
 
-uint64_t SystemManager::getIngameTime()
-{
-  assert(g_clock && "System manager is not running!");
-  return g_clock->now();
-}
-
 #else // #ifndef AUTOTESTS_MODE
 void SystemManager::run(bool lColdStart)
 {
-  assert(g_clock == nullptr && "Another system manager is running?");
-  g_clock = &m_clock;
+  assert(utils::GlobalClock::instance() == nullptr
+         && "Another system manager is running?");
+  utils::GlobalClock::set(&m_clock);
   startConveyor();
   m_clock.start(lColdStart);
 
@@ -146,18 +140,13 @@ void SystemManager::run(bool lColdStart)
   }
 
   stopConveyor();
-  g_clock = nullptr;
+  utils::GlobalClock::reset();
 }
 
 void SystemManager::nextCycle()
 {
   m_barrier.wait();
   m_barrier.wait();
-}
-
-uint64_t SystemManager::getIngameTime()
-{
-  return g_clock ? g_clock->now() : 0;
 }
 #endif // #ifndef AUTOTESTS_MODE
 

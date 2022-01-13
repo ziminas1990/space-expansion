@@ -5,6 +5,8 @@
 
 namespace utils {
 
+Clock* GlobalClock::g_pGlobalClock = nullptr;
+
 inline uint64_t timeSinceUs(std::chrono::high_resolution_clock::time_point point)
 {
   auto now = std::chrono::high_resolution_clock::now();
