@@ -6,6 +6,7 @@
 #include <World/CelestialBodies/Asteroid.h>
 #include <World/Grid.h>
 #include <Utils/YamlReader.h>
+#include <Modules/CommonModulesManager.h>
 
 #include <math.h>
 
@@ -42,12 +43,13 @@ PassiveScanner::PassiveScanner(
     std::string&&        sName,
     world::PlayerWeakPtr pOwner,
     uint32_t             nMaxScanningRadiusKm,
-    uint32_t             nMaxUpdateTimeUs)
+    uint32_t             nMaxUpdateTimeMs)
   : BaseModule("PassiveScanner", std::move(sName), pOwner)
   , m_nMaxScanningRadius(nMaxScanningRadiusKm * 1000)
-  , m_nMaxUpdateTimeUs(nMaxUpdateTimeUs)
+  , m_nMaxUpdateTimeUs(nMaxUpdateTimeMs * 1000)
   , m_nLastGlobalUpdateUs(0)
 {
+  GlobalObject<PassiveScanner>::registerSelf(this);
   m_nSessions.fill(0);
 }
 
@@ -160,7 +162,12 @@ void PassiveScanner::handlePassiveScannerMessage(
 {
   switch(message.choice_case()) {
     case spex::IPassiveScanner::kMonitor: {
-      handleMonitor(nSessionId);
+      switchToActiveState();
+      sendMonitorAck(nSessionId);
+      return;
+    }
+    case spex::IPassiveScanner::kSpecificationReq: {
+      sendSpecification(nSessionId);
       return;
     }
     default:
@@ -169,10 +176,14 @@ void PassiveScanner::handlePassiveScannerMessage(
   }
 }
 
-void PassiveScanner::handleMonitor(uint32_t nSessionId)
+void PassiveScanner::sendSpecification(uint32_t nSessionId)
 {
-  switchToActiveState();
-  sendMonitorAck(nSessionId);
+  spex::Message message;
+  spex::IPassiveScanner::Specification* spec =
+      message.mutable_passive_scanner()->mutable_specification();
+  spec->set_scanning_radius_km(m_nMaxScanningRadius / 1000);
+  spec->set_max_update_time_ms(m_nMaxUpdateTimeUs / 1000);
+  sendToClient(nSessionId, message);
 }
 
 void PassiveScanner::sendMonitorAck(uint32_t nSessionId)
@@ -270,6 +281,9 @@ std::pair<double, uint64_t> PassiveScanner::getDistanceAndUpdateTime(
   const double predictedDistance = otherPosition.distance(position);
   dtUs = static_cast<uint64_t>(
         m_nMaxUpdateTimeUs * sqrt(predictedDistance / m_nMaxScanningRadius));
+  if (dtUs < static_cast<uint64_t>(Cooldown::ePassiveScanner)) {
+    dtUs = static_cast<uint64_t>(Cooldown::ePassiveScanner);
+  }
   return std::make_pair(distance, now + dtUs);
 }
 

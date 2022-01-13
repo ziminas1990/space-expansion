@@ -21,7 +21,7 @@ public:
   PassiveScanner(std::string&& sName,
                  world::PlayerWeakPtr pOwner,
                  uint32_t nMaxScanningRadiusKm,
-                 uint32_t nMaxUpdateTimeUs);
+                 uint32_t nMaxUpdateTimeMs);
 
   void proceed(uint32_t nIntervalUs) override;
 
@@ -35,6 +35,7 @@ private:
 
   void handleMonitor(uint32_t nSessionId);
 
+  void sendSpecification(uint32_t nSessionId);
   void sendMonitorAck(uint32_t nSessionId);
 
   void proceedGlobalScan();
@@ -59,5 +60,7 @@ private:
   };
   std::vector<DetectedItem> m_detectedObjects;
 };
+
+using PassiveScannerPtr = std::shared_ptr<PassiveScanner>;
 
 } // namespace modules

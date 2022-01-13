@@ -190,15 +190,22 @@ message IPassiveScanner {
     float      r           = 7;
   }
 
+  message Specification {
+    uint32 scanning_radius_km = 1;
+    uint32 max_update_time_ms = 2;
+  }
+
   message Update {
     repeated ObjectData update    = 2;
   }
 
   oneof choice {
-    bool   monitor = 1;
+    bool   specification_req = 1;
+    bool   monitor           = 2;
 
-    bool   monitor_ack = 21;
-    Update update      = 22;
+    Specification specification = 21;
+    bool   monitor_ack          = 22;
+    Update update               = 23;
   }
 }
 
