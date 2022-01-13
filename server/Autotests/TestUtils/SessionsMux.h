@@ -25,6 +25,12 @@ public:
     return m_pChannel->send(m_nSessionId, message);
   }
 
+  void close() {
+    m_pChannel = nullptr;
+    m_pTerminal->detachDownlevel();
+    m_pTerminal = nullptr;
+  }
+
   void onMessageReceived(spex::Message&& message) {
     m_pTerminal->onMessageReceived(std::move(message));
   }
@@ -58,7 +64,18 @@ public:
   }
 
   void closeSession(uint32_t nSessionId) {
-    m_sessions.erase(nSessionId);
+    auto itSession = m_sessions.find(nSessionId);
+    if (itSession != m_sessions.end()) {
+      itSession->second->close();
+      m_sessions.erase(itSession);
+    }
+  }
+
+  void closeAllSession() {
+    for (auto& [nSessionId, pSession]: m_sessions) {
+      pSession->close();
+    }
+    m_sessions.clear();
   }
 
   bool openSession(uint32_t) override {

@@ -90,6 +90,7 @@ public:
   bool wait(spex::IShip &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::INavigation &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IEngine &out, uint16_t nTimeoutMs = 100);
+  bool wait(spex::IPassiveScanner &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IAsteroidScanner &out, uint16_t nTimeoutMs = 100);
   bool wait(spex::IResourceContainer &out, uint16_t nTimeoutMs = 100);

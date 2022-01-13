@@ -24,7 +24,8 @@ class Player
 
 public:
 
-  static PlayerPtr load(std::string sLogin, blueprints::BlueprintsLibrary blueprints,
+  static PlayerPtr load(std::string sLogin,
+                        blueprints::BlueprintsLibrary blueprints,
                         YAML::Node const& state);
   ~Player();
 

@@ -11,8 +11,8 @@ namespace network {
 // 2. IProtobufTerminal::onSessionClosed(sessionId)
 // 3. handleMessage(nSessionId, message)
 //
-// The `FrameType` parameter specifies type of protobuf message, like `spex::Message`
-// or `admin::Message`
+// The `FrameType` parameter specifies type of protobuf message, like
+// `spex::Message` or `admin::Message`
 template<typename FrameType>
 class BufferedProtobufTerminal : public ITerminal<FrameType>
 {

@@ -58,6 +58,15 @@ bool PlayerPipe::wait(spex::IEngine &out, uint16_t nTimeoutMs)
   return true;
 }
 
+bool PlayerPipe::wait(spex::IPassiveScanner &out, uint16_t nTimeoutMs)
+{
+  spex::Message message;
+  if(!waitConcrete(spex::Message::kPassiveScanner, message, nTimeoutMs))
+    return false;
+  out = std::move(message.passive_scanner());
+  return true;
+}
+
 bool PlayerPipe::wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs)
 {
   spex::Message message;
