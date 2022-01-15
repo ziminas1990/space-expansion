@@ -51,11 +51,6 @@ public:
     : Socket(io_context, std::move(localAddress))
   {}
 
-  void attachToTerminal(ITerminalWeakPtr<FrameT> pTerminal)
-  {
-    m_pTerminalLink = pTerminal;
-  }
-
   // overrides from IChannel<FrameT>
   bool send(FrameT const& message) override
   {
@@ -64,6 +59,16 @@ public:
       return false;
     Socket::send(buffer);
     return true;
+  }
+
+  void attachToTerminal(ITerminalPtr<FrameT> pTerminal) override
+  {
+    m_pTerminalLink = pTerminal;
+  }
+
+  void detachFromTerminal() override
+  {
+    m_pTerminalLink.reset();
   }
 
 protected:

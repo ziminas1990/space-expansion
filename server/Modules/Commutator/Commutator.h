@@ -18,11 +18,13 @@ class Commutator :
   static const size_t m_nSessionsLimit = 8;
 
 public:
+  static uint32_t invalidSlot() { return UINT32_MAX; }
+
   Commutator();
 
   uint32_t attachModule(BaseModulePtr pModule);
-    // Attach module to commutator. Return slotId - number of slot, to which the module
-    // has been attached
+    // Attach module to commutator. Return slotId - number of slot, to which
+    // the module has been attached
 
   BaseModulePtr findModuleByName(std::string const& sName) const;
     // Return module with the specified 'sName'. If module doesn't exist, return null.

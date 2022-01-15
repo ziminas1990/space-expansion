@@ -28,7 +28,9 @@ public:
   bool loadState(YAML::Node const& source) override;
   void proceed(uint32_t nIntervalUs);
 
-  bool installModule(modules::BaseModulePtr pModule);
+  uint32_t installModule(modules::BaseModulePtr pModule);
+  // Install module to the ship. Return ship's commutator slot, in which module
+  // has been installed.
 
   modules::CommutatorPtr getCommutator() const { return m_pCommutator; }
 

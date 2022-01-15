@@ -14,7 +14,7 @@ Commutator::Commutator()
   : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
 {
   GlobalObject<Commutator>::registerSelf(this);
-  // Slot #0 should not be used. It make
+  // Session #0 should not be used
   m_Tunnels.emplace_back();
 }
 

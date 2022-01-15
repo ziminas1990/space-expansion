@@ -62,6 +62,16 @@ public:
     return m_pDownlevel && m_pDownlevel->send(message);
   }
 
+  void attachToTerminal(ITerminalPtr<FrameType>) override
+  {
+    assert(nullptr == "Operation makes no sense");
+  }
+
+  void detachFromTerminal() override
+  {
+    assert(nullptr == "Operation makes no sense");
+  }
+
   void dropAll()
   {
     while (!m_receivedMessages.empty()) {

@@ -5,8 +5,7 @@
 #include <Conveyor/Conveyor.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/Commutator/CommutatorManager.h>
-#include <Autotests/TestUtils/BidirectionalChannel.h>
-#include <Autotests/TestUtils/SessionsMux.h>
+#include <Autotests/TestUtils/Connector.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
 
 #include <Autotests/ClientSDK/SyncPipe.h>
@@ -38,11 +37,11 @@ protected:
   modules::CommutatorPtr        m_pCommutatator;
 
   // Component, that connects client and server sides
-  BidirectionalChannelPtr       m_pChannel;
+  PlayerConnectorPtr            m_pConnection;
+  PlayerConnectorGuard          m_connectionGuard;
 
   // Components on client side
-  SessionMuxPtr                 m_pSessionMux;
-  client::PlayerPipePtr         m_pProtobufPipe;
+  client::PlayerPipePtr         m_pRootPipe;
   client::ClientCommutatorPtr   m_pClient;
 };
 
@@ -55,45 +54,37 @@ void CommutatorTests::SetUp()
   // +----------+   +-----------+
   //      |               |
   //      +-------+-------+
-  //              |
-  //      +----------------+
-  //      | pProtobufPipe  |
-  //      +----------------+                          ?   ?   ?
+  //              |                                   ?   ?   ?
   //              |                                   |   |   |
   //      +----------------+                      +---------------+
-  //      |   pSessionMux  |                      |  pCommutator  |
+  //      |   pRootPipe    |                      |  pCommutator  |
   //      +----------------+                      +---------------+
-  //              |              +----------+             |
-  //              +--------------| pChannel |-------------+
-  //                             +----------+
+  //              |             +-------------+             |
+  //              +-------------| pConnection |-------------+
+  //                            +-------------+
 
   // Creating components
   m_pCommutatorManager = std::make_shared<modules::CommutatorManager>();
   m_pCommutatator      = std::make_shared<modules::Commutator>();
-  m_pChannel           = std::make_shared<BidirectionalChannel>();
 
   // Components on client side
-  m_pSessionMux        = std::make_shared<SessionMux>();
-  m_pProtobufPipe      = std::make_shared<client::PlayerPipe>();
+  m_pRootPipe          = std::make_shared<client::PlayerPipe>();
   m_pClient            = std::make_shared<client::ClientCommutator>();
 
   // Setting up components
   m_Conveyor.addLogicToChain(m_pCommutatorManager);
-  m_pProtobufPipe->setProceeder(m_fConveyorProceeder);
+  m_pRootPipe->setProceeder(m_fConveyorProceeder);
 
   // Linking components
-  m_pChannel->link(m_pSessionMux, m_pCommutatator);
-  m_pSessionMux->openSession(1, m_pProtobufPipe);
-  m_pClient->attachToChannel(m_pProtobufPipe);
+  m_pClient->attachToChannel(m_pRootPipe);
+  m_pConnection = std::make_shared<PlayerConnector>(1);
+  m_connectionGuard.link(m_pConnection, m_pCommutatator, m_pRootPipe);
 }
 
 void CommutatorTests::TearDown()
 {
-  m_pProtobufPipe->detachDownlevel();
-  m_pSessionMux->closeSession(1);
-  m_pChannel->unlink();
   m_pCommutatator->detachFromModules();
-  m_pCommutatator->detachFromChannel();
+  // m_connectionGuard will release the rest of links
 }
 
 void CommutatorTests::proceedEnviroment()

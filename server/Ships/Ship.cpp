@@ -62,15 +62,16 @@ void Ship::proceed(uint32_t)
   }
 }
 
-bool Ship::installModule(modules::BaseModulePtr pModule)
+uint32_t Ship::installModule(modules::BaseModulePtr pModule)
 {
-  if (m_Modules.find(pModule->getModuleName()) != m_Modules.end())
-    return false;
+  if (m_Modules.find(pModule->getModuleName()) != m_Modules.end()) {
+    return modules::Commutator::invalidSlot();
+  }
   m_Modules.insert(std::make_pair(pModule->getModuleName(), pModule));
-  m_pCommutator->attachModule(pModule);
+  const uint32_t nSlot = m_pCommutator->attachModule(pModule);
   pModule->attachToChannel(m_pCommutator);
   pModule->installOn(this);
-  return true;
+  return nSlot;
 }
 
 void Ship::onMessageReceived(uint32_t nSessionId, spex::Message const& message)

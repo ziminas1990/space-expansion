@@ -4,6 +4,16 @@
 #include <Protocol.pb.h>
 namespace autotests { namespace client {
 
+template<typename FrameType>
+class IChannel;
+template<typename FrameType>
+using IChannelPtr = std::shared_ptr<IChannel<FrameType>>;
+
+template<typename FrameType>
+class ITerminal;
+template<typename FrameType>
+using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;
+
 class IProceedable
 {
 public:
@@ -20,10 +30,10 @@ public:
   virtual ~IChannel() = default;
 
   virtual bool send(FrameType const& message) = 0;
-};
 
-template<typename FrameType>
-using IChannelPtr = std::shared_ptr<IChannel<FrameType>>;
+  virtual void attachToTerminal(ITerminalPtr<FrameType> pTerminal) = 0;
+  virtual void detachFromTerminal() = 0;
+};
 
 template<typename FrameType>
 class ITerminal
@@ -38,8 +48,6 @@ public:
 
 };
 
-template<typename FrameType>
-using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;
 
 template<typename FrameType>
 using ITerminalWeakPtr = std::weak_ptr<ITerminal<FrameType>>;
