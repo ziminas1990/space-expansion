@@ -23,10 +23,13 @@ class Player
          blueprints::BlueprintsLibrary&& blueprints);
 
 public:
-
   static PlayerPtr load(std::string sLogin,
                         blueprints::BlueprintsLibrary blueprints,
                         YAML::Node const& state);
+
+  static PlayerPtr makeDummy(std::string sLogin);
+  // Create non initialized Player object (may be used in tests purposes)
+
   ~Player();
 
   network::UdpSocketPtr getUdpSocket() const { return m_pUdpChannel; }

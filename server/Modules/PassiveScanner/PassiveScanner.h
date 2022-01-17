@@ -23,20 +23,22 @@ public:
                  uint32_t nMaxScanningRadiusKm,
                  uint32_t nMaxUpdateTimeMs);
 
+  void reset();
+
   void proceed(uint32_t nIntervalUs) override;
 
   // Override from BaseModule->IProtobufTerminal
-  bool openSession(uint32_t nSessionId) override;
+  bool openSession(uint32_t) override { return true; }
   void onSessionClosed(uint32_t nSessionId) override;
 
 private:
   void handlePassiveScannerMessage(
       uint32_t nSessionId, spex::IPassiveScanner const& message) override;
 
-  void handleMonitor(uint32_t nSessionId);
+  void handleMonitorReq(uint32_t nSessionId);
 
   void sendSpecification(uint32_t nSessionId);
-  void sendMonitorAck(uint32_t nSessionId);
+  void sendMonitorAck(uint32_t nSessionId, bool status);
 
   void proceedGlobalScan();
 
@@ -48,7 +50,7 @@ private:
   uint32_t m_nMaxUpdateTimeUs;
 
   uint64_t                m_nLastGlobalUpdateUs;
-  std::array<uint32_t, 8> m_nSessions;
+  std::array<uint32_t, 8> m_nMonitoringSessions;
 
   struct DetectedItem {
     uint64_t m_nWhenToUpdate;

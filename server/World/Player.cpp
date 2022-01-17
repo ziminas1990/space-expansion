@@ -19,6 +19,7 @@ PlayerPtr Player::load(
     blueprints::BlueprintsLibrary blueprints,
     YAML::Node const& state)
 { 
+  // Can't use 'std::make_shared' here since Player's constructor is private
   PlayerPtr pPlayer =
       std::shared_ptr<Player>(
         new Player(std::move(sLogin), std::move(blueprints)));
@@ -78,6 +79,13 @@ PlayerPtr Player::load(
   return pPlayer;
 }
 
+PlayerPtr Player::makeDummy(std::string sLogin)
+{
+  // Can't use 'std::make_shared' here since Player's constructor is private
+  return std::shared_ptr<Player>(
+        new Player(std::move(sLogin), blueprints::BlueprintsLibrary()));
+}
+
 Player::~Player()
 {
   if (m_pUdpChannel) {
@@ -87,10 +95,14 @@ Player::~Player()
     m_pProtobufChannel->detachFromTerminal();
     m_pProtobufChannel->detachFromChannel();
   }
-  m_pEntryPoint->detachFromChannel();
-  m_pEntryPoint->detachFromTerminal();
-  m_pEntryPoint->detachFromModules();
-  m_pBlueprintsExplorer->detachFromChannel();
+  if (m_pEntryPoint) {
+    m_pEntryPoint->detachFromChannel();
+    m_pEntryPoint->detachFromTerminal();
+    m_pEntryPoint->detachFromModules();
+  }
+  if (m_pBlueprintsExplorer) {
+    m_pBlueprintsExplorer->detachFromChannel();
+  }
 }
 
 void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)

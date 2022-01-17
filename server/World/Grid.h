@@ -63,6 +63,7 @@ public:
 
   template<typename NumericType>
   void add(uint32_t nObjectId, NumericType x, NumericType y) {
+    std::lock_guard<utils::Mutex> guard(m_mutex);
     assert(contains(x, y));
     assert(!m_objectsIds.has(nObjectId));
     m_objectsIds.push(nObjectId);

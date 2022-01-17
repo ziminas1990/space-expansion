@@ -31,7 +31,7 @@ class Clock
   };
 
 public:
-  void start(bool lColdStart = false);
+  void start(bool lDebugMode = false);
 
   uint64_t now() const { return m_inGameTimeUs; }
     // Return ingame time (not real time!)

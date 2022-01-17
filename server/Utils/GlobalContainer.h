@@ -113,6 +113,9 @@ public:
     registerSelf(nullptr);
   }
 
+  GlobalObject(const GlobalObject& other) = delete;
+  GlobalObject(GlobalObject&& other) = delete;
+
   virtual ~GlobalObject()
   {
     std::lock_guard<Mutex> guard(Container::gMutex);

@@ -41,11 +41,15 @@ class Asteroid :
     public utils::GlobalObject<Asteroid>
 {
 public:
+  using Ptr  = std::shared_ptr<Asteroid>;
+  using Uptr = std::unique_ptr<Asteroid>;
+
+public:
   Asteroid();
   Asteroid(double radius,
            double weight,
            AsteroidComposition distribution,
-           double seed);
+           uint32_t seed);
 
   bool loadState(YAML::Node const& data);
 
@@ -68,6 +72,6 @@ private:
   utils::Mutex m_mutex;
 };
 
-using AsteroidUptr = std::unique_ptr<Asteroid>;
+using AsteroidUptr = Asteroid::Uptr;
 
 } // namespace world

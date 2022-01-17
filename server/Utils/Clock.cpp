@@ -15,11 +15,9 @@ inline uint64_t timeSinceUs(std::chrono::high_resolution_clock::time_point point
         .count());
 }
 
-void Clock::start(bool lColdStart)
+void Clock::start(bool lDebugMode)
 {
-  if (lColdStart) {
-    m_eState = eDebugMode;
-  }
+  m_eState       = lDebugMode ? eDebugMode : eRealTimeMode;
   m_startedAt    = std::chrono::high_resolution_clock::now();
   m_inGameTimeUs = 0;
   m_nDeviationUs = 0;
@@ -71,8 +69,8 @@ uint32_t Clock::getNextInterval()
         dt = 0;
       }
       assert(dt < uint32_t(-1));
-      m_nDeviationUs -= dt;
-      m_inGameTimeUs        += dt;
+      m_nDeviationUs      -= dt;
+      m_inGameTimeUs      += dt;
       m_nPeriodDurationUs += dt;
       return static_cast<uint32_t>(dt);
     }

@@ -9,6 +9,7 @@
 #include <Modules/CommonModulesManager.h>
 
 #include <math.h>
+#include <iostream>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::PassiveScanner);
 
@@ -50,19 +51,33 @@ PassiveScanner::PassiveScanner(
   , m_nLastGlobalUpdateUs(0)
 {
   GlobalObject<PassiveScanner>::registerSelf(this);
-  m_nSessions.fill(0);
+  m_nMonitoringSessions.fill(0);
+}
+
+void PassiveScanner::reset()
+{
+  m_nLastGlobalUpdateUs = 0;
+  m_detectedObjects.clear();
+  m_nMonitoringSessions.fill(0);
+  switchToIdleState();
 }
 
 void PassiveScanner::proceed(uint32_t)
 {
   const uint64_t nowUs = utils::GlobalClock::now();
 
-  if (nowUs - m_nLastGlobalUpdateUs > m_nMaxUpdateTimeUs) {
+  if (!m_nLastGlobalUpdateUs ||
+      nowUs - m_nLastGlobalUpdateUs > m_nMaxUpdateTimeUs) {
     proceedGlobalScan();
     m_nLastGlobalUpdateUs = nowUs;
   }
 
   if (m_detectedObjects.empty()) {
+    return;
+  }
+
+  // The most likely path:
+  if (m_detectedObjects.front().m_nWhenToUpdate > nowUs) {
     return;
   }
 
@@ -74,6 +89,7 @@ void PassiveScanner::proceed(uint32_t)
 
   while (m_detectedObjects.front().m_nWhenToUpdate <= nowUs
          && totalObjectsToUpdate < updateLimit) {
+
     DetectedItem& item = m_detectedObjects.front();
     const newton::PhysicalObject* pObject =
         utils::GlobalContainer<newton::PhysicalObject>::Instance(
@@ -82,16 +98,17 @@ void PassiveScanner::proceed(uint32_t)
       const auto [distance, updateTime] =
           getDistanceAndUpdateTime(*pObject, nowUs);
       item.m_nWhenToUpdate = updateTime;
-      // Move element to keep vector sorted (one iteration of bubble sort)
-      for (size_t i = 1; i < m_detectedObjects.size(); ++i) {
-        if (m_detectedObjects[i - 1] < m_detectedObjects[i]) {
-          break;
-        } else {
-          std::swap(m_detectedObjects[i - 1], m_detectedObjects[i]);
-        }
-      }
 
       if (distance < m_nMaxScanningRadius) {
+        // Move element to keep vector sorted (one iteration of bubble sort)
+        for (size_t i = 1; i < m_detectedObjects.size(); ++i) {
+          if (m_detectedObjects[i - 1] < m_detectedObjects[i]) {
+            break;
+          } else {
+            std::swap(m_detectedObjects[i - 1], m_detectedObjects[i]);
+          }
+        }
+
         objectsToUpdate[totalObjectsToUpdate++] = pObject;
       } else {
         // Object is out of range
@@ -108,7 +125,8 @@ void PassiveScanner::proceed(uint32_t)
     spex::Message message;
     spex::IPassiveScanner::Update* update =
         message.mutable_passive_scanner()->mutable_update();
-    for (const newton::PhysicalObject* pObject: objectsToUpdate) {
+    for (size_t i = 0; i < totalObjectsToUpdate; ++i) {
+      const newton::PhysicalObject* pObject = objectsToUpdate[i];
       spex::IPassiveScanner::ObjectData* pData = update->add_update();
       spex::ObjectType eType;
       uint32_t         nObjectId;
@@ -122,7 +140,7 @@ void PassiveScanner::proceed(uint32_t)
       pData->set_r(static_cast<float>(pObject->getRadius()));
     }
 
-    for (const uint32_t nSession: m_nSessions) {
+    for (const uint32_t nSession: m_nMonitoringSessions) {
       if (nSession) {
         sendToClient(nSession, message);
       }
@@ -130,24 +148,13 @@ void PassiveScanner::proceed(uint32_t)
   }
 }
 
-bool PassiveScanner::openSession(uint32_t nSessionId)
-{
-  for (size_t i = 0, end = m_nSessions.size(); i < end; ++i) {
-    if (m_nSessions[i] == 0) {
-      m_nSessions[i] = nSessionId;
-      return true;
-    }
-  }
-  return false;
-}
-
 void PassiveScanner::onSessionClosed(uint32_t nSessionId)
 {
   bool lHasActiveSessions = false;
-  for (size_t i = 0, end = m_nSessions.size(); i < end; ++i) {
-    if (m_nSessions[i] == nSessionId) {
-      m_nSessions[i] = 0;
-    } else if (m_nSessions[i] != 0) {
+  for (size_t i = 0, end = m_nMonitoringSessions.size(); i < end; ++i) {
+    if (m_nMonitoringSessions[i] == nSessionId) {
+      m_nMonitoringSessions[i] = 0;
+    } else if (m_nMonitoringSessions[i] != 0) {
       lHasActiveSessions = true;
     }
   }
@@ -162,8 +169,7 @@ void PassiveScanner::handlePassiveScannerMessage(
 {
   switch(message.choice_case()) {
     case spex::IPassiveScanner::kMonitor: {
-      switchToActiveState();
-      sendMonitorAck(nSessionId);
+      handleMonitorReq(nSessionId);
       return;
     }
     case spex::IPassiveScanner::kSpecificationReq: {
@@ -176,6 +182,20 @@ void PassiveScanner::handlePassiveScannerMessage(
   }
 }
 
+void PassiveScanner::handleMonitorReq(uint32_t nSessionId)
+{
+
+  for (size_t i = 0, end = m_nMonitoringSessions.size(); i < end; ++i) {
+    if (m_nMonitoringSessions[i] == 0) {
+      m_nMonitoringSessions[i] = nSessionId;
+      sendMonitorAck(nSessionId, true);
+      switchToActiveState();
+      return;
+    }
+  }
+  sendMonitorAck(nSessionId, true);
+}
+
 void PassiveScanner::sendSpecification(uint32_t nSessionId)
 {
   spex::Message message;
@@ -186,20 +206,22 @@ void PassiveScanner::sendSpecification(uint32_t nSessionId)
   sendToClient(nSessionId, message);
 }
 
-void PassiveScanner::sendMonitorAck(uint32_t nSessionId)
+void PassiveScanner::sendMonitorAck(uint32_t nSessionId, bool status)
 {
   spex::Message message;
-  message.mutable_passive_scanner()->set_monitor_ack(true);
+  message.mutable_passive_scanner()->set_monitor_ack(status);
   sendToClient(nSessionId, message);
 }
 
 void PassiveScanner::proceedGlobalScan()
 {
   const double scanningAreaSize  = 2 * m_nMaxScanningRadius;
-  const double scanningRadiusSqr = m_nMaxScanningRadius * m_nMaxScanningRadius;
+  const double scanningRadiusSqr =
+      static_cast<double>(m_nMaxScanningRadius) * m_nMaxScanningRadius;
 
+  const ships::Ship*     pPlatform   = getPlatform();
   const world::Grid*     pGrid       = world::Grid::getGlobal();
-  const geometry::Point& position    = getPlatform()->getPosition();
+  const geometry::Point& position    = pPlatform->getPosition();
   const uint64_t         nowUs       = utils::GlobalClock::now();
 
   // Should sort 'm_detectedObjects' by objectsId in order to use binary
@@ -214,8 +236,8 @@ void PassiveScanner::proceedGlobalScan()
   newData.reserve(oldData.capacity());
 
   world::Grid::iterator itCell = pGrid->range(
-        position.x,
-        position.y,
+        position.x - m_nMaxScanningRadius,
+        position.y - m_nMaxScanningRadius,
         scanningAreaSize,
         scanningAreaSize);
 
@@ -224,12 +246,18 @@ void PassiveScanner::proceedGlobalScan()
       const newton::PhysicalObject* pObject =
           utils::GlobalContainer<newton::PhysicalObject>::Instance(nObjectId);
 
-      if (pObject &&
-          position.distanceSqr(pObject->getPosition()) < scanningRadiusSqr) {
-        newData.push_back(DetectedItem{
-                            getDistanceAndUpdateTime(*pObject, nowUs).second,
-                            nObjectId
-                          });
+      if (pObject) {
+        if (pObject->is(world::ObjectType::eShip) &&
+            static_cast<const ships::Ship*>(pObject)->getOwner().lock()
+            == getOwner().lock()) {
+          // Ignore ships, that belong to the same player
+          continue;
+        }
+
+        if (position.distanceSqr(pObject->getPosition()) < scanningRadiusSqr) {
+          const auto distanceAndTime = getDistanceAndUpdateTime(*pObject, nowUs);
+          newData.push_back(DetectedItem{distanceAndTime.second, nObjectId});
+        }
       }
     }
   }
@@ -244,7 +272,7 @@ void PassiveScanner::proceedGlobalScan()
   size_t       j    = 0;  // iterate through newData
   const size_t jEnd = newData.size();
 
-  while(i != iEnd || j != jEnd) {
+  while(i < iEnd && j < jEnd) {
     const DetectedItem& oldItem = oldData[i];
     DetectedItem&       newItem = newData[j];
     if (oldItem.m_nObjectId == newItem.m_nObjectId) {
@@ -266,12 +294,13 @@ void PassiveScanner::proceedGlobalScan()
 std::pair<double, uint64_t> PassiveScanner::getDistanceAndUpdateTime(
     const newton::PhysicalObject &other, uint64_t now) const
 {
+  const double           k             = 0.7;
   const geometry::Point& position      = getPlatform()->getPosition();
   geometry::Point        otherPosition = other.getPosition();
 
   const double distance = otherPosition.distance(position);
   uint64_t     dtUs     = static_cast<uint64_t>(
-        m_nMaxUpdateTimeUs * sqrt(distance / m_nMaxScanningRadius));
+        m_nMaxUpdateTimeUs * pow(distance / m_nMaxScanningRadius, k));
 
   // Predict where object will be at 'now + dtUs'
   const double dtSec = dtUs / 1000000.0;
@@ -280,7 +309,7 @@ std::pair<double, uint64_t> PassiveScanner::getDistanceAndUpdateTime(
   // Recalculating update time
   const double predictedDistance = otherPosition.distance(position);
   dtUs = static_cast<uint64_t>(
-        m_nMaxUpdateTimeUs * sqrt(predictedDistance / m_nMaxScanningRadius));
+        m_nMaxUpdateTimeUs * pow(predictedDistance / m_nMaxScanningRadius, k));
   if (dtUs < static_cast<uint64_t>(Cooldown::ePassiveScanner)) {
     dtUs = static_cast<uint64_t>(Cooldown::ePassiveScanner);
   }

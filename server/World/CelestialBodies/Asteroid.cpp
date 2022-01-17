@@ -18,7 +18,7 @@ Asteroid::Asteroid() : newton::PhysicalObject(0, 0)
 Asteroid::Asteroid(double radius,
                    double weight,
                    AsteroidComposition distribution,
-                   double seed)
+                   uint32_t seed)
   : newton::PhysicalObject(weight, radius),
     m_composition(std::move(distribution)),
     m_randomizer(seed)
