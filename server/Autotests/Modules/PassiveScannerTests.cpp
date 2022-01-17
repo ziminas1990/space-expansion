@@ -233,16 +233,31 @@ struct Tool {
     pShip->moveTo(position);
   }
 
-  static world::AsteroidUptr spawnAsteroid(const geometry::Rectangle& area)
+  static world::AsteroidUptr spawnAsteroid()
   {
-    world::Asteroid::Uptr pAsteroid = std::make_unique<world::Asteroid>(
+    return std::make_unique<world::Asteroid>(
           utils::Randomizer::yield<double>(1, 100),
           utils::Randomizer::yield<double>(10000, 1000000),
           world::AsteroidComposition(1, 1, 1, 10),
           utils::Randomizer::yield<uint32_t>(1, 10000));
+  }
 
+  static world::AsteroidUptr spawnAsteroid(const geometry::Rectangle& area)
+  {
+    world::Asteroid::Uptr pAsteroid = spawnAsteroid();
     geometry::Point position;
     utils::Randomizer::yield(position, area);
+    pAsteroid->moveTo(position);
+    return pAsteroid;
+  }
+
+  static world::AsteroidUptr spawnAsteroid(const geometry::Point& center,
+                                           double radius)
+  {
+    world::Asteroid::Uptr pAsteroid = spawnAsteroid();
+
+    geometry::Point position;
+    utils::Randomizer::yield(position, center, radius);
     pAsteroid->moveTo(position);
     return pAsteroid;
   }
@@ -321,7 +336,7 @@ TEST_F(PassiveScannerTests, ScanMultipleObjects)
     ASSERT_TRUE(pScanner->waitMonitorAck());
 
     UpdatesJournal journal;
-    ASSERT_TRUE(collectUpdates(journal, pScanner, 2 * m_nMaxUpdateTimeMs));
+    ASSERT_TRUE(collectUpdates(journal, pScanner, m_nMaxUpdateTimeMs));
 
     std::set<uint32_t> reportedAsteroids = journal.allAsteroidsIds();
 
@@ -342,6 +357,46 @@ TEST_F(PassiveScannerTests, ScanMultipleObjects)
     }
     ASSERT_EQ(expectedShips, journal.allShipsIds());
   }
+}
+
+TEST_F(PassiveScannerTests, ScanLotsOfObjectsNearby)
+{
+  // This test check that even if module's bandwidth is limited (it can report
+  // about ~320 objects per second), all objects will be reported sooner or
+  // later
+
+  utils::Randomizer::setPattern(567);
+
+  const uint32_t nScanningRadius = m_nRadiusKm * 1000;
+  // Scanning radius covers 1 cells, Grid has 1 * 1 size
+  world::Grid grid(1, 2 * nScanningRadius);
+  world::Grid::setGlobal(&grid);
+
+  // Let's create a huge amount of random positioned asteroids
+  // But all asteroids are in range, so they should be reported
+  std::vector<world::Asteroid::Uptr> asteroids;
+  for (size_t i = 0; i < 3000; ++i) {
+    asteroids.push_back(
+          Tool::spawnAsteroid(
+            m_pShip->getPosition(), nScanningRadius * 0.99));
+  }
+
+  client::ClientPassiveScannerPtr pScanner = spawnScanner();
+  ASSERT_TRUE(pScanner);
+  ASSERT_TRUE(pScanner->sendMonitor());
+  ASSERT_TRUE(pScanner->waitMonitorAck());
+
+  UpdatesJournal journal;
+  ASSERT_TRUE(collectUpdates(journal, pScanner, 5 * m_nMaxUpdateTimeMs));
+
+  std::set<uint32_t> reportedAsteroids = journal.allAsteroidsIds();
+
+  // Figure out which objects should be reported by scanner
+  std::set<uint32_t> expectedAsteroids;
+  for (const world::Asteroid::Uptr& pAsteroid: asteroids) {
+    expectedAsteroids.insert(pAsteroid->getAsteroidId());
+  }
+  ASSERT_EQ(expectedAsteroids, journal.allAsteroidsIds());
 }
 
 }  // namespace autotests
