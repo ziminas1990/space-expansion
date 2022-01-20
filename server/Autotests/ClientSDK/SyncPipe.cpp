@@ -4,130 +4,14 @@
 
 namespace autotests { namespace client {
 
-//========================================================================================
+//==============================================================================
 // PlayerPipe
-//========================================================================================
+//==============================================================================
 
-void PlayerPipe::attachTunnelHandler(uint32_t nTunnelId, IPlayerTerminalWeakPtr pHandler)
+void PlayerPipe::attachTunnelHandler(uint32_t nTunnelId,
+                                     IPlayerTerminalWeakPtr pHandler)
 {
   m_handlers[nTunnelId] = pHandler;
-}
-
-bool PlayerPipe::wait(spex::IAccessPanel &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kAccessPanel, message, nTimeoutMs))
-    return false;
-  out = std::move(message.accesspanel());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::ICommutator &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kCommutator, message, nTimeoutMs))
-    return false;
-  out = std::move(message.commutator());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IShip &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kShip, message, nTimeoutMs))
-    return false;
-  out = std::move(message.ship());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::INavigation &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kNavigation, message, nTimeoutMs))
-    return false;
-  out = std::move(message.navigation());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IEngine &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kEngine, message, nTimeoutMs))
-    return false;
-  out = std::move(message.engine());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IPassiveScanner &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kPassiveScanner, message, nTimeoutMs))
-    return false;
-  out = std::move(message.passive_scanner());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::ICelestialScanner &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kCelestialScanner, message, nTimeoutMs))
-    return false;
-  out = std::move(message.celestial_scanner());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IAsteroidScanner &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kAsteroidScanner, message, nTimeoutMs))
-    return false;
-  out = std::move(message.asteroid_scanner());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IResourceContainer &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kResourceContainer, message, nTimeoutMs))
-    return false;
-  out = std::move(message.resource_container());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IAsteroidMiner &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kAsteroidMiner, message, nTimeoutMs))
-    return false;
-  out = std::move(message.asteroid_miner());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IBlueprintsLibrary &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kBlueprintsLibrary, message, nTimeoutMs))
-    return false;
-  out = std::move(message.blueprints_library());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IShipyard &out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kShipyard, message, nTimeoutMs))
-    return false;
-  out = std::move(message.shipyard());
-  return true;
-}
-
-bool PlayerPipe::wait(spex::IGame& out, uint16_t nTimeoutMs)
-{
-  spex::Message message;
-  if(!waitConcrete(spex::Message::kGame, message, nTimeoutMs))
-    return false;
-  out = std::move(message.game());
-  return true;
 }
 
 void PlayerPipe::onMessageReceived(spex::Message &&message)
@@ -154,14 +38,21 @@ void PlayerPipe::onMessageReceived(spex::Message &&message)
 }
 
 bool PlayerPipe::waitConcrete(spex::Message::ChoiceCase eExpectedChoice,
-                              spex::Message &out, uint16_t nTimeoutMs)
+                              spex::Message &out,
+                              uint16_t nTimeoutMs)
 {
   return waitAny(out, nTimeoutMs) && out.choice_case() == eExpectedChoice;
 }
 
-//========================================================================================
+bool PlayerPipe::pickConcrete(spex::Message::ChoiceCase eExpectedChoice,
+                              spex::Message &out)
+{
+  return pickAny(out) && out.choice_case() == eExpectedChoice;
+}
+
+//==============================================================================
 // Tunnel
-//========================================================================================
+//==============================================================================
 
 bool Tunnel::send(spex::Message const& body)
 {
@@ -171,9 +62,9 @@ bool Tunnel::send(spex::Message const& body)
   return PlayerPipe::send(message);
 }
 
-//========================================================================================
+//==============================================================================
 // PrivilegedPipe
-//========================================================================================
+//==============================================================================
 
 bool PrivilegedPipe::wait(admin::Access &out, uint16_t nTimeoutMs)
 {
