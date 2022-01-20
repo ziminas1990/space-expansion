@@ -17,9 +17,14 @@ public:
 
   static void yield(geometry::Point& point,
                     geometry::Point const& center,
-                    double radius);
+                    double minRadius,
+                    double maxRadius);
+  static void yield(geometry::Point& point,
+                    geometry::Point const& center,
+                    double maxRadius);
 
-  static void yield(geometry::Vector& vec, double radius);
+  static void yield(geometry::Vector& vec, double minRadius, double maxRadius);
+  static void yield(geometry::Vector& vec, double maxRadius);
 
   template<typename Type>
   static Type yield(Type bottom, Type top)

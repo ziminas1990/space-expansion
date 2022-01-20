@@ -32,6 +32,10 @@ public:
   bool wait(MessageType& message, uint16_t nTimeout = 500)
   { return m_pSyncPipe && m_pSyncPipe->wait(message, nTimeout); }
 
+  template<typename MessageType>
+  bool pick(MessageType& message)
+  { return m_pSyncPipe && m_pSyncPipe->pick(message); }
+
   void dropQueuedMessage();
 
 private:

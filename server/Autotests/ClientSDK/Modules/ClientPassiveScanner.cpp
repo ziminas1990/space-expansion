@@ -3,7 +3,8 @@
 
 namespace autotests { namespace client {
 
-world::ObjectType convert(spex::ObjectType type) {
+world::ObjectType convert(spex::ObjectType type)
+{
   switch(type) {
     case spex::ObjectType::OBJECT_SHIP:
       return world::ObjectType::eShip;
@@ -16,6 +17,20 @@ world::ObjectType convert(spex::ObjectType type) {
       return world::ObjectType::eUnknown;
   }
 }
+
+ClientPassiveScanner::ObjectData convert(
+    const spex::IPassiveScanner::ObjectData& data)
+{
+  return ClientPassiveScanner::ObjectData{
+    convert(data.object_type()),
+    data.id(),
+    geometry::Point(data.x(), data.y()),
+    geometry::Vector(static_cast<double>(data.vx()),
+                     static_cast<double>(data.vy())),
+    static_cast<double>(data.r())
+  };
+}
+
 
 ClientPassiveScanner::ClientPassiveScanner()
 {}
@@ -71,15 +86,26 @@ bool ClientPassiveScanner::waitUpdate(std::vector<ObjectData> &update)
 
   for (const spex::IPassiveScanner::ObjectData& item:
        message.update().update()) {
-    ObjectData itemData{
-      convert(item.object_type()),
-      item.id(),
-      geometry::Point(item.x(), item.y()),
-      geometry::Vector(static_cast<double>(item.vx()),
-                       static_cast<double>(item.vy())),
-      static_cast<double>(item.r())
-    };
-    update.push_back(itemData);
+    update.push_back(convert(item));
+  }
+  return true;
+}
+
+bool ClientPassiveScanner::pickUpdate(
+    std::vector<ClientPassiveScanner::ObjectData> &update)
+{
+  update.clear();
+  spex::IPassiveScanner message;
+  if (!pick(message)) {
+    return false;
+  }
+  if (message.choice_case() != spex::IPassiveScanner::kUpdate) {
+    return false;
+  }
+
+  for (const spex::IPassiveScanner::ObjectData& item:
+       message.update().update()) {
+    update.push_back(convert(item));
   }
   return true;
 }

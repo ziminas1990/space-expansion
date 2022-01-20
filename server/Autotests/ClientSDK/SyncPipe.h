@@ -162,6 +162,8 @@ class PrivilegedPipe : public SyncPipe<admin::Message>
 {
 public:
 
+  // This may be replaced with template implementation, that uses
+  // Unpacker<> struct (see PlayerPipe implementation).
   bool wait(admin::Access &out, uint16_t nTimeoutMs = 100);
   bool wait(admin::SystemClock &out, uint16_t nTimeoutMs = 100);
 

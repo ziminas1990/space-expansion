@@ -8,20 +8,34 @@ namespace utils {
 
 void Randomizer::setPattern(unsigned nPattern) { std::srand(nPattern); }
 
-void Randomizer::yield(geometry::Point& point,
-                       geometry::Point const& center,
-                       double radius)
+void Randomizer::yield(geometry::Point &point,
+                       const geometry::Point &center,
+                       double minRadius,
+                       double maxRadius)
 {
-  double alfa = std::rand() * 2 * M_PI / RAND_MAX;
-  double r    = std::rand() * radius / RAND_MAX;
-  point.x = center.x + r * cos(alfa);
-  point.y = center.y + r * sin(alfa);
+  geometry::Vector offset;
+  yield(offset, minRadius, maxRadius);
+  point = center.translated(offset);
 }
 
-void Randomizer::yield(geometry::Vector& vec, double radius)
+void Randomizer::yield(geometry::Point& point,
+                       geometry::Point const& center,
+                       double maxRadius)
+{
+  return yield(point, center, 0, maxRadius);
+}
+
+void Randomizer::yield(geometry::Vector& vec, double maxRadius)
+{
+  return yield(vec, 0, maxRadius);
+}
+
+void Randomizer::yield(geometry::Vector &vec,
+                       double minRadius,
+                       double maxRadius)
 {
   double alfa = std::rand() * 2 * M_PI / RAND_MAX;
-  double r    = std::rand() * radius / RAND_MAX;
+  double r    = yield<double>(minRadius, maxRadius);
   vec.setPosition(r * cos(alfa), r * sin(alfa));
 }
 

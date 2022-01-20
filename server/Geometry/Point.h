@@ -43,9 +43,14 @@ struct Point
     return distance(other) < epsilon;
   }
 
-  void translate(Vector const& v) {
+  Point& translate(Vector const& v) {
     x += v.getX();
     y += v.getY();
+    return *this;
+  }
+
+  Point translated(Vector const& v) const {
+    return Point(x, y).translate(v);
   }
 
   Point operator+(Vector const& v) const { return Point(x + v.getX(), y + v.getY()); }

@@ -72,6 +72,14 @@ public:
   std::set<uint32_t> allShipsIds() const {
     return keys(m_ships);
   }
+
+  uint32_t totalUpdatesFor(const world::AsteroidUptr& asteroid) const {
+    return m_asteroids.at(asteroid->getAsteroidId());
+  }
+
+  bool operator==(const UpdatesJournal& other) const {
+    return m_ships == other.m_ships && m_asteroids == other.m_asteroids;
+  }
 };
 
 class PassiveScannerTests : public ::testing::Test
@@ -101,6 +109,10 @@ protected:
       UpdatesJournal& journal,
       client::ClientPassiveScannerPtr pScanner,
       uint32_t nCollectingTimeMs);
+
+  void pickAllUpdates(
+      UpdatesJournal& journal,
+      client::ClientPassiveScannerPtr pScanner);
 
   void justWait(uint32_t nTimeMs) {
     const uint64_t nStopAtUs = m_clock.now() + nTimeMs * 1000;
@@ -220,6 +232,18 @@ PassiveScannerTests::collectUpdates(
     }
   }
   return true;
+}
+
+void PassiveScannerTests::pickAllUpdates(
+    UpdatesJournal& journal,
+    client::ClientPassiveScannerPtr pScanner)
+{
+  std::vector<ObjectData> update;
+  while(pScanner->pickUpdate(update)) {
+    for (const ObjectData& data: update) {
+      journal.onUpdate(data);
+    }
+  }
 }
 
 struct Tool {
@@ -397,6 +421,96 @@ TEST_F(PassiveScannerTests, ScanLotsOfObjectsNearby)
     expectedAsteroids.insert(pAsteroid->getAsteroidId());
   }
   ASSERT_EQ(expectedAsteroids, journal.allAsteroidsIds());
+}
+
+TEST_F(PassiveScannerTests, SmoothUpdates)
+{
+  // Let say we have maxScanningTime=10 and there is an object on the edge of
+  // scanning radius, that should be updated once in 9 seconds.
+  // It means, that passive scanner performs global scan (with updating
+  // of internal cache) one in 10 seconds, but should send update for an object
+  // every 9 seconds. So, after 91 seconds we should get 10 updates.
+
+  utils::Randomizer::setPattern(382);
+
+  const uint32_t nScanningRadius = m_nRadiusKm * 1000;
+  // Scanning radius covers 1 cells, Grid has 1 * 1 size
+  world::Grid grid(1, 2 * nScanningRadius);
+  world::Grid::setGlobal(&grid);
+
+  // Spawn an object on the edge of the scanning radius
+  world::Asteroid::Uptr pAsteroid = Tool::spawnAsteroid();
+  {
+    // Move asteroid to the edge of scanning radius
+    const double r = nScanningRadius * 0.9;
+    geometry::Point position;
+    utils::Randomizer::yield(position, m_pShip->getPosition(), r, r);
+    pAsteroid->moveTo(position);
+  }
+
+  client::ClientPassiveScannerPtr pScanner = spawnScanner();
+  ASSERT_TRUE(pScanner);
+  ASSERT_TRUE(pScanner->sendMonitor());
+  ASSERT_TRUE(pScanner->waitMonitorAck());
+
+  const uint32_t nTotalCycles = 500;
+  UpdatesJournal journal;
+  ASSERT_TRUE(collectUpdates(
+                journal, pScanner, nTotalCycles * m_nMaxUpdateTimeMs));
+  ASSERT_GT(journal.totalUpdatesFor(pAsteroid), nTotalCycles);
+}
+
+TEST_F(PassiveScannerTests, MultipleSessions)
+{
+  utils::Randomizer::setPattern(473);
+
+  const uint32_t nScanningRadius = m_nRadiusKm * 1000;
+  // Scanning radius covers 1 cells, Grid has 1 * 1 size
+  world::Grid grid(1, 2 * nScanningRadius);
+  world::Grid::setGlobal(&grid);
+
+  std::vector<world::Asteroid::Uptr> asteroids;
+  for (size_t i = 0; i < 100; ++i) {
+    asteroids.push_back(
+          Tool::spawnAsteroid(
+            m_pShip->getPosition(), nScanningRadius * 0.99));
+  }
+
+  struct SessionAndJournal {
+    client::ClientPassiveScannerPtr m_pScanner;
+    UpdatesJournal                  m_journal;
+  };
+
+  const size_t totalSessions = 8;
+  std::array<SessionAndJournal, totalSessions> sessions;
+
+  for (size_t i = 0; i < totalSessions; ++i) {
+    client::ClientPassiveScannerPtr pScanner = spawnScanner();
+    ASSERT_TRUE(pScanner);
+    sessions[i] = SessionAndJournal{pScanner, UpdatesJournal()};
+  }
+
+  // Send start monitoring to each of them
+  for (SessionAndJournal& session: sessions) {
+    ASSERT_TRUE(session.m_pScanner->sendMonitor());
+  }
+  // Await for ack
+  for (SessionAndJournal& session: sessions) {
+    ASSERT_TRUE(session.m_pScanner->waitMonitorAck());
+  }
+
+  justWait(m_nMaxUpdateTimeMs * 10);
+
+  // Pick all updates
+  for (SessionAndJournal& session: sessions) {
+    pickAllUpdates(session.m_journal, session.m_pScanner);
+  }
+
+  // All journals are expected to be equal
+  const UpdatesJournal& referenceJournal = sessions[0].m_journal;
+  for (SessionAndJournal& session: sessions) {
+    ASSERT_EQ(referenceJournal, session.m_journal);
+  }
 }
 
 }  // namespace autotests

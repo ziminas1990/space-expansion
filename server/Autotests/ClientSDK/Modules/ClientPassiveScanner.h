@@ -36,6 +36,11 @@ public:
   bool waitSpecification(Specification& spec);
   bool waitMonitorAck();
   bool waitUpdate(std::vector<ObjectData>& update);
+
+  bool pickUpdate(std::vector<ObjectData>& update);
+  // Store to 'update' only updates, that are already in receive
+  // buffer (do not wait). Return true if there is at least one update,
+  // otherwise return false.
 };
 
 using ClientPassiveScannerPtr = std::shared_ptr<ClientPassiveScanner>;
