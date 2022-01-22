@@ -196,7 +196,7 @@ message IPassiveScanner {
   }
 
   message Update {
-    repeated ObjectData update    = 2;
+    repeated ObjectData items = 1;
   }
 
   oneof choice {

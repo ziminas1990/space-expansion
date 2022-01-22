@@ -127,7 +127,7 @@ void PassiveScanner::proceed(uint32_t)
         message.mutable_passive_scanner()->mutable_update();
     for (size_t i = 0; i < totalObjectsToUpdate; ++i) {
       const newton::PhysicalObject* pObject = objectsToUpdate[i];
-      spex::IPassiveScanner::ObjectData* pData = update->add_update();
+      spex::IPassiveScanner::ObjectData* pData = update->add_items();
       spex::ObjectType eType;
       uint32_t         nObjectId;
       getTypeAndId(pObject, eType, nObjectId);
@@ -193,7 +193,7 @@ void PassiveScanner::handleMonitorReq(uint32_t nSessionId)
       return;
     }
   }
-  sendMonitorAck(nSessionId, true);
+  sendMonitorAck(nSessionId, false);
 }
 
 void PassiveScanner::sendSpecification(uint32_t nSessionId)

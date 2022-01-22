@@ -85,7 +85,7 @@ bool ClientPassiveScanner::waitUpdate(std::vector<ObjectData> &update)
   }
 
   for (const spex::IPassiveScanner::ObjectData& item:
-       message.update().update()) {
+       message.update().items()) {
     update.push_back(convert(item));
   }
   return true;
@@ -104,7 +104,7 @@ bool ClientPassiveScanner::pickUpdate(
   }
 
   for (const spex::IPassiveScanner::ObjectData& item:
-       message.update().update()) {
+       message.update().items()) {
     update.push_back(convert(item));
   }
   return true;

@@ -159,6 +159,7 @@ class CelestialScannerI(IOTerminal):
     def __build_object(data: Any,  # Because its protobuf's type
                        timestamp: Optional[int]):
         return types.PhysicalObject(
+            object_type=types.ObjectType.ASTEROID,
             object_id=data.id,
             position=types.Position.build(data, timestamp),
             radius=data.r
