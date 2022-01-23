@@ -183,7 +183,7 @@ class BaseModule:
             return_on_unreachable: Any,
             stop_on_cancel: bool = True,
             retires: int = 3):
-        """This is a equivalent for 'use_session()' but for generators.
+        """This is an equivalent for 'use_session()' but for generators.
         Make up to 'retires' attempts to open a new session
         with the specified 'terminal_type' pass it to the
         underlying generator. If all attempts fail, return

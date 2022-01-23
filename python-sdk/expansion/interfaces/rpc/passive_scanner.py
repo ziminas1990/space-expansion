@@ -53,7 +53,7 @@ class PassiveScannerI(IOTerminal):
                              max_update_time_ms=spec.max_update_time_ms)
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
-    def start_monitoring(self, timeout: float = 0.5) -> Status:
+    async def start_monitoring(self, timeout: float = 0.5) -> Status:
         request = public.Message()
         request.passive_scanner.monitor = True
         response, _ = await self.wait_message(timeout=timeout)
@@ -65,7 +65,7 @@ class PassiveScannerI(IOTerminal):
             if ack else PassiveScannerI.Status.MONITORING_FAILED
 
     @Channel.return_on_close((Status.MONITORING_FAILED, list()))
-    def wait_update(self, timeout: float = 1) \
+    async def wait_update(self, timeout: float = 1) \
             -> Tuple[Status, List[types.PhysicalObject]]:
         response = await self.wait_message(timeout=timeout)
         if not response:

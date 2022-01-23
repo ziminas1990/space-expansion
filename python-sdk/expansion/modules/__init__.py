@@ -6,6 +6,7 @@ from .ship import Ship
 from .engine import Engine, EngineSpec
 from .resource_container import ResourceContainer
 from .celestial_scanner import CelestialScanner
+from .passive_scanner import PassiveScanner
 from .asteroid_miner import AsteroidMiner, AsteroidMinerSpec
 from .shipyard import Shipyard, ShipyardSpec
 from .blueprints_library import BlueprintsLibrary

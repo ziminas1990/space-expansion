@@ -11,3 +11,6 @@ from expansion.interfaces.rpc.blueprints_library import (
     BlueprintsLibraryI,
     Status as BlueprintsLibraryStatus
 )
+from expansion.interfaces.rpc.passive_scanner import (
+    PassiveScannerI, Specification as PassiveScanerSpec
+)
