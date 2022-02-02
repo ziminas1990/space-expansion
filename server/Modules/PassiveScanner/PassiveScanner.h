@@ -21,7 +21,7 @@ public:
   PassiveScanner(std::string&& sName,
                  world::PlayerWeakPtr pOwner,
                  uint32_t nMaxScanningRadiusKm,
-                 uint32_t nMaxUpdateTimeMs);
+                 uint32_t nEdgeUpdateTimeMs);
 
   void reset();
 
@@ -47,7 +47,7 @@ private:
 
 private:
   uint32_t m_nMaxScanningRadius;
-  uint32_t m_nMaxUpdateTimeUs;
+  uint32_t m_nEdgeUpdateTimeUs;
 
   uint64_t                m_nLastGlobalUpdateUs;
   std::array<uint32_t, 8> m_nMonitoringSessions;

@@ -40,14 +40,13 @@ static void getTypeAndId(const newton::PhysicalObject* pObject,
   nId   = 0;
 }
 
-PassiveScanner::PassiveScanner(
-    std::string&&        sName,
+PassiveScanner::PassiveScanner(std::string&&        sName,
     world::PlayerWeakPtr pOwner,
     uint32_t             nMaxScanningRadiusKm,
-    uint32_t             nMaxUpdateTimeMs)
+    uint32_t             nEdgeUpdateTimeMs)
   : BaseModule("PassiveScanner", std::move(sName), pOwner)
   , m_nMaxScanningRadius(nMaxScanningRadiusKm * 1000)
-  , m_nMaxUpdateTimeUs(nMaxUpdateTimeMs * 1000)
+  , m_nEdgeUpdateTimeUs(nEdgeUpdateTimeMs * 1000)
   , m_nLastGlobalUpdateUs(0)
 {
   GlobalObject<PassiveScanner>::registerSelf(this);
@@ -67,7 +66,7 @@ void PassiveScanner::proceed(uint32_t)
   const uint64_t nowUs = utils::GlobalClock::now();
 
   if (!m_nLastGlobalUpdateUs ||
-      nowUs - m_nLastGlobalUpdateUs > m_nMaxUpdateTimeUs) {
+      nowUs - m_nLastGlobalUpdateUs > m_nEdgeUpdateTimeUs) {
     proceedGlobalScan();
     m_nLastGlobalUpdateUs = nowUs;
   }
@@ -202,7 +201,7 @@ void PassiveScanner::sendSpecification(uint32_t nSessionId)
   spex::IPassiveScanner::Specification* spec =
       message.mutable_passive_scanner()->mutable_specification();
   spec->set_scanning_radius_km(m_nMaxScanningRadius / 1000);
-  spec->set_max_update_time_ms(m_nMaxUpdateTimeUs / 1000);
+  spec->set_max_update_time_ms(m_nEdgeUpdateTimeUs / 1000);
   sendToClient(nSessionId, message);
 }
 
@@ -300,7 +299,7 @@ std::pair<double, uint64_t> PassiveScanner::getDistanceAndUpdateTime(
 
   const double distance = otherPosition.distance(position);
   uint64_t     dtUs     = static_cast<uint64_t>(
-        m_nMaxUpdateTimeUs * pow(distance / m_nMaxScanningRadius, k));
+        m_nEdgeUpdateTimeUs * pow(distance / m_nMaxScanningRadius, k));
 
   // Predict where object will be at 'now + dtUs'
   const double dtSec = dtUs / 1000000.0;
@@ -309,7 +308,7 @@ std::pair<double, uint64_t> PassiveScanner::getDistanceAndUpdateTime(
   // Recalculating update time
   const double predictedDistance = otherPosition.distance(position);
   dtUs = static_cast<uint64_t>(
-        m_nMaxUpdateTimeUs * pow(predictedDistance / m_nMaxScanningRadius, k));
+        m_nEdgeUpdateTimeUs * pow(predictedDistance / m_nMaxScanningRadius, k));
   if (dtUs < static_cast<uint64_t>(Cooldown::ePassiveScanner)) {
     dtUs = static_cast<uint64_t>(Cooldown::ePassiveScanner);
   }
