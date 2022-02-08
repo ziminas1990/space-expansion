@@ -3,7 +3,7 @@ from typing import List, NamedTuple, TYPE_CHECKING
 from .resources import ResourceItem
 
 if TYPE_CHECKING:
-    from expansion.protocol import Protocol_pb2 as api
+    from expansion.api import Protocol_pb2 as api
 
 
 class Property(NamedTuple):

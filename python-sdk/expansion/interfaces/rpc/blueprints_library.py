@@ -1,8 +1,7 @@
 from typing import Optional, List
 from enum import Enum
 
-import expansion.protocol.Protocol_pb2 as api
-import expansion.protocol as protocol
+import expansion.api as api
 from expansion.transport import IOTerminal, Channel
 from expansion import utils
 from expansion.types import Blueprint
@@ -56,7 +55,7 @@ class BlueprintsLibraryI(IOTerminal):
             response, _ = await self.wait_message(timeout=timeout)
             if not response:
                 return Status.RESPONSE_TIMEOUT, []
-            response = protocol.get_message_field(
+            response = api.get_message_field(
                 response,
                 ["blueprints_library", "blueprints_list"])
             if not response:
@@ -78,12 +77,12 @@ class BlueprintsLibraryI(IOTerminal):
         if not response:
             return Status.RESPONSE_TIMEOUT, None
 
-        blueprint = protocol.get_message_field(
+        blueprint = api.get_message_field(
                 response, ["blueprints_library", "blueprint"])
         if blueprint:
             return Status.SUCCESS, Blueprint.from_protobuf(blueprint)
 
-        fail = protocol.get_message_field(
+        fail = api.get_message_field(
             response, ["blueprints_library", "blueprint_fail"])
         if fail:
             return Status.from_protobuf(fail), None

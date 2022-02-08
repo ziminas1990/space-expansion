@@ -1,5 +1,5 @@
 from enum import Enum
-import expansion.protocol.Privileged_pb2 as privileged
+import expansion.api as api
 
 
 class ObjectType(Enum):
@@ -10,8 +10,8 @@ class ObjectType(Enum):
     def to_protobuf_type(self):
         assert self.value != self.UNKNOWN.value
         d = {
-            self.ASTEROID.value: privileged.ObjectType.ASTEROID,
-            self.SHIP.value: privileged.ObjectType.SHIP
+            self.ASTEROID.value: api.types.ObjectType.ASTEROID,
+            self.SHIP.value: api.types.ObjectType.SHIP
         }
         return d[self.value]
 
@@ -27,12 +27,12 @@ class PhysicalObject:
         self.vx: float = 0
         self.vy: float = 0
 
-    def from_protobuf(self, object: privileged.Object):
+    def from_protobuf(self, object: api.types.PhysicalObject):
         self.id = object.base_id
         self.x = object.x
         self.y = object.y
         self.r = object.r
-        self.m = object.m
+        self.mass = object.m
         self.vx = object.vx
         self.vy = object.vy
         return self

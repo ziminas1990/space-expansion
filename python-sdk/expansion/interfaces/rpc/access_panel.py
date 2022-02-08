@@ -1,8 +1,8 @@
 from typing import Optional
 
+import expansion.api as api
 from expansion.transport import Channel, IOTerminal
-from expansion.protocol.Protocol_pb2 import Message as PlayerMessage
-from expansion.protocol.utils import get_message_field
+from expansion.api.utils import get_message_field
 
 
 class AccessPanelI:
@@ -18,7 +18,7 @@ class AccessPanelI:
         """Try to open privileged session as user with the
         specified 'login' and 'password'.
         Return tuple (port, error_string)"""
-        message = PlayerMessage()
+        message = api.Message()
         login_req = message.accessPanel.login
         login_req.login = login
         login_req.password = password

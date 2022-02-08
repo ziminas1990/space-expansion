@@ -1,11 +1,10 @@
-from typing import Any, Optional, NamedTuple, Callable
+from typing import Any, Optional, NamedTuple
 import logging
 
 from .commutator import CommutatorI
 from .navigation import INavigation
 from expansion.transport import IOTerminal, Channel
-from expansion.protocol.utils import get_message_field
-import expansion.protocol.Protocol_pb2 as api
+import expansion.api as api
 from expansion import types
 
 
@@ -54,7 +53,7 @@ class ShipI(CommutatorI, INavigation, IOTerminal):
         message, timestamp = await self.wait_message(timeout)
         if not message:
             return None
-        state = get_message_field(message, ["ship", "state"])
+        state = api.get_message_field(message, ["ship", "state"])
         return State.build(state, timestamp) if state else None
 
     @Channel.return_on_close(None)

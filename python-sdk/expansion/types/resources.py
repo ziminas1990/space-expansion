@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Dict, List, NamedTuple
+from typing import Dict, NamedTuple
 
-import expansion.protocol.Protocol_pb2 as protocol
+import expansion.api as api
 
 
 class ResourceType(Enum):
@@ -12,21 +12,21 @@ class ResourceType(Enum):
     e_LABOR = "labor"
 
     @staticmethod
-    def from_protobuf(resource_type: protocol.ResourceType) -> 'ResourceType':
+    def from_protobuf(resource_type: api.types.ResourceType) -> 'ResourceType':
         return {
-            protocol.RESOURCE_ICE: ResourceType.e_ICE,
-            protocol.RESOURCE_SILICATES: ResourceType.e_SILICATES,
-            protocol.RESOURCE_METALS: ResourceType.e_METALS,
-            protocol.RESOURCE_LABOR: ResourceType.e_LABOR
+            api.types.RESOURCE_ICE: ResourceType.e_ICE,
+            api.types.RESOURCE_SILICATES: ResourceType.e_SILICATES,
+            api.types.RESOURCE_METALS: ResourceType.e_METALS,
+            api.types.RESOURCE_LABOR: ResourceType.e_LABOR
         }[resource_type]
 
-    def to_protobuf(self) -> protocol.ResourceType:
+    def to_protobuf(self) -> api.types.ResourceType:
         """Convert this type to the protobuf equivalent"""
         return {
-            ResourceType.e_ICE: protocol.RESOURCE_ICE,
-            ResourceType.e_SILICATES: protocol.RESOURCE_SILICATES,
-            ResourceType.e_METALS: protocol.RESOURCE_METALS,
-            ResourceType.e_LABOR: protocol.RESOURCE_LABOR
+            ResourceType.e_ICE: api.types.RESOURCE_ICE,
+            ResourceType.e_SILICATES: api.types.RESOURCE_SILICATES,
+            ResourceType.e_METALS: api.types.RESOURCE_METALS,
+            ResourceType.e_LABOR: api.types.RESOURCE_LABOR
         }[self]
 
     @staticmethod
@@ -61,7 +61,7 @@ class ResourceItem(NamedTuple):
     amount: float
 
     @staticmethod
-    def from_protobuf(item: protocol.ResourceItem) -> 'ResourceItem':
+    def from_protobuf(item: api.types.ResourceItem) -> 'ResourceItem':
         return ResourceItem(
             resource_type=ResourceType.from_protobuf(item.type),
             amount=item.amount

@@ -2,7 +2,7 @@ import abc
 import time
 from typing import Tuple, Optional, Any, List
 from expansion.transport import Channel, Terminal
-from expansion.protocol import get_message_field
+from expansion.api import get_message_field
 
 
 class Endpoint(Channel, Terminal, abc.ABC):

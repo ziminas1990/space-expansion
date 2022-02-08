@@ -1,8 +1,7 @@
 from typing import Optional, NamedTuple, List, Tuple
 from enum import Enum
 
-import expansion.protocol as protocol
-import expansion.protocol.Protocol_pb2 as public
+import expansion.api as api
 from expansion.transport import IOTerminal, Channel
 import expansion.utils as utils
 import expansion.types as types
@@ -39,14 +38,14 @@ class PassiveScannerI(IOTerminal):
     @Channel.return_on_close(None)
     async def get_specification(self, timeout: float = 0.5)\
             -> Optional[Specification]:
-        request = public.Message()
+        request = api.Message()
         request.passive_scanner.specification_req = True
         if not self.send(message=request):
             return None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        spec = protocol.get_message_field(response, ["passive_scanner", "specification"])
+        spec = api.get_message_field(response, ["passive_scanner", "specification"])
         if not spec:
             return None
         return Specification(scanning_radius_km=spec.scanning_radius_km,
@@ -54,13 +53,13 @@ class PassiveScannerI(IOTerminal):
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def start_monitoring(self, timeout: float = 0.5) -> Status:
-        request = public.Message()
+        request = api.Message()
         request.passive_scanner.monitor = True
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return PassiveScannerI.Status.RESPONSE_TIMEOUT
-        ack = protocol.get_message_field(response,
-                                         ["passive_scanner", "monitor_ack"])
+        ack = api.get_message_field(response,
+                                    ["passive_scanner", "monitor_ack"])
         return PassiveScannerI.Status.SUCCESS \
             if ack else PassiveScannerI.Status.MONITORING_FAILED
 
@@ -70,7 +69,7 @@ class PassiveScannerI(IOTerminal):
         response = await self.wait_message(timeout=timeout)
         if not response:
             return PassiveScannerI.Status.SUCCESS, list()
-        update = protocol.get_message_field(
+        update = api.get_message_field(
             response, ["passive_scanner", "update"])
         if not update:
             return PassiveScannerI.Status.UNEXPECTED_RESPONSE, list()

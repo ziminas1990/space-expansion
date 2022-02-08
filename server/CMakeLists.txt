@@ -27,8 +27,10 @@ conan_basic_setup(TARGETS)
 # get path to compiler and run the compiler manually.
 set(PROTOBUF_COMPILER ${CONAN_BIN_DIRS_PROTOC_INSTALLER}/protoc)
 
-set(PROTOBUF_FILES   "Protocol.proto" "Privileged.proto")
-set(PROTOBUF_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.cc"
+set(PROTOBUF_FILES   "CommonTypes.proto" "Protocol.proto" "Privileged.proto")
+set(PROTOBUF_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/CommonTypes.pb.cc"
+                    "${CMAKE_CURRENT_BINARY_DIR}/CommonTypes.pb.h"
+                    "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.cc"
                     "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.h"
                     "${CMAKE_CURRENT_BINARY_DIR}/Privileged.pb.cc"
                     "${CMAKE_CURRENT_BINARY_DIR}/Privileged.pb.h")

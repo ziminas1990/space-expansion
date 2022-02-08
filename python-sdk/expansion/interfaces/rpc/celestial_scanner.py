@@ -1,8 +1,8 @@
 from typing import Optional, NamedTuple, List, Callable, Any
 from enum import Enum
 
-import expansion.protocol as protocol
-import expansion.protocol.Protocol_pb2 as public
+import expansion.api as api
+
 from expansion.transport import IOTerminal, Channel
 import expansion.utils as utils
 import expansion.types as types
@@ -36,8 +36,8 @@ class CelestialScannerI(IOTerminal):
             return self == CelestialScannerI.Status.RESPONSE_TIMEOUT
 
         @staticmethod
-        def convert(status: public.ICelestialScanner.Status) -> "CelestialScannerI.Status":
-            ProtobufStatus = public.ICelestialScanner.Status
+        def convert(status: api.ICelestialScanner.Status) -> "CelestialScannerI.Status":
+            ProtobufStatus = api.ICelestialScanner.Status
             ModuleStatus = CelestialScannerI.Status
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
@@ -63,14 +63,14 @@ class CelestialScannerI(IOTerminal):
     @Channel.return_on_close(None)
     async def get_specification(self, timeout: float = 0.5)\
             -> Optional[Specification]:
-        request = public.Message()
+        request = api.Message()
         request.celestial_scanner.specification_req = True
         if not self.send(message=request):
             return None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        spec = protocol.get_message_field(response, ["celestial_scanner", "specification"])
+        spec = api.get_message_field(response, ["celestial_scanner", "specification"])
         if not spec:
             return None
         return Specification(max_radius_km=spec.max_radius_km,
@@ -90,7 +90,7 @@ class CelestialScannerI(IOTerminal):
         will be called for the last time with (None, None) argument.
         Return None on success otherwise return error string
         """
-        request = protocol.Message()
+        request = api.Message()
         scan_req = request.celestial_scanner.scan
         scan_req.scanning_radius_km = scanning_radius_km
         scan_req.minimal_radius_m = minimal_radius_m
@@ -102,15 +102,15 @@ class CelestialScannerI(IOTerminal):
         continue_scanning = True
         while continue_scanning:
             response, _ = await self.wait_message(timeout=timeout)
-            body = protocol.get_message_field(response, ["celestial_scanner"])
+            body = api.get_message_field(response, ["celestial_scanner"])
             if not body:
                 error = "No response"
                 result_cb(None, error)
                 return error
 
-            report = protocol.get_message_field(body, ["scanning_report"])
+            report = api.get_message_field(body, ["scanning_report"])
             if not report:
-                fail = protocol.get_message_field(body, ["scanning_failed"])
+                fail = api.get_message_field(body, ["scanning_failed"])
                 if fail:
                     error = CelestialScannerI.Status.convert(fail).value
                 else:

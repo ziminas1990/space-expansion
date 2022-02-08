@@ -1,30 +1,9 @@
 syntax = "proto3";
-
 option cc_enable_arenas = true;
 
+import "CommonTypes.proto";
+
 package admin;
-
-enum ObjectType {
-  ASTEROID = 0;
-  SHIP     = 1;
-}
-
-message Object {
-  ObjectType type = 1;
-  uint32 base_id  = 2;
-  float  r        = 3;
-  float  m        = 4;
-  double x        = 5;
-  double y        = 6;
-  float  vx       = 7;
-  float  vy       = 8;
-}
-
-message ObjectsList {
-  repeated Object object = 1;
-  uint32          left   = 2;
-}
-
 
 message Access {
 
@@ -69,8 +48,6 @@ message SystemClock {
   }
 }
 
-
-
 message Screen {
 
   enum Status {
@@ -86,11 +63,11 @@ message Screen {
   }
 
   oneof choice {
-    Position    move    = 1;
-    ObjectType  show    = 2;
+    Position        move    = 1;
+    spex.ObjectType show    = 2;
     
-    Status      status  = 129;
-    ObjectsList objects = 130;
+    Status                   status  = 129;
+    spex.PhysicalObjectsList objects = 130;
   }
 }
 

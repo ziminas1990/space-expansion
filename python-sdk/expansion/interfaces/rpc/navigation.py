@@ -1,7 +1,6 @@
 from typing import Optional
 
-import expansion.protocol.Protocol_pb2 as public
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
 from expansion.transport import IOTerminal, Channel
 from expansion.types import Position
 
@@ -17,14 +16,14 @@ class INavigation(IOTerminal):
     async def get_position(self, timeout: float = 0.5) -> Optional[Position]:
         """Request current ship's position. Will block until the response
         is received or the specified 'timeout' occurs."""
-        request = public.Message()
+        request = api.Message()
         request.navigation.position_req = True
         if not self.send(message=request):
             return None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        position = get_message_field(response, ["navigation", "position"])
+        position = api.get_message_field(response, ["navigation", "position"])
         if not position:
             return None
         assert response.timestamp is not None

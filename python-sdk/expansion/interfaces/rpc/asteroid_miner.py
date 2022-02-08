@@ -1,8 +1,7 @@
 from typing import Optional, NamedTuple, Callable
 from enum import Enum
 
-import expansion.protocol.Protocol_pb2 as public
-import expansion.protocol as protocol
+import expansion.api as api
 from expansion.transport import IOTerminal, Channel
 import expansion.utils as utils
 from expansion.types import ResourceType, ResourcesDict
@@ -37,8 +36,8 @@ class AsteroidMinerI(IOTerminal):
             return self == AsteroidMinerI.Status.SUCCESS
 
         @staticmethod
-        def from_protobuf(status: public.IResourceContainer.Status) -> "AsteroidMinerI.Status":
-            ProtobufStatus = public.IAsteroidMiner.Status
+        def from_protobuf(status: api.IResourceContainer.Status) -> "AsteroidMinerI.Status":
+            ProtobufStatus = api.IAsteroidMiner.Status
             ModuleStatus = AsteroidMinerI.Status
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
@@ -63,14 +62,14 @@ class AsteroidMinerI(IOTerminal):
     async def get_specification(self, timeout: float = 0.5)\
             -> (Status, Optional[Specification]):
         status = AsteroidMinerI.Status
-        request = public.Message()
+        request = api.Message()
         request.asteroid_miner.specification_req = True
         if not self.send(message=request):
             return status.FAILED_TO_SEND_REQUEST, None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return status.RESPONSE_TIMEOUT, None
-        spec = protocol.get_message_field(response, ["asteroid_miner", "specification"])
+        spec = api.get_message_field(response, ["asteroid_miner", "specification"])
         if not spec:
             return status.UNEXPECTED_RESPONSE, None
         spec = Specification(max_distance=spec.max_distance,
@@ -81,14 +80,14 @@ class AsteroidMinerI(IOTerminal):
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
         """Bind miner to the container with the specified 'cargo_name'"""
-        request = public.Message()
+        request = api.Message()
         request.asteroid_miner.bind_to_cargo = cargo_name
         if not self.send(message=request):
             return AsteroidMinerI.Status.FAILED_TO_SEND_REQUEST
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT
-        protobuf_status = protocol.get_message_field(
+        protobuf_status = api.get_message_field(
             response, ["asteroid_miner", "bind_to_cargo_status"])
         if protobuf_status is None:
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
@@ -140,7 +139,7 @@ class AsteroidMinerI(IOTerminal):
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def stop_mining(self, timeout: float = 0.5) -> Status:
         """Stop the mining process"""
-        request = public.Message()
+        request = api.Message()
         request.asteroid_miner.stop_mining = True
         if not self.send(message=request):
             return AsteroidMinerI.Status.FAILED_TO_SEND_REQUEST
@@ -148,13 +147,13 @@ class AsteroidMinerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT
-        status = protocol.get_message_field(response, ["asteroid_miner", "stop_mining_status"])
+        status = api.get_message_field(response, ["asteroid_miner", "stop_mining_status"])
         if status is None:
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
         return AsteroidMinerI.Status.from_protobuf(status)
 
     def _send_start_mining(self, asteroid_id: int):
-        request = public.Message()
+        request = api.Message()
         request.asteroid_miner.start_mining = asteroid_id
         return self.send(message=request)
 
@@ -162,7 +161,7 @@ class AsteroidMinerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT
-        mining_status = protocol.get_message_field(response, ["asteroid_miner", "start_mining_status"])
+        mining_status = api.get_message_field(response, ["asteroid_miner", "start_mining_status"])
         if mining_status is None:
             return AsteroidMinerI.Status.UNEXPECTED_RESPONSE
         return AsteroidMinerI.Status.from_protobuf(mining_status)
@@ -172,7 +171,7 @@ class AsteroidMinerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return AsteroidMinerI.Status.RESPONSE_TIMEOUT, None
-        report = protocol.get_message_field(response, ["asteroid_miner", "mining_report"])
+        report = api.get_message_field(response, ["asteroid_miner", "mining_report"])
         if report is not None:
             resources = {
                 ResourceType.from_protobuf(item.type): item.amount
@@ -181,7 +180,7 @@ class AsteroidMinerI(IOTerminal):
             return AsteroidMinerI.Status.SUCCESS, resources
 
         # May be mining was interrupted, that is why we haven't received the report?
-        stop_ind = protocol.get_message_field(response, ["asteroid_miner", "mining_is_stopped"])
+        stop_ind = api.get_message_field(response, ["asteroid_miner", "mining_is_stopped"])
         if stop_ind is not None:
             return AsteroidMinerI.Status.from_protobuf(stop_ind), None
 

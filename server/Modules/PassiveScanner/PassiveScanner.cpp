@@ -126,7 +126,7 @@ void PassiveScanner::proceed(uint32_t)
         message.mutable_passive_scanner()->mutable_update();
     for (size_t i = 0; i < totalObjectsToUpdate; ++i) {
       const newton::PhysicalObject* pObject = objectsToUpdate[i];
-      spex::IPassiveScanner::ObjectData* pData = update->add_items();
+      spex::PhysicalObject* pData = update->add_items();
       spex::ObjectType eType;
       uint32_t         nObjectId;
       getTypeAndId(pObject, eType, nObjectId);

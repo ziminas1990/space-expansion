@@ -2,8 +2,8 @@ from typing import Optional
 from enum import Enum
 
 from expansion.transport import Channel, IOTerminal
-import expansion.protocol.Privileged_pb2 as privileged
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
+from expansion.api.utils import get_message_field
 
 
 class Status(Enum):
@@ -15,14 +15,14 @@ class Status(Enum):
     INTERNAL_ERROR = 4
 
     @staticmethod
-    def from_protobuf(mode: privileged.SystemClock.Status):
+    def from_protobuf(mode: api.admin.SystemClock.Status):
         try:
             return {
-                privileged.SystemClock.Status.MODE_REAL_TIME: Status.MODE_REAL_TIME,
-                privileged.SystemClock.Status.MODE_DEBUG: Status.MODE_DEBUG,
-                privileged.SystemClock.Status.MODE_TERMINATED: Status.MODE_TERMINATED,
-                privileged.SystemClock.Status.CLOCK_IS_BUSY: Status.CLOCK_IS_BUSY,
-                privileged.SystemClock.Status.INTERNAL_ERROR: Status.INTERNAL_ERROR
+                api.admin.SystemClock.Status.MODE_REAL_TIME: Status.MODE_REAL_TIME,
+                api.admin.SystemClock.Status.MODE_DEBUG: Status.MODE_DEBUG,
+                api.admin.SystemClock.Status.MODE_TERMINATED: Status.MODE_TERMINATED,
+                api.admin.SystemClock.Status.CLOCK_IS_BUSY: Status.CLOCK_IS_BUSY,
+                api.admin.SystemClock.Status.INTERNAL_ERROR: Status.INTERNAL_ERROR
             }[mode]
         except KeyError:
             return Status.MODE_UNKNOWN
@@ -37,7 +37,7 @@ class SystemClock:
         self._socket.wrap_channel(channel)
         self._token = token
 
-    def _send_message(self, message: privileged.Message) -> bool:
+    def _send_message(self, message: api.admin.Message) -> bool:
         if self._token == 0:
             return False
         message.token = self._token
@@ -46,7 +46,7 @@ class SystemClock:
     async def get_time(self, timeout_sec: float = 0.1) -> Optional[int]:
         """Request current in-game time. Return number of microseconds
         since the game has been started"""
-        message = privileged.Message()
+        message = api.admin.Message()
         message.system_clock.time_req = True
         if not self._send_message(message):
             return None
@@ -54,7 +54,7 @@ class SystemClock:
 
     async def get_mode(self, timeout_sec: float = 0.1) -> Optional[Status]:
         """Request current clock mode"""
-        message = privileged.Message()
+        message = api.admin.Message()
         message.system_clock.mode_req = True
         if not self._send_message(message):
             return None
@@ -62,7 +62,7 @@ class SystemClock:
 
     async def switch_to_real_time(self, timeout_sec: float = 0.1) -> bool:
         """Switch clock to the real time mode (if clock is in debug mode)"""
-        message = privileged.Message()
+        message = api.admin.Message()
         message.system_clock.switch_to_real_time = True
         if not self._send_message(message):
             return False
@@ -70,7 +70,7 @@ class SystemClock:
 
     async def switch_to_debug_mode(self, timeout_sec: float = 0.1) -> bool:
         """Switch clock to the debug mode (if clock is in real time mode)"""
-        message = privileged.Message()
+        message = api.admin.Message()
         message.system_clock.switch_to_debug_mode = True
         if not self._send_message(message):
             return False
@@ -78,7 +78,7 @@ class SystemClock:
 
     async def terminate(self, timeout_sec: float = 0.1) -> bool:
         """Terminate system clock (server will stop)"""
-        message = privileged.Message()
+        message = api.admin.Message()
         message.system_clock.terminate = True
         if not self._send_message(message):
             return False
@@ -87,7 +87,7 @@ class SystemClock:
     async def set_tick_duration(self, tick_duration_usec: int, timeout_sec: float = 0.1) -> bool:
         """Set one tick duration to the specified 'tick_duration_usec'
         microseconds (if clock is in debug mode)."""
-        message = privileged.Message()
+        message = api.admin.Message()
         message.system_clock.tick_duration_us = tick_duration_usec
         if not self._send_message(message):
             return False
@@ -99,7 +99,7 @@ class SystemClock:
         Return (True, current_time) after proceed is done. Otherwise return
         (False, None)
         """
-        message = privileged.Message()
+        message = api.admin.Message()
         message.system_clock.proceed_ticks = ticks
         if not self._send_message(message):
             return False, 0

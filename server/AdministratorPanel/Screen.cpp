@@ -11,12 +11,12 @@ namespace world { class Asteroid; }
 
 namespace administrator {
 
-static world::ObjectType convert(admin::ObjectType eType)
+static world::ObjectType convert(spex::ObjectType eType)
 {
   switch (eType) {
-    case admin::ObjectType::SHIP:
+    case spex::ObjectType::OBJECT_SHIP:
       return world::ObjectType::eShip;
-    case admin::ObjectType::ASTEROID:
+    case spex::ObjectType::OBJECT_ASTEROID:
       return world::ObjectType::eAsteroid;
     default:
       assert("Unexpected type" == nullptr);
@@ -24,15 +24,14 @@ static world::ObjectType convert(admin::ObjectType eType)
   return world::ObjectType::eUnknown;
 }
 
-inline void convert(newton::PhysicalObject* pFrom, admin::Object* pTo)
+inline void convert(newton::PhysicalObject* pFrom, spex::PhysicalObject* pTo)
 {
-  pTo->set_base_id(pFrom->getInstanceId());
+  pTo->set_id(pFrom->getInstanceId());
   pTo->set_x(pFrom->getPosition().x);
   pTo->set_y(pFrom->getPosition().y);
   pTo->set_vx(static_cast<float>(pFrom->getVelocity().getX()));
   pTo->set_vy(static_cast<float>(pFrom->getVelocity().getY()));
   pTo->set_r(static_cast<float>(pFrom->getRadius()));
-  pTo->set_m(static_cast<float>(pFrom->getWeight()));
 }
 
 Screen::Screen() : m_pFilter(std::make_shared<tools::RectangeFilter>())
@@ -64,7 +63,7 @@ void Screen::proceed(uint32_t nIntervalUs)
     admin::Message message;
     admin::Screen* pResponse = message.mutable_screen();
 
-    admin::ObjectsList* pChunk = pResponse->mutable_objects();
+    spex::PhysicalObjectsList* pChunk = pResponse->mutable_objects();
     pChunk->set_left(static_cast<uint32_t>(filtered.size() - end));
     for(size_t i = begin; i < end; ++i) {
       if (filtered[i]) {
@@ -104,7 +103,7 @@ void Screen::move(uint32_t nSessionId, admin::Screen::Position const& position)
    sendStatus(nSessionId, admin::Screen::SUCCESS);
 }
 
-void Screen::show(uint32_t nSessionId, admin::ObjectType eType)
+void Screen::show(uint32_t nSessionId, spex::ObjectType eType)
 {
   if (nSessionId == network::gInvalidSessionId) {
     sendStatus(nSessionId, admin::Screen::FAILED);

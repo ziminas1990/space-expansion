@@ -1,6 +1,6 @@
 from typing import Optional
 import expansion.transport as transport
-from expansion.protocol import PrivilegedMessage
+import expansion.api as api
 from expansion.utils import generate_name
 
 from .access import Access
@@ -17,7 +17,7 @@ class Administrator:
             self.on_channel_closed, channel_name=f"{self.name}.UDP"
         )
         self.protobuf_channel: transport.ProtobufChannel = transport.ProtobufChannel(
-            message_type=PrivilegedMessage,
+            message_type=api.admin.Message,
             channel_name=f"{self.name}.Protobuf")
         self.token: Optional[int] = None
         self.access_panel: Access = Access()

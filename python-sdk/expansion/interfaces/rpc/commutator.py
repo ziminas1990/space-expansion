@@ -2,8 +2,8 @@ from typing import Optional, Any, Dict, List, NamedTuple, Tuple
 import logging
 from enum import Enum
 
-import expansion.protocol.Protocol_pb2 as public
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
+from expansion.api.utils import get_message_field
 from expansion.transport import IOTerminal
 from expansion.transport.proxy_channel import ProxyChannel
 from expansion.transport.channel import Channel
@@ -29,7 +29,7 @@ class Tunnel(ProxyChannel):
         self.commutator: 'CommutatorI' = commutator
 
     # Overridden from ProxyChannel
-    def decode(self, data: public.Message) -> Optional[Any]:
+    def decode(self, data: api.Message) -> Optional[Any]:
         """De-encapsulate message"""
         if data.tunnelId != self.tunnel_id:
             self.terminal_logger.warning(f"Tunnel_id mismatch! {data.tunnelId} != {self.tunnel_id}")
@@ -39,7 +39,7 @@ class Tunnel(ProxyChannel):
     # Overridden from ProxyChannel
     def encode(self, message: Any) -> Optional[Any]:
         """Encapsulate message in tunnel container"""
-        container = public.Message()
+        container = api.Message()
         container.tunnelId = self.tunnel_id
         container.encapsulated.CopyFrom(message)
         return container
@@ -55,7 +55,7 @@ class ModuleInfo(NamedTuple):
     name: str
 
     @staticmethod
-    def from_protubuf(info: public.ICommutator.ModuleInfo) -> 'ModuleInfo':
+    def from_protubuf(info: api.ICommutator.ModuleInfo) -> 'ModuleInfo':
         return ModuleInfo(slot_id=info.slot_id,
                           type=info.module_type,
                           name=info.module_name)
@@ -82,8 +82,8 @@ class CommutatorI(IOTerminal):
             return self == CommutatorI.Status.SUCCESS
 
         @staticmethod
-        def convert(status: public.ICommutator.Status) -> "CommutatorI.Status":
-            ProtobufStatus = public.ICommutator.Status
+        def convert(status: api.ICommutator.Status) -> "CommutatorI.Status":
+            ProtobufStatus = api.ICommutator.Status
             ModuleStatus = CommutatorI.Status
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
@@ -111,7 +111,7 @@ class CommutatorI(IOTerminal):
         assert False, "Operation is not supported for commutators"
 
     # Override from IOTerminal->Terminal
-    def on_receive(self, message: public.Message, timestamp: Optional[int]):
+    def on_receive(self, message: api.Message, timestamp: Optional[int]):
         if message.timestamp is not None:
             timestamp = message.timestamp
 
@@ -141,7 +141,7 @@ class CommutatorI(IOTerminal):
     @Channel.return_on_close(False, 0)
     async def get_total_slots(self) -> (bool, int):
         """Return total number of devices, attached to this commutator"""
-        request = public.Message()
+        request = api.Message()
         request.commutator.total_slots_req = True
         self.send(request)
         response, _ = await self.wait_message()
@@ -156,7 +156,7 @@ class CommutatorI(IOTerminal):
         """Return information about module, installed into the specified
         'slot_id'.
         """
-        request = public.Message()
+        request = api.Message()
         request.commutator.module_info_req = slot_id
         self.send(request)
         response, _ = await self.wait_message()
@@ -175,7 +175,7 @@ class CommutatorI(IOTerminal):
         success, total_slots = await self.get_total_slots()
         if not success:
             return None
-        request = public.Message()
+        request = api.Message()
         request.commutator.all_modules_info_req = True
         self.send(request)
 
@@ -192,7 +192,7 @@ class CommutatorI(IOTerminal):
     async def open_tunnel(self, port: int) -> Tuple[Status, Optional[Tunnel]]:
         """Open tunnel to the specified 'port'. Return (tunnel, None) on
         success, otherwise return (None, error)"""
-        request = public.Message()
+        request = api.Message()
         request.commutator.open_tunnel = port
         self.send(request)
 
@@ -214,7 +214,7 @@ class CommutatorI(IOTerminal):
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def close_tunnel(self, tunnel_id: int) -> Status:
-        request = public.Message()
+        request = api.Message()
         request.commutator.close_tunnel = tunnel_id
         self.send(request)
 

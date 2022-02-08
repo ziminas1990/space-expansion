@@ -1,8 +1,8 @@
 from typing import Optional
 
 from expansion.transport import Channel, IOTerminal
-import expansion.protocol.Privileged_pb2 as privileged
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
+from expansion.api.utils import get_message_field
 
 
 class Access:
@@ -16,7 +16,7 @@ class Access:
     async def login(self, login: str, password: str) -> (bool, Optional[int]):
         """Try to open privileged session as user with the
         specified 'login' and 'password'. Return tuple (status, token)"""
-        message = privileged.Message()
+        message = api.admin.Message()
         login_req = message.access.login
         login_req.login = login
         login_req.password = password

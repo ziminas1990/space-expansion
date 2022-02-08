@@ -18,8 +18,7 @@ world::ObjectType convert(spex::ObjectType type)
   }
 }
 
-ClientPassiveScanner::ObjectData convert(
-    const spex::IPassiveScanner::ObjectData& data)
+ClientPassiveScanner::ObjectData convert(const spex::PhysicalObject& data)
 {
   return ClientPassiveScanner::ObjectData{
     convert(data.object_type()),
@@ -84,8 +83,7 @@ bool ClientPassiveScanner::waitUpdate(std::vector<ObjectData> &update)
     return false;
   }
 
-  for (const spex::IPassiveScanner::ObjectData& item:
-       message.update().items()) {
+  for (const spex::PhysicalObject& item: message.update().items()) {
     update.push_back(convert(item));
   }
   return true;
@@ -103,8 +101,7 @@ bool ClientPassiveScanner::pickUpdate(
     return false;
   }
 
-  for (const spex::IPassiveScanner::ObjectData& item:
-       message.update().items()) {
+  for (const spex::PhysicalObject& item: message.update().items()) {
     update.push_back(convert(item));
   }
   return true;

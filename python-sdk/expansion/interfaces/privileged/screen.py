@@ -1,8 +1,7 @@
 from typing import Optional, List
 
 from expansion.transport.channel import Channel
-import expansion.protocol.Privileged_pb2 as privileged
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
 from .types import ObjectType, PhysicalObject
 
 
@@ -16,7 +15,7 @@ class Screen:
         self._channel = channel
         self._token = token
 
-    def _send_message(self, message: privileged.Message):
+    def _send_message(self, message: api.admin.Message):
         message.token = self._token
         self._channel.send(message)
 
@@ -25,7 +24,7 @@ class Screen:
                            width: float, height: float):
         """Move screen with the specified 'width' and 'height' to
         the specified 'x' and 'y' position"""
-        message = privileged.Message()
+        message = api.admin.Message()
         position = message.screen.move
         position.x = center_x
         position.y = center_y
@@ -34,11 +33,11 @@ class Screen:
         self._send_message(message)
 
         response = await self._channel.receive()
-        status = get_message_field(response, ["screen", "status"])
-        return status is not None and status == privileged.Screen.Status.SUCCESS
+        status = api.get_message_field(response, ["screen", "status"])
+        return status is not None and status == api.admin.Screen.Status.SUCCESS
 
     async def show(self, object_type: ObjectType) -> List[PhysicalObject]:
-        message = privileged.Message()
+        message = api.admin.Message()
         message.screen.show = object_type.to_protobuf_type()
         self._send_message(message)
 
@@ -46,7 +45,7 @@ class Screen:
 
         while True:
             response = await self._channel.receive()
-            items = get_message_field(response, ["screen", "objects"])
+            items = api.get_message_field(response, ["screen", "objects"])
             if not items:
                 break
             for item in items.object:

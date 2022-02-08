@@ -1,8 +1,7 @@
 from typing import Optional, NamedTuple, Dict, Callable, List, Tuple
 from enum import Enum
 
-import expansion.protocol.Protocol_pb2 as public
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
 from expansion.transport import IOTerminal, Channel
 from expansion.types import ResourceType, ResourceItem
 
@@ -37,8 +36,8 @@ class ResourceContainerI(IOTerminal):
             return self == ResourceContainerI.Status.RESPONSE_TIMEOUT
 
         @staticmethod
-        def convert(status: public.IResourceContainer.Status) -> "ResourceContainerI.Status":
-            ProtobufStatus = public.IResourceContainer.Status
+        def convert(status: api.IResourceContainer.Status) -> "ResourceContainerI.Status":
+            ProtobufStatus = api.IResourceContainer.Status
             ModuleStatus = ResourceContainerI.Status
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
@@ -81,7 +80,7 @@ class ResourceContainerI(IOTerminal):
     @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
     async def get_content(self, timeout: float = 0.5) -> \
             Tuple[Status, Optional[Content]]:
-        request = public.Message()
+        request = api.Message()
         request.resource_container.content_req = True
         if not self.send(message=request):
             return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
@@ -93,7 +92,7 @@ class ResourceContainerI(IOTerminal):
         response, timestamp = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
-        content = get_message_field(
+        content = api.get_message_field(
             response, ["resource_container", "content"])
         if not content:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT, None
@@ -110,20 +109,20 @@ class ResourceContainerI(IOTerminal):
     async def open_port(self, access_key: int, timeout: int = 0.5) -> (Status, int):
         """Open a new port with the specified 'access_key'. Return operation status
         and port number"""
-        request = public.Message()
+        request = api.Message()
         request.resource_container.open_port = access_key
         if not self.send(message=request):
             return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, 0
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT, 0
-        port_id = get_message_field(
+        port_id = api.get_message_field(
             response, ["resource_container", "port_opened"])
         if port_id is not None:
             # Success case
             return ResourceContainerI.Status.SUCCESS, port_id
 
-        error_status = get_message_field(
+        error_status = api.get_message_field(
             response, ["resource_container", "open_port_failed"])
         if error_status is not None:
             return ResourceContainerI.Status.convert(error_status), 0
@@ -132,14 +131,14 @@ class ResourceContainerI(IOTerminal):
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def close_port(self, timeout: int = 0.5) -> Status:
         """Close an existing opened port"""
-        request = public.Message()
+        request = api.Message()
         request.resource_container.close_port = True
         if not self.send(message=request):
             return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT
-        status = get_message_field(
+        status = api.get_message_field(
             response, ["resource_container", "close_port_status"])
         if status is not None:
             # Success case
@@ -151,7 +150,7 @@ class ResourceContainerI(IOTerminal):
         Note: monitoring session can't be closed. The only way to stop
         monitoring session is close the channel.
         """
-        request = public.Message()
+        request = api.Message()
         request.resource_container.monitor = True
         if not self.send(message=request):
             return ResourceContainerI.Status.FAILED_TO_SEND_REQUEST, None
@@ -166,7 +165,7 @@ class ResourceContainerI(IOTerminal):
         specified 'access_key'. The optionally specified 'progress_cb' will be
         called to report transferring status (a total amount of transferred
         resources)."""
-        request = public.Message()
+        request = api.Message()
         req_body = request.resource_container.transfer
         req_body.port_id = port
         req_body.access_key = access_key
@@ -178,19 +177,19 @@ class ResourceContainerI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ResourceContainerI.Status.RESPONSE_TIMEOUT
-        status = get_message_field(
+        status = api.get_message_field(
             response, ["resource_container", "transfer_status"])
         if status is None:
             return ResourceContainerI.Status.UNEXPECTED_RESPONSE
-        if status != public.IResourceContainer.Status.SUCCESS:
+        if status != api.IResourceContainer.Status.SUCCESS:
             return ResourceContainerI.Status.convert(status)
         # Status is success. Waiting for reports
         while True:
             response, _ = await self.wait_message(timeout=2)
-            report = get_message_field(response, ["resource_container", "transfer_report"])
+            report = api.get_message_field(response, ["resource_container", "transfer_report"])
             if not report:
                 # May be complete status is received:
-                status = get_message_field(response, ["resource_container", "transfer_finished"])
+                status = api.get_message_field(response, ["resource_container", "transfer_finished"])
                 return ResourceContainerI.Status.convert(status) \
                     if status is not None else ResourceContainerI.Status.UNEXPECTED_RESPONSE
             # Got transfer report:

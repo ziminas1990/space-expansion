@@ -1,8 +1,7 @@
 from typing import Optional, NamedTuple, Callable
 from enum import Enum
 
-import expansion.protocol.Protocol_pb2 as public
-import expansion.protocol as protocol
+import expansion.api as api
 from expansion.transport import IOTerminal, Channel
 from expansion import utils
 
@@ -32,8 +31,8 @@ class ShipyardI(IOTerminal):
         CANCELED = "operation canceled"
 
         @staticmethod
-        def from_protobuf(status: public.IResourceContainer.Status) -> "ShipyardI.Status":
-            ProtobufStatus = public.IShipyard.Status
+        def from_protobuf(status: api.IResourceContainer.Status) -> "ShipyardI.Status":
+            ProtobufStatus = api.IShipyard.Status
             ModuleStatus = ShipyardI.Status
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
@@ -60,14 +59,14 @@ class ShipyardI(IOTerminal):
     @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
     async def get_specification(self, timeout: float = 0.5) \
             -> (Status, Optional[Specification]):
-        request = public.Message()
+        request = api.Message()
         request.shipyard.specification_req = True
         if not self.send(message=request):
             return ShipyardI.Status.FAILED_TO_SEND_REQUEST, None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ShipyardI.Status.RESPONSE_TIMEOUT, None
-        spec = protocol.get_message_field(response, ["shipyard", "specification"])
+        spec = api.get_message_field(response, ["shipyard", "specification"])
         if not spec:
             return ShipyardI.Status.UNEXPECTED_RESPONSE, None
         spec = Specification(labor_per_sec=spec.labor_per_sec)
@@ -75,21 +74,21 @@ class ShipyardI(IOTerminal):
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def bind_to_cargo(self, cargo_name: str, timeout: float = 0.5) -> Status:
-        request = public.Message()
+        request = api.Message()
         request.shipyard.bind_to_cargo = cargo_name
         if not self.send(message=request):
             return ShipyardI.Status.FAILED_TO_SEND_REQUEST
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ShipyardI.Status.RESPONSE_TIMEOUT
-        status = protocol.get_message_field(response, ["shipyard", "bind_to_cargo_status"])
+        status = api.get_message_field(response, ["shipyard", "bind_to_cargo_status"])
         if status is None:
             return ShipyardI.Status.UNEXPECTED_RESPONSE
         return ShipyardI.Status.from_protobuf(status)
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def start_build(self, blueprint: str, ship_name: str) -> Status:
-        request = public.Message()
+        request = api.Message()
         req_body = request.shipyard.start_build
         req_body.blueprint_name = blueprint
         req_body.ship_name = ship_name
@@ -104,7 +103,7 @@ class ShipyardI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ShipyardI.Status.RESPONSE_TIMEOUT, None
-        report = protocol.get_message_field(response, ["shipyard", "building_report"])
+        report = api.get_message_field(response, ["shipyard", "building_report"])
         if not report:
             return ShipyardI.Status.UNEXPECTED_RESPONSE, None
         return ShipyardI.Status.from_protobuf(report.status), report.progress
@@ -115,7 +114,7 @@ class ShipyardI(IOTerminal):
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return ShipyardI.Status.RESPONSE_TIMEOUT, None, None
-        report = protocol.get_message_field(response, ["shipyard", "building_complete"])
+        report = api.get_message_field(response, ["shipyard", "building_complete"])
         if not report:
             return ShipyardI.Status.UNEXPECTED_RESPONSE, None, None
         return ShipyardI.Status.SUCCESS, \

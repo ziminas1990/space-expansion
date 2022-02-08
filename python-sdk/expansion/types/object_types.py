@@ -1,6 +1,6 @@
 from enum import Enum
 
-import expansion.protocol.Protocol_pb2 as rpc
+import expansion.api as api
 
 
 class ObjectType(Enum):
@@ -9,9 +9,9 @@ class ObjectType(Enum):
     UNKNOWN = "unknown"
 
     @staticmethod
-    def from_protobuf(resource_type: rpc.ResourceType) -> 'ObjectType':
+    def from_protobuf(resource_type: api.types.ResourceType) -> 'ObjectType':
         return {
-            rpc.OBJECT_ASTEROID: ObjectType.ASTEROID,
-            rpc.OBJECT_SHIP: ObjectType.SHIP,
-            rpc.OBJECT_UNKNOWN: ObjectType.UNKNOWN,
+            api.types.OBJECT_ASTEROID: ObjectType.ASTEROID,
+            api.types.OBJECT_SHIP: ObjectType.SHIP,
+            api.types.OBJECT_UNKNOWN: ObjectType.UNKNOWN,
         }[resource_type]

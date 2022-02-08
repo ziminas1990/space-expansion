@@ -33,7 +33,7 @@ public:
 
 private:
   void move(uint32_t nSessionId, admin::Screen::Position const& position);
-  void show(uint32_t nSessionId, admin::ObjectType eType);
+  void show(uint32_t nSessionId, spex::ObjectType eType);
 
   bool sendStatus(uint32_t nSessionId, admin::Screen::Status eStatus);
 

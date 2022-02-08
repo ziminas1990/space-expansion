@@ -1,64 +1,9 @@
 syntax = "proto3";
-
 option cc_enable_arenas = true;
 
+import "CommonTypes.proto";
+
 package spex;
-
-//=============================================================================
-// Common types
-
-message OptionalDouble {
-  double value = 1;
-}
-
-message NamesList {
-  uint32          left  = 1;
-  repeated string names = 2;
-}
-
-enum ResourceType {
-  RESOURCE_UNKNOWN   = 0;
-  RESOURCE_METALS    = 1;
-  RESOURCE_SILICATES = 2;
-  RESOURCE_ICE       = 3;
-  RESOURCE_STONE     = 4;
-  RESOURCE_LABOR     = 101;
-}
-
-message ResourceItem {
-  ResourceType type  = 1;
-  double       amount = 2;
-}
-
-message Resources {
-  repeated ResourceItem items = 1;
-}
-
-message Property {
-  string            name   = 1;
-  string            value  = 2;
-  repeated Property nested = 3;
-}
-
-message Blueprint {
-  string                name       = 1;
-  repeated Property     properties = 2;
-  repeated ResourceItem expenses   = 3;
-}
-
-message Position {
-  double x   = 1;
-  double y   = 2;
-  double vx  = 4;
-  double vy  = 5;
-}
-
-
-enum ObjectType {
-  OBJECT_UNKNOWN  = 0;
-  OBJECT_ASTEROID = 1;
-  OBJECT_SHIP     = 2;
-}
 
 
 //=============================================================================
@@ -180,23 +125,13 @@ message ICelestialScanner {
 
 message IPassiveScanner {
 
-  message ObjectData {
-    ObjectType object_type = 1;
-    uint32     id          = 2;
-    double     x           = 3;
-    double     y           = 4;
-    float      vx          = 5;
-    float      vy          = 6;
-    float      r           = 7;
-  }
-
   message Specification {
     uint32 scanning_radius_km = 1;
     uint32 max_update_time_ms = 2;
   }
 
   message Update {
-    repeated ObjectData items = 1;
+    repeated PhysicalObject items = 1;
   }
 
   oneof choice {

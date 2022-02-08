@@ -4,8 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 
 from expansion.transport import IOTerminal, Channel
-import expansion.protocol.Protocol_pb2 as public
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
 
 import expansion.utils as utils
 
@@ -24,8 +23,8 @@ class SystemClockI(ABC):
             return self == SystemClockI.Status.SUCCESS
 
         @staticmethod
-        def from_protobuf(status: public.IResourceContainer.Status) -> "SystemClockI.Status":
-            ProtobufStatus = public.ISystemClock.Status
+        def from_protobuf(status: api.IResourceContainer.Status) -> "SystemClockI.Status":
+            ProtobufStatus = api.ISystemClock.Status
             ModuleStatus = SystemClockI.Status
             return {
                 ProtobufStatus.SUCCESS: ModuleStatus.SUCCESS,
@@ -61,7 +60,7 @@ class SystemClock(SystemClockI, IOTerminal):
     @Channel.return_on_close(None)
     async def time(self, timeout: float = 0.1) -> Optional[int]:
         """Return current server time"""
-        request = public.Message()
+        request = api.Message()
         request.system_clock.time_req = True
         if not self.send(message=request):
             return None
@@ -72,28 +71,28 @@ class SystemClock(SystemClockI, IOTerminal):
         """Wait until server time reaches the specified 'time'
 
         Return actual server's time"""
-        request = public.Message()
+        request = api.Message()
         request.system_clock.wait_until = time
         if not self.send(message=request):
             return None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        return get_message_field(response, ["system_clock", "ring"])
+        return api.get_message_field(response, ["system_clock", "ring"])
 
     @Channel.return_on_close(None)
     async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
         """Wait for the specified 'period' microseconds
 
         Return actual server's time"""
-        request = public.Message()
+        request = api.Message()
         request.system_clock.wait_for = period_us
         if not self.send(message=request):
             return None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        return get_message_field(response, ["system_clock", "ring"])
+        return api.get_message_field(response, ["system_clock", "ring"])
 
     @Channel.return_on_close(None)
     async def monitoring(self,
@@ -105,7 +104,7 @@ class SystemClock(SystemClockI, IOTerminal):
         timeout=interval_ms*5 in order to receive timestamps.
         Note: the only way to stop monitoring is to close the session.
         """
-        request = public.Message()
+        request = api.Message()
         request.system_clock.monitor = interval_ms
         if not self.send(message=request):
             return None
@@ -118,4 +117,4 @@ class SystemClock(SystemClockI, IOTerminal):
         if not response:
             self.logger.warning("Timeout while waiting timestamp")
             return None
-        return get_message_field(response, ["system_clock", "time"])
+        return api.get_message_field(response, ["system_clock", "time"])

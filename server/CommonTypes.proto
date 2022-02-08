@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+option cc_enable_arenas = true;
+
+package spex;
+
+
+message OptionalDouble {
+  double value = 1;
+}
+
+message NamesList {
+  uint32          left  = 1;
+  repeated string names = 2;
+}
+
+enum ResourceType {
+  RESOURCE_UNKNOWN   = 0;
+  RESOURCE_METALS    = 1;
+  RESOURCE_SILICATES = 2;
+  RESOURCE_ICE       = 3;
+  RESOURCE_STONE     = 4;
+  RESOURCE_LABOR     = 101;
+}
+
+enum ObjectType {
+  OBJECT_UNKNOWN  = 0;
+  OBJECT_ASTEROID = 1;
+  OBJECT_SHIP     = 2;
+}
+
+message ResourceItem {
+  ResourceType type  = 1;
+  double       amount = 2;
+}
+
+message Resources {
+  repeated ResourceItem items = 1;
+}
+
+message Property {
+  string            name   = 1;
+  string            value  = 2;
+  repeated Property nested = 3;
+}
+
+message Blueprint {
+  string                name       = 1;
+  repeated Property     properties = 2;
+  repeated ResourceItem expenses   = 3;
+}
+
+message Position {
+  double x   = 1;
+  double y   = 2;
+  double vx  = 4;
+  double vy  = 5;
+}
+
+message PhysicalObject {
+  ObjectType object_type = 1;
+  uint32     id          = 2;
+  // Why not just "Posision position"? To avoid redundant nested mutable object
+  double     x           = 3;
+  double     y           = 4;
+  float      vx          = 5;
+  float      vy          = 6;
+  float      r           = 7;
+}
+
+message PhysicalObjectsList {
+  repeated PhysicalObject object = 1;
+  uint32                  left   = 2;
+}
+

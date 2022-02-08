@@ -1,7 +1,7 @@
 from typing import Any, Optional, Tuple
 import asyncio
 
-from expansion.protocol import get_message_field
+from expansion.api import get_message_field
 from expansion.transport import Endpoint, Terminal, Channel, ChannelClosed
 
 

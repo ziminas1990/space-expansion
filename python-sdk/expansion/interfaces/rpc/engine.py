@@ -1,7 +1,6 @@
 from typing import Optional, NamedTuple
 
-import expansion.protocol.Protocol_pb2 as public
-from expansion.protocol.utils import get_message_field
+import expansion.api as api
 from expansion.transport import IOTerminal, Channel
 from expansion.types.geometry import Vector
 
@@ -25,14 +24,14 @@ class EngineI(IOTerminal):
             self.specification = None
         if self.specification:
             return self.specification
-        request = public.Message()
+        request = api.Message()
         request.engine.specification_req = True
         if not self.send(message=request):
             return None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        spec = get_message_field(response, ["engine", "specification"])
+        spec = api.get_message_field(response, ["engine", "specification"])
         if not spec:
             return None
         self.specification = Specification(max_thrust=spec.max_thrust)
@@ -41,14 +40,14 @@ class EngineI(IOTerminal):
     @Channel.return_on_close(None)
     async def get_thrust(self, timeout: float = 0.5) -> Optional[Vector]:
         """Return current engine thrust"""
-        request = public.Message()
+        request = api.Message()
         request.engine.thrust_req = True
         if not self.send(message=request):
             return None
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
-        thrust = get_message_field(response, ["engine", "thrust"])
+        thrust = api.get_message_field(response, ["engine", "thrust"])
         if not thrust:
             return None
         return Vector(x=thrust.x, y=thrust.y).set_length(thrust.thrust)
@@ -61,7 +60,7 @@ class EngineI(IOTerminal):
         Function doesn't await any acknowledgement or response.
         Return true if a request has been sent
         """
-        request = public.Message()
+        request = api.Message()
         if at:
             request.timestamp = at
         thrust_req = request.engine.change_thrust

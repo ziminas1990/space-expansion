@@ -1,11 +1,10 @@
 import logging.config
-import random
 from typing import Optional
 
 from expansion.transport import UdpChannel, ProtobufChannel, ProxyChannel
 from expansion.modules.factory import module_factory
 
-import expansion.protocol.Protocol_pb2 as public
+import expansion.api as api
 from expansion.interfaces.rpc import AccessPanelI
 from expansion.modules import Commutator
 
@@ -28,7 +27,7 @@ async def login(server_ip: str,
 
     # Protobuf channel for logging in
     login_channel = ProtobufChannel(channel_name="Login",
-                                    message_type=public.Message)
+                                    message_type=api.Message)
     login_channel.attach_channel(login_udp_channel)
     login_udp_channel.attach_to_terminal(login_channel)
 
@@ -57,7 +56,7 @@ async def login(server_ip: str,
         # Create protobuf layer
         tunnel = ProtobufChannel(
             channel_name=f"Root.{local_port}",
-            message_type=public.Message)
+            message_type=api.Message)
         tunnel.attach_channel(player_udp_channel)
         player_udp_channel.attach_to_terminal(tunnel)
         return tunnel, None

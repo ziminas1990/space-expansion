@@ -5,7 +5,7 @@ import asyncio
 from expansion.transport.udp_channel import UdpChannel
 from expansion.transport.protobuf_channel import ProtobufChannel
 from tk_widgets import advancedcanvas
-from expansion.protocol.Privileged_pb2 import Message as PrivilegedMessage
+from expansion.api.Privileged_pb2 import Message as PrivilegedMessage
 from expansion.interfaces.privileged.access import Access as PrivilegedAccess
 from expansion.interfaces.privileged.screen import Screen as PrivilegedScreen
 import expansion.interfaces.privileged.types as privileged_types

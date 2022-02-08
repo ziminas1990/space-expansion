@@ -1,10 +1,10 @@
-import copy
+
 from typing import Optional, NamedTuple, Tuple, Union
-import time
 import math
 from expansion.types import Vector, TimePoint
 
-import expansion.protocol.Protocol_pb2 as api
+import expansion.api as api
+
 
 class Position(NamedTuple):
     x: float
@@ -13,7 +13,7 @@ class Position(NamedTuple):
     timestamp: Optional[TimePoint] = None
 
     @staticmethod
-    def build(position: api.Position, timestamp: Optional[int] = None) -> 'Position':
+    def build(position: api.types.Position, timestamp: Optional[int] = None) -> 'Position':
         return Position(x=position.x, y=position.y,
                         velocity=Vector(x=position.vx, y=position.vy),
                         timestamp=TimePoint(timestamp))
