@@ -90,11 +90,22 @@ public:
   ResourcesArray& metals(double amount);
   ResourcesArray& silicates(double amount);
   ResourcesArray& ice(double amount);
+  ResourcesArray& stones(double amount);
+
+  double metals() const { return at(Resource::eMetal); }
+  double silicates() const { return at(Resource::eSilicate); }
+  double ice() const { return at(Resource::eIce); }
+  double stones() const { return at(Resource::eStone); }
 
   ResourcesArray& operator+=(ResourcesArray const& other);
   bool operator==(ResourcesArray const& other) const;
 
+  double calculateTotalMass() const;
   double calculateTotalVolume() const;
+
+  void normalize();
+    // Each resource takes value from 0 to 1, depending on it's initial amount.
+    // Total amount of all resources turns to 1.
 };
 
 } // namespace world

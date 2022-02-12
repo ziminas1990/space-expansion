@@ -38,9 +38,9 @@ void AsteroidScanner::proceed(uint32_t nIntervalUs)
       response.mutable_asteroid_scanner()->mutable_scanning_finished();
   pScanResult->set_asteroid_id(m_nAsteroidId);
   pScanResult->set_weight(pAsteroid->getWeight());
-  pScanResult->set_ice_percent(pAsteroid->getComposition().ice_percent());
-  pScanResult->set_metals_percent(pAsteroid->getComposition().metals_percent());
-  pScanResult->set_silicates_percent(pAsteroid->getComposition().silicates_percent());
+  pScanResult->set_ice_percent(pAsteroid->getComposition().ice());
+  pScanResult->set_metals_percent(pAsteroid->getComposition().metals());
+  pScanResult->set_silicates_percent(pAsteroid->getComposition().silicates());
   sendToClient(m_nTunnelId, std::move(response));
   m_nTunnelId = 0;
   switchToIdleState();

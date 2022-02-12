@@ -150,6 +150,12 @@ ResourcesArray &ResourcesArray::ice(double amount)
   return *this;
 }
 
+ResourcesArray &ResourcesArray::stones(double amount)
+{
+  at(Resource::eStone) = amount;
+  return *this;
+}
+
 ResourcesArray& ResourcesArray::operator+=(ResourcesArray const& other)
 {
   for (Resource::Type eType : Resource::AllTypes) {
@@ -167,6 +173,15 @@ bool ResourcesArray::operator==(ResourcesArray const& other) const
   return true;
 }
 
+double ResourcesArray::calculateTotalMass() const
+{
+  double mass = 0;
+  for (Resource::Type eResource : Resource::MaterialResources) {
+    mass += at(eResource);
+  }
+  return mass;
+}
+
 double ResourcesArray::calculateTotalVolume() const
 {
   double volume = 0;
@@ -174,6 +189,21 @@ double ResourcesArray::calculateTotalVolume() const
     volume += at(eResource) /  world::Resource::Density[eResource];
   }
   return volume;
+}
+
+void ResourcesArray::normalize()
+{
+  // All non-material resources should be 0
+  for (Resource::Type eResource: Resource::NonMaterialResources) {
+    at(eResource) = 0;;
+  }
+
+  const double total = calculateTotalMass();
+  if (total > 0) {
+    for (Resource::Type eResource: Resource::MaterialResources) {
+      at(eResource) /= total;
+    }
+  }
 }
 
 } // namespace world

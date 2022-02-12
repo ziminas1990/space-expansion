@@ -12,27 +12,6 @@
 
 namespace world {
 
-struct AsteroidComposition
-{
-  AsteroidComposition(double nSilicates,
-                      double nMetals,
-                      double nIce,
-                      double nStones);
-  AsteroidComposition()
-  {
-    reset();
-  }
-
-  void   reset();
-  double silicates_percent() const { return m_stakes[Resource::Type::eSilicate]; }
-  double metals_percent()    const { return m_stakes[Resource::Type::eMetal]; }
-  double ice_percent()       const { return m_stakes[Resource::Type::eIce]; }
-
-  void normalize();
-
-  double m_stakes[Resource::Type::eTotalResources];
-};
-
 class Asteroid;
 using AsteroidsContainer = utils::GlobalContainer<Asteroid>;
 
@@ -48,12 +27,12 @@ public:
   Asteroid();
   Asteroid(double radius,
            double weight,
-           AsteroidComposition distribution,
+           ResourcesArray distribution,
            uint32_t seed);
 
   bool loadState(YAML::Node const& data);
 
-  AsteroidComposition const& getComposition() const { return m_composition; }
+  ResourcesArray const& getComposition() const { return m_composition; }
 
   uint32_t getAsteroidId() const {
     return utils::GlobalObject<Asteroid>::getInstanceId();
@@ -66,7 +45,7 @@ public:
   }
 
 private:
-  AsteroidComposition        m_composition;
+  ResourcesArray             m_composition;
   std::default_random_engine m_randomizer;
 
   utils::Mutex m_mutex;

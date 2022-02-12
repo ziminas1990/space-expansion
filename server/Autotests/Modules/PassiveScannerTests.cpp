@@ -262,7 +262,7 @@ struct Tool {
     return std::make_unique<world::Asteroid>(
           utils::Randomizer::yield<double>(1, 100),
           utils::Randomizer::yield<double>(10000, 1000000),
-          world::AsteroidComposition(1, 1, 1, 10),
+          world::ResourcesArray().metals(1).silicates(1).ice(1).stones(10),
           utils::Randomizer::yield<uint32_t>(1, 10000));
   }
 
