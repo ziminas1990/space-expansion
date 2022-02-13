@@ -4,11 +4,14 @@
 #include <yaml-cpp/yaml.h>
 #include <Utils/Printers.h>
 
+#define DEFAULT_SEED 1
+
 namespace autotests
 {
 
 FunctionalTestFixture::FunctionalTestFixture()
-  : m_lWorldFreezed(true)
+  : m_application(DEFAULT_SEED)
+  , m_lWorldFreezed(true)
 {
   Scenarios::m_pEnv = this;
 }

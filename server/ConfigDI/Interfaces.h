@@ -41,6 +41,7 @@ public:
 
   virtual uint16_t                 getTotalThreads()     const = 0;
   virtual uint16_t                 getLoginUdpPort()     const = 0;
+  virtual uint32_t                 getSeed()             const = 0;
   virtual IPortsPoolCfg     const& getPortsPoolcfg()     const = 0;
   virtual IAdministratorCfg const& getAdministratorCfg() const = 0;
   virtual IGlobalGridCfg    const& getGlobalGridCfg()    const = 0;

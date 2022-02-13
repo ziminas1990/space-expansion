@@ -56,10 +56,12 @@ ApplicationCfg ApplicationCfgReader::read(YAML::Node const& data)
 {
   uint16_t    nTotalThreads = 0;
   uint16_t    nLoginUdpPort = 0;
+  uint32_t    nSeed         = 0;
   std::string sInitialState;
   if (!utils::YamlReader(data)
       .read("total-threads", nTotalThreads)
       .read("login-udp-port", nLoginUdpPort)
+      .read("seed", nSeed)
       .read("initial-state", sInitialState)
       .isOk()) {
     return ApplicationCfg();

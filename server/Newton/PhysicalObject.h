@@ -63,9 +63,15 @@ public:
   void setVelocity(geometry::Vector const& velocity) { m_velocity = velocity; }
   void changeWeight(double delta);
   void setWeight(double weight) {
-    // May be inlining this function is better
     std::lock_guard<utils::Spinlock> guard(m_spinlock);
     m_weight = weight < m_minimalWeight ? m_minimalWeight : weight;
+  }
+
+  void setRadius(double radius)
+  {
+    assert(radius > 0);
+    std::lock_guard<utils::Spinlock> guard(m_spinlock);
+    m_radius = radius;
   }
 
   double getDistanceTo(PhysicalObject const* other);

@@ -24,7 +24,7 @@ public:
   using Uptr = std::unique_ptr<Asteroid>;
 
 public:
-  Asteroid();
+  Asteroid(uint32_t seed);
   Asteroid(double radius,
            double weight,
            ResourcesArray distribution,

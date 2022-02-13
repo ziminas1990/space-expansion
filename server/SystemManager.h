@@ -1,7 +1,8 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include "Utils/YamlForwardDeclarations.h"
+#include <Utils/YamlForwardDeclarations.h>
+#include <Utils/RandomSequence.h>
 
 #include "ConfigDI/Containers.h"
 #include "Conveyor/Conveyor.h"
@@ -34,6 +35,7 @@
 class SystemManager
 {
 public:
+  SystemManager(uint32_t seed);
   ~SystemManager();
 
   bool initialize(config::IApplicationCfg const& cfg);
@@ -67,6 +69,7 @@ private:
   conveyor::Conveyor*          m_pConveyor = nullptr;
   std::vector<std::thread*>    m_slaves;
   boost::asio::io_service      m_IoService;
+  utils::RandomSequence        m_randomizer;
 
 #ifdef AUTOTESTS_MODE
   boost::fibers::barrier m_barrier = boost::fibers::barrier(2);

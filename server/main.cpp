@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
   std::ifstream cfgStream;
   cfgStream.open(sConfigurationFile);
   if (!cfgStream.is_open()) {
-    std::cerr << "FAILED to open configuration file \"" << sConfigurationFile << "\"!"
-              << std::endl;
+    std::cerr << "FAILED to open configuration file \""
+              << sConfigurationFile << "\"!" << std::endl;
     return 1;
   }
 
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  SystemManager app;
+  SystemManager app(applicationCfg.getSeed());
   if (!app.initialize(applicationCfg)) {
     std::cerr << "FAILED to initialize application!" << std::endl;
     return 1;

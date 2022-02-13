@@ -135,6 +135,7 @@ public:
 
   ApplicationCfg& setTotalThreads(uint16_t nTotalThreads);
   ApplicationCfg& setLoginUdpPort(uint16_t nLoginUdpPort);
+  ApplicationCfg& setSeed(uint32_t nSeed);
   ApplicationCfg& setPortsPool(IPortsPoolCfg const& cfg);
   ApplicationCfg& setGlobalGrid(IGlobalGridCfg const& cfg);
   ApplicationCfg& setAdministratorCfg(IAdministratorCfg const& cfg);
@@ -143,6 +144,7 @@ public:
   // IApplicationCfg interface
   uint16_t              getTotalThreads()  const override { return m_nTotalThreads; }
   uint16_t              getLoginUdpPort()  const override { return m_nLoginUdpPort; }
+  uint32_t              getSeed()          const override { return m_seed; }
   IPortsPoolCfg const&  getPortsPoolcfg()  const override { return m_portsPool; }
   IGlobalGridCfg const& getGlobalGridCfg() const override { return m_globalGrid; }
   bool                  isClockFreezed()   const override { return m_lIsClockFreezed; }
@@ -153,6 +155,7 @@ public:
 private:
   uint16_t         m_nTotalThreads;
   uint16_t         m_nLoginUdpPort;
+  uint32_t         m_seed;
   PortsPoolCfg     m_portsPool;
   GlobalGridCfg    m_globalGrid;
   bool             m_lIsClockFreezed;

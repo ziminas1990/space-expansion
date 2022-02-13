@@ -6,13 +6,17 @@
 
 namespace world {
 
+World::World(unsigned long seed)
+  : m_randomizer(seed)
+{}
+
 bool World::loadState(YAML::Node const& data)
 {
   YAML::Node const& asteroidsData = data["Asteroids"];
   if (asteroidsData.IsDefined()) {
     m_asteroids.reserve(asteroidsData.size());
     for (YAML::Node const& asteroidData : asteroidsData) {
-      AsteroidUptr pAsteroid = std::make_unique<Asteroid>();
+      AsteroidUptr pAsteroid = std::make_unique<Asteroid>(m_randomizer.yield());
       if (!pAsteroid->loadState(asteroidData)) {
         assert(false);
         return false;

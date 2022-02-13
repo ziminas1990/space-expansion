@@ -17,6 +17,11 @@
 // SystemManager
 //==============================================================================
 
+SystemManager::SystemManager(uint32_t seed)
+  : m_randomizer(seed)
+  , m_world(m_randomizer.yield())
+{}
+
 SystemManager::~SystemManager()
 {
   m_pAccessPanel->detachFromChannel();

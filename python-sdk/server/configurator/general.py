@@ -51,12 +51,14 @@ class General:
     def __init__(self,
                  total_threads: Optional[int] = None,
                  login_udp_port: Optional[int] = None,
+                 seed: Optional[int] = None,
                  initial_state: Optional[ApplicationMode] = None,
                  ports_pool: Optional[Tuple[int, int]] = None,
                  global_grid: Optional[GlobalGrid] = None,
                  administrator_cfg: Optional[AdministratorCfg] = None):
         self.total_threads: Optional[int] = total_threads
         self.login_udp_port: Optional[int] = login_udp_port
+        self.seed: Optional[int] = seed if seed is not None else 12345
         self.initial_state: Optional[ApplicationMode] = initial_state
         self.ports_pool: Optional[Tuple[int, int]] = ports_pool
         self.global_grid = global_grid
@@ -102,6 +104,7 @@ class General:
         exception if something is wrong"""
         assert self.total_threads and self.total_threads > 0
         assert self.login_udp_port and 0 < self.login_udp_port < 65535
+        assert self.seed > 0
         assert self.initial_state
         assert self.ports_pool and \
                0 < self.ports_pool[0] < self.ports_pool[1] < 65535
@@ -120,6 +123,7 @@ class General:
         pod = {
             "total-threads": self.total_threads,
             "login-udp-port": self.login_udp_port,
+            "seed": self.seed,
             "initial-state": self.initial_state.value,
             "ports-pool": {
                 "begin": self.ports_pool[0],

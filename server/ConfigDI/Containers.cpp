@@ -81,6 +81,7 @@ ApplicationCfg::ApplicationCfg()
 ApplicationCfg::ApplicationCfg(IApplicationCfg const& other)
   : m_nTotalThreads(other.getTotalThreads()),
     m_nLoginUdpPort(other.getLoginUdpPort()),
+    m_seed(other.getSeed()),
     m_portsPool(other.getPortsPoolcfg()),
     m_globalGrid(other.getGlobalGridCfg()),
     m_lIsClockFreezed(other.isClockFreezed()),

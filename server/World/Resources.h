@@ -106,6 +106,8 @@ public:
   void normalize();
     // Each resource takes value from 0 to 1, depending on it's initial amount.
     // Total amount of all resources turns to 1.
+
+  ResourcesArray normalized() const;
 };
 
 } // namespace world

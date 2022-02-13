@@ -206,4 +206,11 @@ void ResourcesArray::normalize()
   }
 }
 
+ResourcesArray ResourcesArray::normalized() const
+{
+  ResourcesArray result = *this;
+  result.normalize();
+  return result;
+}
+
 } // namespace world
