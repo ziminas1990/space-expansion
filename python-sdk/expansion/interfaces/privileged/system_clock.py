@@ -1,13 +1,13 @@
 from typing import Optional
 from enum import Enum
 
-from expansion.transport import Channel, IOTerminal
+from expansion.transport import IOTerminal
 import expansion.api as api
 from expansion.api.utils import get_message_field
 
 
 class Status(Enum):
-    UNKNOWN = 0
+    MODE_UNKNOWN = 0
     MODE_REAL_TIME = 1
     MODE_DEBUG = 2
     MODE_TERMINATED = 3
@@ -28,27 +28,16 @@ class Status(Enum):
             return Status.MODE_UNKNOWN
 
 
-class SystemClock:
-    def __init__(self):
-        self._socket: IOTerminal = IOTerminal()
-        self._token: int = 0
-
-    def attach_to_channel(self, channel: Channel, token: int):
-        self._socket.wrap_channel(channel)
-        self._token = token
-
-    def _send_message(self, message: api.admin.Message) -> bool:
-        if self._token == 0:
-            return False
-        message.token = self._token
-        return self._socket.send(message)
+class SystemClock(IOTerminal):
+    def __init__(self, name: str, *args, **kwargs):
+        super(SystemClock, self).__init__(name=name, *args, **kwargs)
 
     async def get_time(self, timeout_sec: float = 0.1) -> Optional[int]:
         """Request current in-game time. Return number of microseconds
         since the game has been started"""
         message = api.admin.Message()
         message.system_clock.time_req = True
-        if not self._send_message(message):
+        if not self.send(message):
             return None
         return await self._await_time(timeout_sec=timeout_sec)
 
@@ -56,7 +45,7 @@ class SystemClock:
         """Request current clock mode"""
         message = api.admin.Message()
         message.system_clock.mode_req = True
-        if not self._send_message(message):
+        if not self.send(message):
             return None
         return await self._await_status(timeout_sec=timeout_sec)
 
@@ -64,7 +53,7 @@ class SystemClock:
         """Switch clock to the real time mode (if clock is in debug mode)"""
         message = api.admin.Message()
         message.system_clock.switch_to_real_time = True
-        if not self._send_message(message):
+        if not self.send(message):
             return False
         return await self._await_status(timeout_sec=timeout_sec) == Status.MODE_REAL_TIME
 
@@ -72,7 +61,7 @@ class SystemClock:
         """Switch clock to the debug mode (if clock is in real time mode)"""
         message = api.admin.Message()
         message.system_clock.switch_to_debug_mode = True
-        if not self._send_message(message):
+        if not self.send(message):
             return False
         return await self._await_status(timeout_sec=timeout_sec) == Status.MODE_DEBUG
 
@@ -80,7 +69,7 @@ class SystemClock:
         """Terminate system clock (server will stop)"""
         message = api.admin.Message()
         message.system_clock.terminate = True
-        if not self._send_message(message):
+        if not self.send(message):
             return False
         return await self._await_status(timeout_sec=timeout_sec) == Status.MODE_TERMINATED
 
@@ -89,7 +78,7 @@ class SystemClock:
         microseconds (if clock is in debug mode)."""
         message = api.admin.Message()
         message.system_clock.tick_duration_us = tick_duration_usec
-        if not self._send_message(message):
+        if not self.send(message):
             return False
         return await self._await_status(timeout_sec=timeout_sec) == Status.MODE_DEBUG
 
@@ -101,18 +90,18 @@ class SystemClock:
         """
         message = api.admin.Message()
         message.system_clock.proceed_ticks = ticks
-        if not self._send_message(message):
+        if not self.send(message):
             return False, 0
         time: Optional[int] = await self._await_time(timeout_sec=timeout_sec)
         return time is not None, time
 
     async def _await_status(self, timeout_sec: float = 0.1) -> Optional[Status]:
-        response, _ = await self._socket.wait_message(timeout=timeout_sec)
+        response, _ = await self.wait_message(timeout=timeout_sec)
         status = get_message_field(response, ["system_clock", "status"])
         return Status.from_protobuf(mode=status) if status is not None else None
 
     async def _await_time(self, timeout_sec: float = 0.1) -> Optional[int]:
-        response, _ = await self._socket.wait_message(timeout=timeout_sec)
+        response, _ = await self.wait_message(timeout=timeout_sec)
         time = get_message_field(response, ["system_clock", "now"])
         if time is None:
             return None

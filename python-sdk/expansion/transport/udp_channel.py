@@ -16,9 +16,10 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         """Create UDP channel. The specified 'on_closed_cb' will be called when
         connection is closed. The specified 'channel_name' will be used in
         logs"""
-        super().__init__(channel_name=channel_name or utils.generate_name(type(self)),
-                         trace_mode=trace_mode
-                         *args, **kwargs)
+        super(UdpChannel, self).__init__(
+            channel_name=channel_name or utils.generate_name(type(self)),
+            trace_mode=trace_mode,
+            *args, **kwargs)
 
         self.remote: Optional[Tuple[str, int]] = None
         # Pair, that holds IP and port of the server

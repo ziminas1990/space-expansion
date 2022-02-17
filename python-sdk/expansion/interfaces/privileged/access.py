@@ -1,17 +1,13 @@
 from typing import Optional
 
-from expansion.transport import Channel, IOTerminal
+from expansion.transport import IOTerminal
 import expansion.api as api
 from expansion.api.utils import get_message_field
 
 
-class Access:
-
-    def __init__(self):
-        self._socket: IOTerminal = IOTerminal()
-
-    def fasten_to_channel(self, channel: Channel):
-        self._socket.wrap_channel(channel)
+class Access(IOTerminal):
+    def __init__(self, name: str, *args, **kwargs):
+        super(Access, self).__init__(name=name, *args, **kwargs)
 
     async def login(self, login: str, password: str) -> (bool, Optional[int]):
         """Try to open privileged session as user with the
@@ -20,8 +16,8 @@ class Access:
         login_req = message.access.login
         login_req.login = login
         login_req.password = password
-        self._socket.send(message)
+        self.send(message)
 
-        response, _ = await self._socket.wait_message()
+        response, _ = await self.wait_message()
         token: Optional[int] = get_message_field(response, ["access", "success"])
         return token is not None, token

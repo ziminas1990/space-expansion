@@ -10,8 +10,8 @@ class Endpoint(Channel, Terminal, abc.ABC):
     @abc.abstractmethod
     async def wait_message(self, timeout: float = 1.0) -> Tuple[Optional[Any], Optional[int]]:
         """Await for a message on the internal queue for not more than the
-        specified 'timeout' seconds. Return a message and a optional timestamp, when
-        the message was sent."""
+        specified 'timeout' seconds. Return a message and an optional timestamp,
+        when the message was sent."""
         pass
 
     async def wait_exact(self, message: List[str], timeout: float = 1.0) \

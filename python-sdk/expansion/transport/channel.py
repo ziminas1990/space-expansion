@@ -42,7 +42,7 @@ class Channel(abc.ABC):
     def __init__(self, channel_name=None,
                  trace_mode=False,
                  *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(Channel, self).__init__(*args, **kwargs)
         self.channel_name = channel_name or utils.generate_name(type(self))
         self.channel_logger = logging.getLogger(self.channel_name)
         self.terminal: Optional['Terminal'] = None
@@ -53,14 +53,6 @@ class Channel(abc.ABC):
 
     def set_trace_mode(self, on: bool):
         self._trace_mode = on
-
-    def on_message(self, message: Any, timestamp: Optional[int]):
-        if self._trace_mode:
-            self.channel_logger.debug(f"Got:\n{message}, timestamp = {timestamp}")
-        if self.terminal:
-            self.terminal.on_receive(message, timestamp)
-        else:
-            self.channel_logger.warning(f"No terminal attached! Drop message:\n{message}")
 
     def attach_to_terminal(self, terminal: 'Terminal'):
         """Attach channel to terminal. If channel in ACTIVE mode, it will pass

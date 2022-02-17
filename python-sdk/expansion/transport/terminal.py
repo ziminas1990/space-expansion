@@ -14,6 +14,7 @@ class Terminal(abc.ABC):
                  terminal_name: str = None,
                  trace_mode=False,
                  *args, **kwargs):
+        super(Terminal, self).__init__(*args, **kwargs)
         self.terminal_name = terminal_name or utils.generate_name(type(self))
         self.terminal_logger = logging.getLogger(self.terminal_name)
         self._trace_mode = trace_mode
