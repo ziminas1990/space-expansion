@@ -1,11 +1,13 @@
 #include "Asteroid.h"
-#include <Utils/YamlReader.h>
 
 #include <cstring>
 #include <random>
 #include <assert.h>
 #include <cmath>
 #include <float.h>
+
+#include <Utils/YamlReader.h>
+#include <Utils/FloatComparator.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(world::Asteroid);
 
@@ -19,15 +21,15 @@ Asteroid::Asteroid(uint32_t seed)
 }
 
 Asteroid::Asteroid(double radius,
-                   double weight,
                    ResourcesArray distribution,
                    uint32_t seed)
-  : newton::PhysicalObject(weight, radius),
+  : newton::PhysicalObject(0, radius),
     m_composition(std::move(distribution)),
     m_randomizer(seed)
 {
   utils::GlobalObject<Asteroid>::registerSelf(this);
   m_composition.normalize();
+  setWeight(calculateMass());
 }
 
 bool Asteroid::loadState(YAML::Node const& data)
@@ -42,10 +44,7 @@ bool Asteroid::loadState(YAML::Node const& data)
     reader.read(Resource::Names[eType], m_composition[eType]);
   }
   m_composition.normalize();
-
-  const double density = 1 / m_composition.calculateTotalVolume();
-  const double weight = density * 4 / 3 * M_PI * std::pow(getRadius(), 3);
-  setWeight(weight);
+  setWeight(calculateMass());
   return true;
 }
 
@@ -95,6 +94,13 @@ ResourcesArray Asteroid::yield(double amount)
   setRadius(newRadius);
 
   return mined;
+}
+
+double Asteroid::calculateMass() const
+{
+  assert(utils::AlmostEqual(m_composition.calculateTotalMass(), 1));
+  const double density = 1 / m_composition.calculateTotalVolume();
+  return density * 4 / 3 * M_PI * std::pow(getRadius(), 3);
 }
 
 } // namespace celestial

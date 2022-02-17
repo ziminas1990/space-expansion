@@ -71,6 +71,22 @@ message Screen {
   }
 }
 
+message Spawn {
+
+  message Asteroid {
+    spex.Position  position    = 1;
+    spex.Resources composition = 2;
+    double         radius      = 3;
+  }
+
+  oneof choice {
+    Asteroid asteroid = 1;
+
+    uint32 asteroid_id = 129;
+  }
+
+}
+
 
 message Message {
   uint64 token = 1;
@@ -80,5 +96,6 @@ message Message {
     Access      access       = 2;
     SystemClock system_clock = 3;
     Screen      screen       = 4;
+    Spawn       spawn        = 5;
   }
 }

@@ -14,6 +14,11 @@ public:
 
   bool loadState(YAML::Node const& data);
 
+  uint32_t spawnAsteroid(const ResourcesArray&   distribution,
+                         double                  radius,
+                         const geometry::Point&  position,
+                         const geometry::Vector& velocity);
+
 private:
   utils::RandomSequence     m_randomizer;
   std::vector<AsteroidUptr> m_asteroids;

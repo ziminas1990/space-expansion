@@ -15,9 +15,11 @@ void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
   m_pSystemManager = pSystemManager;
   m_clockControl.setup(m_pSystemManager, getChannel());
   m_screen.setup(m_pSystemManager, getChannel());
+  m_spawner.setup(m_pSystemManager, getChannel());
 }
 
-bool AdministratorPanel::prephare(uint16_t nStageId, uint32_t nIntervalUs, uint64_t)
+bool AdministratorPanel::prephare(
+    uint16_t nStageId, uint32_t nIntervalUs, uint64_t)
 {
   assert(nStageId == 0);
   handleBufferedMessages();
@@ -27,9 +29,11 @@ bool AdministratorPanel::prephare(uint16_t nStageId, uint32_t nIntervalUs, uint6
   return false;
 }
 
-void AdministratorPanel::handleMessage(uint32_t nSessionId, admin::Message const& message)
+void AdministratorPanel::handleMessage(uint32_t nSessionId,
+                                       admin::Message const& message)
 {
-  if (message.token() == 0 && message.choice_case() == admin::Message::kAccess) {
+  if (message.token() == 0
+      && message.choice_case() == admin::Message::kAccess) {
     if (message.access().choice_case() != admin::Access::kLogin) {
       closeSession(nSessionId);
       return;
@@ -48,6 +52,9 @@ void AdministratorPanel::handleMessage(uint32_t nSessionId, admin::Message const
     case admin::Message::kSystemClock:
       m_clockControl.handleMessage(nSessionId, message.system_clock());
       return;
+    case admin::Message::kSpawn:
+      m_spawner.handleMessage(nSessionId, message.spawn());
+      return;
     case admin::Message::kScreen:
       m_screen.handleMessage(nSessionId, message.screen());
       return;
@@ -56,10 +63,11 @@ void AdministratorPanel::handleMessage(uint32_t nSessionId, admin::Message const
   }
 }
 
-void AdministratorPanel::onLoginRequest(uint32_t nSessionId,
-                                        admin::Access::Login const& message)
+void AdministratorPanel::onLoginRequest(
+    uint32_t nSessionId, admin::Access::Login const& message)
 {
-  if (message.login() != m_cfg.getLogin() || message.password() != m_cfg.getPassword()) {
+  if (message.login() != m_cfg.getLogin()
+      || message.password() != m_cfg.getPassword()) {
     sendLoginFailed(nSessionId);
     closeSession(nSessionId);
     return;

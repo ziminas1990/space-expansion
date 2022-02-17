@@ -24,7 +24,6 @@ void world::AsteroidGenerator::generate(uint32_t nCount, std::vector<AsteroidUpt
     utils::Randomizer::yield(position, m_center, m_areaRadiusKm * 1000);
     radius = utils::Randomizer::yield(5.0, 15.0);
 
-    double weight = 5000 * 4 / 3 * M_PI * std::pow(radius, 3);
     ResourcesArray composition = ResourcesArray()
         .silicates(utils::Randomizer::yield(0.0, 1.0))
         .metals(utils::Randomizer::yield(0.0, 1.0))
@@ -32,7 +31,7 @@ void world::AsteroidGenerator::generate(uint32_t nCount, std::vector<AsteroidUpt
         .stones(utils::Randomizer::yield(5, 20));
 
     AsteroidUptr pAsteroid = std::make_unique<Asteroid>(
-          radius, weight, composition, std::rand());
+          radius, composition, std::rand());
     pAsteroid->moveTo(position);
     out.emplace_back(std::move(pAsteroid));
   }

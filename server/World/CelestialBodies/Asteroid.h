@@ -26,7 +26,6 @@ public:
 public:
   Asteroid(uint32_t seed);
   Asteroid(double radius,
-           double weight,
            ResourcesArray distribution,
            uint32_t seed);
 
@@ -43,6 +42,9 @@ public:
   world::ObjectType getType() const override {
     return world::ObjectType::eAsteroid;
   }
+
+private:
+  double calculateMass() const;
 
 private:
   ResourcesArray             m_composition;

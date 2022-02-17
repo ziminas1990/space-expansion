@@ -9,8 +9,9 @@
 #include <ConfigDI/Containers.h>
 #include <Utils/RandomSequence.h>
 
-#include "ClockControl.h"
-#include "Screen.h"
+#include <AdministratorPanel/ClockControl.h>
+#include <AdministratorPanel/Screen.h>
+#include <AdministratorPanel/Spawn.h>
 
 class SystemManager;
 
@@ -49,6 +50,7 @@ private:
   SystemManager*              m_pSystemManager;
   administrator::ClockControl m_clockControl;
   administrator::Screen       m_screen;
+  administrator::SpawnLogic   m_spawner;
 
   utils::RandomSequence m_tokenGenerator;
 

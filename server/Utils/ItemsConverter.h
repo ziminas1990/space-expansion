@@ -1,6 +1,11 @@
 #include <Protocol.pb.h>
 #include <World/Resources.h>
 
+namespace geometry {
+class Point;
+class Vector;
+}  // namespace geometry
+
 namespace utils {
 
 inline world::Resource::Type convert(spex::ResourceType eType)
@@ -61,5 +66,11 @@ inline world::ResourceItem convert(spex::ResourceItem const& item)
   output.m_nAmount = item.amount();
   return output;
 }
+
+world::ResourcesArray convert(const spex::Resources& resources);
+
+void convert(const spex::Position& item,
+             geometry::Point* position,
+             geometry::Vector* velocity);
 
 } // namespace utils

@@ -48,6 +48,8 @@ public:
 
   utils::Clock& getClock() { return m_clock; }
 
+  world::World& getWorld() { return m_world; }
+
   tools::ObjectsFilteringManagerPtr getFilteringManager() const {
     return m_pFilteringManager;
   }

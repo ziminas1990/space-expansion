@@ -44,5 +44,18 @@ bool World::loadState(YAML::Node const& data)
   return true;
 }
 
+uint32_t World::spawnAsteroid(const ResourcesArray& distribution,
+                              double radius,
+                              const geometry::Point &position,
+                              const geometry::Vector &velocity)
+{
+  AsteroidUptr pAsteroid = std::make_unique<Asteroid>(
+        radius, distribution, m_randomizer.yield());
+  pAsteroid->moveTo(position);
+  pAsteroid->setVelocity(velocity);
+  m_asteroids.emplace_back(std::move(pAsteroid));
+  return 0;
+}
+
 
 } // namespace world
