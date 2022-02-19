@@ -6,6 +6,7 @@ from server.configurator.modules import (
     engine_blueprints,
     ships_blueprints,
     celestial_scanners_blueprints,
+    passive_scanners_blueprints,
     resource_containers_blueprints,
     asteroid_miner_blueprints,
     shipyard_blueprints
@@ -23,6 +24,9 @@ class DefaultBlueprints(BlueprintsDB):
                 blueprints.update({engine_blueprint.id: engine_blueprint})
         # CelestialScanner
         for scanner_blueprint in celestial_scanners_blueprints.values():
+            blueprints.update({scanner_blueprint.id: scanner_blueprint})
+        # PassiveScanners
+        for scanner_blueprint in passive_scanners_blueprints.values():
             blueprints.update({scanner_blueprint.id: scanner_blueprint})
         # ResourceContainer
         for blueprint in resource_containers_blueprints.values():

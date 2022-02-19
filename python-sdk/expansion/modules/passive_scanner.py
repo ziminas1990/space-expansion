@@ -1,9 +1,12 @@
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, TYPE_CHECKING
 
 from expansion.interfaces.rpc import PassiveScannerI, PassiveScanerSpec
 from expansion import utils
 from expansion import types
-from .base_module import BaseModule, TunnelFactory
+from .base_module import BaseModule, ModuleType, TunnelFactory
+
+if TYPE_CHECKING:
+    from expansion.modules import Commutator
 
 
 ObjectsList = Optional[List[types.PhysicalObject]]
@@ -51,3 +54,12 @@ class PassiveScanner(BaseModule):
             for obj in objects:
                 yield obj
             status, objects = await session.wait_update()
+
+    @staticmethod
+    def get_by_name(commutator: "Commutator", name: str) -> Optional["PassiveScanner"]:
+        return BaseModule._get_by_name(
+            commutator=commutator,
+            type=ModuleType.PASSIVE_SCANNER,
+            name=name
+        )
+

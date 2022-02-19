@@ -14,3 +14,4 @@ from .default_ships import ships_blueprints, ShipType
 from .default_resource_containers import resource_containers_blueprints
 from .default_asteroid_miners import asteroid_miner_blueprints
 from .default_shipyards import shipyard_blueprints
+from .default_passive_scanners import passive_scanners_blueprints

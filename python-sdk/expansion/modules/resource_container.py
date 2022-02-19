@@ -131,7 +131,7 @@ class ResourceContainer(BaseModule):
             yield status, content
 
     @staticmethod
-    def _get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:
+    def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:
         return BaseModule._get_by_name(
             commutator=commutator,
             type=ModuleType.RESOURCE_CONTAINER,

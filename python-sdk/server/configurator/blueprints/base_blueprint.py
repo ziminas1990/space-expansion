@@ -8,6 +8,7 @@ class ModuleType(Enum):
     e_SHIP = "Ship"
     e_ENGINE = "Engine"
     e_CELESTIAL_SCANNER = "CelestialScanner"
+    e_PASSIVE_SCANNER = "PassiveScanner"
     e_RESOURCE_CONTAINER = "ResourceContainer"
     e_ASTEROID_MINER = "AsteroidMiner"
     e_SHIPYARD = "Shipyard"

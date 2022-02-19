@@ -9,6 +9,7 @@ from .system_clock import SystemClock
 from .engine import Engine
 from .resource_container import ResourceContainer
 from .celestial_scanner import CelestialScanner
+from .passive_scanner import PassiveScanner
 from .asteroid_miner import AsteroidMiner
 from .shipyard import Shipyard
 from .blueprints_library import BlueprintsLibrary
@@ -45,6 +46,11 @@ def module_factory(module_type: str,
         ), None
     elif module_type == ModuleType.CELESTIAL_SCANNER.value:
         return CelestialScanner(
+            name=module_name,
+            tunnel_factory=tunnel_factory
+        ), None
+    elif module_type == ModuleType.PASSIVE_SCANNER.value:
+        return PassiveScanner(
             name=module_name,
             tunnel_factory=tunnel_factory
         ), None
