@@ -131,8 +131,8 @@ class ResourceContainer(BaseModule):
             yield status, content
 
     @staticmethod
-    def get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:
-        return BaseModule.get_by_name(
+    def _get_by_name(commutator: "Commutator", name: str) -> Optional["ResourceContainer"]:
+        return BaseModule._get_by_name(
             commutator=commutator,
             type=ModuleType.RESOURCE_CONTAINER,
             name=name
@@ -152,7 +152,7 @@ class ResourceContainer(BaseModule):
             free = content.volume - content.used
             return free > best_free
 
-        return await BaseModule.find_best(
+        return await BaseModule._find_best(
             commutator=commutator,
             type=ModuleType.RESOURCE_CONTAINER,
             better_than=better_than)

@@ -55,7 +55,7 @@ class BlueprintsLibrary(BaseModule):
 
     @staticmethod
     def find(commutator: "Commutator") -> Optional["BlueprintsLibrary"]:
-        return commutator.get_by_name(
+        return BaseModule._get_by_name(
             commutator=commutator,
             type=ModuleType.BLUEPRINTS_LIBRARY,
             name="Central"

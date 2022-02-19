@@ -85,7 +85,7 @@ class Shipyard(BaseModule):
 
     @staticmethod
     def find_by_name(commutator: "Commutator", name: str) -> Optional["Shipyard"]:
-        return BaseModule.get_by_name(
+        return BaseModule._get_by_name(
             commutator=commutator,
             type=ModuleType.SHIPYARD,
             name=name
@@ -103,7 +103,7 @@ class Shipyard(BaseModule):
                 return False
             return spec.labor_per_sec > best_spec.labor_per_sec
         
-        return await BaseModule.find_best(
+        return await BaseModule._find_best(
             commutator=commutator,
             type=ModuleType.SHIPYARD,
             better_than=better_than

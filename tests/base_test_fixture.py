@@ -37,7 +37,7 @@ class BaseTestFixture(unittest.TestCase):
         pass
 
     async def async_setUp(self) -> None:
-        self.administrator: privileged.Administrator = privileged.Administrator()
+        self.administrator = privileged.Administrator()
 
         self.config = self.get_configuration()
         if self.config.general.administrator_cfg is None:

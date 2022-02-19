@@ -1,5 +1,4 @@
 from base_test_fixture import BaseTestFixture
-from inspect import getfullargspec
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 

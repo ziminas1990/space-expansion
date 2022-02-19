@@ -80,16 +80,18 @@ class BaseModule:
                (time.monotonic() * 1000 - value[1]) <= expiration_time_ms
 
     @staticmethod
-    def get_by_name(commutator: "Commutator",
-                    type: ModuleType,
-                    name: str) -> Optional["BaseModule"]:
+    def _get_by_name(commutator: "Commutator",
+                     type: ModuleType,
+                     name: str) -> Optional["BaseModule"]:
+        """Return module of the specified 'type', having the specified
+        'name'"""
         try:
             return commutator.modules[type.value][name]
         except KeyError:
             return None
 
     @staticmethod
-    async def find_best(
+    async def _find_best(
             commutator: "Commutator",
             type: ModuleType,
             better_than: Callable[[Any, Any], Awaitable[bool]]) \

@@ -99,7 +99,7 @@ class AsteroidMiner(BaseModule):
 
     @staticmethod
     def find_by_name(commutator: "Commutator", name: str) -> Optional["AsteroidMiner"]:
-        return BaseModule.get_by_name(
+        return BaseModule._get_by_name(
             commutator=commutator,
             type=ModuleType.ASTEROID_MINER,
             name=name
@@ -119,7 +119,7 @@ class AsteroidMiner(BaseModule):
             k = spec.yield_per_cycle / spec.cycle_time_ms
             return k > best_k
 
-        return await BaseModule.find_best(
+        return await BaseModule._find_best(
             commutator=commutator,
             type=ModuleType.ASTEROID_MINER,
             better_than=better_than)

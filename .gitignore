@@ -1,2 +1,4 @@
 __pycache__/
 .idea
+CMakeLists.txt.user
+.gitignore
