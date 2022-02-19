@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Dict
 
 import expansion.api as api
@@ -32,8 +33,9 @@ class Demux(Terminal, Channel):
             encapsulated = message.WhichOneof("choice")
             terminal = self.terminals[encapsulated]
             if terminal:
-                terminal.on_receive(message, timestamp)
+                terminal.on_receive(message, message.timestamp)
         except KeyError:
+            logging.error(f"Unexpected message received: {message}")
             return
 
     def attach_channel(self, channel: 'Channel'):

@@ -23,7 +23,7 @@ class Endpoint(Channel, Terminal, abc.ABC):
             start_at = time.monotonic()
             received_msg, timestemp = await self.wait_message(timeout)
             expected_msg = get_message_field(received_msg, message)
-            if expected_msg:
+            if expected_msg is not None:
                 return expected_msg, timestemp
             # Got unexpected message. Just ignoring it
             timeout -= time.monotonic() - start_at

@@ -54,6 +54,16 @@ class ResourceType(Enum):
         fitted into the specified 'volume'"""
         return volume * ResourceType.density(resource_type)
 
+    @staticmethod
+    def from_string(resource_type: str) -> "ResourceType":
+        # Build static map: str -> ResourceType
+        if not hasattr(ResourceType.from_string, "mapping"):
+            ResourceType.from_string.__mapping = {
+                resource_type.value: resource_type
+                for resource_type in ResourceType
+            }
+        return ResourceType.from_string.__mapping[resource_type]
+
 
 class ResourceItem(NamedTuple):
     """Represent a single resource item"""
@@ -67,7 +77,7 @@ class ResourceItem(NamedTuple):
             amount=item.amount
         )
 
-    def to_protobuf(self, output):
+    def to_protobuf(self, output: api.types.ResourceItem):
         """Convert this type to the protobuf equivalent"""
         output.type = self.resource_type.to_protobuf()
         output.amount = self.amount
@@ -77,3 +87,16 @@ class ResourceItem(NamedTuple):
 
 
 ResourcesDict = Dict[ResourceType, ResourceItem]
+
+
+def make_resources(**kwargs) -> ResourcesDict:
+    resources: ResourcesDict = {}
+    for resource_name, amount in kwargs.items():
+        assert isinstance(resource_name, str)
+        assert isinstance(amount, int) or isinstance(amount, float)
+        try:
+            resource_type = ResourceType.from_string(resource_name)
+        except KeyError:
+            assert False, f"'{resource_name}' is not a valid resource name"
+        resources.update({resource_type: ResourceItem(resource_type, amount)})
+    return resources

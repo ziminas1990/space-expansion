@@ -13,10 +13,17 @@ class Position(NamedTuple):
     timestamp: Optional[TimePoint] = None
 
     @staticmethod
-    def build(position: api.types.Position, timestamp: Optional[int] = None) -> 'Position':
+    def from_protobuf(position: api.types.Position,
+                      timestamp: Optional[int] = None) -> 'Position':
         return Position(x=position.x, y=position.y,
                         velocity=Vector(x=position.vx, y=position.vy),
                         timestamp=TimePoint(timestamp))
+
+    def to_protobuf(self, position: api.types.Position):
+        position.x = self.x
+        position.y = self.y
+        position.vx = self.velocity.x
+        position.vy = self.velocity.y
 
     def distance_to(self, other: Union['Position', Tuple[float, float]]) -> float:
         if isinstance(other, Position):
@@ -53,14 +60,16 @@ class Position(NamedTuple):
         base_vector = other.velocity if other.velocity.abs() > 0.001 else self.velocity
         longitudinal_offset, lateral_offset = other.vector_to(self).decompose(base_vector)
         longitudinal_velocity, lateral_velocity = self.velocity.decompose(base_vector)
-        return Position(x = other.x + longitudinal_offset.x,
-                        y = other.y + longitudinal_offset.y,
-                        velocity=longitudinal_velocity,
-                        timestamp=self.timestamp),\
-               Position(x=other.x + lateral_offset.x,
-                        y=other.y + lateral_offset.y,
-                        velocity=lateral_velocity,
-                        timestamp=self.timestamp)
+        return (
+            Position(x=other.x + longitudinal_offset.x,
+                     y=other.y + longitudinal_offset.y,
+                     velocity=longitudinal_velocity,
+                     timestamp=self.timestamp),
+            Position(x=other.x + lateral_offset.x,
+                     y=other.y + lateral_offset.y,
+                     velocity=lateral_velocity,
+                     timestamp=self.timestamp)
+        )
 
     def more_recent_than(self, other: "Position") -> bool:
         return other.timestamp is None or (

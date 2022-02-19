@@ -17,7 +17,7 @@ class State(NamedTuple):
     def build(state: api.IShip.State, timestamp: Optional[int]):
         position: Optional[types.Position] = None
         if state.position:
-            position = types.Position.build(state.position, timestamp)
+            position = types.Position.from_protobuf(state.position, timestamp)
 
         return State(
             timestamp=types.TimePoint(timestamp),

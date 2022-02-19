@@ -5,7 +5,8 @@ from expansion.utils import generate_name
 from expansion.interfaces.privileged import (
     Access,
     SystemClock,
-    Demux
+    Demux,
+    Spawner
 )
 
 
@@ -26,15 +27,18 @@ class Administrator:
         self.demux = Demux(f"{self.name}.demux")
 
         self.token: Optional[int] = None
-        self.access_panel: Access = Access(f"{self.name}.access")
+        self.access_panel = Access(f"{self.name}.access")
         self.system_clock = SystemClock(f"{self.name}.clock")
+        self.spawner = Spawner(f"{self.name}.spawner")
 
         # Linking components of the stack
         self.access_panel.attach_channel(self.demux)
         self.system_clock.attach_channel(self.demux)
+        self.spawner.attach_channel(self.demux)
         self.demux.attach_terminals({
             "access": self.access_panel,
-            "system_clock": self.system_clock
+            "system_clock": self.system_clock,
+            "spawn": self.spawner
         })
         self.demux.attach_channel(self.protobuf_channel)
         self.protobuf_channel.attach_to_terminal(self.demux)
@@ -66,3 +70,6 @@ class Administrator:
 
     def get_clock(self) -> SystemClock:
         return self.system_clock
+
+    def get_spawner(self) -> Spawner:
+        return self.spawner

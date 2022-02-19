@@ -90,12 +90,14 @@ message Spawn {
 
 message Message {
   uint64 token = 1;
+  uint64 timestamp = 2;
 
   oneof choice {
     // All possible interfaces are listed here
-    Access      access       = 2;
-    SystemClock system_clock = 3;
-    Screen      screen       = 4;
-    Spawn       spawn        = 5;
+    Access      access       = 5;
+    SystemClock system_clock = 6;
+    Screen      screen       = 7;
+    Spawn       spawn        = 8;
   }
 }
+

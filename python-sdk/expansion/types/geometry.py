@@ -1,7 +1,8 @@
 import math
 from typing import Tuple
 
-class Vector():
+
+class Vector:
     def __init__(self, x: float, y: float):
         self.x: float = x
         self.y: float = y
@@ -32,9 +33,14 @@ class Vector():
         k = self.abs() ** (power - 1)
         return Vector(x = self.x * k, y=self.y * k)
 
+    def normalize(self) -> "Vector":
+        length = self.abs()
+        self.x /= length
+        self.y /= length
+        return self
+
     def normalized(self) -> "Vector":
-        len = self.abs()
-        return Vector(x = self.x / len, y = self.y / len)
+        return Vector(x=self.x, y=self.y).normalize()
 
     def scalar_mult(self, other: 'Vector') -> float:
         return self.x * other.x + self.y * other.y
@@ -55,7 +61,7 @@ class Vector():
             self.y *= k
             return self
         else:
-            return Vector(x = self.x * k, y = self.y * k)
+            return Vector(x=self.x * k, y=self.y * k)
 
     def zero(self):
         self.x = 0
@@ -82,3 +88,11 @@ class Vector():
 
     def __repr__(self):
         return f"{{{self.x}, {self.y}}}"
+
+
+class Rect:
+    def __init__(self, left: float, right: float, bottom: float, top: float):
+        self.left = left
+        self.right = right
+        self.bottom = bottom
+        self.top = top

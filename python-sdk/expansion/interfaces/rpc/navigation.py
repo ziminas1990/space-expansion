@@ -27,4 +27,4 @@ class INavigation(IOTerminal):
         if not position:
             return None
         assert response.timestamp is not None
-        return Position.build(position, timestamp=response.timestamp)
+        return Position.from_protobuf(position, timestamp=response.timestamp)

@@ -161,7 +161,7 @@ class CelestialScannerI(IOTerminal):
         return types.PhysicalObject(
             object_type=types.ObjectType.ASTEROID,
             object_id=data.id,
-            position=types.Position.build(data, timestamp),
+            position=types.Position.from_protobuf(data, timestamp),
             radius=data.r
         )
 

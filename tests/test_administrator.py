@@ -5,12 +5,14 @@ import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
+from randomizer import Randomizer
+import expansion.types as types
 
 
-class TestSystemClock(BaseTestFixture):
+class TestCase(BaseTestFixture):
 
     def __init__(self, *args, **kwargs):
-        super(TestSystemClock, self).__init__(*args, **kwargs)
+        super(TestCase, self).__init__(*args, **kwargs)
 
         self.configuration = Configuration(
             general=General(total_threads=1,
@@ -62,3 +64,23 @@ class TestSystemClock(BaseTestFixture):
         self.assertTrue(status)
         # Rude check with 5% accuracy:
         self.assertAlmostEqual(1000000, ingame_time, delta=50000)
+
+    @BaseTestFixture.run_as_sync
+    async def test_spawn_asteroids(self):
+        """Check that spawn.asteroid request returns asteroid id"""
+        self.assertTrue(await self.system_clock_play())
+        randomizer = Randomizer(2132)
+        spawner = self.administrator.spawner
+        for i in range(100):
+            now = await self.system_clock_time()
+            asteroid_id, timestamp = await spawner.spawn_asteroid(
+                position=randomizer.random_position(
+                    rect=types.Rect(-1000, 1000, -1000, 1000),
+                    min_speed=0,
+                    max_speed=1000
+                ),
+                composition=types.make_resources(ice=100, metals=32),
+                radius=10
+            )
+            assert asteroid_id is not None
+            assert timestamp >= now
