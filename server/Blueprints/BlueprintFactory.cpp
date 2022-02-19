@@ -1,11 +1,12 @@
 #include <Blueprints/BlueprintFactory.h>
 
-#include "EngineBlueprint.h"
-#include "CelestialScannerBlueprint.h"
-#include "AsteroidScannerBlueprint.h"
-#include "ResourceContainerBlueprint.h"
-#include "AsteroidMinerBlueprint.h"
-#include "Shipyard.h"
+#include <Blueprints/Modules/EngineBlueprint.h>
+#include <Blueprints/Modules/CelestialScannerBlueprint.h>
+#include <Blueprints/Modules/PassiveScannerBlueprint.h>
+#include <Blueprints/Modules/AsteroidScannerBlueprint.h>
+#include <Blueprints/Modules/ResourceContainerBlueprint.h>
+#include <Blueprints/Modules/AsteroidMinerBlueprint.h>
+#include <Blueprints/Modules/Shipyard.h>
 
 #include <Utils/YamlReader.h>
 
@@ -20,6 +21,8 @@ BaseBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
     pBlueprint = std::make_shared<EngineBlueprint>();
   } else if (sModuleType == "CelestialScanner") {
     pBlueprint = std::make_shared<CelestialScannerBlueprint>();
+  } else if (sModuleType == "PassiveScanner") {
+    pBlueprint = std::make_shared<PassiveScannerBlueprint>();
   } else if (sModuleType == "AsteroidScanner") {
     pBlueprint = std::make_shared<AsteroidScannerBlueprint>();
   } else if (sModuleType == "ResourceContainer") {
