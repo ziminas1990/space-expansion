@@ -25,7 +25,7 @@ conan_basic_setup(TARGETS)
 # Generating protobuf sources:
 # Have no idea how to run protobuf compiler in a proper way. So, here is a hack: just
 # get path to compiler and run the compiler manually.
-set(PROTOBUF_COMPILER ${CONAN_BIN_DIRS_PROTOC_INSTALLER}/protoc)
+set(PROTOBUF_COMPILER ${CONAN_BIN_DIRS_PROTOBUF}/protoc)
 
 set(PROTOBUF_FILES   "CommonTypes.proto" "Protocol.proto" "Privileged.proto")
 set(PROTOBUF_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/CommonTypes.pb.cc"
@@ -62,7 +62,25 @@ target_link_libraries(Protocol CONAN_PKG::protobuf)
 
 #=========================================================================================
 # Creating main target:
-file(GLOB_RECURSE ALL_SOURCES_FILES "*.h" "*.cpp")
+file(GLOB_RECURSE ALL_SOURCES_FILES 
+     "${CMAKE_SOURCE_DIR}/AdministratorPanel/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Arbitrators/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Autotests/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Blueprints/*.cpp"
+     "${CMAKE_SOURCE_DIR}/ConfigDI/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Conveyor/*.cpp"
+     "${CMAKE_SOURCE_DIR}/ConveyorTools/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Geometry/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Modules/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Network/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Newton/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Ships/*.cpp"
+     "${CMAKE_SOURCE_DIR}/Utils/*.cpp"
+     "${CMAKE_SOURCE_DIR}/World/*.cpp")
+
+list(APPEND ALL_SOURCES_FILES 
+     ${CMAKE_SOURCE_DIR}/main.cpp
+     ${CMAKE_SOURCE_DIR}/SystemManager.cpp)
 
 add_executable(${PROJECT_NAME} ${ALL_SOURCES_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE
