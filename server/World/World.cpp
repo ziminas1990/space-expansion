@@ -53,8 +53,9 @@ uint32_t World::spawnAsteroid(const ResourcesArray& distribution,
         radius, distribution, m_randomizer.yield());
   pAsteroid->moveTo(position);
   pAsteroid->setVelocity(velocity);
+  const uint32_t asteroid_id = pAsteroid->getAsteroidId();
   m_asteroids.emplace_back(std::move(pAsteroid));
-  return 0;
+  return asteroid_id;
 }
 
 
