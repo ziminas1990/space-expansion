@@ -1,4 +1,4 @@
-from typing import Optional, Callable, List, TYPE_CHECKING
+from typing import Optional, Callable, List, AsyncIterable, TYPE_CHECKING
 
 from expansion.interfaces.rpc import PassiveScannerI, PassiveScanerSpec
 from expansion import utils
@@ -44,7 +44,7 @@ class PassiveScanner(BaseModule):
         terminal_type=PassiveScannerI,
         return_on_unreachable=None)
     async def scan(self, session: Optional[PassiveScannerI] = None) \
-            -> types.PhysicalObject:
+            -> AsyncIterable[types.PhysicalObject]:
         assert session is not None
         status = await session.start_monitoring()
         if not status.is_success():

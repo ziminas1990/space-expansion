@@ -15,7 +15,7 @@ class Spawner(IOTerminal):
             position: types.Position,
             composition: types.ResourcesDict,
             radius: float) \
-            -> Tuple[Optional[int], Optional[int]]:
+            -> Optional[types.PhysicalObject]:
         """Send request to spawn a new asteroid at the specified 'position'
         and with the specified 'composition' and 'radius'. On success return
         created asteroid id and creation timestamp"""
@@ -26,8 +26,18 @@ class Spawner(IOTerminal):
         for item in composition.values():
             item.to_protobuf(body.composition.items.add())
         if not self.send(request):
-            return None, None
-        return await self.wait_exact(["spawn", "asteroid_id"])
+            return None
+
+        asteroid_id, timestamp = await self.wait_exact(["spawn", "asteroid_id"])
+        if asteroid_id is None:
+            return None
+
+        return types.PhysicalObject(
+            object_type=types.ObjectType.ASTEROID,
+            object_id=asteroid_id,
+            position=position.with_timestamp(timestamp),
+            radius=radius
+        )
 
     @staticmethod
     def _resources_to_list(items: types.ResourcesDict,

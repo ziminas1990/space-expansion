@@ -55,6 +55,8 @@ class PassiveScannerI(IOTerminal):
     async def start_monitoring(self, timeout: float = 0.5) -> Status:
         request = api.Message()
         request.passive_scanner.monitor = True
+        if not self.send(message=request):
+            return PassiveScannerI.Status.FAILED_TO_SEND_REQUEST
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return PassiveScannerI.Status.RESPONSE_TIMEOUT
@@ -66,7 +68,7 @@ class PassiveScannerI(IOTerminal):
     @Channel.return_on_close((Status.MONITORING_FAILED, list()))
     async def wait_update(self, timeout: float = 1) \
             -> Tuple[Status, List[types.PhysicalObject]]:
-        response = await self.wait_message(timeout=timeout)
+        response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return PassiveScannerI.Status.SUCCESS, list()
         update = api.get_message_field(

@@ -41,7 +41,7 @@ class SystemClock(rpc.SystemClockI, BaseModule):
         self.server_time.update(ingame_time)
 
     async def time(self, predict: bool = True, timeout: float = 0.5) -> int:
-        """Update the cached time and return it"""
+        """Return ingame time in microseconds and update the cached"""
         await self.sync(timeout)
         return self.server_time.predict_usec() if predict else self.server_time.usec()
 

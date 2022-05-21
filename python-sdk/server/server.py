@@ -37,7 +37,7 @@ class Server:
         self.server_process = subprocess.Popen(
             args=[server_bin, self.config_file.name],
             stdout=subprocess.PIPE)
-        # Wait process to start (but not more than 2 seconds)
+        # Wait proces to start (but not more than 2 seconds)
         attempts = 40
         while attempts > 0 and not self.is_running():
             time.sleep(0.05)

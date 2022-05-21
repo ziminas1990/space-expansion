@@ -73,7 +73,7 @@ class TestCase(BaseTestFixture):
         spawner = self.administrator.spawner
         for i in range(100):
             now = await self.system_clock_time()
-            asteroid_id, timestamp = await spawner.spawn_asteroid(
+            asteroid = await spawner.spawn_asteroid(
                 position=randomizer.random_position(
                     rect=types.Rect(-1000, 1000, -1000, 1000),
                     min_speed=0,
@@ -82,5 +82,5 @@ class TestCase(BaseTestFixture):
                 composition=types.make_resources(ice=100, metals=32),
                 radius=10
             )
-            assert asteroid_id is not None
-            assert timestamp >= now
+            assert asteroid is not None
+            assert asteroid.position.timestamp.usec() >= now
