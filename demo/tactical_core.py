@@ -6,7 +6,6 @@ from expansion.modules import Commutator, SystemClock, ModuleType, Shipyard, Res
 from expansion.types import TimePoint, Position, Vector
 import logging
 
-from assistants import AsteroidTracker, ScanningParams
 from ship import Ship
 from world import World
 from player import Player
@@ -23,7 +22,6 @@ class TacticalCore:
         self.time = TimePoint(0)
         self.log: logging.Logger = logging.getLogger("TacticalCore")
 
-        self.asteroids_tracker: Optional[AsteroidTracker] = None
         self.random_mining: Optional[RandomMining] = None
 
         self.time_montiroing_task: Optional[asyncio.Task] = None
@@ -46,21 +44,13 @@ class TacticalCore:
         for remote_ship in remote_ships:
             if not remote_ship.start_monitoring():
                 self.log.warning(f"Failed to start monitoring ship {remote_ship.name}")
-            self.player.ships[remote_ship.name] = Ship(remote_ship, self.system_clock)
-
-        # Assistants
-        self.asteroids_tracker: AsteroidTracker = \
-            AsteroidTracker(
-                root_commutator=self.root_commutator,
-                world=self.world,
+            ship = Ship(
+                remote=remote_ship,
+                the_world=self.world,
                 system_clock=self.system_clock)
+            ship.start_passive_scanning()
+            self.player.ships[remote_ship.name] = ship
 
-        # Starting auto-scanning
-        self.asteroids_tracker.run_auto_scanning([
-            ScanningParams(10, 5),
-            ScanningParams(100, 10),
-            ScanningParams(500, 15),
-        ])
         return True
 
     def move_ship(self, ship_name:str, x: float, y: float):
@@ -112,7 +102,7 @@ class TacticalCore:
                 self.log.error("Failed to register new ship")
                 continue
             remote_ship = modules.Ship.get_ship_by_name(self.root_commutator, name)
-            miner = Ship(remote_ship, self.system_clock)
+            miner = Ship(remote_ship, self.world, self.system_clock)
             assert name not in self.player.ships
             success = await miner.remote.init()
             if not success:

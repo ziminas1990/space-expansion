@@ -14,7 +14,8 @@ void Randomizer::yield(geometry::Point &point,
                        double maxRadius)
 {
   geometry::Vector offset;
-  yield(offset, minRadius, maxRadius);
+  yield(offset, minRadius*minRadius, maxRadius*maxRadius);
+  offset.setLength(sqrt(offset.getLength()));
   point = center.translated(offset);
 }
 

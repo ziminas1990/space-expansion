@@ -9,10 +9,9 @@ class World:
         self._logger = logging.getLogger("World")
         self.asteroids: Dict[int, types.PhysicalObject] = {}
 
-    def update_asteroids(self, asteroids: Iterable[types.PhysicalObject]):
-        for asteroid in asteroids:
-            if asteroid.object_id not in self.asteroids:
-                self._logger.info(f"New asteroid detected: r = {asteroid.radius}m")
+    def update_object(self, obj: types.PhysicalObject):
+        if obj.object_type == types.ObjectType.ASTEROID:
+            asteroid = obj
             cached_asteroid = self.asteroids.setdefault(
                 asteroid.object_id,
                 types.PhysicalObject(object_id=asteroid.object_id,
@@ -20,3 +19,7 @@ class World:
                                      position=asteroid.position,
                                      radius=asteroid.radius))
             cached_asteroid.update(asteroid)
+
+    def update_objects(self, objects: Iterable[types.PhysicalObject]):
+        for obj in objects:
+            self.update_object(obj)
