@@ -5,13 +5,14 @@ from typing import Optional
 from PyQt5.QtWidgets import QApplication
 from qtwidgets.login import LoginDialog
 from PyQt5.QtWidgets import QDialog
-from expansion.modules import RootCommutator
+from expansion.modules import Commutator
+from expansion import procedures
 
 from tactical_core import TacticalCore
 from gui import MainWindow, Controller
 
 
-async def login() -> Optional[RootCommutator]:
+async def login() -> Optional[Commutator]:
     login_dialog = LoginDialog(
         default_server_ip_port=("127.0.0.1", 6842),
         default_local_ip_port=("127.0.0.1", 3434),
@@ -23,16 +24,15 @@ async def login() -> Optional[RootCommutator]:
         return None
 
     login_data = login_dialog.get_data()
-    root_commutator = RootCommutator()
-    error = await root_commutator.login(
+
+    commutator, error = await procedures.login(
         server_ip=login_data.server_ip,
         login_port=login_data.server_port,
         login=login_data.login,
         password=login_data.password,
-        local_ip=login_data.local_ip,
-        local_port=login_data.local_port)
-
-    return root_commutator if error is None else None
+        local_ip=login_data.local_ip
+    )
+    return commutator if error is None else None
 
 
 async def main():
