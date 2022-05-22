@@ -14,7 +14,7 @@ class PhysicalObject:
         self.radius: Optional[float] = radius
 
     def update(self, other: "PhysicalObject"):
-        assert self.object_type == other.object_type and \
-               self.object_id == other.object_id
+        assert self.object_id == other.object_id
+        assert self.object_type == other.object_type
         if self.position is None or other.position.more_recent_than(self.position):
             self.position = other.position

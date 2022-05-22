@@ -65,4 +65,4 @@ async def login(server_ip: str,
         tunnel_factory=tunnel_factory,
         modules_factory=module_factory,
         name="Root"
-    )
+    ), None
