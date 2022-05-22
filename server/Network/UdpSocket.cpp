@@ -144,6 +144,8 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
         m_pTerminal->onMessageReceived(
               *nSessionId, BinaryMessage(m_pReceiveBuffer.data(), nTotalBytes));
       }
+    } else {
+      std::cerr << "Drop message from " << m_senderAddress << " at " << getLocalAddr() << " (" << this << ")" << std::endl;
     }
   } else {
     assert(nullptr == "unexpected boost.asio error!");
