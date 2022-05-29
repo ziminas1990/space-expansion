@@ -62,7 +62,7 @@ target_link_libraries(Protocol CONAN_PKG::protobuf)
 
 #=========================================================================================
 # Creating main target:
-file(GLOB_RECURSE ALL_SOURCES_FILES 
+file(GLOB_RECURSE ALL_SOURCES_FILES
      "${CMAKE_SOURCE_DIR}/AdministratorPanel/*.cpp"
      "${CMAKE_SOURCE_DIR}/Arbitrators/*.cpp"
      "${CMAKE_SOURCE_DIR}/Autotests/*.cpp"
@@ -82,7 +82,9 @@ list(APPEND ALL_SOURCES_FILES
      ${CMAKE_SOURCE_DIR}/main.cpp
      ${CMAKE_SOURCE_DIR}/SystemManager.cpp)
 
-add_executable(${PROJECT_NAME} ${ALL_SOURCES_FILES})
+file(GLOB_RECURSE ALL_HEADER_FILES "*.h")
+
+add_executable(${PROJECT_NAME} ${ALL_SOURCES_FILES} ${ALL_HEADER_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
