@@ -4,6 +4,8 @@
 #include <functional>
 #include <vector>
 
+#include <Utils/Clock.h>
+
 namespace network {
 
 // When subclassing this class, you MUST override:
@@ -53,8 +55,13 @@ private:
     FrameType m_body;
   };
 
+  void drawnDelayedMessage();
+
 private:
   std::vector<BufferedMessage> m_messages;
+
+  // Messages, that are waiting for exact time to be handled
+  std::vector<BufferedMessage> m_delayedMessages;
 
   ChannelPtr m_pChannel;
 };
@@ -74,10 +81,50 @@ void BufferedProtobufTerminal<FrameType>::onMessageReceived(
 template<typename FrameType>
 void BufferedProtobufTerminal<FrameType>::handleBufferedMessages()
 {
-  for(BufferedMessage& message : m_messages)
-    handleMessage(message.m_nSessionId, message.m_body);
+  const uint16_t delayedQueueLimit = 1024;
+  const uint64_t now               = utils::GlobalClock::now();
+
+  for(BufferedMessage& message : m_messages) {
+    if (now < message.m_body.timestamp()) {
+      if (m_delayedMessages.size() == delayedQueueLimit) {
+        // Drop the message :(
+        return;
+      }
+      m_delayedMessages.emplace_back(std::move(message));
+      drawnDelayedMessage();
+    } else {
+      // Handle immediatelly
+      handleMessage(message.m_nSessionId, message.m_body);
+    }
+  }
   m_messages.clear();
+
+  while(!m_delayedMessages.empty()) {
+    BufferedMessage& message = m_delayedMessages.back();
+    const uint64_t ts = message.m_body.timestamp();
+    if (ts <= now) {
+      handleMessage(message.m_nSessionId, message.m_body);
+      m_delayedMessages.pop_back();
+    } else {
+      break;
+    }
+  }
 }
 
+template<typename FrameType>
+void BufferedProtobufTerminal<FrameType>::drawnDelayedMessage()
+{
+  // Here we assume, that all elements in m_delayedMessages are already
+  // sorted (by descending timestamp), except the last one, which should
+  // be placed to a proper position.
+  const uint64_t ts = m_delayedMessages.back().m_body.timestamp();
+  for (size_t i = m_delayedMessages.size() - 1; i > 0; --i) {
+    if (m_delayedMessages[i-1].m_body.timestamp() < ts) {
+      std::swap(m_delayedMessages[i-1], m_delayedMessages[i]);
+    } else {
+      return;
+    }
+  }
+}
 
 } // namespace network

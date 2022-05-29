@@ -20,38 +20,38 @@ bool ResourceCollecting::loadConfiguation(YAML::Node const& data)
       && reader.read("resources", m_target);
 }
 
-uint32_t ResourceCollecting::score(world::PlayerPtr pPlayer)
+uint32_t ResourceCollecting::score(world::PlayerPtr)
 {
-  // Calculating total amount of resources, that are stored in containers in all ships,
-  // that have a shipyard
+  // Calculating total amount of resources, that are stored in containers in
+  // all ships, that have a shipyard
 
   world::ResourcesArray totalResources;
 
-  for (modules::BaseModulePtr const& pModule
-       : pPlayer->getCommutator()->getAllModules()) {
-    ships::ShipPtr pShip = std::dynamic_pointer_cast<ships::Ship>(pModule);
-    if (!pShip)
-      continue;
+  // for (modules::BaseModulePtr const& pModule
+  //      : pPlayer->getCommutator()->getAllModules()) {
+  //   ships::ShipPtr pShip = std::dynamic_pointer_cast<ships::Ship>(pModule);
+  //   if (!pShip)
+  //     continue;
 
-    world::ResourcesArray shipResources;
-    bool hasShipyard = false;
-    for (modules::BaseModulePtr const& pShipModule :
-         pShip->getCommutator()->getAllModules()) {
+  //   world::ResourcesArray shipResources;
+  //   bool hasShipyard = false;
+  //   for (modules::BaseModulePtr const& pShipModule :
+  //        pShip->getCommutator()->getAllModules()) {
 
-      std::string const& moduleType = pShipModule->getModuleType();
+  //     std::string const& moduleType = pShipModule->getModuleType();
 
-      if (moduleType == modules::ResourceContainer::TypeName()) {
-        modules::ResourceContainerPtr pContainer =
-            std::static_pointer_cast<modules::ResourceContainer>(pShipModule);
-        shipResources += pContainer->getResources();
-      } else if (moduleType == modules::Shipyard::TypeName()) {
-        hasShipyard = true;
-      }
-    }
-    if (hasShipyard) {
-      totalResources += shipResources;
-    }
-  }
+  //     if (moduleType == modules::ResourceContainer::TypeName()) {
+  //       modules::ResourceContainerPtr pContainer =
+  //           std::static_pointer_cast<modules::ResourceContainer>(pShipModule);
+  //       shipResources += pContainer->getResources();
+  //     } else if (moduleType == modules::Shipyard::TypeName()) {
+  //       hasShipyard = true;
+  //     }
+  //   }
+  //   if (hasShipyard) {
+  //     totalResources += shipResources;
+  //   }
+  // }
 
   double   summ  = 0;
   uint32_t parts = 0;

@@ -137,7 +137,8 @@ private:
   ships::Ship*              m_pPlatform = nullptr;
 };
 
-using BaseModulePtr     = std::shared_ptr<BaseModule>;
-using BaseModuleWeakPtr = std::weak_ptr<BaseModule>;
+using BaseModulePtr      = std::shared_ptr<BaseModule>;
+using BaseModuleConstPtr = std::shared_ptr<const BaseModule>;
+using BaseModuleWeakPtr  = std::weak_ptr<BaseModule>;
 
 } // namespace modules

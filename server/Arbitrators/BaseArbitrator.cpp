@@ -80,9 +80,10 @@ void BaseArbitrator::onGameOver()
     pScore->set_score(record.m_nScore);
   }
 
-  for (world::PlayerPtr pPlayer: m_pPlayersStorage->getAllPlayers()) {
-    pPlayer->getCommutator()->broadcast(message);
-  }
+  // TODO: use IGame channel for it
+  // for (world::PlayerPtr pPlayer: m_pPlayersStorage->getAllPlayers()) {
+  //   pPlayer->getCommutator()->broadcast(message);
+  // }
 }
 
 } // namespace arbitrator

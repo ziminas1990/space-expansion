@@ -7,20 +7,20 @@
 #include <stdint.h>
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
+#include <Network/SessionMux.h>
 
 namespace modules {
 
 class Commutator :
     public BaseModule,
-    public utils::GlobalObject<Commutator>,
-    public network::IPlayerChannel
+    public utils::GlobalObject<Commutator>
 {
   static const size_t m_nSessionsLimit = 8;
 
 public:
   static uint32_t invalidSlot() { return UINT32_MAX; }
 
-  Commutator();
+  Commutator(std::shared_ptr<network::SessionMux> pSessionMux);
 
   uint32_t attachModule(BaseModulePtr pModule);
     // Attach module to commutator. Return slotId - number of slot, to which
@@ -34,34 +34,20 @@ public:
     // Return module with the specified 'sType'. If module doesn't exist, return null.
     // Note that call has O(n) complicity
 
-  std::vector<BaseModulePtr> getAllModules() const { return m_Slots; }
-
   void detachFromModules();
 
   // Check if all slotes are still active; if some slot is NOT active anymore,
   // commutator will send an indication
-  void checkSlotsAndTunnels();
-
-  // Send the specified 'message' to all channels, that are opened to *this* commutator.
-  // Channels, that were opened to commutator's modules will NOT be used to send message.
-  void broadcast(spex::Message const& message);
-
-  // overrides from BaseModule
-  void proceed(uint32_t nIntervalUs) override;
-
-  // overrides from BaseModule->ITerminal
-  void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
+  void checkSlots();
 
   // overrides from network::IPrutubufTerminal
-  bool openSession(uint32_t nSessionId) override;
-  void onSessionClosed(uint32_t nSessionId) override;
+  bool openSession(uint32_t) override { return true; }
 
-  // overrides from network::IPlayerChannel
-  bool send(uint32_t nSessionId, spex::Message const& message) override;
-  void closeSession(uint32_t nSessionId) override;
-  bool isValid() const override { return channelIsValid(); }
-  void attachToTerminal(network::IPlayerTerminalPtr) override {}
-  void detachFromTerminal() override;
+  size_t totalSlots() const { return m_slots.size(); }
+
+  BaseModuleConstPtr moduleInSlot(size_t nSlotId) const {
+    return nSlotId < m_slots.size() ? m_slots[nSlotId].m_pModule : nullptr;
+  }
 
 protected:
   // overides from BufferedProtobufTerminal interface
@@ -75,40 +61,25 @@ private:
   void onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot);
   void onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId);
 
-  void commutateMessage(uint32_t nTunnelId, spex::Message const& message);
-
   void onModuleHasBeenDetached(uint32_t nSlotId);
-  void onModuleHasBeenAttached(uint32_t nSlotId);
 
   void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
   void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);
   void sendCloseTunnelInd(uint32_t nTunnelId);
 
 private:
-  struct Tunnel {
-    bool     m_lUp     = false;
-    uint32_t m_nParentSessionId = 0; // Session, that created a tunnel
-    uint32_t m_nSlotId = 0;
+  struct Slot {
+    BaseModulePtr         m_pModule;
+    std::vector<uint32_t> m_activeSessions;
+
+    bool isValid() const { return m_pModule != nullptr; }
+    bool removeSessionId(uint32_t nSessionId);
+    void reset();
   };
 
 private:
-  // index - Slot Id, value - connected module
-  std::vector<BaseModulePtr> m_Slots;
-  // index - Tunnel Id, value - Tunnel
-  std::vector<Tunnel>   m_Tunnels;
-  std::stack<uint32_t>  m_ReusableTunnels;
-  // all sessions
-  std::set<uint32_t>    m_OpenedSessions;
-
-  // Messages, that a waiting for exact time to be transferred next
-  struct StoredMessage {
-    StoredMessage(uint32_t nSessionId, spex::Message const& message)
-      : m_nTunnelId(nSessionId), m_message(message)
-    {}
-    uint32_t      m_nTunnelId;
-    spex::Message m_message;
-  };
-  std::vector<StoredMessage> m_delayedMessages;
+  std::vector<Slot> m_slots; // index - SlotId
+  std::shared_ptr<network::SessionMux> m_pSessionMux;
 };
 
 using CommutatorPtr     = std::shared_ptr<Commutator>;

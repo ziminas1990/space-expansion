@@ -401,7 +401,6 @@ message Message {
 
   oneof choice {
     // All possible interfaces are listed here
-    Message            encapsulated       = 12;
     IAccessPanel       accessPanel        = 13;
     ICommutator        commutator         = 14;
     IShip              ship               = 15;
