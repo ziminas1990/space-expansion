@@ -73,7 +73,7 @@ private:
   std::shared_ptr<Socket>  m_pSocket;
 
 public:
-  SessionMux(uint8_t nConnectionsLimit);
+  SessionMux(uint8_t nConnectionsLimit = 8);
 
   bool addConnection(uint32_t nConnectionId, IPlayerTerminalPtr pHandler);
   bool closeConnection(uint32_t nConnectionId);
@@ -82,13 +82,18 @@ public:
                          IPlayerTerminalPtr pHandler);
   bool closeSession(uint32_t nSessionId);
 
-  IPlayerChannelPtr getChannel()    const { return m_pSocket; }
-  IPlayerChannelPtr getEntryPoint() const { return m_pSocket; }
+  IPlayerChannelPtr  asChannel()  const { return m_pSocket; }
+  IPlayerTerminalPtr asTerminal() const { return m_pSocket; }
+
+  void attach(IPlayerChannelPtr pChannel);
+  void detach();
 
 private:
   uint16_t occupyIndex();
 
   bool onSessionClosed(uint32_t nSessionId, bool lIsRecursive = false);
 };
+
+using SessionMuxPtr = std::shared_ptr<SessionMux>;
 
 }  // namespace network

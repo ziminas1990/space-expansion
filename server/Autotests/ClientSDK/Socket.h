@@ -21,7 +21,7 @@ public:
 
   void setServerAddress(udp::endpoint serverAddress);
 
-  void send(std::string const& message);
+  void send(std::string&& message);
     // Send the specified 'message' to the server. Why message is
     // 'std::string'? Because protobuf uses std::string
 
@@ -52,12 +52,12 @@ public:
   {}
 
   // overrides from IChannel<FrameT>
-  bool send(FrameT const& message) override
+  bool send(FrameT&& message) override
   {
     std::string buffer;
     if (!message.SerializeToString(&buffer))
       return false;
-    Socket::send(buffer);
+    Socket::send(std::move(buffer));
     return true;
   }
 

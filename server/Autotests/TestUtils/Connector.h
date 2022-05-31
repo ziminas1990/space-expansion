@@ -48,7 +48,7 @@ public:
   }
 
   // Overrides client::IChannel<FrameType>
-  bool send(FrameType const& message) override {
+  bool send(FrameType&& message) override {
     if (m_pServiceSide) {
       m_pServiceSide->onMessageReceived(m_nSessionId, message);
       return true;

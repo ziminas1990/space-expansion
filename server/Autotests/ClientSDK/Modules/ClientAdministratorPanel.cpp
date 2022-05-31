@@ -37,7 +37,7 @@ AdministratorPanel::Status AdministratorPanel::login(
   pBody->set_login(sLogin);
   pBody->set_password(sPassword);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 
@@ -62,7 +62,7 @@ AdministratorPanel::Status AdministratorPanel::clockTimeReq(uint64_t& nTime)
   admin::Message message;
   message.mutable_system_clock()->set_time_req(true);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 
@@ -74,7 +74,7 @@ AdministratorPanel::Status AdministratorPanel::clockModeReq(SystemClockMode& mod
   admin::Message message;
   message.mutable_system_clock()->set_mode_req(true);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 
@@ -86,7 +86,7 @@ AdministratorPanel::Status AdministratorPanel::switchToRealTime()
   admin::Message message;
   message.mutable_system_clock()->set_switch_to_real_time(true);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 
@@ -104,7 +104,7 @@ AdministratorPanel::Status AdministratorPanel::switchToDebugMode()
   admin::Message message;
   message.mutable_system_clock()->set_switch_to_debug_mode(true);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 
@@ -122,7 +122,7 @@ AdministratorPanel::Status AdministratorPanel::terminate()
   admin::Message message;
   message.mutable_system_clock()->set_terminate(true);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 
@@ -140,7 +140,7 @@ AdministratorPanel::Status AdministratorPanel::setTickDuration(uint64_t nTickUs)
   admin::Message message;
   message.mutable_system_clock()->set_tick_duration_us(nTickUs);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 
@@ -152,7 +152,7 @@ AdministratorPanel::Status AdministratorPanel::proceed(uint32_t nTicks, uint64_t
   admin::Message message;
   message.mutable_system_clock()->set_proceed_ticks(nTicks);
 
-  if (!m_pPrivilegedPipe->send(message)) {
+  if (!m_pPrivilegedPipe->send(std::move(message))) {
     return eTransportError;
   }
 

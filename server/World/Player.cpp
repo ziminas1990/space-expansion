@@ -29,16 +29,19 @@ PlayerPtr Player::load(
     return PlayerPtr();
   }
 
-  pPlayer->m_pEntryPoint = std::make_shared<modules::Commutator>();
+  pPlayer->m_pSesionMux  = std::make_shared<network::SessionMux>();
+  pPlayer->m_pEntryPoint = std::make_shared<modules::Commutator>(
+    pPlayer->m_pSesionMux
+  );
+
+  pPlayer->m_pEntryPoint->attachToChannel(pPlayer->m_pSesionMux->asChannel());
 
   pPlayer->m_pSystemClock =
       std::make_shared<modules::SystemClock>("SystemClock", pPlayer);
-  pPlayer->m_pSystemClock->attachToChannel(pPlayer->m_pEntryPoint);
   pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pSystemClock);
 
   pPlayer->m_pBlueprintsExplorer =
       std::make_shared<modules::BlueprintsStorage>(pPlayer);
-  pPlayer->m_pBlueprintsExplorer->attachToChannel(pPlayer->m_pEntryPoint);
   pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pBlueprintsExplorer);
 
   YAML::Node const& shipsState = state["ships"];
@@ -62,7 +65,7 @@ PlayerPtr Player::load(
       return PlayerPtr();
 
     ships::ShipPtr pShip =
-        std::dynamic_pointer_cast<ships::Ship>(
+        std::static_pointer_cast<ships::Ship>(
           pShipBlueprint->build(std::move(sShipName), pPlayer));
     assert(pShip);
     if (!pShip)
@@ -72,7 +75,6 @@ PlayerPtr Player::load(
       assert("Failed to load ship" == nullptr);
       return PlayerPtr();
     }
-    pShip->attachToChannel(pPlayer->m_pEntryPoint);
     pPlayer->m_pEntryPoint->attachModule(std::move(pShip));
   }
 
@@ -95,9 +97,11 @@ Player::~Player()
     m_pProtobufChannel->detachFromTerminal();
     m_pProtobufChannel->detachFromChannel();
   }
+  if (m_pSesionMux) {
+    m_pSesionMux->detach();
+  }
   if (m_pEntryPoint) {
     m_pEntryPoint->detachFromChannel();
-    m_pEntryPoint->detachFromTerminal();
     m_pEntryPoint->detachFromModules();
   }
   if (m_pBlueprintsExplorer) {

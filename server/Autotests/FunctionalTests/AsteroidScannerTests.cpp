@@ -88,7 +88,7 @@ TEST_F(AsteroidScannerTests, GetSpecification)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidScanner scanner;
@@ -107,7 +107,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", *pShip));
 
   client::CelestialScanner celestialScanner;
@@ -170,7 +170,7 @@ TEST_F(AsteroidScannerTests, FailedToScanTest)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", *pShip));
 
   client::CelestialScanner celestialScanner;

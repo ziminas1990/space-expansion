@@ -54,7 +54,7 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
   if (nSessionId && nSessionIndex < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIndex];
     if (session.m_nConnectionId == nConnectionId &&
-        session.sessionId() = nSessionId) {
+        session.sessionId() == nSessionId) {
       session.m_pHandler->onMessageReceived(nSessionId, message);
     }
   }
@@ -100,7 +100,7 @@ bool SessionMux::Socket::isValid() const
   return m_pChannel && m_pChannel->isValid();
 }
 
-void SessionMux::Socket::attachToTerminal(IPlayerTerminalPtr pTerminal)
+void SessionMux::Socket::attachToTerminal(IPlayerTerminalPtr)
 {
   assert(!"Operation makes no sence");
 }
@@ -115,11 +115,11 @@ void SessionMux::Socket::detachFromTerminal()
 //==============================================================================
 
 SessionMux::SessionMux(uint8_t nConnectionsLimit)
-  : m_connections(nConnectionsLimit), m_pSocket(std::make_shared<Socket>())
+  : m_connections(nConnectionsLimit), m_pSocket(std::make_shared<Socket>(this))
 {
   m_sessions.reserve(1024);
   // SessionId = 0 should never be used
-  m_sessions.emplace_back(0, Session());
+  m_sessions.push_back(Session());
 }
 
 bool SessionMux::addConnection(uint32_t           nConnectionId,
@@ -130,11 +130,14 @@ bool SessionMux::addConnection(uint32_t           nConnectionId,
     Connection& connection = m_connections[nConnectionId];
     assert(!connection.m_nDefaultSessionId
            && "Connection has not been closed?");
-    m_sessions.emplace_back(m_sessions.size(), 
-                            1,  // A secret key (starts from 1)
-                            nConnectionId,
-                            0,  // parentSessionId, should be 0 here
-                            pHandler);
+    m_sessions.emplace_back(Session{
+      static_cast<uint16_t>(m_sessions.size()),
+      1,  // A secret key (starts from 1)
+      nConnectionId,
+      0,  // parentSessionId, should be 0 here
+      pHandler,
+      {}
+    });
     connection.m_nDefaultSessionId = m_sessions.back().sessionId();
     return connection.m_nDefaultSessionId != 0;
   }
@@ -179,7 +182,7 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
   const uint32_t nConnectionId = parentSession.m_nConnectionId;
 
   // Add a new session
-  const uint32_t nSessionIndex = occupyIndex();
+  const uint16_t nSessionIndex = occupyIndex();
   if (nSessionIndex) {
     if (nSessionIndex < m_sessions.size()) {
       // Reusing previously closed session
@@ -187,8 +190,9 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
       assert(session.m_nIndex == nSessionIndex);
       session.revive(nConnectionId, nParentSessionId, pHandler);
     } else {
-      m_sessions.emplace_back(
-        nSessionIndex, 1, nConnectionId, nParentSessionId, pHandler);
+      m_sessions.push_back(Session{
+        nSessionIndex, 1, nConnectionId, nParentSessionId, pHandler, {}
+      });
     }
     return m_sessions.back().sessionId();
   }
@@ -199,6 +203,16 @@ bool SessionMux::closeSession(uint32_t nSessionId)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
   return onSessionClosed(nSessionId);
+}
+
+void SessionMux::attach(IPlayerChannelPtr pChannel)
+{
+  m_pSocket->attachToChannel(pChannel);
+}
+
+void SessionMux::detach()
+{
+  m_pSocket->detachFromChannel();
 }
 
 uint16_t SessionMux::occupyIndex()

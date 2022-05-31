@@ -38,14 +38,14 @@ bool ClientPassiveScanner::sendSpecificationReq()
 {
   spex::Message message;
   message.mutable_passive_scanner()->set_specification_req(true);
-  return send(message);
+  return send(std::move(message));
 }
 
 bool ClientPassiveScanner::sendMonitor()
 {
   spex::Message message;
   message.mutable_passive_scanner()->set_monitor(true);
-  return send(message);
+  return send(std::move(message));
 }
 
 bool ClientPassiveScanner::waitSpecification(

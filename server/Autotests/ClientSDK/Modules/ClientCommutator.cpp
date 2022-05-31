@@ -16,7 +16,7 @@ bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
 
   spex::Message request;
   request.mutable_commutator()->set_all_modules_info_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   for (size_t i = 0; i < nTotal; ++i) {
@@ -33,39 +33,28 @@ bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
   return attachedModules.size() == nTotal;
 }
 
-TunnelPtr ClientCommutator::openTunnel(uint32_t nSlotId)
+Router::SessionPtr ClientCommutator::openSession(uint32_t nSlotId)
 {
   if (!sendOpenTunnel(nSlotId))
-    return TunnelPtr();
+    return Router::SessionPtr();
 
-  uint32_t nOpenedTunnelId = 0;
-  if (!waitOpenTunnelSuccess(&nOpenedTunnelId))
-    return TunnelPtr();
+  uint32_t nSessionId = 0;
+  if (!waitOpenTunnelSuccess(&nSessionId))
+    return Router::SessionPtr();
 
-  TunnelPtr pTunnel = std::make_shared<Tunnel>(nOpenedTunnelId);
-  getChannel()->attachTunnelHandler(nOpenedTunnelId, pTunnel);
-  pTunnel->setProceeder(getChannel()->getProceeder());
-  pTunnel->attachToDownlevel(getChannel());
-  return pTunnel;
+  return m_pRouter->openSession(nSessionId);
 }
 
-bool ClientCommutator::closeTunnel(TunnelPtr pTunnel)
+bool ClientCommutator::closeTunnel(Router::SessionPtr pSession)
 {
-  if (!sendCloseTunnel(pTunnel->getTunnelId())) {
-    return false;
-  }
-  spex::ICommutator::Status status;
-  if (!waitCloseTunnelStatus(status)) {
-    return false;
-  }
-  return status == spex::ICommutator::SUCCESS;
+  return m_pRouter->closeSession(pSession->sessionId());
 }
 
 bool ClientCommutator::sendOpenTunnel(uint32_t nSlotId)
 {
   spex::Message request;
   request.mutable_commutator()->set_open_tunnel(nSlotId);
-  return send(request);
+  return send(std::move(request));
 }
 
 bool ClientCommutator::waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId)
@@ -94,7 +83,7 @@ bool ClientCommutator::sendCloseTunnel(uint32_t nTunnelId)
 {
   spex::Message request;
   request.mutable_commutator()->set_close_tunnel(nTunnelId);
-  return send(request);
+  return send(std::move(request));
 }
 
 bool ClientCommutator::waitCloseTunnelStatus(spex::ICommutator::Status& status)
@@ -121,7 +110,7 @@ bool ClientCommutator::sendTotalSlotsReq()
 {
   spex::Message request;
   request.mutable_commutator()->set_total_slots_req(true);
-  return send(request);
+  return send(std::move(request));
 }
 
 bool ClientCommutator::waitTotalSlots(uint32_t& nSlots)

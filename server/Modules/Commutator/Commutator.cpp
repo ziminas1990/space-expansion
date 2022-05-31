@@ -41,6 +41,8 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
 {
   // We assume, that this operation is rather rare therefore we can afford to
   // execute it in O(N) time
+  pModule->attachToChannel(m_pSessionMux->asChannel());
+  
   for (uint32_t nSlotId = 0; nSlotId < m_slots.size(); ++nSlotId)
   {
     if (m_slots[nSlotId].m_pModule->isDestroyed())
@@ -50,7 +52,7 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
       return nSlotId;
     }
   }
-  m_slots.emplace_back(pModule, std::vector<uint32_t>());
+  m_slots.push_back({pModule, std::vector<uint32_t>()});
   return static_cast<uint32_t>(m_slots.size()) - 1;
 }
 
@@ -143,7 +145,7 @@ void Commutator::getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const
   spex::ICommutator::ModuleInfo* pBody =
       response.mutable_commutator()->mutable_module_info();
   pBody->set_slot_id(nSlotId);
-  if (nSlotId >= m_slots.size() || !m_slots[nSlotId]) {
+  if (nSlotId >= m_slots.size() || !m_slots[nSlotId].isValid()) {
     pBody->set_module_type("empty");
   } else {
     const BaseModulePtr pModule = m_slots[nSlotId].m_pModule;

@@ -20,7 +20,7 @@ bool AsteroidScanner::getSpecification(AsteroidScannerSpecification &specificati
 {
   spex::Message request;
   request.mutable_asteroid_scanner()->set_specification_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   spex::IAsteroidScanner response;
@@ -39,7 +39,7 @@ AsteroidScanner::scan(uint32_t nAsteroidId, AsteroidScanner::AsteroidInfo *pResu
 {
   spex::Message request;
   request.mutable_asteroid_scanner()->set_scan_asteroid(nAsteroidId);
-  if (!send(request))
+  if (!send(std::move(request)))
     return eStatusError;
 
   spex::IAsteroidScanner response;

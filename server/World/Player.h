@@ -5,6 +5,7 @@
 #include <Utils/YamlForwardDeclarations.h>
 #include <Network/ProtobufChannel.h>
 #include <Network/UdpSocket.h>
+#include <Network/SessionMux.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Ships/Ship.h>
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
@@ -41,6 +42,8 @@ public:
   blueprints::BlueprintsLibrary&       getBlueprints()       { return m_blueprints; }
   blueprints::BlueprintsLibrary const& getBlueprints() const { return m_blueprints; }
 
+  network::SessionMuxPtr getSessionMux() const { return m_pSesionMux; }
+
   modules::CommutatorPtr getCommutator() const { return m_pEntryPoint; }
 
 private:
@@ -49,6 +52,7 @@ private:
 
   network::UdpSocketPtr         m_pUdpChannel;
   network::PlayerChannelPtr     m_pProtobufChannel;
+  network::SessionMuxPtr        m_pSesionMux;
   modules::CommutatorPtr        m_pEntryPoint;
   modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;

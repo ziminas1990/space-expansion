@@ -85,7 +85,7 @@ TEST_F(AsteroidMinerTests, GetSpecification)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
@@ -107,7 +107,7 @@ TEST_F(AsteroidMinerTests, BindingToCargo)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
@@ -141,7 +141,7 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
@@ -180,7 +180,7 @@ TEST_F(AsteroidMinerTests, StopMining)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
@@ -213,7 +213,7 @@ TEST_F(AsteroidMinerTests, StartMiningFails)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
@@ -234,7 +234,7 @@ TEST_F(AsteroidMinerTests, NoAvaliableSpace)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;

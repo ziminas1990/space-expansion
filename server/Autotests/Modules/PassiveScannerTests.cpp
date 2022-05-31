@@ -146,6 +146,7 @@ protected:
 
   // Components on client's side
   client::PlayerPipePtr       m_pRootPipe;
+  client::RouterPtr           m_pRouter;
   client::ClientCommutatorPtr m_pClientCommutator;
 
 };
@@ -184,9 +185,12 @@ void PassiveScannerTests::SetUp()
   // Components on client
   m_pRootPipe = std::make_shared<client::PlayerPipe>();
   m_pRootPipe->setProceeder(m_fConveyorProceeder);
+  
+  m_pRouter = std::make_shared<client::Router>();
+  m_pRouter->attachToDownlevel(m_pRootPipe);
 
-  m_pClientCommutator = std::make_shared<client::ClientCommutator>();
-  m_pClientCommutator->attachToChannel(m_pRootPipe);
+  m_pClientCommutator = std::make_shared<client::ClientCommutator>(m_pRouter);
+  m_pClientCommutator->attachToChannel(m_pRouter->openSession(0));
 
   m_connectionGuard.link(m_pConnection, m_pShip->getCommutator(), m_pRootPipe);
 }
@@ -202,8 +206,8 @@ void PassiveScannerTests::TearDown()
 client::ClientPassiveScannerPtr
 PassiveScannerTests::spawnScanner()
 {
-  client::TunnelPtr pTunnel =
-      m_pClientCommutator->openTunnel(m_nPassiveScannerSlot);
+  client::Router::SessionPtr pTunnel =
+      m_pClientCommutator->openSession(m_nPassiveScannerSlot);
   if (!pTunnel) {
     return client::ClientPassiveScannerPtr();
   }

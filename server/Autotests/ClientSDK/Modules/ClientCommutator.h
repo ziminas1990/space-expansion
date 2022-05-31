@@ -1,9 +1,11 @@
 #pragma once
 
-#include <Autotests/ClientSDK/Interfaces.h>
-#include <Autotests/ClientSDK/ClientBaseModule.h>
 #include <stdint.h>
 #include <vector>
+
+#include <Autotests/ClientSDK/Interfaces.h>
+#include <Autotests/ClientSDK/ClientBaseModule.h>
+#include <Autotests/ClientSDK/Router.h>
 
 namespace autotests { namespace client {
 
@@ -18,12 +20,17 @@ using ModulesList = std::vector<ModuleInfo>;
 
 class ClientCommutator : public ClientBaseModule
 {
+private:
+  RouterPtr m_pRouter;
+
 public:
+  ClientCommutator(RouterPtr pRouter) : m_pRouter(pRouter) {}
+
   bool getTotalSlots(uint32_t &nTotalSlots);
   bool getAttachedModulesList(ModulesList& attachedModules);
 
-  TunnelPtr openTunnel(uint32_t nSlotId);
-  bool closeTunnel(TunnelPtr pTunnel);
+  Router::SessionPtr openSession(uint32_t nSlotId);
+  bool closeTunnel(Router::SessionPtr pSession);
 
   // Additional functions, that are used in autotests:
   bool sendOpenTunnel(uint32_t nSlotId);

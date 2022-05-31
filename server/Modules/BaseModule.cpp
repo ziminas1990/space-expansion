@@ -68,10 +68,6 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       // BaseModule class
       return;
     }
-    case spex::Message::kEncapsulated: {
-      // Only commutator is able to handle such messages!
-      return;
-    }
     case spex::Message::kGame:
     case spex::Message::CHOICE_NOT_SET: {
       // Just ignoring

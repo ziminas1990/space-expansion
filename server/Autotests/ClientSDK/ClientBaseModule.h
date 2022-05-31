@@ -25,8 +25,8 @@ public:
   bool isAttached() const { return m_pSyncPipe != nullptr; }
 
   // Forwarding interface from SyncPipe
-  bool send(spex::Message const& message)
-  { return m_pSyncPipe && m_pSyncPipe->send(message); }
+  bool send(spex::Message&& message)
+  { return m_pSyncPipe && m_pSyncPipe->send(std::move(message)); }
 
   template<typename MessageType>
   bool wait(MessageType& message, uint16_t nTimeout = 500)

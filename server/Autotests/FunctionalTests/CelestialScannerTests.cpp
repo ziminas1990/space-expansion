@@ -90,7 +90,7 @@ TEST_F(CelestialScannerTests, GetSpecification)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
@@ -109,7 +109,7 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
@@ -128,7 +128,7 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
@@ -159,7 +159,7 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
@@ -188,7 +188,7 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", *pShip));
 
   client::CelestialScanner scanner;

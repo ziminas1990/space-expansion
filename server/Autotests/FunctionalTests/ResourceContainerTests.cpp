@@ -89,7 +89,7 @@ TEST_F(ResourceContainerTests, GetContent)
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
@@ -113,7 +113,7 @@ TEST_F(ResourceContainerTests, OpenPort)
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
@@ -138,7 +138,7 @@ TEST_F(ResourceContainerTests, ClosePort)
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
@@ -166,10 +166,10 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::Ship freighter;
+  client::Ship freighter(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
 
   client::ResourceContainer          stationsContainer;
@@ -235,10 +235,10 @@ TEST_F(ResourceContainerTests, TransferNonMaterialResource)
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::Ship freighter;
+  client::Ship freighter(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
 
   client::ResourceContainer stationsContainer;
@@ -266,10 +266,10 @@ TEST_F(ResourceContainerTests, MonitoringWhileTransfer)
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
 
-  client::Ship freighter;
+  client::Ship freighter(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
 
   struct ContainerSessions {

@@ -23,7 +23,7 @@ void Socket::setServerAddress(boost::asio::ip::udp::endpoint serverAddress)
   m_serverAddress = std::move(serverAddress);
 }
 
-void Socket::send(std::string const& buffer)
+void Socket::send(std::string&& buffer)
 {
   uint8_t* pChunk = new uint8_t[buffer.size()];
   memcpy(pChunk, buffer.data(), buffer.size());

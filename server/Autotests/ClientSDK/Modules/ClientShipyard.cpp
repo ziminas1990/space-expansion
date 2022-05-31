@@ -39,7 +39,7 @@ bool Shipyard::getSpecification(ShipyardSpecification& spec)
 {
   spex::Message request;
   request.mutable_shipyard()->set_specification_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   spex::IShipyard response;
@@ -57,7 +57,7 @@ Shipyard::Status Shipyard::bindToCargo(std::string const& container)
   spex::Message request;
   spex::IShipyard* pBody = request.mutable_shipyard();
   pBody->set_bind_to_cargo(container);
-  if (!send(request))
+  if (!send(std::move(request)))
     return eTransportError;
 
   spex::IShipyard response;
@@ -76,7 +76,7 @@ Shipyard::Status Shipyard::startBuilding(std::string const& sBlueprint,
   spex::IShipyard::StartBuild* pBody = request.mutable_shipyard()->mutable_start_build();
   pBody->set_blueprint_name(sBlueprint);
   pBody->set_ship_name(sShipName);
-  if (!send(request))
+  if (!send(std::move(request)))
     return eTransportError;
 
   spex::IShipyard response;
@@ -92,7 +92,7 @@ Shipyard::Status Shipyard::cancelBuild()
 {
   spex::Message request;
   request.mutable_shipyard()->set_cancel_build(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return eTransportError;
 
   spex::IShipyard response;

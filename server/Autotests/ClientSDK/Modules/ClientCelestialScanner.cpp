@@ -6,7 +6,7 @@ bool CelestialScanner::getSpecification(CelestialScannerSpecification& specifica
 {
   spex::Message request;
   request.mutable_celestial_scanner()->set_specification_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   spex::ICelestialScanner response;
@@ -29,7 +29,7 @@ bool CelestialScanner::scan(uint32_t nRadiusKm,
       request.mutable_celestial_scanner()->mutable_scan();
   pBody->set_scanning_radius_km(nRadiusKm);
   pBody->set_minimal_radius_m(nMinimalRadiusM);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   size_t   nTotalAsteroids = 0;

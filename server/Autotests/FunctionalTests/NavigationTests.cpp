@@ -69,7 +69,7 @@ TEST_F(NavigationTests, SimpleTest)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   client::Navigation navigation(pShip);
@@ -90,7 +90,7 @@ TEST_F(NavigationTests, SeveralPoints)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   client::Navigation navigation(pShip);
@@ -119,11 +119,11 @@ TEST_F(NavigationTests, OnMoving)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   client::Engine engine;
-  engine.attachToChannel(pShip->openTunnel(0));
+  engine.attachToChannel(pShip->openSession(0));
 
   // Setting new thrust and waiting for 3 seconds
   geometry::Vector thrust(-1, -0.5);

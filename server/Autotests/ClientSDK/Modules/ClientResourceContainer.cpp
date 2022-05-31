@@ -60,7 +60,7 @@ bool ResourceContainer::getContent(ResourceContainer::Content &content)
 {
   spex::Message request;
   request.mutable_resource_container()->set_content_req(true);
-  return send(request) && waitContent(content);
+  return send(std::move(request)) && waitContent(content);
 }
 
 ResourceContainer::Status ResourceContainer::openPort(
@@ -69,7 +69,7 @@ ResourceContainer::Status ResourceContainer::openPort(
   spex::Message request;
   request.mutable_resource_container()->set_open_port(nAccessKey);
 
-  if (!send(request))
+  if (!send(std::move(request)))
     return eStatusError;
 
   spex::IResourceContainer response;
@@ -93,7 +93,7 @@ ResourceContainer::Status ResourceContainer::closePort()
   spex::Message request;
   request.mutable_resource_container()->set_close_port(true);
 
-  if (!send(request))
+  if (!send(std::move(request)))
     return eStatusError;
 
   spex::IResourceContainer response;
@@ -117,7 +117,7 @@ ResourceContainer::Status ResourceContainer::transferRequest(
   pRequest->mutable_resource()->set_type(utils::convert(type));
   pRequest->mutable_resource()->set_amount(amount);
 
-  if (!send(message))
+  if (!send(std::move(message)))
     return eStatusError;
 
   spex::IResourceContainer response;
@@ -136,7 +136,7 @@ bool ResourceContainer::monitor(Content &content)
 {
   spex::Message request;
   request.mutable_resource_container()->set_monitor(true);
-  return send(request) && waitContent(content);
+  return send(std::move(request)) && waitContent(content);
 }
 
 ResourceContainer::Status

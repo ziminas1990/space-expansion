@@ -17,6 +17,8 @@ struct ShipState {
 class Ship : public ClientCommutator
 {
 public:
+  Ship(client::RouterPtr pRouter) : ClientCommutator(pRouter) {}
+
   bool getPosition(geometry::Point& position, geometry::Vector& velocity);
   bool getPosition(geometry::Point& position);
 

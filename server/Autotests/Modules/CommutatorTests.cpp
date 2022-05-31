@@ -34,14 +34,15 @@ protected:
   conveyor::Conveyor            m_Conveyor;
   std::function<void()>         m_fConveyorProceeder;
   modules::CommutatorManagerPtr m_pCommutatorManager;
+  network::SessionMuxPtr        m_pSessionMux;
   modules::CommutatorPtr        m_pCommutatator;
 
   // Component, that connects client and server sides
   PlayerConnectorPtr            m_pConnection;
-  PlayerConnectorGuard          m_connectionGuard;
 
   // Components on client side
   client::PlayerPipePtr         m_pRootPipe;
+  client::RouterPtr             m_pRouter;
   client::ClientCommutatorPtr   m_pClient;
 };
 
@@ -57,34 +58,54 @@ void CommutatorTests::SetUp()
   //              |                                   ?   ?   ?
   //              |                                   |   |   |
   //      +----------------+                      +---------------+
-  //      |   pRootPipe    |                      |  pCommutator  |
+  //      |     Router     |                      |  pCommutator  |
   //      +----------------+                      +---------------+
-  //              |             +-------------+             |
-  //              +-------------| pConnection |-------------+
+  //              |                                        |
+  //      +----------------+                      +---------------+
+  //      |    pRootPipe   |                      |   SessionMux  |
+  //      +----------------+                      +---------------+
+  //              |             +-------------+            | 
+  //              +-------------| pConnection |------------+
   //                            +-------------+
 
   // Creating components
   m_pCommutatorManager = std::make_shared<modules::CommutatorManager>();
-  m_pCommutatator      = std::make_shared<modules::Commutator>();
+  m_pSessionMux        = std::make_shared<network::SessionMux>();
+  m_pCommutatator      = std::make_shared<modules::Commutator>(m_pSessionMux);
 
   // Components on client side
+  m_pRouter            = std::make_shared<client::Router>();
   m_pRootPipe          = std::make_shared<client::PlayerPipe>();
-  m_pClient            = std::make_shared<client::ClientCommutator>();
+  m_pClient            = std::make_shared<client::ClientCommutator>(m_pRouter);
 
   // Setting up components
   m_Conveyor.addLogicToChain(m_pCommutatorManager);
   m_pRootPipe->setProceeder(m_fConveyorProceeder);
 
   // Linking components
-  m_pClient->attachToChannel(m_pRootPipe);
+  m_pRouter->attachToDownlevel(m_pRootPipe);
+  m_pClient->attachToChannel(m_pRouter->openSession(0));
+
   m_pConnection = std::make_shared<PlayerConnector>(1);
-  m_connectionGuard.link(m_pConnection, m_pCommutatator, m_pRootPipe);
+  m_pConnection->attachToTerminal(m_pSessionMux->asTerminal());
+  m_pSessionMux->attach(m_pConnection);
+  m_pSessionMux->addConnection(0, m_pCommutatator);
+  m_pCommutatator->attachToChannel(m_pSessionMux->asChannel());
+
+  m_pConnection->attachToTerminal(m_pSessionMux->asTerminal());
+  m_pSessionMux->asTerminal()->attachToChannel(m_pConnection);
 }
 
 void CommutatorTests::TearDown()
 {
   m_pCommutatator->detachFromModules();
-  // m_connectionGuard will release the rest of links
+  m_pConnection->detachFromTerminal();
+  m_pSessionMux->detach();
+  m_pCommutatator->detachFromChannel();
+  m_pCommutatator->detachFromModules();
+
+  m_pRouter->detachDownlevel();
+  m_pClient->detachChannel();
 }
 
 void CommutatorTests::proceedEnviroment()
@@ -120,7 +141,7 @@ TEST_F(CommutatorTests, OpenTunnelSuccessCase)
   // 2. Opening 10 tunnels to each module
   for (uint32_t nSlotId = 0; nSlotId < nTotalSlots; ++nSlotId) {
     for (uint32_t nCount = 1; nCount <= 10; ++nCount)
-      ASSERT_TRUE(m_pClient->openTunnel(nSlotId))
+      ASSERT_TRUE(m_pClient->openSession(nSlotId))
           << "failed to open tunnel #" << nCount << " for slot #" << nSlotId;
   }
 }
@@ -148,23 +169,21 @@ TEST_F(CommutatorTests, TunnelingMessage)
   // 1. Attaching commutator to MockedCommutator
   MockedCommutatorPtr pMockedCommutator = std::make_shared<MockedCommutator>();
   pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
-  pMockedCommutator->attachToChannel(m_pCommutatator);
   m_pCommutatator->attachModule(pMockedCommutator);
 
   // 2. Doing 5 times:
   for(uint32_t nSlotId = 5; nSlotId < 10; ++nSlotId) {
     //   2.1. Opening new tunnel TO mocked commutator
-    client::TunnelPtr pTunnel = m_pClient->openTunnel(0);
+    client::Router::SessionPtr pTunnel = m_pClient->openSession(0);
     ASSERT_TRUE(pTunnel);
 
     //   2.2. Opening new tunnel ON mocked commutator (via tunnel from 2.1)
     client::ClientCommutatorPtr pAnotherClient =
-        std::make_shared<client::ClientCommutator>();
+        std::make_shared<client::ClientCommutator>(m_pRouter);
     pAnotherClient->attachToChannel(pTunnel);
     ASSERT_TRUE(pAnotherClient->sendOpenTunnel(nSlotId));
-    ASSERT_TRUE(pMockedCommutator->waitOpenTunnel(pTunnel->getTunnelId(), nSlotId));
     ASSERT_TRUE(pMockedCommutator->sendOpenTunnelFailed(
-                  pTunnel->getTunnelId(), spex::ICommutator::INVALID_SLOT));
+                  pTunnel->sessionId(), spex::ICommutator::INVALID_SLOT));
     ASSERT_TRUE(pAnotherClient->waitOpenTunnelFailed());
   }
 }
@@ -173,44 +192,42 @@ TEST_F(CommutatorTests, TunnelingMessageToOfflineModule)
 {
   // 1. Attaching commutator to MockedCommutator
   MockedCommutatorPtr pMockedCommutator = std::make_shared<MockedCommutator>();
-  pMockedCommutator->attachToChannel(m_pCommutatator);
   m_pCommutatator->attachModule(pMockedCommutator);
   pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
 
   // 2. Opening tunnel to mocked commutator
-  client::TunnelPtr pTunnel = m_pClient->openTunnel(0);
+  client::Router::SessionPtr pTunnel = m_pClient->openSession(0);
   ASSERT_TRUE(pTunnel);
 
   // 3. Put mocked commutator to offline and sending any command
   client::ClientCommutatorPtr pAnotherClient =
-      std::make_shared<client::ClientCommutator>();
+      std::make_shared<client::ClientCommutator>(m_pRouter);
   pAnotherClient->attachToChannel(pTunnel);
   pMockedCommutator->putOffline();
   ASSERT_TRUE(pAnotherClient->sendOpenTunnel(1));
-  ASSERT_FALSE(pMockedCommutator->waitAny(pTunnel->getTunnelId(), 50));
+  ASSERT_FALSE(pMockedCommutator->waitAny(pTunnel->sessionId(), 50));
 }
 
 TEST_F(CommutatorTests, CloseTunnel)
 {
   // 1. Attaching commutator to MockedCommutator
   MockedCommutatorPtr pMockedCommutator = std::make_shared<MockedCommutator>();
-  pMockedCommutator->attachToChannel(m_pCommutatator);
   m_pCommutatator->attachModule(pMockedCommutator);
   pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
 
   // 1. Open tunnel
-  client::TunnelPtr pTunnel = m_pClient->openTunnel(0);
+  client::Router::SessionPtr pTunnel = m_pClient->openSession(0);
   ASSERT_TRUE(pTunnel);
 
   // 2. Try to send some request
   client::ClientCommutatorPtr pAnotherClient =
-      std::make_shared<client::ClientCommutator>();
+      std::make_shared<client::ClientCommutator>(m_pRouter);
   pAnotherClient->attachToChannel(pTunnel);
 
   ASSERT_TRUE(pAnotherClient->sendTotalSlotsReq());
   uint32_t nTotalSlots = 16;
-  ASSERT_TRUE(pMockedCommutator->waitTotalSlotsReq(pTunnel->getTunnelId()));
-  ASSERT_TRUE(pMockedCommutator->sendTotalSlots(pTunnel->getTunnelId(), nTotalSlots));
+  ASSERT_TRUE(pMockedCommutator->waitTotalSlotsReq(pTunnel->sessionId()));
+  ASSERT_TRUE(pMockedCommutator->sendTotalSlots(pTunnel->sessionId(), nTotalSlots));
   ASSERT_TRUE(pAnotherClient->waitTotalSlots(nTotalSlots));
 
   // 3. close channel
@@ -221,7 +238,7 @@ TEST_F(CommutatorTests, CloseTunnel)
 
   // 4. try to send yet another request (should fail)
   ASSERT_TRUE(pAnotherClient->sendTotalSlotsReq());
-  ASSERT_FALSE(pMockedCommutator->waitTotalSlotsReq(pTunnel->getTunnelId()));
+  ASSERT_FALSE(pMockedCommutator->waitTotalSlotsReq(pTunnel->sessionId()));
 }
 
 } // namespace autotests
