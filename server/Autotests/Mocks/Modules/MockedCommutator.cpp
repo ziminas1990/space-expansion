@@ -22,7 +22,7 @@ bool MockedCommutator::sendOpenTunnelSuccess(uint32_t nSessionId, uint32_t nTunn
 {
   spex::Message message;
   message.mutable_commutator()->set_open_tunnel_report(nTunnelId);
-  return sendToClient(nSessionId, message);
+  return sendToClient(nSessionId, std::move(message));
 }
 
 bool MockedCommutator::sendOpenTunnelFailed(uint32_t nSessionId,
@@ -30,7 +30,7 @@ bool MockedCommutator::sendOpenTunnelFailed(uint32_t nSessionId,
 {
   spex::Message message;
   message.mutable_commutator()->set_open_tunnel_failed(eReason);
-  return sendToClient(nSessionId, message);
+  return sendToClient(nSessionId, std::move(message));
 }
 
 bool MockedCommutator::waitTotalSlotsReq(uint32_t nSessionId)
@@ -45,7 +45,7 @@ bool MockedCommutator::sendTotalSlots(uint32_t nSessionId, uint32_t slots)
 {
   spex::Message message;
   message.mutable_commutator()->set_total_slots(slots);
-  return sendToClient(nSessionId, message);
+  return sendToClient(nSessionId, std::move(message));
 }
 
 } // namespace autotests

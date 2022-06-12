@@ -61,7 +61,7 @@ void AsteroidScanner::handleAsteroidScannerMessage(
           response.mutable_asteroid_scanner()->mutable_specification();
       pBody->set_max_distance(m_nMaxDistance);
       pBody->set_scanning_time_ms(m_nScanningTimeMs);
-      sendToClient(nTunnelId, response);
+      sendToClient(nTunnelId, std::move(response));
       return;
     }
     default:
@@ -109,9 +109,9 @@ world::Asteroid* AsteroidScanner::getAndCheckAsteroid(uint32_t nAsteroidId)
 void AsteroidScanner::sendStatus(uint32_t nTunnelId,
                                  spex::IAsteroidScanner::Status status)
 {
-  spex::Message statusMessage;
-  statusMessage.mutable_asteroid_scanner()->set_scanning_status(status);
-  sendToClient(nTunnelId, statusMessage);
+  spex::Message message;
+  message.mutable_asteroid_scanner()->set_scanning_status(status);
+  sendToClient(nTunnelId, std::move(message));
 }
 
 

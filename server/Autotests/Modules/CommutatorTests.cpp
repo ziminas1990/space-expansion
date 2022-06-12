@@ -57,12 +57,12 @@ void CommutatorTests::SetUp()
   //      +-------+-------+
   //              |                                   ?   ?   ?
   //              |                                   |   |   |
-  //      +----------------+                      +---------------+
-  //      |     Router     |                      |  pCommutator  |
-  //      +----------------+                      +---------------+
+  //              |                               +---------------+
+  //              |                               |  pCommutator  |
+  //              |                                +---------------+
   //              |                                        |
   //      +----------------+                      +---------------+
-  //      |    pRootPipe   |                      |   SessionMux  |
+  //      |    Router      |                      |   SessionMux  |
   //      +----------------+                      +---------------+
   //              |             +-------------+            | 
   //              +-------------| pConnection |------------+
@@ -75,25 +75,26 @@ void CommutatorTests::SetUp()
 
   // Components on client side
   m_pRouter            = std::make_shared<client::Router>();
-  m_pRootPipe          = std::make_shared<client::PlayerPipe>();
   m_pClient            = std::make_shared<client::ClientCommutator>(m_pRouter);
 
   // Setting up components
   m_Conveyor.addLogicToChain(m_pCommutatorManager);
-  m_pRootPipe->setProceeder(m_fConveyorProceeder);
+  m_pRouter->setProceeder(m_fConveyorProceeder);
 
   // Linking components
-  m_pRouter->attachToDownlevel(m_pRootPipe);
-  m_pClient->attachToChannel(m_pRouter->openSession(0));
-
-  m_pConnection = std::make_shared<PlayerConnector>(1);
+  const uint32_t nConnectionId = 3;
+  m_pConnection = std::make_shared<PlayerConnector>(nConnectionId);
   m_pConnection->attachToTerminal(m_pSessionMux->asTerminal());
   m_pSessionMux->attach(m_pConnection);
-  m_pSessionMux->addConnection(0, m_pCommutatator);
-  m_pCommutatator->attachToChannel(m_pSessionMux->asChannel());
+  m_pConnection->attachToTerminal(m_pRouter);
+  m_pRouter->attachToDownlevel(m_pConnection);
 
-  m_pConnection->attachToTerminal(m_pSessionMux->asTerminal());
-  m_pSessionMux->asTerminal()->attachToChannel(m_pConnection);
+  // Create a root session
+  const uint32_t nRootSession = 
+    m_pSessionMux->addConnection(nConnectionId, m_pCommutatator);
+  m_pCommutatator->attachToChannel(m_pSessionMux->asChannel());
+  m_pClient->attachToChannel(m_pRouter->openSession(nRootSession));
+
 }
 
 void CommutatorTests::TearDown()
@@ -119,11 +120,14 @@ void CommutatorTests::proceedEnviroment()
 
 TEST_F(CommutatorTests, GetSlotsCount)
 {
-  uint32_t nExpectedSlotsCount = 16;
+  const uint32_t nExpectedSlotsCount = 16;
   for (uint32_t i = 0; i < nExpectedSlotsCount; ++i) {
     m_pCommutatator->attachModule(std::make_shared<MockedBaseModule>());
   }
-  ASSERT_TRUE(m_pClient->getTotalSlots(nExpectedSlotsCount));
+
+  uint32_t nTotalSlots;
+  ASSERT_TRUE(m_pClient->getTotalSlots(nTotalSlots));
+  EXPECT_EQ(nExpectedSlotsCount, nTotalSlots);
 }
 
 TEST_F(CommutatorTests, OpenTunnelSuccessCase)
@@ -191,21 +195,21 @@ TEST_F(CommutatorTests, TunnelingMessage)
 TEST_F(CommutatorTests, TunnelingMessageToOfflineModule)
 {
   // 1. Attaching commutator to MockedCommutator
-  MockedCommutatorPtr pMockedCommutator = std::make_shared<MockedCommutator>();
-  m_pCommutatator->attachModule(pMockedCommutator);
-  pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
+  modules::CommutatorPtr pAnotherCommutator =
+    std::make_shared<modules::Commutator>(m_pSessionMux);
+  m_pCommutatator->attachModule(pAnotherCommutator);
 
   // 2. Opening tunnel to mocked commutator
   client::Router::SessionPtr pTunnel = m_pClient->openSession(0);
   ASSERT_TRUE(pTunnel);
 
-  // 3. Put mocked commutator to offline and sending any command
+  // 3. Put mocked commutator to offline and send any command
   client::ClientCommutatorPtr pAnotherClient =
       std::make_shared<client::ClientCommutator>(m_pRouter);
   pAnotherClient->attachToChannel(pTunnel);
-  pMockedCommutator->putOffline();
+  pAnotherCommutator->putOffline();
   ASSERT_TRUE(pAnotherClient->sendOpenTunnel(1));
-  ASSERT_FALSE(pMockedCommutator->waitAny(pTunnel->sessionId(), 50));
+  ASSERT_TRUE(pTunnel->waitCloseTunnelInd());
 }
 
 TEST_F(CommutatorTests, CloseTunnel)
@@ -232,9 +236,7 @@ TEST_F(CommutatorTests, CloseTunnel)
 
   // 3. close channel
   ASSERT_TRUE(m_pClient->closeTunnel(pTunnel));
-  spex::ICommutator closeInd;
-  ASSERT_TRUE(pTunnel->wait(closeInd));
-  ASSERT_EQ(spex::ICommutator::kCloseTunnelInd, closeInd.choice_case());
+  ASSERT_TRUE(pTunnel->waitCloseTunnelInd());
 
   // 4. try to send yet another request (should fail)
   ASSERT_TRUE(pAnotherClient->sendTotalSlotsReq());

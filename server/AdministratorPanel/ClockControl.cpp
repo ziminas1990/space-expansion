@@ -79,14 +79,14 @@ void ClockControl::sendNow(uint32_t nSessionId)
 {
   admin::Message message;
   message.mutable_system_clock()->set_now(m_pSystemManager->getClock().now());
-  m_pChannel->send(nSessionId, message);
+  m_pChannel->send(nSessionId, std::move(message));
 }
 
 void ClockControl::sendStatus(uint32_t nSessionId, admin::SystemClock::Status eStatus)
 {
   admin::Message message;
   message.mutable_system_clock()->set_status(eStatus);
-  m_pChannel->send(nSessionId, message);
+  m_pChannel->send(nSessionId, std::move(message));
 }
 
 void ClockControl::sendClockStatus(uint32_t nSessionId)

@@ -193,7 +193,7 @@ void Shipyard::sendStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus) 
 {
   spex::Message message;
   message.mutable_shipyard()->set_bind_to_cargo_status(eStatus);
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 void Shipyard::sendSpeification(uint32_t nSessionId)
@@ -202,7 +202,7 @@ void Shipyard::sendSpeification(uint32_t nSessionId)
   spex::IShipyard::Specification* pBody =
       message.mutable_shipyard()->mutable_specification();
   pBody->set_labor_per_sec(m_laborPerSecond);
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 void Shipyard::sendBuildingReport(spex::IShipyard::Status eStatus, double progress)
@@ -213,7 +213,7 @@ void Shipyard::sendBuildingReport(spex::IShipyard::Status eStatus, double progre
   pBody->set_status(eStatus);
   pBody->set_progress(progress);
   for (uint32_t nSessionId : m_openedSessions) {
-    sendToClient(nSessionId, message);
+    sendToClient(nSessionId, std::move(message));
   }
 }
 
@@ -226,7 +226,7 @@ void Shipyard::sendBuildingReport(uint32_t nSessionId,
       message.mutable_shipyard()->mutable_building_report();
   pBody->set_status(eStatus);
   pBody->set_progress(progress);
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 void Shipyard::sendBuildComplete(std::string&& sShipName, uint32_t nSlotId)
@@ -237,7 +237,7 @@ void Shipyard::sendBuildComplete(std::string&& sShipName, uint32_t nSlotId)
   pBody->set_slot_id(nSlotId);
   pBody->set_ship_name(std::move(sShipName));
   for (uint32_t nSessionId : m_openedSessions)
-    sendToClient(nSessionId, message);
+    sendToClient(nSessionId, std::move(message));
 }
 
 } // namespace modules

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <map>
 #include <memory>
+#include <functional>
 
 namespace autotests::client {
 
@@ -22,8 +23,16 @@ public:
 
     // overrides from SyncPipe
     bool send(spex::Message&& message) override {
+        // std::cout << "Send to " << (m_nSessionId & 0xFFFF) << ":\n" <<
+        //              message.DebugString() << std::endl;
         message.set_tunnelid(m_nSessionId);
         return PlayerPipe::send(std::move(message));
+    }
+
+    bool waitCloseTunnelInd() {
+      spex::ICommutator closeInd;
+      return wait(closeInd)
+          && spex::ICommutator::kCloseTunnelInd == closeInd.choice_case();
     }
 
   private:
@@ -35,8 +44,13 @@ public:
 private:
   IPlayerChannelPtr              m_pDownLevel;
   std::map<uint32_t, SessionPtr> m_sessions;
+  std::function<void()>          m_fProceeder;
 
 public:
+
+  void setProceeder(std::function<void()> fProceeder) {
+    m_fProceeder = std::move(fProceeder);
+  }
 
   SessionPtr openSession(uint32_t nSessionId);
   bool closeSession(uint32_t nSessionId);

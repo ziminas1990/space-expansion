@@ -141,7 +141,7 @@ void PassiveScanner::proceed(uint32_t)
 
     for (const uint32_t nSession: m_nMonitoringSessions) {
       if (nSession) {
-        sendToClient(nSession, message);
+        sendToClient(nSession, std::move(message));
       }
     }
   }
@@ -202,14 +202,14 @@ void PassiveScanner::sendSpecification(uint32_t nSessionId)
       message.mutable_passive_scanner()->mutable_specification();
   spec->set_scanning_radius_km(m_nMaxScanningRadius / 1000);
   spec->set_max_update_time_ms(m_nEdgeUpdateTimeUs / 1000);
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 void PassiveScanner::sendMonitorAck(uint32_t nSessionId, bool status)
 {
   spex::Message message;
   message.mutable_passive_scanner()->set_monitor_ack(status);
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 void PassiveScanner::proceedGlobalScan()

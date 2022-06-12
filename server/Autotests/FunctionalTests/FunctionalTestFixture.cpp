@@ -33,7 +33,6 @@ void FunctionalTestFixture::SetUp()
 
   // Initializing client components
   m_pSocket         = std::make_shared<client::PlayerSocket>(m_IoService, m_clientAddress);
-  m_pRootPipe       = std::make_shared<client::PlayerPipe>();
   m_pRouter         = std::make_shared<client::Router>();
   m_pAccessPanel    = std::make_shared<client::ClientAccessPanel>();
   m_pRootCommutator = std::make_shared<client::ClientCommutator>(m_pRouter);
@@ -48,17 +47,13 @@ void FunctionalTestFixture::SetUp()
 
   auto fProceeder = [this](){ proceed(); };
 
-  m_pRootPipe->setProceeder(fProceeder);
   m_pPrivilegedPipe->setProceeder(fProceeder);
+  m_pRouter->setProceeder(fProceeder);
 
   // Linking client components
-  m_pSocket->attachToTerminal(m_pRootPipe);
-  m_pRootPipe->attachToDownlevel(m_pSocket);
-  m_pAccessPanel->attachToChannel(m_pRootPipe);
-  m_pRouter->attachToDownlevel(m_pRootPipe);
-  m_pRootPipe->attachToTerminal(m_pRouter);
-
-  m_pRootCommutator->attachToChannel(m_pRouter->openSession(0));
+  m_pSocket->attachToTerminal(m_pRouter);
+  m_pRouter->attachToDownlevel(m_pSocket);
+  m_pAccessPanel->attachToChannel(m_pRouter->openSession(0));
 
   m_pPrivilegedPipe->attachToDownlevel(m_pPrivilegedSocket);
   m_pPrivilegedSocket->attachToTerminal(m_pPrivilegedPipe);
@@ -88,7 +83,7 @@ void FunctionalTestFixture::TearDown()
     delete m_pMainThread;
   }
 
-  m_pRootPipe->detachDownlevel();
+  m_pRouter->detachDownlevel();
   m_pAccessPanel->detachChannel();
   m_pRootCommutator->detachChannel();
   m_pPrivilegedPipe->detachDownlevel();

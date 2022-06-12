@@ -71,11 +71,12 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     pPlayer->attachToUdpSocket(pPlayerSocket);
   }
 
+  const uint32_t nRootSessionId = pPlayer->onNewConnection(nSessionId);
   std::optional<uint32_t> nConnectionId = 
       pPlayerSocket->createPersistentSession(*clientAddr);
 
   if (nConnectionId.has_value()) {
-    sendLoginSuccess(nSessionId, pPlayerSocket->getLocalAddr());
+    sendLoginSuccess(nSessionId, nRootSessionId, pPlayerSocket->getLocalAddr());
   } else {
     sendLoginFailed(nSessionId, "Connections limit reached");
   }
@@ -95,18 +96,22 @@ bool AccessPanel::checkLogin(std::string const& sLogin,
 }
 
 bool AccessPanel::sendLoginSuccess(uint32_t nSessionId,
+                                   uint32_t nRootSessionId,
                                    network::UdpEndPoint const& localAddress)
 {
   spex::Message message;
-  message.mutable_accesspanel()->set_access_granted(localAddress.port());
-  return send(nSessionId, message);
+  spex::IAccessPanel::AccessGranted* pGranted = 
+      message.mutable_accesspanel()->mutable_access_granted();
+  pGranted->set_port(localAddress.port());
+  pGranted->set_session_id(nRootSessionId);
+  return send(nSessionId, std::move(message));
 }
 
 bool AccessPanel::sendLoginFailed(uint32_t nSessionId, std::string const& reason)
 {
   spex::Message message;
   message.mutable_accesspanel()->set_access_rejected(reason);
-  return send(nSessionId, message);
+  return send(nSessionId, std::move(message));
 }
 
 } // namespace modules

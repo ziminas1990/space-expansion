@@ -40,7 +40,7 @@ public:
   void detachFromTerminal() override { m_pTerminal.reset(); }
 
   // Message pMessage will be copied to internal buffer (probably, without allocation)
-  bool send(uint32_t nSessionId, const BinaryMessage& message) override;
+  bool send(uint32_t nSessionId, BinaryMessage&& message) override;
   void closeSession(uint32_t nSessionId) override;
 
 private:

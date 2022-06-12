@@ -11,8 +11,12 @@ namespace world
 Player::Player(std::string&& sLogin,
                blueprints::BlueprintsLibrary&& blueprints)
   : m_sLogin(std::move(sLogin)),
+    m_pSesionMux(std::make_shared<network::SessionMux>()),
+    m_pEntryPoint(std::make_shared<modules::Commutator>(m_pSesionMux)),
     m_blueprints(std::move(blueprints))
-{}
+{
+  m_pEntryPoint->attachToChannel(m_pSesionMux->asChannel());
+}
 
 PlayerPtr Player::load(
     std::string sLogin,
@@ -28,11 +32,6 @@ PlayerPtr Player::load(
     assert(false);
     return PlayerPtr();
   }
-
-  pPlayer->m_pSesionMux  = std::make_shared<network::SessionMux>();
-  pPlayer->m_pEntryPoint = std::make_shared<modules::Commutator>(
-    pPlayer->m_pSesionMux
-  );
 
   pPlayer->m_pEntryPoint->attachToChannel(pPlayer->m_pSesionMux->asChannel());
 
@@ -109,13 +108,18 @@ Player::~Player()
   }
 }
 
+uint32_t Player::onNewConnection(uint32_t nConnectionId)
+{
+  return m_pSesionMux->addConnection(nConnectionId, m_pEntryPoint);
+}
+
 void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)
 {
   m_pUdpChannel = pSocket;
   if (!m_pProtobufChannel) {
     m_pProtobufChannel = std::make_shared<network::PlayerChannel>();
-    m_pEntryPoint->attachToChannel(m_pProtobufChannel);
-    m_pProtobufChannel->attachToTerminal(m_pEntryPoint);
+    m_pProtobufChannel->attachToTerminal(m_pSesionMux->asTerminal());
+    m_pSesionMux->asTerminal()->attachToChannel(m_pProtobufChannel);
   }
   m_pProtobufChannel->attachToChannel(m_pUdpChannel);
   m_pUdpChannel->attachToTerminal(m_pProtobufChannel);

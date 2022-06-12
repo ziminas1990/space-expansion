@@ -34,8 +34,8 @@ protected:
   virtual void handleMessage(uint32_t nSessionId, FrameType const& message) = 0;
   bool channelIsValid() const { return m_pChannel && m_pChannel->isValid(); }
 
-  bool send(uint32_t nSessionId, FrameType const& message) const {
-    return m_pChannel && m_pChannel->send(nSessionId, message);
+  bool send(uint32_t nSessionId, FrameType&& message) const {
+    return m_pChannel && m_pChannel->send(nSessionId, std::move(message));
   }
 
   void closeSession(uint32_t nSessionId) {

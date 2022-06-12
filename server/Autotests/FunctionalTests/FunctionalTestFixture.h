@@ -81,7 +81,6 @@ protected:
 
   boost::asio::io_service      m_IoService;
   client::PlayerSocketPtr      m_pSocket;
-  client::PlayerPipePtr        m_pRootPipe;
   client::RouterPtr            m_pRouter;
   client::ClientAccessPanelPtr m_pAccessPanel;
   client::ClientCommutatorPtr  m_pRootCommutator;

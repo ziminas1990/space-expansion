@@ -92,12 +92,12 @@ void AdministratorPanel::sendLoginSuccess(uint32_t nSessionId, uint64_t nToken)
 {
   admin::Message message;
   message.mutable_access()->set_success(nToken);
-  send(nSessionId, message);
+  send(nSessionId, std::move(message));
 }
 
 void AdministratorPanel::sendLoginFailed(uint32_t nSessionId)
 {
   admin::Message message;
   message.mutable_access()->set_fail(true);
-  send(nSessionId, message);
+  send(nSessionId, std::move(message));
 }

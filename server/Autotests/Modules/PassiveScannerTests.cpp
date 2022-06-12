@@ -96,6 +96,8 @@ public:
   void SetUp() override;
   void TearDown() override;
 
+  client::ClientCommutatorPtr shipCommutator();
+
   client::ClientPassiveScannerPtr spawnScanner();
 
 private:
@@ -126,6 +128,7 @@ protected:
   std::string m_sScannerName;
   uint32_t    m_nRadiusKm;
   uint32_t    m_nMaxUpdateTimeMs;
+  uint32_t    m_nShipSlot;
   uint32_t    m_nPassiveScannerSlot;
 
   // Components on server side
@@ -145,7 +148,6 @@ protected:
   PlayerConnectorGuard m_connectionGuard;
 
   // Components on client's side
-  client::PlayerPipePtr       m_pRootPipe;
   client::RouterPtr           m_pRouter;
   client::ClientCommutatorPtr m_pClientCommutator;
 
@@ -170,29 +172,32 @@ void PassiveScannerTests::SetUp()
 
   // Components on server
   m_pPlayer = world::Player::makeDummy("Player-1");
+  m_pShip = std::make_shared<ships::Ship>(
+        "Scout", "scout-1", m_pPlayer, 1000, 10);
+  m_nShipSlot = m_pPlayer->getCommutator()->attachModule(m_pShip);
+
   m_pPassiveScanner = std::make_shared<modules::PassiveScanner>(
         std::string(m_sScannerName),
         m_pPlayer,
         m_nRadiusKm,
         m_nMaxUpdateTimeMs);
-  m_pShip = std::make_shared<ships::Ship>(
-        "Scout", "scout-1", m_pPlayer, 1000, 10);
   m_nPassiveScannerSlot = m_pShip->installModule(m_pPassiveScanner);
   ASSERT_NE(modules::Commutator::invalidSlot(), m_nPassiveScannerSlot);
 
-  m_pConnection = std::make_shared<PlayerConnector>(1);
+  const uint32_t nConnectionId = 5;
+  const uint32_t nRootSessionId = m_pPlayer->onNewConnection(nConnectionId);
 
   // Components on client
-  m_pRootPipe = std::make_shared<client::PlayerPipe>();
-  m_pRootPipe->setProceeder(m_fConveyorProceeder);
-  
   m_pRouter = std::make_shared<client::Router>();
-  m_pRouter->attachToDownlevel(m_pRootPipe);
+  m_pRouter->setProceeder(m_fConveyorProceeder);
+
+  m_pConnection = std::make_shared<PlayerConnector>(nConnectionId);
+  m_connectionGuard.link(m_pConnection,
+                         m_pPlayer->getSessionMux()->asTerminal(),
+                         m_pRouter);
 
   m_pClientCommutator = std::make_shared<client::ClientCommutator>(m_pRouter);
-  m_pClientCommutator->attachToChannel(m_pRouter->openSession(0));
-
-  m_connectionGuard.link(m_pConnection, m_pShip->getCommutator(), m_pRootPipe);
+  m_pClientCommutator->attachToChannel(m_pRouter->openSession(nRootSessionId));
 }
 
 void PassiveScannerTests::TearDown()
@@ -203,11 +208,27 @@ void PassiveScannerTests::TearDown()
   // the rest of the components
 }
 
+client::ClientCommutatorPtr PassiveScannerTests::shipCommutator()
+{
+  client::Router::SessionPtr pTunnel =
+      m_pClientCommutator->openSession(m_nShipSlot);
+  if (!pTunnel) {
+    return client::ClientCommutatorPtr();
+  }
+
+  client::ClientCommutatorPtr pCommutator =
+      std::make_shared<client::ClientCommutator>(m_pRouter);
+  pCommutator->attachToChannel(pTunnel);
+  return pCommutator;
+}
+
 client::ClientPassiveScannerPtr
 PassiveScannerTests::spawnScanner()
 {
+  client::ClientCommutatorPtr pCommutator = shipCommutator();
+
   client::Router::SessionPtr pTunnel =
-      m_pClientCommutator->openSession(m_nPassiveScannerSlot);
+      pCommutator->openSession(m_nPassiveScannerSlot);
   if (!pTunnel) {
     return client::ClientPassiveScannerPtr();
   }

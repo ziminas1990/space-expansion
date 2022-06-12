@@ -69,7 +69,7 @@ void BlueprintsStorage::onModulesListReq(
     spex::NamesList* pBody =
         response.mutable_blueprints_library()->mutable_blueprints_list();
     pBody->set_left(0);
-    sendToClient(nSessionId, response);
+    sendToClient(nSessionId, std::move(response));
     return;
   }
 
@@ -83,7 +83,7 @@ void BlueprintsStorage::onModulesListReq(
        pBody->add_names(std::move(modulesNamesList[--nNamesLeft]));
     }
     pBody->set_left(static_cast<uint32_t>(nNamesLeft));
-    sendToClient(nSessionId, response);
+    sendToClient(nSessionId, std::move(response));
   }
 }
 
@@ -149,7 +149,7 @@ void BlueprintsStorage::onModuleBlueprintReq(uint32_t nSessionId,
     }
   }
 
-  sendToClient(nSessionId, response);
+  sendToClient(nSessionId, std::move(response));
 }
 
 bool BlueprintsStorage::sendModuleBlueprintFail(
@@ -157,7 +157,7 @@ bool BlueprintsStorage::sendModuleBlueprintFail(
 {
   spex::Message response;
   response.mutable_blueprints_library()->set_blueprint_fail(error);
-  return sendToClient(nSessionId, response);
+  return sendToClient(nSessionId, std::move(response));
 }
 
 blueprints::BlueprintsLibrary const& BlueprintsStorage::getLibrary() const

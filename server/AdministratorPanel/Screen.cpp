@@ -72,7 +72,7 @@ void Screen::proceed(uint32_t nIntervalUs)
     }
 
     if (pChunk->object_size()) {
-      m_pChannel->send(m_nSessionId, message);
+      m_pChannel->send(m_nSessionId, std::move(message));
     }
   }
 
@@ -125,7 +125,7 @@ bool Screen::sendStatus(uint32_t nSessionId, admin::Screen::Status eStatus)
 {
   admin::Message message;
   message.mutable_screen()->set_status(eStatus);
-  return m_pChannel->send(nSessionId, message);
+  return m_pChannel->send(nSessionId, std::move(message));
 }
 
 } // namespace administrator

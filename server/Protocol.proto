@@ -15,12 +15,17 @@ message IAccessPanel {
     string login    = 1;
     string password = 2;
   }
+
+  message AccessGranted {
+    uint32 port       = 1;
+    uint32 session_id = 2;  
+  }
   
   oneof choice {
     LoginRequest login     = 1;
     
-    uint32 access_granted  = 21;
-    string access_rejected = 22;
+    AccessGranted access_granted  = 21;
+    string        access_rejected = 22;
   }
 }
 

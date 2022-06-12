@@ -50,8 +50,8 @@ public:
   }
 
 protected:
-  // overides from BufferedProtobufTerminal interface
-  void handleMessage(uint32_t nSessionId, spex::Message const& message) override;
+  // overrides from BaseModule
+  void handleCommutatorMessage(uint32_t, spex::ICommutator const&) override;
 
 private:
   // Command handlers

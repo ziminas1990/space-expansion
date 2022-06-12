@@ -47,7 +47,17 @@ Router::SessionPtr ClientCommutator::openSession(uint32_t nSlotId)
 
 bool ClientCommutator::closeTunnel(Router::SessionPtr pSession)
 {
-  return m_pRouter->closeSession(pSession->sessionId());
+  if (!sendCloseTunnel(pSession->sessionId())) {
+    return false;
+  }
+
+  spex::ICommutator::Status status;
+  if (!waitCloseTunnelStatus(status)) {
+    return false;
+  }
+
+  return status == spex::ICommutator::SUCCESS
+      && m_pRouter->closeSession(pSession->sessionId());
 }
 
 bool ClientCommutator::sendOpenTunnel(uint32_t nSlotId)

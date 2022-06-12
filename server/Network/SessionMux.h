@@ -11,10 +11,10 @@ class SessionMux
 private:
 
   struct Connection {
-    uint32_t m_nDefaultSessionId = 0;
+    uint32_t m_nRootSessionId = 0;
 
-    bool isValid() const { return m_nDefaultSessionId != 0; }
-    void closed() { m_nDefaultSessionId = 0; }
+    bool isValid() const { return m_nRootSessionId != 0; }
+    void closed() { m_nRootSessionId = 0; }
   };
 
   struct Session {
@@ -57,7 +57,8 @@ private:
     void detachFromChannel() override;
 
     // Overrides from IPlayerChannel
-    bool send(uint32_t nSessionId, spex::Message const& message) override;
+    bool send(uint32_t nSessionId, spex::Message&& message) override;
+
     void closeSession(uint32_t nSessionId) override;
     bool isValid() const override;
     void attachToTerminal(IPlayerTerminalPtr pTerminal) override;
@@ -75,7 +76,8 @@ private:
 public:
   SessionMux(uint8_t nConnectionsLimit = 8);
 
-  bool addConnection(uint32_t nConnectionId, IPlayerTerminalPtr pHandler);
+  // Create a new connection and return it's root session id
+  uint32_t addConnection(uint32_t nConnectionId, IPlayerTerminalPtr pHandler);
   bool closeConnection(uint32_t nConnectionId);
 
   uint32_t createSession(uint32_t nParentSessionId, 

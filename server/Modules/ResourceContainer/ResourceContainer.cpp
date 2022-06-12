@@ -203,7 +203,7 @@ void ResourceContainer::sendOpenPortFailed(
 {
   spex::Message response;
   response.mutable_resource_container()->set_open_port_failed(reason);
-  sendToClient(nTunnelId, response);
+  sendToClient(nTunnelId, std::move(response));
 }
 
 void ResourceContainer::sendClosePortStatus(
@@ -211,7 +211,7 @@ void ResourceContainer::sendClosePortStatus(
 {
   spex::Message response;
   response.mutable_resource_container()->set_close_port_status(status);
-  sendToClient(nTunnelId, response);
+  sendToClient(nTunnelId, std::move(response));
 }
 
 bool ResourceContainer::sendContent(uint32_t nTunnelId)
@@ -240,7 +240,7 @@ bool ResourceContainer::sendContent(uint32_t nTunnelId)
   }
   pBody->set_used(m_nUsedSpace);
   pBody->set_volume(m_nVolume);
-  return sendToClient(nTunnelId, response);
+  return sendToClient(nTunnelId, std::move(response));
 }
 
 void ResourceContainer::sendTransferStatus(
@@ -248,7 +248,7 @@ void ResourceContainer::sendTransferStatus(
 {
   spex::Message response;
   response.mutable_resource_container()->set_transfer_status(status);
-  sendToClient(nTunnelId, response);
+  sendToClient(nTunnelId, std::move(response));
 }
 
 
@@ -260,7 +260,7 @@ void ResourceContainer::sendTransferReport(
       message.mutable_resource_container()->mutable_transfer_report();
   pReport->set_type(utils::convert(type));
   pReport->set_amount(amount);
-  sendToClient(nTunnelId, message);
+  sendToClient(nTunnelId, std::move(message));
 }
 
 void ResourceContainer::terminateActiveTransfer(spex::IResourceContainer::Status status)
@@ -271,7 +271,7 @@ void ResourceContainer::terminateActiveTransfer(spex::IResourceContainer::Status
   }
   spex::Message message;
   message.mutable_resource_container()->set_transfer_finished(status);
-  sendToClient(m_activeTransfer.m_nTunnelId, message);
+  sendToClient(m_activeTransfer.m_nTunnelId, std::move(message));
   m_activeTransfer = Transfer();
 }
 
@@ -303,7 +303,7 @@ void ResourceContainer::openPort(uint32_t nTunnelId, uint32_t nAccessKey)
 
   spex::Message response;
   response.mutable_resource_container()->set_port_opened(m_nOpenedPortId);
-  sendToClient(nTunnelId, response);
+  sendToClient(nTunnelId, std::move(response));
 }
 
 void ResourceContainer::closePort(uint32_t nTunnelId)

@@ -56,7 +56,7 @@ void UdpSocket::attachToTerminal(IBinaryTerminalPtr pTerminal)
   m_pTerminal = pTerminal;
 }
 
-bool UdpSocket::send(uint32_t nSessionId, const BinaryMessage& message)
+bool UdpSocket::send(uint32_t nSessionId, BinaryMessage&& message)
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
 

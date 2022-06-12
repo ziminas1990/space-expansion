@@ -34,12 +34,15 @@ void Scenarios::LoginScenario::execute()
   }
 
   if (lExpectSuccess) {
-    uint16_t nPort = 0;
-    ASSERT_TRUE(m_pEnv->m_pAccessPanel->waitLoginSuccess(nPort))
+    uint16_t nPort      = 0;
+    uint32_t nSessionId = 0;
+    ASSERT_TRUE(m_pEnv->m_pAccessPanel->waitLoginSuccess(nPort, nSessionId))
         << "No LoginSuccess response";
     ASSERT_NE(0, nPort) << "Port is 0";
     m_pEnv->m_serverAddress.port(nPort);
     m_pEnv->m_pSocket->setServerAddress(m_pEnv->m_serverAddress);
+    m_pEnv->m_pRootCommutator->attachToChannel(
+      m_pEnv->m_pRouter->openSession(nSessionId));
   } else {
     ASSERT_TRUE(m_pEnv->m_pAccessPanel->waitLoginFailed())
         << "No LoginFailed response";

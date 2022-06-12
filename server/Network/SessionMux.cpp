@@ -75,16 +75,16 @@ void SessionMux::Socket::detachFromChannel()
   m_pChannel = nullptr;
 }
 
-bool SessionMux::Socket::send(
-  uint32_t nSessionId, spex::Message const& message)
+bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
 {
   const uint16_t nSessionIdx = nSessionId & 0xFFFF;
+  message.set_tunnelid(nSessionId);
   if (nSessionIdx < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
     return session.isValid()
         && session.sessionId() == nSessionId
         && m_pChannel 
-        && m_pChannel->send(session.m_nConnectionId, message);
+        && m_pChannel->send(session.m_nConnectionId, std::move(message));
   }
   return false;
 }
@@ -122,13 +122,13 @@ SessionMux::SessionMux(uint8_t nConnectionsLimit)
   m_sessions.push_back(Session());
 }
 
-bool SessionMux::addConnection(uint32_t           nConnectionId,
-                               IPlayerTerminalPtr pHandler)
+uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
+                                   IPlayerTerminalPtr pHandler)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
-    assert(!connection.m_nDefaultSessionId
+    assert(!connection.m_nRootSessionId
            && "Connection has not been closed?");
     m_sessions.emplace_back(Session{
       static_cast<uint16_t>(m_sessions.size()),
@@ -138,11 +138,11 @@ bool SessionMux::addConnection(uint32_t           nConnectionId,
       pHandler,
       {}
     });
-    connection.m_nDefaultSessionId = m_sessions.back().sessionId();
-    return connection.m_nDefaultSessionId != 0;
+    connection.m_nRootSessionId = m_sessions.back().sessionId();
+    return connection.m_nRootSessionId;
   }
   assert(!"Invalid connection id");
-  return false;
+  return 0;
 }
 
 bool SessionMux::closeConnection(uint32_t nConnectionId)
@@ -151,8 +151,8 @@ bool SessionMux::closeConnection(uint32_t nConnectionId)
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
     assert(connection.isValid() && "Connection has not been opened?");
-    onSessionClosed(connection.m_nDefaultSessionId);
-    connection.m_nDefaultSessionId = 0;
+    onSessionClosed(connection.m_nRootSessionId);
+    connection.m_nRootSessionId = 0;
     return true;
   }
   assert(!"Invalid connection id");
@@ -256,9 +256,8 @@ bool SessionMux::onSessionClosed(uint32_t nSessionId, bool lIsRecursive)
 
     // Notify the client and close the session
     spex::Message message;
-    message.set_tunnelid(nSessionId);
     message.mutable_commutator()->set_close_tunnel_ind(true);
-    m_pSocket->send(session.m_nConnectionId, message);
+    m_pSocket->send(nSessionId, std::move(message));
 
     session.m_pHandler->onSessionClosed(session.sessionId());
 
