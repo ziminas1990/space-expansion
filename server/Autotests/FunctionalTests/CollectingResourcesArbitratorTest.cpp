@@ -129,7 +129,7 @@ TEST_F(CollectingResourcesArbitratorTests, BreathTest)
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Hub#2", hub_2));
 }
 
-TEST_F(CollectingResourcesArbitratorTests, SuccessCase)
+TEST_F(CollectingResourcesArbitratorTests, DISABLED_SuccessCase)
 {
   resumeTime();
 

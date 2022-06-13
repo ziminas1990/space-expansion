@@ -43,62 +43,70 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
   // execute it in O(N) time
   pModule->attachToChannel(m_pSessionMux->asChannel());
   
-  for (uint32_t nSlotId = 0; nSlotId < m_slots.size(); ++nSlotId)
+  for (uint32_t nSlotId = 0; nSlotId < m_modules.size(); ++nSlotId)
   {
-    if (m_slots[nSlotId].m_pModule->isDestroyed())
+    if (m_modules[nSlotId]->isDestroyed())
     {
       onModuleHasBeenDetached(nSlotId);
-      m_slots[nSlotId].m_pModule = pModule;
+      m_modules[nSlotId] = pModule;
       return nSlotId;
     }
   }
-  m_slots.push_back({pModule, std::vector<uint32_t>()});
-  return static_cast<uint32_t>(m_slots.size()) - 1;
+  m_modules.push_back(pModule);
+  m_activeSessions.push_back({});
+  return static_cast<uint32_t>(m_modules.size()) - 1;
 }
 
 BaseModulePtr Commutator::findModuleByName(std::string const& sName) const
 {
-  for (const Slot& slot : m_slots) {
-    if (slot.m_pModule->getModuleName() == sName)
-      return slot.m_pModule;
+  for (const BaseModulePtr& pModule : m_modules) {
+    if (pModule->getModuleName() == sName)
+      return pModule;
   }
   return BaseModulePtr();
 }
 
 BaseModulePtr Commutator::findModuleByType(std::string const& sType) const
 {
-  for (const Slot& slot : m_slots) {
-    if (slot.m_pModule->getModuleType() == sType)
-      return slot.m_pModule;
+  for (const BaseModulePtr& pModule: m_modules) {
+    if (pModule->getModuleType() == sType)
+      return pModule;
   }
   return BaseModulePtr();
 }
 
 void Commutator::detachFromModules()
 {
-  for (Slot& slot: m_slots) {
-    for (uint32_t nSessionId : slot.m_activeSessions) {
+  const size_t nTotalSolts = m_modules.size();
+  assert(m_modules.size() == m_activeSessions.size());
+  for (uint32_t nSlotId = 0; nSlotId < nTotalSolts; ++nSlotId) {
+    const BaseModulePtr& pModule = m_modules[nSlotId];
+    for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
       m_pSessionMux->closeSession(nSessionId);
-      slot.m_pModule->onSessionClosed(nSessionId);
+      pModule->onSessionClosed(nSessionId);
     }
-    slot.m_pModule->detachFromChannel();
-    slot.reset();
   }
-  m_slots.clear();
+  m_modules.clear();
+  m_activeSessions.clear();
 }
 
 void Commutator::checkSlots()
 {
-  for (Slot& slot: m_slots) {
-    if (slot.m_pModule) {
-      if (!slot.m_pModule->isOnline()) {
-        for (uint32_t nSessionId : slot.m_activeSessions) {
+  const size_t nTotalModules = m_modules.size();
+  assert(m_activeSessions.size() == nTotalModules);
+  for (uint32_t nSlotId = 0; nSlotId < nTotalModules; ++nSlotId) {
+    BaseModulePtr& pModule                = m_modules[nSlotId];
+    std::vector<uint32_t>& activeSessions = m_activeSessions[nSlotId];
+
+    if (pModule) {
+      if (!pModule->isOnline()) {
+        for (uint32_t nSessionId : activeSessions) {
           m_pSessionMux->closeSession(nSessionId);
         }
-        slot.m_activeSessions.clear();
+        activeSessions.clear();
       }
-      if (slot.m_pModule->isDestroyed()) {
-        slot.m_pModule = nullptr;
+      if (pModule->isDestroyed()) {
+        pModule.reset();
       }
     }
   }
@@ -132,7 +140,7 @@ void Commutator::onGetTotalSlotsRequest(uint32_t nSessionId) const
 {
   spex::Message message;
   message.mutable_commutator()->set_total_slots(
-    static_cast<uint32_t>(m_slots.size()));
+    static_cast<uint32_t>(m_modules.size()));
   sendToClient(nSessionId, std::move(message));
 }
 
@@ -142,10 +150,10 @@ void Commutator::getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const
   spex::ICommutator::ModuleInfo* pBody =
       response.mutable_commutator()->mutable_module_info();
   pBody->set_slot_id(nSlotId);
-  if (nSlotId >= m_slots.size() || !m_slots[nSlotId].isValid()) {
+  if (nSlotId >= m_modules.size() || !m_modules[nSlotId]) {
     pBody->set_module_type("empty");
   } else {
-    const BaseModulePtr pModule = m_slots[nSlotId].m_pModule;
+    const BaseModulePtr pModule = m_modules[nSlotId];
     pBody->set_module_type(pModule->getModuleType());
     pBody->set_module_name(pModule->getModuleName());
   }
@@ -154,15 +162,14 @@ void Commutator::getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const
 
 void Commutator::getAllModulesInfo(uint32_t nSessionId) const
 {
-  const size_t nTotalSlots = m_slots.size();
-  for (uint32_t nSlotId = 0; nSlotId < nTotalSlots; ++nSlotId)
-  {
-    if (m_slots[nSlotId].m_pModule) {
+  const size_t nTotalModules = m_modules.size();
+  for (uint32_t nSlotId = 0; nSlotId < nTotalModules; ++nSlotId) {
+    const BaseModulePtr& pModule = m_modules[nSlotId];
+    if (pModule) {
       spex::Message response;
       spex::ICommutator::ModuleInfo* pBody =
           response.mutable_commutator()->mutable_module_info();
       pBody->set_slot_id(nSlotId);
-      const BaseModulePtr pModule = m_slots[nSlotId].m_pModule;
       pBody->set_module_type(pModule->getModuleType());
       pBody->set_module_name(pModule->getModuleName());
       sendToClient(nSessionId, std::move(response));
@@ -172,12 +179,12 @@ void Commutator::getAllModulesInfo(uint32_t nSessionId) const
 
 void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
 {
-  if (nSlot >= m_slots.size()) {
+  if (nSlot >= m_modules.size()) {
     sendOpenTunnelFailed(nSessionId, spex::ICommutator::INVALID_SLOT);
     return;
   }
 
-  BaseModulePtr pModule = m_slots[nSlot].m_pModule;
+  BaseModulePtr pModule = m_modules[nSlot];
   if (!pModule || !pModule->isOnline()) {
     sendOpenTunnelFailed(nSessionId, spex::ICommutator::MODULE_OFFLINE);
     return;
@@ -191,7 +198,7 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
     sendOpenTunnelFailed(nSessionId, spex::ICommutator::REJECTED_BY_MODULE);
     return;
   }
-  m_slots[nSlot].m_activeSessions.push_back(nChildSessionId);
+  m_activeSessions[nSlot].push_back(nChildSessionId);
 
   spex::Message message;
   message.mutable_commutator()->set_open_tunnel_report(nChildSessionId);
@@ -206,9 +213,14 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
   }
 
   // Linear search here :(
-  for (Slot& slot: m_slots) {
-    if (slot.removeSessionId(nSessionId)) {
-      break;
+  for (std::vector<uint32_t>& sessions: m_activeSessions) {
+    const size_t total = sessions.size();
+    for (size_t i = 0; i < total; ++i) {
+      if (sessions[i] == nSessionId) {
+        sessions[i] = sessions.back();
+        sessions.pop_back();
+        return;
+      }
     }
   }
 
@@ -217,12 +229,17 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
 
 void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
 {
-  Slot& slot = m_slots[nSlotId];
-  for (uint32_t nSessionId : slot.m_activeSessions) {
-    m_pSessionMux->closeSession(nSessionId);
-    slot.m_pModule->onSessionClosed(nSessionId);
+  if (nSlotId >= m_modules.size()) {
+    assert(!"Inconsistent state!");
+    return;
   }
-  slot.reset();
+
+  for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
+    m_pSessionMux->closeSession(nSessionId);
+    m_modules[nSlotId]->onSessionClosed(nSessionId);
+  }
+  m_modules[nSlotId].reset();
+  m_activeSessions[nSlotId].clear();
 }
 
 void Commutator::sendOpenTunnelFailed(uint32_t nSessionId,

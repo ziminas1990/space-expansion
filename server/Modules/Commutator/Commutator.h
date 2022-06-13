@@ -43,10 +43,14 @@ public:
   // overrides from network::IPrutubufTerminal
   bool openSession(uint32_t) override { return true; }
 
-  size_t totalSlots() const { return m_slots.size(); }
+  size_t totalSlots() const { return m_modules.size(); }
 
   BaseModuleConstPtr moduleInSlot(size_t nSlotId) const {
-    return nSlotId < m_slots.size() ? m_slots[nSlotId].m_pModule : nullptr;
+    return nSlotId < m_modules.size() ? m_modules[nSlotId] : nullptr;
+  }
+
+  const std::vector<BaseModulePtr>& getAllModules() const {
+    return m_modules;
   }
 
 protected:
@@ -78,7 +82,10 @@ private:
   };
 
 private:
-  std::vector<Slot> m_slots; // index - SlotId
+  // index - slotId
+  std::vector<BaseModulePtr> m_modules;
+  std::vector<std::vector<uint32_t>> m_activeSessions;
+
   std::shared_ptr<network::SessionMux> m_pSessionMux;
 };
 
