@@ -125,6 +125,7 @@ SessionMux::SessionMux(uint8_t nConnectionsLimit)
 uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
                                    IPlayerTerminalPtr pHandler)
 {
+  std::cerr << "GREPIT: on new connection " << nConnectionId << std::endl;
   std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];

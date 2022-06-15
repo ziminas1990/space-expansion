@@ -1,22 +1,28 @@
-from typing import Dict, List, Optional, Callable, Tuple
+from typing import Dict, List, Optional, Callable, Tuple, TYPE_CHECKING
 
 import expansion.interfaces.rpc as rpc
+from expansion.transport import SessionsMux
 from expansion import utils
 
 from .base_module import BaseModule, TunnelFactory
 
+if TYPE_CHECKING:
+    from expansion.transport import Channel
+
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
-ModulesFactory = Callable[[str, str, TunnelFactory], ModuleOrError]
+ModulesFactory = Callable[[str, str, SessionsMux, TunnelFactory], ModuleOrError]
 
 
 class Commutator(BaseModule):
     def __init__(self,
+                 session_mux: SessionsMux,
                  tunnel_factory: TunnelFactory,
                  modules_factory: ModulesFactory,
                  name: Optional[str] = None):
         self.name = name or utils.generate_name(Commutator)
         super().__init__(tunnel_factory=tunnel_factory,
                          name=self.name)
+        self.session_mux = session_mux
         self.modules_factory = modules_factory
         self.modules_info: Dict[str, Dict[str, int]] = {}
         # Map: module_type -> module_name -> slot_id
@@ -62,16 +68,25 @@ class Commutator(BaseModule):
         return_on_unreachable=(None, "Unreachable"),
         return_on_cancel=(None, "Canceled"))
     async def _open_tunnel(self,
-                     slot_id: int,
-                     session: Optional[rpc.CommutatorI] = None):
-        status, tunnel = await session.open_tunnel(port=slot_id)
-        return tunnel, None if status.is_success() else str(status)
+                           slot_id: int,
+                           session: Optional[rpc.CommutatorI] = None) \
+            -> Tuple[Optional["Channel"], Optional[str]]:
+        status, session_id = await session.open_tunnel(port=slot_id)
+        if status.is_success():
+            return self.session_mux.create_session(session_id), None
+        else:
+            return None, str(status)
 
     def add_module(self, module_type: str, name: str, slot_id: int) -> bool:
         async def tunnel_factory():
             return await self._open_tunnel(slot_id)
 
-        module_instance, error = self.modules_factory(module_type, name, tunnel_factory)
+        module_instance, error = self.modules_factory(
+            module_type,
+            name,
+            self.session_mux,
+            tunnel_factory)
+
         if error is not None:
             self.logger.warning(f"Failed to connect to {module_type} '{name}': "
                                 f"{error}!")

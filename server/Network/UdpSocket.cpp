@@ -123,6 +123,7 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
     if (nSessionId.has_value()) {  // [[likely]]
       m_pTerminal->onMessageReceived(
               *nSessionId, BinaryMessage(m_pReceiveBuffer.data(), nTotalBytes));
+
     } else if (m_lPromiscMode) {
       for(size_t i = nPersistentSessionsLimit; i < m_sessions.size(); ++i) {
         // To prevent spamming from the same IP:

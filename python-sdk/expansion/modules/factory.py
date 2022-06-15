@@ -1,7 +1,7 @@
 from typing import Callable, Awaitable, Tuple, Optional, TYPE_CHECKING
 import logging
 
-from expansion.transport import ProxyChannel
+from expansion.transport import ProxyChannel, SessionsMux
 
 from .base_module import BaseModule, ModuleType
 from .ship import Ship
@@ -24,8 +24,9 @@ _logger = logging.getLogger("expansion.modules.factory")
 
 def module_factory(module_type: str,
                    module_name: str,
+                   session_mux: SessionsMux,
                    tunnel_factory: TunnelFactory) -> ModuleOrError:
-    """Create a module with the specified 'module_type' ans the specified
+    """Create a module with the specified 'module_type' and the specified
     'module_name'. The specified 'tunnel_factory' callback will be used
     to open a tunnel to the module and may be called at any time during the
     module's lifecycle.
@@ -33,6 +34,7 @@ def module_factory(module_type: str,
     if module_type.startswith(ModuleType.SHIP.value):
         return Ship(ship_type=module_type,
                     ship_name=module_name,
+                    session_mux=session_mux,
                     modules_factory=module_factory,
                     tunnel_factory=tunnel_factory), None
     elif module_type == ModuleType.ENGINE.value:

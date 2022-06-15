@@ -11,9 +11,9 @@ else:
     def decorator(func):
         return func
 
-from expansion.transport import ProxyChannel, Endpoint
+from expansion.transport import Channel, Endpoint
 
-TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
+TunnelOrError = Tuple[Optional[Channel], Optional[str]]
 TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
 
 
@@ -57,10 +57,8 @@ class BaseModule:
         """Return an existing available channel or open a new one."""
         # No available tunnels, trying to open a new one
         for attempt in range(retries):
-            tunnel: Optional[ProxyChannel] = None
-            error: Optional[str] = None
-            tunnel, error = await self._tunnel_factory()
-            if tunnel is None:
+            session, error = await self._tunnel_factory()
+            if session is None:
                 self.logger.warning(
                     f"Failed to open tunnel for the {terminal_type.__name__} "
                     f"({attempt + 1} / {retries}): {error}")
@@ -68,8 +66,8 @@ class BaseModule:
             # Create terminal and link it with tunnel
             terminal: Optional[Endpoint] = terminal_type()
             assert isinstance(terminal, Endpoint)
-            tunnel.attach_to_terminal(terminal)
-            terminal.attach_channel(tunnel)
+            session.attach_to_terminal(terminal)
+            terminal.attach_channel(session)
             return terminal
         # All attempts failed
         return None

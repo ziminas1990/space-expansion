@@ -9,46 +9,6 @@ from expansion.transport.proxy_channel import ProxyChannel
 from expansion.transport.channel import Channel
 
 
-class Tunnel(ProxyChannel):
-    """Tunnels are used to send and receive messages.
-    From the client's (up level) point of view, tunnel is a channel, which may
-    be used to send messages to the remote side and receive messages.
-    Every message, sent by client, will be encapsulated to toplevel Message
-    with some 'tunnel_id'.
-    """
-
-    def __init__(self, tunnel_id: int,
-                 commutator: 'CommutatorI',
-                 *args, ** kwargs):
-        """Create tunnel for the specified 'client' with the specified
-        'tunnel_id'. The specified 'channel' will be used by tunnel to send
-        messages."""
-        tunnel_name = f"{commutator.get_name()}::tun#{tunnel_id}"
-        super().__init__(proxy_name=tunnel_name, *args, **kwargs)
-        self.tunnel_id: int = tunnel_id
-        self.commutator: 'CommutatorI' = commutator
-
-    # Overridden from ProxyChannel
-    def decode(self, data: api.Message) -> Optional[Any]:
-        """De-encapsulate message"""
-        if data.tunnelId != self.tunnel_id:
-            self.terminal_logger.warning(f"Tunnel_id mismatch! {data.tunnelId} != {self.tunnel_id}")
-            return None
-        return data.encapsulated
-
-    # Overridden from ProxyChannel
-    def encode(self, message: Any) -> Optional[Any]:
-        """Encapsulate message in tunnel container"""
-        container = api.Message()
-        container.tunnelId = self.tunnel_id
-        container.encapsulated.CopyFrom(message)
-        return container
-
-    # Overridden from Channel
-    async def close(self):
-        return await self.commutator.close_tunnel(self.tunnel_id)
-
-
 class ModuleInfo(NamedTuple):
     slot_id: int
     type: str
@@ -95,11 +55,6 @@ class CommutatorI(IOTerminal):
 
     def __init__(self, name: str = __name__):
         super().__init__(name=name)
-        # Commutator prefers active channel to forward encapsulated messages
-        # to the corresponding tunnels as soon as possible. See 'on_receive'
-        # function for more details
-        self.tunnels: Dict[int, Tunnel] = {}
-        # All opened tunnels
         self._logger = logging.getLogger(f"{name}")
 
     # Override from BaseModule->Terminal
@@ -114,29 +69,7 @@ class CommutatorI(IOTerminal):
     def on_receive(self, message: api.Message, timestamp: Optional[int]):
         if message.timestamp is not None:
             timestamp = message.timestamp
-
-        if message.WhichOneof('choice') == 'encapsulated':
-            if message.encapsulated.timestamp is not None:
-                timestamp = message.encapsulated.timestamp
-
-            try:
-                tunnel = self.tunnels[message.tunnelId]
-            except KeyError:
-                self._logger.warning(
-                    f"Ignore message for invalid tunnel"
-                    f" #{message.tunnelId}:\n {message}")
-                return
-
-            if tunnel:
-                # Encapsulated timestamp has a higher priority then a timestamp
-                # passed to this function
-                tunnel.on_receive(message, timestamp)
-            else:
-                self._logger.warning(
-                    f"Ignore message for invalid tunnel"
-                    f" #{message.tunnelId}:\n {message}")
-        else:
-            super().on_receive(message, timestamp)
+        super().on_receive(message, timestamp)
 
     @Channel.return_on_close(False, 0)
     async def get_total_slots(self) -> (bool, int):
@@ -189,28 +122,29 @@ class CommutatorI(IOTerminal):
         return result
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
-    async def open_tunnel(self, port: int) -> Tuple[Status, Optional[Tunnel]]:
-        """Open tunnel to the specified 'port'. Return (tunnel, None) on
+    async def open_tunnel(self, port: int) -> Tuple[Status, Optional[int]]:
+        """Open tunnel to the specified 'port'. Return (sessionId, None) on
         success, otherwise return (None, error)"""
         request = api.Message()
         request.commutator.open_tunnel = port
         self.send(request)
 
-        response, _ = await self.wait_message(timeout=0.1)  # it shouldn't take much time
+        # it shouldn't take much time
+        response, _ = await self.wait_message(timeout=0.1)
         if not response:
             return CommutatorI.Status.RESPONSE_TIMEOUT, None
-        tunnel_id = get_message_field(response, ["commutator", "open_tunnel_report"])
+        tunnel_id = get_message_field(
+            response,
+            ["commutator", "open_tunnel_report"])
         if tunnel_id is None:
-            error = get_message_field(response, ["commutator", "open_tunnel_failed"])
+            error = get_message_field(
+                response,
+                ["commutator", "open_tunnel_failed"])
             if not error:
                 return CommutatorI.Status.UNEXPECTED_RESPONSE, None
             self._logger.warning(f"Failed to open tunnel to port #{port}: {error}")
             return CommutatorI.Status.convert(error), None
-
-        tunnel = Tunnel(tunnel_id=tunnel_id, commutator=self)
-        tunnel.attach_channel(channel=self.channel)
-        self.tunnels.update({tunnel.tunnel_id: tunnel})
-        return CommutatorI.Status.SUCCESS, tunnel
+        return CommutatorI.Status.SUCCESS, tunnel_id
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def close_tunnel(self, tunnel_id: int) -> Status:
@@ -218,11 +152,14 @@ class CommutatorI(IOTerminal):
         request.commutator.close_tunnel = tunnel_id
         self.send(request)
 
-        response, _ = await self.wait_message(timeout=0.2)  # it shouldn't take much time
+        # it shouldn't take much time
+        response, _ = await self.wait_message(timeout=0.2)
         if not response:
             return CommutatorI.Status.RESPONSE_TIMEOUT
 
-        status = get_message_field(response, ["commutator", "close_tunnel_status"])
+        status = get_message_field(
+            response,
+            ["commutator", "close_tunnel_status"])
         if status is None:
             return CommutatorI.Status.UNEXPECTED_RESPONSE
         return CommutatorI.Status.convert(status)
