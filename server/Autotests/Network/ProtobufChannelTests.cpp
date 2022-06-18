@@ -53,10 +53,8 @@ void ProtobufChannelTests::createSomeMessages(std::vector<spex::Message> &out)
     spex::Message message;
     spex::IAccessPanel::LoginRequest *pReq =
         message.mutable_accesspanel()->mutable_login();
-    pReq->set_ip("1.2.3.4.");
     pReq->set_login("admin");
     pReq->set_password("fojiolly");
-    pReq->set_port(2233);
     out.push_back(std::move(message));
   }
   {

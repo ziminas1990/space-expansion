@@ -66,16 +66,24 @@ void AdministratorPanel::handleMessage(uint32_t nSessionId,
 void AdministratorPanel::onLoginRequest(
     uint32_t nSessionId, admin::Access::Login const& message)
 {
-  if (message.login() != m_cfg.getLogin()
+  std::optional<network::UdpEndPoint> clientAddr =
+      m_pAdminSocket->getRemoteAddr(nSessionId);
+
+  if (!clientAddr.has_value() 
+      || message.login()    != m_cfg.getLogin()
       || message.password() != m_cfg.getPassword()) {
     sendLoginFailed(nSessionId);
     closeSession(nSessionId);
     return;
   }
 
-  uint64_t nToken = m_tokenGenerator.yield();
+  const uint64_t nToken = m_tokenGenerator.yield();
   m_tokens[nSessionId] = nToken;
-  sendLoginSuccess(nSessionId, nToken);
+  if (m_pAdminSocket->createPersistentSession(*clientAddr).has_value()) {
+    sendLoginSuccess(nSessionId, nToken);
+  } else {
+    sendLoginFailed(nSessionId);
+  }
 }
 
 void AdministratorPanel::sendLoginSuccess(uint32_t nSessionId, uint64_t nToken)

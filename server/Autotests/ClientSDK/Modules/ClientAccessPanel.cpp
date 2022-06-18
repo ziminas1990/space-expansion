@@ -3,26 +3,24 @@
 namespace autotests { namespace client {
 
 bool ClientAccessPanel::login(
-    std::string const& sLogin, std::string const& sPassword,
-    std::string const& sLocalIP, uint16_t nLocalPort,
-    uint16_t &nRemotePort)
+    std::string const& sLogin, 
+    std::string const& sPassword,
+    uint16_t&          nRemotePort,
+    uint32_t&          nSessionId)
 {
-  return sendLoginRequest(sLogin, sPassword, sLocalIP, nLocalPort)
+  return sendLoginRequest(sLogin, sPassword)
       && waitLoginSuccess(nRemotePort);
 }
 
 bool ClientAccessPanel::sendLoginRequest(
-    std::string const& sLogin, std::string const& sPassword,
-    std::string const& sLocalIP, uint16_t nLocalPort)
+    std::string const& sLogin, std::string const& sPassword)
 {
   spex::Message message;
   spex::IAccessPanel::LoginRequest *pLoginReq =
       message.mutable_accesspanel()->mutable_login();
   pLoginReq->set_login(sLogin);
   pLoginReq->set_password(sPassword);
-  pLoginReq->set_ip(sLocalIP);
-  pLoginReq->set_port(nLocalPort);
-  return send(message);
+  return send(std::move(message));
 }
 
 bool ClientAccessPanel::waitLoginSuccess(uint16_t& nServerPort)

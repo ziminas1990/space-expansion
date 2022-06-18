@@ -21,7 +21,8 @@ public:
   UdpDispatcher(boost::asio::io_service& ioContext,
                 uint16_t nPoolBegin, uint16_t nPoolEnd);
 
-  UdpSocketPtr createUdpConnection(uint16_t nLocalPort = 0);
+  UdpSocketPtr createUdpSocket(uint16_t nLocalPort = 0, 
+                               bool lPromiscMode = false);
 
   // overrides from IAbstractLogic interface
   uint16_t getStagesCount() override { return 1; }
@@ -29,20 +30,6 @@ public:
   void     proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t) override;
 
   size_t   getCooldownTimeUs() const override { return 0; }
-
-private:
-  void addConnection(IBinaryChannelPtr pChannel, BufferedTerminalPtr pTerminal);
-
-private:
-  struct Connection
-  {
-    Connection(IBinaryChannelPtr pChannel, BufferedTerminalPtr pTerminal)
-      : m_pSocket(pChannel), m_pTerminal(pTerminal)
-    {}
-
-    IBinaryChannelPtr   m_pSocket;
-    BufferedTerminalPtr m_pTerminal;
-  };
 
 private:
   boost::asio::io_service& m_IOContext;

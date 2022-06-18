@@ -57,7 +57,7 @@ public:
   void onSessionClosed(uint32_t nSessionId) override;
 
   // overrides from network::IPlayerChannel
-  bool send(uint32_t nSessionId, spex::Message const& message) const override;
+  bool send(uint32_t nSessionId, spex::Message const& message) override;
   void closeSession(uint32_t nSessionId) override;
   bool isValid() const override { return channelIsValid(); }
   void attachToTerminal(network::IPlayerTerminalPtr) override {}

@@ -18,7 +18,11 @@ bool AccessPanel::prephare(uint16_t, uint32_t, uint64_t)
 
 void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
-  if (message.choice_case() != spex::Message::kAccessPanel)
+  std::optional<network::UdpEndPoint> clientAddr = 
+      m_pLoginSocket->getRemoteAddr(nSessionId);
+
+  if (!clientAddr.has_value() ||
+      message.choice_case() != spex::Message::kAccessPanel)
     return;
 
   spex::IAccessPanel const& body = message.accesspanel();
@@ -51,7 +55,7 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
   network::UdpSocketPtr pPlayerSocket = pPlayer->getUdpSocket();
 
   if (!pPlayerSocket) {
-    pPlayerSocket = m_pConnectionManager->createUdpConnection();
+    pPlayerSocket = m_pConnectionManager->createUdpSocket();
     if (!pPlayerSocket) {
       sendLoginFailed(nSessionId, "Can't create UDP socket");
       return;
@@ -59,12 +63,15 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     pPlayer->attachToUdpSocket(pPlayerSocket);
   }
 
-  pPlayerSocket->addRemote(
-        network::UdpEndPoint(
-          boost::asio::ip::address_v4::from_string(loginRequest.ip()),
-          uint16_t(loginRequest.port())));
+  std::optional<uint32_t> nConnectionId = 
+      pPlayerSocket->createPersistentSession(*clientAddr);
 
-  sendLoginSuccess(nSessionId, pPlayerSocket->getNativeSocket().local_endpoint());
+  if (!nConnectionId) {
+    sendLoginFailed(nSessionId, "All slots are busy");
+    return;
+  }
+
+  sendLoginSuccess(nSessionId, pPlayerSocket->getLocalAddr());
 }
 
 bool AccessPanel::checkLogin(std::string const& sLogin,

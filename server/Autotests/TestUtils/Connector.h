@@ -24,7 +24,7 @@ public:
   Connector(uint32_t nSessionId) : m_nSessionId(nSessionId) {}
 
   // Overrides network::IChannel<FrameType>
-  bool send(uint32_t nSessionId, FrameType const& frame) const override
+  bool send(uint32_t nSessionId, const FrameType& frame) override
   {
     assert(nSessionId == m_nSessionId);
     if (m_pClientSide) {

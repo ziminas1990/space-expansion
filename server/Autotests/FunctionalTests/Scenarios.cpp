@@ -29,9 +29,7 @@ Scenarios::LoginScenario& Scenarios::LoginScenario::sendLoginRequest(
 void Scenarios::LoginScenario::execute()
 {
   if (lSendRequest) {
-    ASSERT_TRUE(
-          m_pEnv->m_pAccessPanel->sendLoginRequest(
-            sLogin, sPassword, "127.0.0.1", m_pEnv->m_clientAddress.port()))
+    ASSERT_TRUE(m_pEnv->m_pAccessPanel->sendLoginRequest(sLogin, sPassword))
         << "Failed to send LoginRequest";
   }
 
