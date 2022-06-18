@@ -71,11 +71,11 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     pPlayer->attachToUdpSocket(pPlayerSocket);
   }
 
-  const uint32_t nRootSessionId = pPlayer->onNewConnection(nSessionId);
   std::optional<uint32_t> nConnectionId = 
       pPlayerSocket->createPersistentSession(*clientAddr);
 
   if (nConnectionId.has_value()) {
+    const uint32_t nRootSessionId = pPlayer->onNewConnection(*nConnectionId);
     sendLoginSuccess(nSessionId, nRootSessionId, pPlayerSocket->getLocalAddr());
   } else {
     sendLoginFailed(nSessionId, "Connections limit reached");
