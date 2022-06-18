@@ -58,12 +58,10 @@ private:
   void drawnDelayedMessage();
 
 private:
+  ChannelPtr                   m_pChannel;
   std::vector<BufferedMessage> m_messages;
-
   // Messages, that are waiting for exact time to be handled
   std::vector<BufferedMessage> m_delayedMessages;
-
-  ChannelPtr m_pChannel;
 };
 
 

@@ -58,7 +58,6 @@ private:
 
     // Overrides from IPlayerChannel
     bool send(uint32_t nSessionId, spex::Message&& message) override;
-
     void closeSession(uint32_t nSessionId) override;
     bool isValid() const override;
     void attachToTerminal(IPlayerTerminalPtr pTerminal) override;
