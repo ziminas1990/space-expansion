@@ -59,7 +59,7 @@ class TestCase(BaseTestFixture):
     async def test_get_specification(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman', "127.0.0.1", "127.0.0.1")
+        commutator, error = await self.login('oreman', "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -77,7 +77,7 @@ class TestCase(BaseTestFixture):
         randomizer = Randomizer(seed=3284)
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman', "127.0.0.1", "127.0.0.1")
+        commutator, error = await self.login('oreman', "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
         clock = modules.get_system_clock(commutator)

@@ -35,31 +35,19 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     def set_trace_mode(self, on: bool):
         self.__trace_mode = on
 
-    async def bind(self) -> bool:
+    async def open(self) -> bool:
         loop = asyncio.get_running_loop()
         self.transport, _ = await loop.create_datagram_endpoint(
             protocol_factory=lambda: self,
-            local_addr=("0.0.0.0", 0),  # Let system to use chose a port
             family=socket.AF_INET
         )
         self.local_addr = self.transport.get_extra_info("sockname")
-        # Update name if it is required
-        self.channel_name = self.channel_name.replace(
-            "{port}", str(self.local_addr[1]))
-        return self.transport is not None
-
-    async def open(self, remote_ip: str, remote_port: int) -> bool:
-        self.remote = (remote_ip, remote_port)
-
-        loop = asyncio.get_running_loop()
-        self.transport, _ = await loop.create_datagram_endpoint(
-            protocol_factory=lambda: self,
-            remote_addr=self.remote,
-        )
+        local_port=self.local_addr[1]
+        if self.channel_name == utils.generate_name(type(self)):
+            self.channel_name = f"UDP.{local_port}"
         return self.transport is not None
 
     def set_remote(self, ip: str, port: int):
-        assert self.remote is None, f"Remote is already set to {self.remote}"
         self.remote = (ip, port)
 
     def get_local_address(self) -> Optional[Tuple[str, int]]:
@@ -73,6 +61,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     # Override from Channel
     def send(self, message: bytes) -> bool:
         """Write the specified 'message' to channel"""
+        assert self.remote is not None
         if self.__trace_mode:
             self.channel_logger.debug(f"Sending:\n{len(message)} bytes to {self.remote}")
         self.transport.sendto(message, addr=self.remote)
@@ -84,7 +73,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         self.channel_logger.info("Closed")
 
     def connection_made(self, transport):
-        self.channel_logger.info(f"Connection established to {self.remote}")
+        self.channel_logger.info(f"UDP socket created")
 
     def datagram_received(self, data: bytes, addr):
         if self.__trace_mode:

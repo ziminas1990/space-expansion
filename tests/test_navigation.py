@@ -92,8 +92,7 @@ class TestNavigation(BaseTestFixture):
     @BaseTestFixture.run_as_sync
     async def test_move_to(self):
         commutator, error = await self.login('spy007',
-                                             server_ip="127.0.0.1",
-                                             local_ip="127.0.0.1")
+                                             server_ip="127.0.0.1")
         self.assertIsNone(error)
 
         system_clock = modules.get_system_clock(commutator)

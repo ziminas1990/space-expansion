@@ -21,13 +21,23 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
   std::optional<network::UdpEndPoint> clientAddr = 
       m_pLoginSocket->getRemoteAddr(nSessionId);
 
-  if (!clientAddr.has_value() ||
-      message.choice_case() != spex::Message::kAccessPanel)
+  if (!clientAddr.has_value()) {
     return;
+  }
+
+  std::cerr << "Handle request in session " << nSessionId << " from " << *clientAddr << std::endl;
+
+  if (!clientAddr.has_value() ||
+      message.choice_case() != spex::Message::kAccessPanel) {
+    m_pLoginSocket->closeSession(nSessionId);
+    return;
+  }
 
   spex::IAccessPanel const& body = message.accesspanel();
-  if (body.choice_case() != spex::IAccessPanel::kLogin)
+  if (body.choice_case() != spex::IAccessPanel::kLogin) {
+    m_pLoginSocket->closeSession(nSessionId);
     return;
+  }
 
   spex::IAccessPanel::LoginRequest const& loginRequest = body.login();
 
@@ -36,19 +46,19 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     return;
   }
   if (!m_pConnectionManager) {
-    sendLoginFailed(nSessionId, "Internal error");
+    sendLoginFailed(nSessionId, "Server initialization error #1");
     return;
   }
 
   auto pPlayerStorage = m_pPlayersStorage.lock();
   if (!pPlayerStorage) {
-    sendLoginFailed(nSessionId, "Can't create CommandCenter");
+    sendLoginFailed(nSessionId, "Server initialization error #2");
     return;
   }
 
   world::PlayerPtr pPlayer = pPlayerStorage->getPlayer(loginRequest.login());
   if (!pPlayer) {
-    sendLoginFailed(nSessionId, "Failed to get or spawn player");
+    sendLoginFailed(nSessionId, "Failed to get or spawn player instance");
     return;
   }
 
@@ -66,12 +76,11 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
   std::optional<uint32_t> nConnectionId = 
       pPlayerSocket->createPersistentSession(*clientAddr);
 
-  if (!nConnectionId) {
-    sendLoginFailed(nSessionId, "All slots are busy");
-    return;
+  if (nConnectionId.has_value()) {
+    sendLoginSuccess(nSessionId, pPlayerSocket->getLocalAddr());
+  } else {
+    sendLoginFailed(nSessionId, "Connections limit reached");
   }
-
-  sendLoginSuccess(nSessionId, pPlayerSocket->getLocalAddr());
 }
 
 bool AccessPanel::checkLogin(std::string const& sLogin,

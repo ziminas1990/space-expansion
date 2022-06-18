@@ -47,7 +47,7 @@ class TestCase(BaseTestFixture):
         db: blueprints.BlueprintsDB = blueprints.DefaultBlueprints()
 
         await self.system_clock_fast_forward(speed_multiplier=10)
-        commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
+        commutator, error = await self.login('player', "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -83,7 +83,7 @@ class TestCase(BaseTestFixture):
         db: blueprints.BlueprintsDB = blueprints.DefaultBlueprints()
 
         await self.system_clock_fast_forward(speed_multiplier=10)
-        commutator, error = await self.login('player', "127.0.0.1", "127.0.0.1")
+        commutator, error = await self.login('player', "127.0.0.1")
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 

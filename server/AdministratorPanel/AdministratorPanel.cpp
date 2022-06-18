@@ -78,8 +78,10 @@ void AdministratorPanel::onLoginRequest(
   }
 
   const uint64_t nToken = m_tokenGenerator.yield();
-  m_tokens[nSessionId] = nToken;
-  if (m_pAdminSocket->createPersistentSession(*clientAddr).has_value()) {
+  std::optional<uint32_t> nPersistantSessionId = 
+      m_pAdminSocket->createPersistentSession(*clientAddr);
+  if (nPersistantSessionId.has_value()) {
+    m_tokens[*nPersistantSessionId] = nToken;
     sendLoginSuccess(nSessionId, nToken);
   } else {
     sendLoginFailed(nSessionId);

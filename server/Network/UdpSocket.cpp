@@ -34,6 +34,7 @@ UdpSocket::createPersistentSession(udp::endpoint const& remote)
     if (m_sessions[i] == udp::endpoint() &&
         m_pTerminal->openSession(i))
     {
+      std::cerr << "Register session " << i << " for " << remote << " in " << getLocalAddr() << " (" << this << ")" << std::endl;
       m_sessions[i] = remote;
       return i;
     }
@@ -64,8 +65,11 @@ bool UdpSocket::send(uint32_t nSessionId, const BinaryMessage& message)
     return false;
   }
   udp::endpoint const& remote = m_sessions[nSessionId];
-  if (remote == udp::endpoint())
+  if (remote == udp::endpoint()) {
     return false;
+  }
+
+  std::cerr << "Send message in session #" << nSessionId << " to " << remote << " in " << getLocalAddr() << " (" << this << ")" << std::endl;
 
   uint8_t* pChunk = m_ChunksPool.get(message.m_nLength);
   memcpy(pChunk, message.m_pBody, message.m_nLength);
@@ -84,7 +88,7 @@ bool UdpSocket::send(uint32_t nSessionId, const BinaryMessage& message)
 
 void UdpSocket::closeSession(uint32_t nSessionId)
 {
-  if (nSessionId < nPersistentSessionsLimit) {
+  if (nSessionId < m_sessions.size()) {
     m_sessions[nSessionId] = udp::endpoint();
   }
 }
@@ -110,6 +114,8 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
   { 
     std::optional<uint32_t> nSessionId;
 
+    std::cerr << "Message received from #" << m_senderAddress << " in " << getLocalAddr() << " (" << this << ")" << std::endl;
+
     // Linear complicity in searching for sessionId is OK, because in general
     // we won't have a lot of sessions (nSessionsLimit is just 8)
     for(size_t i = 0; i < nPersistentSessionsLimit; ++i) {
@@ -120,24 +126,33 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
     }
 
     if (nSessionId.has_value()) {  // [[likely]]
+      std::cerr << "Session id: " << *nSessionId << std::endl;
       m_pTerminal->onMessageReceived(
               *nSessionId, BinaryMessage(m_pReceiveBuffer.data(), nTotalBytes));
     } else if (m_lPromiscMode) {
       for(size_t i = nPersistentSessionsLimit; i < m_sessions.size(); ++i) {
+        // To prevent spamming from the same IP:
+        size_t nAlreadyOpened = 0;
         if (m_senderAddress.address() == m_sessions[i].address()) {
-          // Already have a request from that IP, ignore others
-          return;
-        } else if (!nSessionId && m_sessions[i] == udp::endpoint()) {
-          nSessionId = nSessionId;
+          ++nAlreadyOpened;
+          if (nAlreadyOpened == nPersistentSessionsLimit) {
+            // Too many simultanious requests from the same IP
+            return;
+          }
+        }
+        if (!nSessionId && m_sessions[i] == udp::endpoint()) {
+          nSessionId = i;
         }
       }
 
-      if (!nSessionId.has_value()) {
-        nSessionId = m_sessions.size();
-        m_sessions.emplace_back(std::move(m_senderAddress));
-      }
-      m_pTerminal->onMessageReceived(
+      if (nSessionId.has_value()) {
+        std::cerr << "Session id: " << *nSessionId << std::endl;
+        m_sessions[*nSessionId] = m_senderAddress;
+        m_pTerminal->onMessageReceived(
               *nSessionId, BinaryMessage(m_pReceiveBuffer.data(), nTotalBytes));
+      }
+    } else {
+      std::cerr << "Drop message from " << m_senderAddress << " at " << getLocalAddr() << " (" << this << ")" << std::endl;
     }
   } else {
     assert(nullptr == "unexpected boost.asio error!");

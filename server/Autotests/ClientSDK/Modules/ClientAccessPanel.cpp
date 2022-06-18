@@ -5,8 +5,7 @@ namespace autotests { namespace client {
 bool ClientAccessPanel::login(
     std::string const& sLogin, 
     std::string const& sPassword,
-    uint16_t&          nRemotePort,
-    uint32_t&          nSessionId)
+    uint16_t&          nRemotePort)
 {
   return sendLoginRequest(sLogin, sPassword)
       && waitLoginSuccess(nRemotePort);
