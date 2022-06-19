@@ -24,7 +24,7 @@ class TacticalCore:
 
         self.random_mining: Optional[RandomMining] = None
 
-        self.time_montiroing_task: Optional[asyncio.Task] = None
+        self.time_monitoring_task: Optional[asyncio.Task] = None
 
     async def initialize(self) -> bool:
         # Initializing root commutator and system clock
@@ -37,7 +37,7 @@ class TacticalCore:
             self.log.error("SystemClock not found!")
             return False
 
-        self.time_montiroing_task = asyncio.create_task(self.monitor_time())
+        self.time_monitoring_task = asyncio.create_task(self.monitor_time())
 
         # Getting all available ships:
         remote_ships = modules.get_all_ships(self.root_commutator)

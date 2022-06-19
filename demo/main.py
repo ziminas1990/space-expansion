@@ -15,7 +15,6 @@ from gui import MainWindow, Controller
 async def login() -> Optional[Commutator]:
     login_dialog = LoginDialog(
         default_server_ip_port=("127.0.0.1", 6842),
-        default_local_ip_port=("127.0.0.1", 3434),
         default_login="Olenoid"
     )
 
@@ -30,7 +29,6 @@ async def login() -> Optional[Commutator]:
         login_port=login_data.server_port,
         login=login_data.login,
         password=login_data.password,
-        local_ip=login_data.local_ip
     )
     return commutator if error is None else None
 
