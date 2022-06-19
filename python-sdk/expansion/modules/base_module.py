@@ -51,26 +51,21 @@ class BaseModule:
     async def init(self) -> bool:
         return True
 
-    async def open_session(self,
-                           terminal_type: Type,
-                           retries: int = 3) -> Optional[Endpoint]:
+    async def open_session(self, terminal_type: Type) -> Optional[Endpoint]:
         """Return an existing available channel or open a new one."""
-        # No available tunnels, trying to open a new one
-        for attempt in range(retries):
-            session, error = await self._tunnel_factory()
-            if session is None:
-                self.logger.warning(
-                    f"Failed to open tunnel for the {terminal_type.__name__} "
-                    f"({attempt + 1} / {retries}): {error}")
-                continue
+        session, error = await self._tunnel_factory()
+        if session is not None:
             # Create terminal and link it with tunnel
             terminal: Optional[Endpoint] = terminal_type()
             assert isinstance(terminal, Endpoint)
             session.attach_to_terminal(terminal)
             terminal.attach_channel(session)
             return terminal
-        # All attempts failed
-        return None
+        else:
+            self.logger.warning(
+                f"Failed to open tunnel for the {terminal_type.__name__}:"
+                f"{error}")
+            return None
 
     @staticmethod
     def _is_actual(value: Tuple[Optional[Any], int],
@@ -110,7 +105,7 @@ class BaseModule:
             *,
             terminal_type: Type,
             return_on_unreachable: Any,
-            retires: int = 3,
+            retries: int = 3,
             return_on_cancel: Optional[Any] = None,
             exclusive: bool = False):
         """Get an available session with the specified
@@ -143,11 +138,15 @@ class BaseModule:
 
                 self: BaseModule = args[0]
                 session: Optional[Endpoint] = None
-                try:
-                    session = self._sessions.setdefault(terminal_type, []).pop(-1)
-                except IndexError:
-                    # No sessions to reuse, open a new one
-                    session = await self.open_session(terminal_type, retires)
+                for attempt in range(retries):
+                    try:
+                        session = self._sessions.setdefault(terminal_type, []).pop(-1)
+                    except IndexError:
+                        # No sessions to reuse, open a new one
+                        session = await self.open_session(terminal_type)
+                    if session is not None:
+                        break
+
                 if session is None:
                     return return_on_unreachable
 
@@ -183,7 +182,7 @@ class BaseModule:
             terminal_type: Type,
             return_on_unreachable: Any,
             stop_on_cancel: bool = True,
-            retires: int = 3):
+            retries: int = 3):
         """This is an equivalent for 'use_session()' but for generators.
         Make up to 'retires' attempts to open a new session
         with the specified 'terminal_type' pass it to the
@@ -204,7 +203,12 @@ class BaseModule:
                 assert "session" not in kwargs
 
                 self: BaseModule = args[0]
-                session: Optional[Endpoint] = await self.open_session(terminal_type, retires)
+                session: Optional[Endpoint] = None
+                for attempt in range(retries):
+                    session = await self.open_session(terminal_type)
+                    if session is not None:
+                        break
+
                 if session is None:
                     yield return_on_unreachable
                     return

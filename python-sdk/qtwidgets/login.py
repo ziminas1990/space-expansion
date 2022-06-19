@@ -12,8 +12,6 @@ from PyQt5.QtWidgets import (
 
 
 class LoginData(NamedTuple):
-    local_ip: str
-    local_port: int
     server_ip: str
     server_port: int
     login: str
@@ -24,7 +22,6 @@ class LoginWidget(QWidget):
 
     def __init__(self,
                  default_server_ip_port: Optional[Tuple[str, int]] = None,
-                 default_local_ip_port: Optional[Tuple[str, int]] = None,
                  default_login: Optional[str] = None,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,11 +32,6 @@ class LoginWidget(QWidget):
         self.lbl_server_ip_port.setText("Server IP:Port")
         self.linedit_server_ip = QLineEdit(self)
         self.linedit_server_port = QLineEdit(self)
-
-        self.lbl_local_ip_port = QLabel(self)
-        self.lbl_local_ip_port.setText("Local IP:Port")
-        self.linedit_local_ip = QLineEdit(self)
-        self.linedit_local_port = QLineEdit(self)
 
         self.lbl_login = QLabel(self)
         self.lbl_login.setText("Login")
@@ -63,9 +55,6 @@ class LoginWidget(QWidget):
         self.main_box.addWidget(self.lbl_server_ip_port, 0, 0)
         self.main_box.addWidget(self.linedit_server_ip, 0, 1)
         self.main_box.addWidget(self.linedit_server_port, 0, 2)
-        self.main_box.addWidget(self.lbl_local_ip_port, 1, 0)
-        self.main_box.addWidget(self.linedit_local_ip, 1, 1)
-        self.main_box.addWidget(self.linedit_local_port, 1, 2)
         self.main_box.addWidget(self.lbl_login, 2, 0)
         self.main_box.addWidget(self.linedit_login, 2, 1, 1, 2)
         self.main_box.addWidget(self.lbl_password, 3, 0)
@@ -73,10 +62,6 @@ class LoginWidget(QWidget):
         self.main_box.addLayout(self.bottom_box, 4, 0, 1, 3)
 
         # default values
-        if default_local_ip_port is not None:
-            self.linedit_local_ip.setText(default_local_ip_port[0])
-            self.linedit_local_port.setText(str(default_local_ip_port[1]))
-
         if default_server_ip_port is not None:
             self.linedit_server_ip.setText(default_server_ip_port[0])
             self.linedit_server_port.setText(str(default_server_ip_port[1]))
@@ -94,8 +79,6 @@ class LoginWidget(QWidget):
 
     def get_data(self) -> LoginData:
         return LoginData(
-            local_ip=self.linedit_local_ip.text(),
-            local_port=int(self.linedit_local_port.text()),
             server_ip=self.linedit_server_ip.text(),
             server_port=int(self.linedit_server_port.text()),
             login=self.linedit_login.text(),
@@ -111,7 +94,6 @@ class LoginDialog(QDialog):
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.widget = LoginWidget(default_server_ip_port,
-                                  default_local_ip_port,
                                   default_login,
                                   self)
 

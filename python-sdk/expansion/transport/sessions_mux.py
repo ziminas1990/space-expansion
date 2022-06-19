@@ -35,6 +35,8 @@ class SessionsMux(Terminal):
                 elif message.commutator.close_tunnel_ind:
                     self.owner.on_session_closed(self.session_id)
             # Pass a message to a client
+            if timestamp is None:
+                timestamp = message.timestamp
             self.terminal.on_receive(message, timestamp)
 
         # Override from Channel
@@ -77,7 +79,7 @@ class SessionsMux(Terminal):
         try:
             self.sessions[message.tunnelId].on_receive(message, timestamp)
         except KeyError:
-            self.terminal_logger.error(f"invalid session")
+            self.terminal_logger.error(f"invalid session {message.tunnelId}")
 
     def attach_channel(self, channel: 'Channel'):
         assert False, "Operation makes no sense, use create_session()"
