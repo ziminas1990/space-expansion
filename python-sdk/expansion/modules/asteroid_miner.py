@@ -82,9 +82,7 @@ class AsteroidMiner(BaseModule):
            process will be interrupted.
         """
         assert session is not None
-        status = await session.start_mining(asteroid_id, progress_cb)
-        await session.close()
-        return status
+        return await session.start_mining(asteroid_id, progress_cb)
 
     @BaseModule.use_session(
         terminal_type=AsteroidMinerI,

@@ -44,10 +44,11 @@ async def login(server_ip: str,
             return None, f"Login failed: {error}"
         udp_channel.set_remote(server_ip, remote_port)
 
-        session_mux.attach_channel(protobuf_channel)
         protobuf_channel.attach_to_terminal(session_mux)
 
-        session = session_mux.create_session(session_id=session_id)
+        session = session_mux.on_session_created(
+            session_id=session_id,
+            channel=protobuf_channel)
         return session, None
 
     return Commutator(

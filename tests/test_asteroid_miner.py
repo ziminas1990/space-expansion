@@ -123,7 +123,7 @@ class TestCase(BaseTestFixture):
         def progress_cb(status: AsteroidMinerI.Status, resources: ResourcesDict) -> bool:
             return False  # Stop mining immediately
 
-        # Trying to mine non existing asteroid
+        # Trying to mine a non-existing asteroid
         status = await miner.start_mining(asteroid_id=100500, progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.ASTEROID_DOESNT_EXIST, status)
 

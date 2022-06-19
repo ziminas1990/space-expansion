@@ -28,7 +28,6 @@ class Commutator(BaseModule):
         # Map: module_type -> module_name -> slot_id
         self.modules: Dict[str, Dict[str, BaseModule]] = {}
         # Map: module_type -> module_name -> module
-        self._connections: List[rpc.CommutatorI] = []
 
     async def init(self) -> bool:
         """Retrieve an information about all modules, attached to the
@@ -73,7 +72,7 @@ class Commutator(BaseModule):
             -> Tuple[Optional["Channel"], Optional[str]]:
         status, session_id = await session.open_tunnel(port=slot_id)
         if status.is_success():
-            return self.session_mux.create_session(session_id), None
+            return self.session_mux.get_channel_for_session(session_id), None
         else:
             return None, str(status)
 

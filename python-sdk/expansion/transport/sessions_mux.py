@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional, TYPE_CHECKING
+from typing import Dict, Any, Optional, List, TYPE_CHECKING
 from expansion.transport import Channel, Terminal
 
 if TYPE_CHECKING:
@@ -26,10 +26,16 @@ class SessionsMux(Terminal):
 
         # Override from Terminal
         def on_receive(self, message: Any, timestamp: Optional[int]):
+            if message.commutator:
+                if message.commutator.open_tunnel_report:
+                    # Another session has been opened using this one
+                    self.owner.on_session_created(
+                        session_id=message.commutator.open_tunnel_report,
+                        channel=self.channel)
+                elif message.commutator.close_tunnel_ind:
+                    self.owner.on_session_closed(self.session_id)
+            # Pass a message to a client
             self.terminal.on_receive(message, timestamp)
-            if message.commutator and message.commutator.close_tunnel_ind:
-                self.terminal.on_channel_detached()
-                self.close()
 
         # Override from Channel
         async def close(self):
@@ -41,19 +47,26 @@ class SessionsMux(Terminal):
         self.sessions: Dict[int, SessionsMux.Session] = {}
         self.channel: Optional[Channel] = None
 
-    def create_session(self, session_id: int) -> Channel:
+    def on_session_created(self, session_id: int,
+                           channel: Channel = None) -> Channel:
         assert(session_id not in self.sessions)
-        assert(self.channel is not None)
         session = SessionsMux.Session(
             session_id=session_id,
             owner=self,
             name=self.get_name(),
             trace_mode=self.trace_mode())
-        session.attach_channel(self.channel)
+        session.attach_channel(channel)
         self.sessions.update({
             session_id: session
         })
         return session
+
+    def get_channel_for_session(self, session_id: int) -> Optional[Channel]:
+        try:
+            return self.sessions[session_id]
+        except KeyError:
+            # Session has NOT been created
+            return None
 
     def on_session_closed(self, session_id):
         self.sessions.pop(session_id)
@@ -67,14 +80,7 @@ class SessionsMux(Terminal):
             self.terminal_logger.error(f"invalid session")
 
     def attach_channel(self, channel: 'Channel'):
-        self.terminal_logger.info(f"Attached to channel {channel.channel_name}")
-        self.channel = channel
-        for session in self.sessions.values():
-            session.attach_channel(channel)
+        assert False, "Operation makes no sense, use create_session()"
 
     def on_channel_detached(self):
-        self.terminal_logger.info(f"Channel detached")
-        self.channel = None
-        for session in self.sessions.values():
-            session.on_channel_detached()
-
+        assert False, "Operation makes no sense"

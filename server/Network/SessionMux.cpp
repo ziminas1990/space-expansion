@@ -1,4 +1,5 @@
 #include <Network/SessionMux.h>
+#include <Utils/Clock.h>
 
 namespace network {
 
@@ -79,6 +80,7 @@ bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
 {
   const uint16_t nSessionIdx = nSessionId & 0xFFFF;
   message.set_tunnelid(nSessionId);
+  message.set_timestamp(utils::GlobalClock::now());
   if (nSessionIdx < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
     return session.isValid()
@@ -130,6 +132,7 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
     Connection& connection = m_connections[nConnectionId];
     assert(!connection.m_nRootSessionId
            && "Connection has not been closed?");
+    // TODO: try to find a session for reuse, using occpyIndex())?
     m_sessions.emplace_back(Session{
       static_cast<uint16_t>(m_sessions.size()),
       1,  // A secret key (starts from 1)

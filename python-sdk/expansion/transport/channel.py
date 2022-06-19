@@ -37,8 +37,6 @@ class Channel(abc.ABC):
      3. implement 'close()' function
      """
 
-    next_channel_id: int = 0
-
     def __init__(self, channel_name=None,
                  trace_mode=False,
                  *args, **kwargs):
