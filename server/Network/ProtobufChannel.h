@@ -66,9 +66,10 @@ void ProtobufChannel<FrameType>::onMessageReceived(
 {
   FrameType pdu;
   if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength))) {
-    if constexpr (std::is_same_v<FrameType, spex::Message>) {
-      std::cerr << "Received\n" << pdu.DebugString() << std::endl;
-    }
+    // if constexpr (std::is_same_v<FrameType, spex::Message>) {
+    //   std::cerr << "Received in #" << nSessionId << ":\n" << pdu.DebugString() 
+    //   << std::endl;
+    // }
     m_pTerminal->onMessageReceived(nSessionId, std::move(pdu));
   }
 }
@@ -85,9 +86,10 @@ bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType const& mess
 {
   std::string buffer;
   message.SerializeToString(&buffer);
-  if constexpr (std::is_same_v<FrameType, spex::Message>) {
-    std::cerr << "Sending\n" << message.DebugString() << std::endl;
-  }
+  // if constexpr (std::is_same_v<FrameType, spex::Message>) {
+  //   std::cerr << "Sending in #" << nSessionId << ":\n" 
+  //             << message.DebugString() << std::endl;
+  // }
   return m_pChannel
       && m_pChannel->send(nSessionId, BinaryMessage(buffer.data(), buffer.size()));
 }

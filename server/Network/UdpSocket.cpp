@@ -34,7 +34,6 @@ UdpSocket::createPersistentSession(udp::endpoint const& remote)
     if (m_sessions[i] == udp::endpoint() &&
         m_pTerminal->openSession(i))
     {
-      std::cerr << "Register session " << i << " for " << remote << " in " << getLocalAddr() << " (" << this << ")" << std::endl;
       m_sessions[i] = remote;
       return i;
     }
@@ -68,8 +67,6 @@ bool UdpSocket::send(uint32_t nSessionId, const BinaryMessage& message)
   if (remote == udp::endpoint()) {
     return false;
   }
-
-  std::cerr << "Send message in session #" << nSessionId << " to " << remote << " in " << getLocalAddr() << " (" << this << ")" << std::endl;
 
   uint8_t* pChunk = m_ChunksPool.get(message.m_nLength);
   memcpy(pChunk, message.m_pBody, message.m_nLength);
@@ -114,8 +111,6 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
   { 
     std::optional<uint32_t> nSessionId;
 
-    std::cerr << "Message received from #" << m_senderAddress << " in " << getLocalAddr() << " (" << this << ")" << std::endl;
-
     // Linear complicity in searching for sessionId is OK, because in general
     // we won't have a lot of sessions (nSessionsLimit is just 8)
     for(size_t i = 0; i < nPersistentSessionsLimit; ++i) {
@@ -126,7 +121,6 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
     }
 
     if (nSessionId.has_value()) {  // [[likely]]
-      std::cerr << "Session id: " << *nSessionId << std::endl;
       m_pTerminal->onMessageReceived(
               *nSessionId, BinaryMessage(m_pReceiveBuffer.data(), nTotalBytes));
     } else if (m_lPromiscMode) {
@@ -146,13 +140,10 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
       }
 
       if (nSessionId.has_value()) {
-        std::cerr << "Session id: " << *nSessionId << std::endl;
         m_sessions[*nSessionId] = m_senderAddress;
         m_pTerminal->onMessageReceived(
               *nSessionId, BinaryMessage(m_pReceiveBuffer.data(), nTotalBytes));
       }
-    } else {
-      std::cerr << "Drop message from " << m_senderAddress << " at " << getLocalAddr() << " (" << this << ")" << std::endl;
     }
   } else {
     assert(nullptr == "unexpected boost.asio error!");

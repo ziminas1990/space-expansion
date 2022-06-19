@@ -25,8 +25,6 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     return;
   }
 
-  std::cerr << "Handle request in session " << nSessionId << " from " << *clientAddr << std::endl;
-
   if (!clientAddr.has_value() ||
       message.choice_case() != spex::Message::kAccessPanel) {
     m_pLoginSocket->closeSession(nSessionId);
