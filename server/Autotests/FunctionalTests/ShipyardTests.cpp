@@ -117,7 +117,7 @@ TEST_F(ShipyardTests, BreathTest)
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", ship));
 
   client::Shipyard shipyard;
@@ -133,7 +133,7 @@ TEST_F(ShipyardTests, GetSpecification)
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", ship));
 
   client::Shipyard shipyard;
@@ -155,7 +155,7 @@ TEST_F(ShipyardTests, BindToCargo)
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
@@ -176,7 +176,7 @@ TEST_F(ShipyardTests, BlueprintNotFound)
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
@@ -198,7 +198,7 @@ TEST_F(ShipyardTests, NotBoundToCargo)
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
@@ -218,7 +218,7 @@ TEST_F(ShipyardTests, BuildSuccessCase)
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
@@ -252,9 +252,9 @@ TEST_F(ShipyardTests, BuildSuccessCase)
             shipyard.waitingWhileBuilding(&progress, &nSlotId, &sShipName));
 
   // Connecting to ship, that has been built
-  client::Ship drone;
+  client::Ship drone(m_pRouter);
   {
-    client::TunnelPtr pTunnel = m_pRootCommutator->openTunnel(nSlotId);
+    client::Router::SessionPtr pTunnel = m_pRootCommutator->openSession(nSlotId);
     ASSERT_TRUE(pTunnel != nullptr);
     drone.attachToChannel(pTunnel);
   }
@@ -290,7 +290,7 @@ TEST_F(ShipyardTests, BuildFrozen)
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
 
-  client::Ship station;
+  client::Ship station(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;

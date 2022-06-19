@@ -15,18 +15,18 @@ public:
   using IClientTerminalPtr = client::ITerminalPtr<FrameType>;
 
 private:
-  uint32_t           m_nSessionId;
+  uint32_t           m_nConnectionId;
   IServerTerminalPtr m_pServiceSide;
   IClientTerminalPtr m_pClientSide;
 
 public:
 
-  Connector(uint32_t nSessionId) : m_nSessionId(nSessionId) {}
+  Connector(uint32_t nConnectionId) : m_nConnectionId(nConnectionId) {}
 
   // Overrides network::IChannel<FrameType>
-  bool send(uint32_t nSessionId, const FrameType& frame) override
+  bool send(uint32_t nSessionId, FrameType&& frame) override
   {
-    assert(nSessionId == m_nSessionId);
+    assert(nSessionId == m_nConnectionId);
     if (m_pClientSide) {
       m_pClientSide->onMessageReceived(FrameType(frame));
       return true;
@@ -36,7 +36,7 @@ public:
 
   void closeSession(uint32_t nSessionId) override
   {
-    assert(nSessionId == m_nSessionId);
+    assert(nSessionId == m_nConnectionId);
   }
 
   bool isValid() const override {
@@ -48,9 +48,9 @@ public:
   }
 
   // Overrides client::IChannel<FrameType>
-  bool send(FrameType const& message) override {
+  bool send(FrameType&& message) override {
     if (m_pServiceSide) {
-      m_pServiceSide->onMessageReceived(m_nSessionId, message);
+      m_pServiceSide->onMessageReceived(m_nConnectionId, message);
       return true;
     }
     return false;

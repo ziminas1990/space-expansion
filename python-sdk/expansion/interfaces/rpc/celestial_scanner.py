@@ -114,7 +114,7 @@ class CelestialScannerI(IOTerminal):
                 if fail:
                     error = CelestialScannerI.Status.convert(fail).value
                 else:
-                    self.__unexpected_msg_str(fail)
+                    error = self.__unexpected_msg_str(fail)
                 result_cb(None, error)
                 return error
 
@@ -135,7 +135,7 @@ class CelestialScannerI(IOTerminal):
                         timeout: float) -> (ObjectsList, Error):
         """Scanning all bodies within a 'scanning_radius_km' radius.
 
-        Bodies with radius less then the specified 'minimal_radius_m' will be
+        Bodies with radius less than the specified 'minimal_radius_m' will be
         ignored. On success return (asteroid_list, None). Otherwise
         return (None, error_string)
         """

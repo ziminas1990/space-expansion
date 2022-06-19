@@ -11,9 +11,10 @@ bool attachToShip(ClientCommutatorPtr pRootCommutator, std::string const& sShipN
 
   for (ModuleInfo& shipInfo : ships) {
     if (shipInfo.sModuleName == sShipName) {
-      client::TunnelPtr pTunnelToShip = pRootCommutator->openTunnel(shipInfo.nSlotId);
-      ship.attachToChannel(pTunnelToShip);
-      return pTunnelToShip != nullptr;
+      client::Router::SessionPtr pSession = 
+          pRootCommutator->openSession(shipInfo.nSlotId);
+      ship.attachToChannel(pSession);
+      return pSession != nullptr;
     }
   }
   return false;
@@ -51,9 +52,10 @@ bool FindModule(ClientCommutator&  commutator,
     if (!sName.empty() && moduleInfo.sModuleName != sName)
       continue;
 
-    TunnelPtr pTunnel = commutator.openTunnel(moduleInfo.nSlotId);
-    module.attachToChannel(pTunnel);
-    return pTunnel != nullptr;
+    client::Router::SessionPtr pSession = 
+        commutator.openSession(moduleInfo.nSlotId);
+    module.attachToChannel(pSession);
+    return pSession != nullptr;
   }
   return false;
 }
@@ -69,18 +71,20 @@ bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
   uint32_t  nMaxThrust = 0;
 
   for (ModuleInfo const& engineInfo : engines) {
-    TunnelPtr pTunnel = ship.openTunnel(engineInfo.nSlotId);
-    if (!pTunnel)
+
+    client::Router::SessionPtr pSession = 
+        ship.openSession(engineInfo.nSlotId);
+    if (!pSession)
       return false;
 
     Engine engine;
-    engine.attachToChannel(pTunnel);
+    engine.attachToChannel(pSession);
 
     EngineSpecification specification;
     if (!engine.getSpecification(specification))
       return false;
     if (specification.nMaxThrust > nMaxThrust) {
-      mostPowerfullEngine.attachToChannel(pTunnel);
+      mostPowerfullEngine.attachToChannel(pSession);
     }
   }
   return true;
@@ -98,18 +102,18 @@ bool FindBestCelestialScanner(Ship &ship, CelestialScanner& bestScanner,
   uint32_t nMaxScanningRadiusKm = 0;
 
   for (ModuleInfo const& moduleInfo : scanners) {
-    TunnelPtr pTunnel = ship.openTunnel(moduleInfo.nSlotId);
-    if (!pTunnel)
+    client::Router::SessionPtr pSession = ship.openSession(moduleInfo.nSlotId);
+    if (!pSession)
       return false;
 
     CelestialScanner scanner;
-    scanner.attachToChannel(pTunnel);
+    scanner.attachToChannel(pSession);
 
     CelestialScannerSpecification specification;
     if (!scanner.getSpecification(specification))
       return false;
     if (specification.m_nMaxScanningRadiusKm > nMaxScanningRadiusKm) {
-      bestScanner.attachToChannel(pTunnel);
+      bestScanner.attachToChannel(pSession);
       if (pSpec) {
         *pSpec = specification;
       }

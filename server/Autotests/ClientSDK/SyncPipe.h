@@ -45,7 +45,8 @@ public:
   {
     return utils::waitFor(
           [this]() { return !m_receivedMessages.empty(); },
-          m_fEnviromentProceeder, nTimeoutMs);
+          m_fEnviromentProceeder,
+          nTimeoutMs);
   }
 
   bool waitAny(FrameType &out, uint16_t nTimeoutMs)
@@ -54,7 +55,7 @@ public:
   }
 
   // override from ITerminal<FrameType>
-  void onMessageReceived(FrameType &&message) override
+  void onMessageReceived(FrameType&& message) override
   {
     m_receivedMessages.push(std::move(message));
   }
@@ -66,9 +67,9 @@ public:
   void detachDownlevel() override { m_pDownlevel.reset(); }
 
   // overrides from IChannel<FrameType> interface
-  bool send(FrameType const& message) override
+  bool send(FrameType&& message) override
   {
-    return m_pDownlevel && m_pDownlevel->send(message);
+    return m_pDownlevel && m_pDownlevel->send(std::move(message));
   }
 
   void attachToTerminal(ITerminalPtr<FrameType>) override
@@ -101,8 +102,6 @@ class PlayerPipe : public SyncPipe<spex::Message>
 {
 public:
 
-  void attachTunnelHandler(uint32_t nTunnelId, IPlayerTerminalWeakPtr pHandler);
-
   template<typename MessageType>
   bool wait(MessageType &out, uint16_t nTimeoutMs = 100) {
     using Payload = Unpacker<MessageType>;
@@ -123,9 +122,6 @@ public:
     return true;
   }
 
-  // overrides from SyncPipe<spex::Message>
-  void onMessageReceived(spex::Message&& message) override;
-
 private:
   bool waitConcrete(spex::Message::ChoiceCase eExpectedChoice,
                     spex::Message &out,
@@ -133,29 +129,9 @@ private:
 
   bool pickConcrete(spex::Message::ChoiceCase eExpectedChoice,
                     spex::Message &out);
-
-private:
-  std::map<uint32_t, IPlayerTerminalWeakPtr> m_handlers;
 };
 
 using PlayerPipePtr = std::shared_ptr<PlayerPipe>;
-
-
-class Tunnel : public PlayerPipe
-{
-public:
-  Tunnel(uint32_t nTunnelId) : m_nTunnelId(nTunnelId) {}
-
-  uint32_t getTunnelId() const { return m_nTunnelId; }
-
-  // overrides from SyncPipe
-  bool send(spex::Message const& message) override;
-
-private:
-  uint32_t m_nTunnelId;
-};
-
-using TunnelPtr = std::shared_ptr<Tunnel>;
 
 
 class PrivilegedPipe : public SyncPipe<admin::Message>

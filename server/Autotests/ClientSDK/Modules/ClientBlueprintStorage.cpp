@@ -31,7 +31,7 @@ bool BlueprintsStorage::getModulesBlueprintsNames(
 {
   spex::Message request;
   request.mutable_blueprints_library()->mutable_blueprints_list_req()->assign(sFilter);
-  if (!send(request)) {
+  if (!send(std::move(request))) {
     return false;
   }
 
@@ -60,7 +60,7 @@ BlueprintsStorage::Status BlueprintsStorage::getBlueprint(
   spex::Message request;
   request.mutable_blueprints_library()->mutable_blueprint_req()->assign(
         name.getFullName());
-  if (!send(request)) {
+  if (!send(std::move(request))) {
     return eTransportError;
   }
 

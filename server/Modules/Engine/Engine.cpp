@@ -65,7 +65,7 @@ void Engine::getSpecification(uint32_t nSessionId) const
   spex::Message response;
   spex::IEngine* pBody = response.mutable_engine();
   pBody->mutable_specification()->set_max_thrust(m_maxThrust);
-  sendToClient(nSessionId, response);
+  sendToClient(nSessionId, std::move(response));
 }
 
 void Engine::setThrust(const spex::IEngine::ChangeThrust &req)
@@ -99,7 +99,7 @@ void Engine::getThrust(uint32_t nSessionId) const
   pBody->set_y(thrustVector.getY());
   pBody->set_thrust(uint32_t(thrustVector.getLength()));
 
-  sendToClient(nSessionId, response);
+  sendToClient(nSessionId, std::move(response));
 }
 
 } // namespace modules

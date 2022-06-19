@@ -74,7 +74,7 @@ void AsteroidMiner::proceed(uint32_t nIntervalUs)
       break;
     }
   }
-  sendToClient(m_nTunnelId, message);
+  sendToClient(m_nTunnelId, std::move(message));
   if (noSpaceLeft) {
     sendMiningIsStopped(m_nTunnelId, spex::IAsteroidMiner::NO_SPACE_AVAILABLE);
     switchToIdleState();
@@ -164,7 +164,7 @@ void AsteroidMiner::onSpecificationRequest(uint32_t nTunnelId)
   body->set_max_distance(m_nMaxDistance);
   body->set_cycle_time_ms(m_nCycleTimeMs);
   body->set_yield_per_cycle(m_nYeildPerCycle);
-  sendToClient(nTunnelId, response);
+  sendToClient(nTunnelId, std::move(response));
 }
 
 world::Asteroid* AsteroidMiner::getAsteroid(uint32_t nAsteroidId)
@@ -189,7 +189,7 @@ void AsteroidMiner::sendBindingStatus(uint32_t nTunnelId,
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
   pResponse->set_bind_to_cargo_status(status);
-  sendToClient(nTunnelId, message);
+  sendToClient(nTunnelId, std::move(message));
 }
 
 void AsteroidMiner::sendStartMiningStatus(uint32_t nTunnelId,
@@ -198,7 +198,7 @@ void AsteroidMiner::sendStartMiningStatus(uint32_t nTunnelId,
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
   pResponse->set_start_mining_status(status);
-  sendToClient(nTunnelId, message);
+  sendToClient(nTunnelId, std::move(message));
 }
 
 void AsteroidMiner::sendStopMiningStatus(uint32_t nTunnelId,
@@ -207,7 +207,7 @@ void AsteroidMiner::sendStopMiningStatus(uint32_t nTunnelId,
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
   pResponse->set_stop_mining_status(status);
-  sendToClient(nTunnelId, message);
+  sendToClient(nTunnelId, std::move(message));
 }
 
 void AsteroidMiner::sendMiningIsStopped(uint32_t nTunnelId,
@@ -216,7 +216,7 @@ void AsteroidMiner::sendMiningIsStopped(uint32_t nTunnelId,
   spex::Message message;
   spex::IAsteroidMiner* pResponse = message.mutable_asteroid_miner();
   pResponse->set_mining_is_stopped(status);
-  sendToClient(nTunnelId, message);
+  sendToClient(nTunnelId, std::move(message));
 }
 
 } // namespace modules

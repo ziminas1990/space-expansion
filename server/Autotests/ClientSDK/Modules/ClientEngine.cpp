@@ -6,7 +6,7 @@ bool Engine::getSpecification(EngineSpecification& specification)
 {
   spex::Message request;
   request.mutable_engine()->set_specification_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   spex::IEngine response;
@@ -27,14 +27,14 @@ bool Engine::setThrust(geometry::Vector thrust, uint32_t nDurationMs)
   pBody->set_y(thrust.getY());
   pBody->set_thrust(uint32_t(thrust.getLength()));
   pBody->set_duration_ms(nDurationMs);
-  return send(request);
+  return send(std::move(request));
 }
 
 bool Engine::getThrust(geometry::Vector &thrust)
 {
   spex::Message request;
   request.mutable_engine()->set_thrust_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   spex::IEngine response;

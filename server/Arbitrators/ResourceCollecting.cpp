@@ -22,8 +22,8 @@ bool ResourceCollecting::loadConfiguation(YAML::Node const& data)
 
 uint32_t ResourceCollecting::score(world::PlayerPtr pPlayer)
 {
-  // Calculating total amount of resources, that are stored in containers in all ships,
-  // that have a shipyard
+  // Calculating total amount of resources, that are stored in containers in
+  // all ships, that have a shipyard
 
   world::ResourcesArray totalResources;
 

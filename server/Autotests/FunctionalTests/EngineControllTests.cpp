@@ -5,6 +5,7 @@
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
 #include <Autotests/ClientSDK/Procedures/FindModule.h>
+#include <Autotests/ClientSDK/Router.h>
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
@@ -65,11 +66,11 @@ TEST_F(EngineControllTests, OpenTunnelToEngine)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   for (size_t nSlot = 0; nSlot < 2; ++nSlot) {
-    client::TunnelPtr pTunnelToEngine = ship.openTunnel(0);
+    client::Router::SessionPtr pTunnelToEngine = ship.openSession(0);
     ASSERT_TRUE(pTunnelToEngine);
   }
 }
@@ -81,21 +82,21 @@ TEST_F(EngineControllTests, GetSpecification)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   client::Engine engine;
   client::EngineSpecification specification;
   // Checking engine_1
   {
-    engine.attachToChannel(ship.openTunnel(0));
+    engine.attachToChannel(ship.openSession(0));
     ASSERT_TRUE(engine.getSpecification(specification));
     EXPECT_EQ(200, specification.nMaxThrust);
   }
 
   // Checking engine_2
   {
-    engine.attachToChannel(ship.openTunnel(1));
+    engine.attachToChannel(ship.openSession(1));
     ASSERT_TRUE(engine.getSpecification(specification));
     EXPECT_EQ(100, specification.nMaxThrust);
   }
@@ -108,11 +109,11 @@ TEST_F(EngineControllTests, SetAndGetThrust)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   client::Engine engine;
-  engine.attachToChannel(ship.openTunnel(0));
+  engine.attachToChannel(ship.openSession(0));
 
   // Setting new thrust
   geometry::Vector thrust(1, 0.5);
@@ -138,7 +139,7 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::Ship ship;
+  client::Ship ship(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Small Cube", ship));
 
   client::Engine engine;

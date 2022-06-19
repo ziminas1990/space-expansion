@@ -56,7 +56,7 @@ void CelestialScanner::handleCelestialScannerMessage(
           response.mutable_celestial_scanner()->mutable_specification();
       pBody->set_max_radius_km(m_nMaxScanningRadiusKm);
       pBody->set_processing_time_us(m_nProcessingTimeUs);
-      sendToClient(nTunnelId, response);
+      sendToClient(nTunnelId, std::move(response));
       return;
     }
     default:
@@ -71,7 +71,7 @@ void CelestialScanner::onScanRequest(
     spex::Message busyResponse;
     busyResponse.mutable_celestial_scanner()->set_scanning_failed(
           spex::ICelestialScanner::SCANNER_BUSY);
-    sendToClient(nTunnelId, busyResponse);
+    sendToClient(nTunnelId, std::move(busyResponse));
     return;
   }
 
@@ -129,7 +129,7 @@ void CelestialScanner::collectAndSendScanResults()
     spex::ICelestialScanner::ScanResults *pBody =
         response.mutable_celestial_scanner()->mutable_scanning_report();
     pBody->set_left(0);
-    sendToClient(m_nTunnelId, response);
+    sendToClient(m_nTunnelId, std::move(response));
     return;
   }
 
@@ -152,7 +152,7 @@ void CelestialScanner::collectAndSendScanResults()
       pInfo->set_r(pAsteroid->getRadius());
     }
     pBody->set_left(static_cast<uint32_t>(scannedAsteroids.size() - i));
-    sendToClient(m_nTunnelId, response);
+    sendToClient(m_nTunnelId, std::move(response));
   }
 }
 

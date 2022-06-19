@@ -111,7 +111,6 @@ class ResourceContainer(BaseModule):
                 progress_cb(item)
 
         status = await session.transfer(port, access_key, resource, _progress_cb, timeout)
-        await session.close()
         return status
 
     @BaseModule.use_session_for_generators(

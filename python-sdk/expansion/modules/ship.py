@@ -8,6 +8,7 @@ from .commutator import Commutator
 
 if TYPE_CHECKING:
     from expansion.modules.base_module import TunnelFactory
+    from expansion.transport import SessionsMux
     from .commutator import ModulesFactory
 
 
@@ -18,9 +19,11 @@ class Ship(Commutator, BaseModule):
     def __init__(self,
                  ship_type: str,
                  ship_name: str,
+                 session_mux: "SessionsMux",
                  modules_factory: "ModulesFactory",
                  tunnel_factory: "TunnelFactory"):
         super().__init__(
+            session_mux=session_mux,
             tunnel_factory=tunnel_factory,
             modules_factory=modules_factory,
             name=ship_name)

@@ -29,7 +29,7 @@ class IChannel
 public:
   virtual ~IChannel() = default;
 
-  virtual bool send(FrameType const& message) = 0;
+  virtual bool send(FrameType&& message) = 0;
 
   virtual void attachToTerminal(ITerminalPtr<FrameType> pTerminal) = 0;
   virtual void detachFromTerminal() = 0;

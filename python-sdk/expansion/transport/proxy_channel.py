@@ -60,10 +60,10 @@ class ProxyChannel(Channel, Terminal):
 
     # Override from Terminal
     def on_receive(self, message: Any, timestamp: Optional[int]):
-        # For logging:
-        super().on_receive(message, timestamp)
         decoded_message = self.decode(message)
         if decoded_message:
+            if self._trace_mode:
+                self.terminal_logger.debug(f"Got: \n{decoded_message}")
             self.terminal.on_receive(decoded_message, timestamp)
 
     # Override from Channel

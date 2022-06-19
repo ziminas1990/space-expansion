@@ -32,7 +32,7 @@ bool AsteroidMiner::getSpecification(AsteroidMinerSpecification &specification)
 {
   spex::Message request;
   request.mutable_asteroid_miner()->set_specification_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   spex::IAsteroidMiner response;
@@ -51,7 +51,7 @@ AsteroidMiner::Status AsteroidMiner::bindToCargo(std::string const& sCargoName)
 {
   spex::Message request;
   request.mutable_asteroid_miner()->set_bind_to_cargo(sCargoName);
-  if (!send(request))
+  if (!send(std::move(request)))
     return eTransportError;
 
   spex::IAsteroidMiner response;
@@ -68,7 +68,7 @@ AsteroidMiner::Status AsteroidMiner::startMining(uint32_t nAsteroidId)
   spex::Message message;
   spex::IAsteroidMiner* request = message.mutable_asteroid_miner();
   request->set_start_mining(nAsteroidId);
-  if (!send(message))
+  if (!send(std::move(message)))
     return eTransportError;
 
   spex::IAsteroidMiner response;
@@ -84,7 +84,7 @@ AsteroidMiner::Status AsteroidMiner::stopMining()
 {
   spex::Message message;
   message.mutable_asteroid_miner()->set_stop_mining(true);
-  if (!send(message))
+  if (!send(std::move(message)))
     return eTransportError;
 
   spex::IAsteroidMiner response;

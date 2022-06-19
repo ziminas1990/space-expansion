@@ -7,6 +7,7 @@
 
 #include <Autotests/ClientSDK/Socket.h>
 #include <Autotests/ClientSDK/SyncPipe.h>
+#include <Autotests/ClientSDK/Router.h>
 #include <Autotests/ClientSDK/Modules/ClientAccessPanel.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/ClientSDK/Modules/ClientAdministratorPanel.h>
@@ -62,7 +63,7 @@ protected:
   //                                        Tunnels and Mocked Modules...
   //                                                     |
   //     +-------------------+               +----------------------+
-  //     | ClientAccessPoint |               | RootClientCommutator |
+  //     | ClientAccessPoint |               |         Router       |
   //     +-------------------+               +----------------------+
   //               |                                     |
   //               +----------------+   +----------------+
@@ -80,7 +81,7 @@ protected:
 
   boost::asio::io_service      m_IoService;
   client::PlayerSocketPtr      m_pSocket;
-  client::PlayerPipePtr        m_pRootPipe;
+  client::RouterPtr            m_pRouter;
   client::ClientAccessPanelPtr m_pAccessPanel;
   client::ClientCommutatorPtr  m_pRootCommutator;
 

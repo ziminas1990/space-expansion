@@ -92,7 +92,7 @@ void SystemClock::sendTime(uint32_t nSessionId)
   spex::Message message;
   spex::ISystemClock* body = message.mutable_system_clock();
   body->set_time(utils::GlobalClock::now());
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 void SystemClock::sendRing(uint32_t nSessionId, uint64_t time)
@@ -100,7 +100,7 @@ void SystemClock::sendRing(uint32_t nSessionId, uint64_t time)
   spex::Message message;
   spex::ISystemClock* body = message.mutable_system_clock();
   body->set_ring(time);
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 void SystemClock::drawnLastRing()

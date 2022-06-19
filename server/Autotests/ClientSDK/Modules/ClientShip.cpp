@@ -8,7 +8,7 @@ bool Ship::getPosition(geometry::Point& position, geometry::Vector& velocity)
 {
   spex::Message request;
   request.mutable_navigation()->set_position_req(true);
-  if (!send(request))
+  if (!send(std::move(request)))
     return false;
 
   spex::INavigation response;
@@ -34,7 +34,7 @@ bool Ship::monitor(uint32_t nPeriodMs, ShipState &state)
 {
   spex::Message request;
   request.mutable_ship()->set_monitor(nPeriodMs);
-  return send(request) && waitState(state);
+  return send(std::move(request)) && waitState(state);
 }
 
 bool Ship::waitState(ShipState &state, uint16_t nTimeout)
@@ -61,7 +61,7 @@ bool Ship::getState(ShipState& state)
 {
   spex::Message request;
   request.mutable_ship()->set_state_req(true);
-  return send(request) && waitState(state);
+  return send(std::move(request)) && waitState(state);
 }
 
 }}  // namespace autotests::client

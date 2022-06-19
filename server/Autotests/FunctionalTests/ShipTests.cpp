@@ -59,7 +59,7 @@ TEST_F(ShipTests, Monitoring)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   client::ShipState state;
@@ -93,15 +93,15 @@ TEST_F(ShipTests, MultipleSubscriptions)
         .sendLoginRequest("test", "test")
         .expectSuccess());
 
-  client::ShipPtr pShip = std::make_shared<client::Ship>();
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
 
   using Subscription = std::pair<client::ShipPtr, uint32_t>;
 
   Subscription subscriptions[] = {
-    {std::make_shared<client::Ship>(), 200},
-    {std::make_shared<client::Ship>(), 300},
-    {std::make_shared<client::Ship>(), 400}
+    {std::make_shared<client::Ship>(m_pRouter), 200},
+    {std::make_shared<client::Ship>(m_pRouter), 300},
+    {std::make_shared<client::Ship>(m_pRouter), 400}
   };
   size_t total = sizeof(subscriptions) / sizeof(Subscription);
 

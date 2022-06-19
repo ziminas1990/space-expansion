@@ -28,10 +28,11 @@ class IOTerminal(Endpoint):
         return super(IOTerminal, self).get_name()
 
     # Override from Endpoint
-    async def wait_message(self, timeout: float = 1.0) -> Tuple[Optional[Any], Optional[int]]:
+    async def wait_message(self, timeout: float = 1.0) -> \
+            Tuple[Optional[Any], Optional[int]]:
         """Await for a message on the internal queue for not more than the
-        specified 'timeout' seconds. Return a message and a optional timestamp, when
-        the message was sent."""
+        specified 'timeout' seconds. Return a message and an optional timestamp,
+        when the message was sent."""
         try:
             message, timestamp = \
                 await asyncio.wait_for(self.queue.get(), timeout=timeout)

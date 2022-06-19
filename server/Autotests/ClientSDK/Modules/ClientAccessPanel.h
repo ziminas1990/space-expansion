@@ -9,12 +9,14 @@ class ClientAccessPanel : public ClientBaseModule
 public:
   bool login(std::string const& sLogin,
              std::string const& sPassword,
-             uint16_t& nRemotePort);
+             uint16_t& nRemotePort,
+             uint32_t& nSessionId);
 
   // Additional functions, that are used in autotests:
   bool sendLoginRequest(std::string const& sLogin,
                         std::string const& sPassword);
-  bool waitLoginSuccess(uint16_t& nServerPort);
+  bool waitLoginSuccess(uint16_t& nServerPort,
+                        uint32_t& nSessionId);
   bool waitLoginFailed();
 };
 

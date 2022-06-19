@@ -170,7 +170,7 @@ class TestSystemClock(BaseTestFixture):
         for session in sessions:
             session.task = asyncio.create_task(start_monitoring(session))
 
-        # Wait 30 seconds of ingame time
+        # Wait 10 seconds of ingame time
         await self.system_clock_fast_forward(speed_multiplier=5)
         await system_clock.wait_for(10 * 10**6, timeout=5)
         _, end_at = await self.system_clock_stop()

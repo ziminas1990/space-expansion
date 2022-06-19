@@ -31,7 +31,7 @@ void SpawnLogic::handleMessage(uint32_t nSessionId, const admin::Spawn &message)
     case admin::Spawn::kAsteroid: {
       response.mutable_spawn()->set_asteroid_id(
             spawnAsteroid(message.asteroid()));
-      m_pChannel->send(nSessionId, response);
+      m_pChannel->send(nSessionId, std::move(response));
       return;
     }
     default: {

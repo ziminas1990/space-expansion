@@ -56,7 +56,9 @@ protected:
 private:
   bool checkLogin(std::string const& sLogin, std::string const& nPassword) const;
 
-  bool sendLoginSuccess(uint32_t nSessionId, network::UdpEndPoint const& localAddress);
+  bool sendLoginSuccess(uint32_t nSessionId, 
+                        uint32_t nRootSessionId,
+                        network::UdpEndPoint const& localAddress);
   bool sendLoginFailed(uint32_t nSessionId, std::string const& reason);
 
 private:

@@ -107,8 +107,8 @@ protected:
   ships::Ship*       getPlatform()       { return m_pPlatform; }
   ships::Ship const* getPlatform() const { return m_pPlatform; }
 
-  inline bool sendToClient(uint32_t nSessionId, spex::Message const& message) const {
-    return network::BufferedPlayerTerminal::send(nSessionId, message);
+  inline bool sendToClient(uint32_t nSessionId, spex::Message&& message) const {
+    return network::BufferedPlayerTerminal::send(nSessionId, std::move(message));
   }
 
   void switchToIdleState() {
@@ -137,7 +137,8 @@ private:
   ships::Ship*              m_pPlatform = nullptr;
 };
 
-using BaseModulePtr     = std::shared_ptr<BaseModule>;
-using BaseModuleWeakPtr = std::weak_ptr<BaseModule>;
+using BaseModulePtr      = std::shared_ptr<BaseModule>;
+using BaseModuleConstPtr = std::shared_ptr<const BaseModule>;
+using BaseModuleWeakPtr  = std::weak_ptr<BaseModule>;
 
 } // namespace modules

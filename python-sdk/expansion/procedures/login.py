@@ -1,7 +1,12 @@
 import logging.config
 from typing import Optional
 
-from expansion.transport import UdpChannel, ProtobufChannel, ProxyChannel
+from expansion.transport import (
+    UdpChannel,
+    ProtobufChannel,
+    Channel,
+    SessionsMux
+)
 from expansion.modules.factory import module_factory
 
 import expansion.api as api
@@ -17,7 +22,9 @@ async def login(server_ip: str,
                 password: str)\
         -> (Optional[Commutator], Optional[str]):
 
-    async def tunnel_factory() -> (Optional[ProxyChannel], Optional[str]):
+    session_mux = SessionsMux()
+
+    async def tunnel_factory() -> (Optional[Channel], Optional[str]):
         udp_channel = UdpChannel(
             on_closed_cb=lambda: logging.warning(f"Socket is closed!"))
         if not await udp_channel.open():
@@ -31,13 +38,21 @@ async def login(server_ip: str,
         protobuf_channel.attach_channel(udp_channel)
         access_panel.attach_to_channel(protobuf_channel)
 
-        remote_port, error = await access_panel.login(login, password)
+        remote_port, session_id, error = \
+            await access_panel.login(login, password)
         if error is not None:
             return None, f"Login failed: {error}"
         udp_channel.set_remote(server_ip, remote_port)
-        return protobuf_channel, None
+
+        protobuf_channel.attach_to_terminal(session_mux)
+
+        session = session_mux.on_session_created(
+            session_id=session_id,
+            channel=protobuf_channel)
+        return session, None
 
     return Commutator(
+        session_mux=session_mux,
         tunnel_factory=tunnel_factory,
         modules_factory=module_factory,
         name="Root"

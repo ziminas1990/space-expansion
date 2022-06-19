@@ -1,4 +1,3 @@
-import time
 from typing import Optional, TYPE_CHECKING
 import unittest
 import asyncio

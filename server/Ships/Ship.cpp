@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 #include <Utils/YamlReader.h>
 #include <Utils/Clock.h>
+#include <World/Player.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
 
@@ -18,10 +19,12 @@ Ship::Ship(
   : BaseModule(std::string("Ship/") + sShipType,
                std::move(sName),
                std::move(pOwner)),
-    newton::PhysicalObject(weight, radius),
-    m_pCommutator(std::make_shared<modules::Commutator>())
+    newton::PhysicalObject(weight, radius)
 {
   GlobalObject<Ship>::registerSelf(this);
+  m_pCommutator = std::make_shared<modules::Commutator>(
+    getOwner().lock()->getSessionMux()
+  );
 }
 
 Ship::~Ship()
@@ -69,15 +72,13 @@ uint32_t Ship::installModule(modules::BaseModulePtr pModule)
   }
   m_Modules.insert(std::make_pair(pModule->getModuleName(), pModule));
   const uint32_t nSlot = m_pCommutator->attachModule(pModule);
-  pModule->attachToChannel(m_pCommutator);
   pModule->installOn(this);
   return nSlot;
 }
 
 void Ship::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
 {
-  if (message.choice_case() == spex::Message::kCommutator ||
-      message.choice_case() == spex::Message::kEncapsulated) {
+  if (message.choice_case() == spex::Message::kCommutator) {
     // Forwarding message to commutator
     m_pCommutator->onMessageReceived(nSessionId, message);
   } else {
@@ -136,7 +137,7 @@ void Ship::handleNavigationMessage(uint32_t nSessionId,
       pBody->set_y(getPosition().y);
       pBody->set_vx(getVelocity().getX());
       pBody->set_vy(getVelocity().getY());
-      sendToClient(nSessionId, response);
+      sendToClient(nSessionId, std::move(response));
       return;
     }
     default: {
@@ -178,7 +179,7 @@ void Ship::sendState(uint32_t nSessionId, int eStateMask) const
     pPosition->set_vy(getVelocity().getY());
   }
 
-  sendToClient(nSessionId, message);
+  sendToClient(nSessionId, std::move(message));
 }
 
 } // namespace modules

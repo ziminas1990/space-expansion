@@ -24,7 +24,7 @@ public:
   void onSessionClosed(uint32_t nSessionId) override;
 
   // Overrides of IChannel<FrameType> interface
-  bool send(uint32_t nSessionId, const FrameType& message) override;
+  bool send(uint32_t nSessionId, FrameType&& message) override;
   void attachToTerminal(TerminalPtr pTerminal) override;
   void detachFromTerminal() override;
   void closeSession(uint32_t nSessionId) override;
@@ -82,7 +82,7 @@ void ProtobufChannel<FrameType>::onSessionClosed(uint32_t nSessionId)
 }
 
 template<typename FrameType>
-bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType const& message)
+bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType&& message)
 {
   std::string buffer;
   message.SerializeToString(&buffer);
