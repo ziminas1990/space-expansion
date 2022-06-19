@@ -24,7 +24,7 @@ public:
   void onSessionClosed(uint32_t nSessionId) override;
 
   // Overrides of IChannel<FrameType> interface
-  bool send(uint32_t nSessionId, FrameType const& message) const override;
+  bool send(uint32_t nSessionId, const FrameType& message) override;
   void attachToTerminal(TerminalPtr pTerminal) override;
   void detachFromTerminal() override;
   void closeSession(uint32_t nSessionId) override;
@@ -66,7 +66,10 @@ void ProtobufChannel<FrameType>::onMessageReceived(
 {
   FrameType pdu;
   if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength))) {
-    //std::cout << "Received\n" << pdu.DebugString() << std::endl;
+    // if constexpr (std::is_same_v<FrameType, spex::Message>) {
+    //   std::cerr << "Received in #" << nSessionId << ":\n" << pdu.DebugString() 
+    //   << std::endl;
+    // }
     m_pTerminal->onMessageReceived(nSessionId, std::move(pdu));
   }
 }
@@ -79,11 +82,14 @@ void ProtobufChannel<FrameType>::onSessionClosed(uint32_t nSessionId)
 }
 
 template<typename FrameType>
-bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType const& message) const
+bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType const& message)
 {
   std::string buffer;
   message.SerializeToString(&buffer);
-  //std::cout << "Sending\n" << message.DebugString() << std::endl;
+  // if constexpr (std::is_same_v<FrameType, spex::Message>) {
+  //   std::cerr << "Sending in #" << nSessionId << ":\n" 
+  //             << message.DebugString() << std::endl;
+  // }
   return m_pChannel
       && m_pChannel->send(nSessionId, BinaryMessage(buffer.data(), buffer.size()));
 }

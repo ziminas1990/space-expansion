@@ -8,18 +8,21 @@ namespace utils {
 class ChunksPool
 {
 public:
-  ChunksPool(size_t nSmallChunksCount  = 512,
+  ChunksPool(size_t nSmallChunksCount  = 128,
              size_t nMediumChunksCount = 64,
-             size_t nHugeChunksCount   = 16,
+             size_t nHugeChunksCount   = 32,
              size_t nSmallChunksSize   = 256,
-             size_t nMediumChunksSize  = 2048,
-             size_t nHugeChunksSize    = 16384)
-    : m_nSmallChunksSize(nSmallChunksSize),   m_nSmallChunksCount(nSmallChunksCount),
-      m_nSmallArenaSize(nSmallChunksSize * nSmallChunksCount),
-      m_nMediumChunksSize(nMediumChunksSize), m_nMediumChunksCount(nMediumChunksCount),
-      m_nMediumArenaSize(nMediumChunksSize * nMediumChunksCount),
-      m_nHugeChunksSize(nHugeChunksSize),     m_nHugeChunksCount(nHugeChunksCount),
-      m_nHugeArenaSize(nHugeChunksSize * nHugeChunksCount)
+             size_t nMediumChunksSize  = 512,
+             size_t nHugeChunksSize    = 1024)
+    : m_nSmallChunksSize(nSmallChunksSize)
+    , m_nSmallChunksCount(nSmallChunksCount)
+    , m_nSmallArenaSize(nSmallChunksSize * nSmallChunksCount)
+    , m_nMediumChunksSize(nMediumChunksSize)
+    , m_nMediumChunksCount(nMediumChunksCount)
+    , m_nMediumArenaSize(nMediumChunksSize * nMediumChunksCount)
+    , m_nHugeChunksSize(nHugeChunksSize)
+    , m_nHugeChunksCount(nHugeChunksCount)
+    , m_nHugeArenaSize(nHugeChunksSize * nHugeChunksCount)
   {
     size_t nTotal = m_nSmallArenaSize + m_nMediumArenaSize + m_nHugeArenaSize;
     m_pArena = new uint8_t[nTotal];
@@ -53,26 +56,27 @@ public:
     } else if (nSize <= m_nHugeChunksSize && m_hugeChunks.size()) {
       pChunk = m_hugeChunks.back();
       m_hugeChunks.pop_back();
+    } else {
+      pChunk = new uint8_t[nSize];
     }
     return pChunk;
   }
 
-  bool release(uint8_t* pChunk)
+  void release(uint8_t* pChunk)
   {
-    if (pChunk < m_pArena)
-      return false;
-    size_t nOffset = static_cast<size_t>(pChunk - m_pArena);
+    const size_t nOffset = (pChunk >= m_pArena) 
+      ? static_cast<size_t>(pChunk - m_pArena)
+      : std::numeric_limits<size_t>::max();
     if (nOffset < m_nSmallArenaSize) {
       m_smallChunks.push_back(pChunk);
-      return true;
     } else if (nOffset < m_nSmallArenaSize + m_nMediumArenaSize) {
       m_mediumChunks.push_back(pChunk);
-      return true;
     } else if (nOffset < m_nSmallArenaSize + m_nMediumArenaSize + m_nHugeArenaSize) {
       m_hugeChunks.push_back(pChunk);
-      return true;
+    } else {
+      // Doesn't belong to pool
+      delete [] pChunk;
     }
-    return false;
   }
 
 private:

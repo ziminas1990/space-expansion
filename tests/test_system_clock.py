@@ -39,8 +39,7 @@ class TestSystemClock(BaseTestFixture):
     @BaseTestFixture.run_as_sync
     async def test_breath(self):
         commutator, error = await self.login(player='player',
-                                             server_ip="127.0.0.1",
-                                             local_ip="127.0.0.1")
+                                             server_ip="127.0.0.1")
         self.assertIsNone(error)
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
@@ -94,8 +93,7 @@ class TestSystemClock(BaseTestFixture):
     @BaseTestFixture.run_as_sync
     async def test_multiple_sessions(self):
         commutator, error = await self.login(player='player',
-                                             server_ip="127.0.0.1",
-                                             local_ip="127.0.0.1")
+                                             server_ip="127.0.0.1")
         self.assertIsNone(error)
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
@@ -146,8 +144,7 @@ class TestSystemClock(BaseTestFixture):
         await self.system_clock_fast_forward(10)
 
         commutator, error = await self.login(player='player',
-                                             server_ip="127.0.0.1",
-                                             local_ip="127.0.0.1")
+                                             server_ip="127.0.0.1")
         self.assertIsNone(error)
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
@@ -159,6 +156,7 @@ class TestSystemClock(BaseTestFixture):
             task = None
 
         async def start_monitoring(session: Session):
+            # Mutex is used to prevent creating of a number UDP connections
             async for timestamps in system_clock.monitor(session.interval):
                 session.timestamps.append(timestamps)
 
@@ -176,8 +174,6 @@ class TestSystemClock(BaseTestFixture):
         await self.system_clock_fast_forward(speed_multiplier=5)
         await system_clock.wait_for(10 * 10**6, timeout=5)
         _, end_at = await self.system_clock_stop()
-
-        duration_ms = int((end_at - started_at) / 1000)
 
         for session in sessions:
             session.task.cancel()

@@ -24,18 +24,12 @@ class Commutator(BaseModule):
         # Map: module_type -> module_name -> module
         self._connections: List[rpc.CommutatorI] = []
 
-    @BaseModule.use_session(
-        terminal_type=rpc.CommutatorI,
-        return_on_unreachable=False,
-        return_on_cancel=False)
-    async def init(
-            self,
-            session: Optional[rpc.CommutatorI] = None) -> bool:
+    async def init(self) -> bool:
         """Retrieve an information about all modules, attached to the
         commutator. Should be called after module is instantiated"""
         self.modules_info.clear()
 
-        modules: List[rpc.ModuleInfo] = await session.get_all_modules()
+        modules: List[rpc.ModuleInfo] = await self._get_all_modules()
 
         if modules is None:
             self.logger.warning(f"Failed to get modules list!")
@@ -54,6 +48,14 @@ class Commutator(BaseModule):
                     self.logger.warning(f"Can't init {module_type} '{module_name}'")
 
         return True
+
+    @BaseModule.use_session(
+        terminal_type=rpc.CommutatorI,
+        return_on_unreachable=False,
+        return_on_cancel=False)
+    async def _get_all_modules(self, session: Optional[rpc.CommutatorI] = None) \
+            -> Optional[List[rpc.ModuleInfo]]:
+        return await session.get_all_modules()
 
     @BaseModule.use_session(
         terminal_type=rpc.CommutatorI,

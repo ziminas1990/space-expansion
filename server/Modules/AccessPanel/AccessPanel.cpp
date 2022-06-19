@@ -18,12 +18,24 @@ bool AccessPanel::prephare(uint16_t, uint32_t, uint64_t)
 
 void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
-  if (message.choice_case() != spex::Message::kAccessPanel)
+  std::optional<network::UdpEndPoint> clientAddr = 
+      m_pLoginSocket->getRemoteAddr(nSessionId);
+
+  if (!clientAddr.has_value()) {
     return;
+  }
+
+  if (!clientAddr.has_value() ||
+      message.choice_case() != spex::Message::kAccessPanel) {
+    m_pLoginSocket->closeSession(nSessionId);
+    return;
+  }
 
   spex::IAccessPanel const& body = message.accesspanel();
-  if (body.choice_case() != spex::IAccessPanel::kLogin)
+  if (body.choice_case() != spex::IAccessPanel::kLogin) {
+    m_pLoginSocket->closeSession(nSessionId);
     return;
+  }
 
   spex::IAccessPanel::LoginRequest const& loginRequest = body.login();
 
@@ -32,26 +44,26 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     return;
   }
   if (!m_pConnectionManager) {
-    sendLoginFailed(nSessionId, "Internal error");
+    sendLoginFailed(nSessionId, "Server initialization error #1");
     return;
   }
 
   auto pPlayerStorage = m_pPlayersStorage.lock();
   if (!pPlayerStorage) {
-    sendLoginFailed(nSessionId, "Can't create CommandCenter");
+    sendLoginFailed(nSessionId, "Server initialization error #2");
     return;
   }
 
   world::PlayerPtr pPlayer = pPlayerStorage->getPlayer(loginRequest.login());
   if (!pPlayer) {
-    sendLoginFailed(nSessionId, "Failed to get or spawn player");
+    sendLoginFailed(nSessionId, "Failed to get or spawn player instance");
     return;
   }
 
   network::UdpSocketPtr pPlayerSocket = pPlayer->getUdpSocket();
 
   if (!pPlayerSocket) {
-    pPlayerSocket = m_pConnectionManager->createUdpConnection();
+    pPlayerSocket = m_pConnectionManager->createUdpSocket();
     if (!pPlayerSocket) {
       sendLoginFailed(nSessionId, "Can't create UDP socket");
       return;
@@ -59,12 +71,14 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     pPlayer->attachToUdpSocket(pPlayerSocket);
   }
 
-  pPlayerSocket->addRemote(
-        network::UdpEndPoint(
-          boost::asio::ip::address_v4::from_string(loginRequest.ip()),
-          uint16_t(loginRequest.port())));
+  std::optional<uint32_t> nConnectionId = 
+      pPlayerSocket->createPersistentSession(*clientAddr);
 
-  sendLoginSuccess(nSessionId, pPlayerSocket->getNativeSocket().local_endpoint());
+  if (nConnectionId.has_value()) {
+    sendLoginSuccess(nSessionId, pPlayerSocket->getLocalAddr());
+  } else {
+    sendLoginFailed(nSessionId, "Connections limit reached");
+  }
 }
 
 bool AccessPanel::checkLogin(std::string const& sLogin,

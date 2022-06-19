@@ -154,7 +154,7 @@ void Commutator::onSessionClosed(uint32_t nSessionId)
   }
 }
 
-bool Commutator::send(uint32_t nTunnelId, spex::Message const& message) const
+bool Commutator::send(uint32_t nTunnelId, spex::Message const& message)
 {
   // in this context, sessionId (we got it from terminal) is a tunnelId
   assert(nTunnelId > 0);

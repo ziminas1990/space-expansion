@@ -8,7 +8,8 @@ UdpDispatcher::UdpDispatcher(boost::asio::io_service& ioContext,
     m_portsPool(nPoolBegin, nPoolEnd)
 {}
 
-UdpSocketPtr UdpDispatcher::createUdpConnection(uint16_t nLocalPort)
+UdpSocketPtr UdpDispatcher::createUdpSocket(
+  uint16_t nLocalPort, bool lPromiscMode)
 {
   std::lock_guard<utils::Mutex> guard(m_Mutex);
 
@@ -17,7 +18,7 @@ UdpSocketPtr UdpDispatcher::createUdpConnection(uint16_t nLocalPort)
     if (!nLocalPort)
       return UdpSocketPtr();
   }
-  return std::make_shared<UdpSocket>(m_IOContext, nLocalPort);
+  return std::make_shared<UdpSocket>(m_IOContext, nLocalPort, lPromiscMode);
 }
 
 bool UdpDispatcher::prephare(uint16_t, uint32_t, uint64_t)

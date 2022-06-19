@@ -21,6 +21,10 @@ class AccessPanel :
     public conveyor::IAbstractLogic
 {
 public:
+
+  void attachToLoginSocket(network::UdpSocketPtr pLoginSocket)
+  { m_pLoginSocket = pLoginSocket; }
+
   void attachToConnectionManager(network::UdpDispatcherPtr pManager)
   { m_pConnectionManager = pManager; }
 
@@ -56,6 +60,7 @@ private:
   bool sendLoginFailed(uint32_t nSessionId, std::string const& reason);
 
 private:
+  network::UdpSocketPtr         m_pLoginSocket;
   network::UdpDispatcherPtr     m_pConnectionManager;
   world::PlayerStorageWeakPtr   m_pPlayersStorage;
 };

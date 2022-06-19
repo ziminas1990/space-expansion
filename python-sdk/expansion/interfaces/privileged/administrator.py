@@ -59,8 +59,9 @@ class Administrator:
         if self.token is not None:
             return False, "Session is already opened!"
 
-        if not await self.udp_channel.open(ip_address, port):
+        if not await self.udp_channel.open():
             return False, f"Failed to open UDP socket (dest: {ip_address}:{port})"
+        self.udp_channel.set_remote(ip_address, port)
 
         status, self.token = await self.access_panel.login(login, password)
         if not status:

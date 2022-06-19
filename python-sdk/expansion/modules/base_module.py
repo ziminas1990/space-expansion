@@ -63,7 +63,7 @@ class BaseModule:
             if tunnel is None:
                 self.logger.warning(
                     f"Failed to open tunnel for the {terminal_type.__name__} "
-                    f"({attempt + 1} / {retries}: {error}")
+                    f"({attempt + 1} / {retries}): {error}")
                 continue
             # Create terminal and link it with tunnel
             terminal: Optional[Endpoint] = terminal_type()

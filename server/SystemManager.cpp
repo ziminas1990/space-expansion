@@ -106,7 +106,7 @@ void SystemManager::run(bool lColdStart)
   printStatisticHeader();
 
   while (!m_clock.isTerminated()) {
-    uint32_t nIntervalUs = m_clock.getNextInterval();
+    const uint32_t nIntervalUs = m_clock.getNextInterval();
     m_pConveyor->proceed(nIntervalUs);
     if (nIntervalUs < nMinTickLengthUs) {
       std::this_thread::yield();
@@ -139,7 +139,7 @@ void SystemManager::run(bool lColdStart)
 
   while (!m_clock.isTerminated()) {
     m_barrier.wait();
-    uint32_t nIntervalUs = m_clock.getNextInterval();
+    const uint32_t nIntervalUs = m_clock.getNextInterval();
     m_pConveyor->proceed(nIntervalUs);
     m_barrier.wait();
   }
@@ -206,20 +206,22 @@ bool SystemManager::configureComponents()
 bool SystemManager::linkComponents()
 {
   if (m_pPrivilegedChannel && m_pAdministratorPanel) {
-    m_pPrivilegedSocket = m_pUdpDispatcher->createUdpConnection(
-          m_configuration.getAdministratorCfg().getPort());
+    m_pPrivilegedSocket = m_pUdpDispatcher->createUdpSocket(
+          m_configuration.getAdministratorCfg().getPort(), true);
     m_pPrivilegedSocket->attachToTerminal(m_pPrivilegedChannel);
     m_pPrivilegedChannel->attachToChannel(m_pPrivilegedSocket);
     m_pPrivilegedChannel->attachToTerminal(m_pAdministratorPanel);
+    m_pAdministratorPanel->attachToAdminSocket(m_pPrivilegedSocket);
     m_pAdministratorPanel->attachToChannel(m_pPrivilegedChannel);
     m_pAdministratorPanel->attachToSystemManager(this);
   }
 
-  m_pLoginSocket = m_pUdpDispatcher->createUdpConnection(
-        m_configuration.getLoginUdpPort());
+  m_pLoginSocket = m_pUdpDispatcher->createUdpSocket(
+        m_configuration.getLoginUdpPort(), true);
   m_pLoginSocket->attachToTerminal(m_pLoginChannel);
   m_pLoginChannel->attachToChannel(m_pLoginSocket);
   m_pLoginChannel->attachToTerminal(m_pAccessPanel);
+  m_pAccessPanel->attachToLoginSocket(m_pLoginSocket);
   m_pAccessPanel->attachToChannel(m_pLoginChannel);
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);

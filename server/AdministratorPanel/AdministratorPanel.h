@@ -25,6 +25,10 @@ public:
 
   void attachToSystemManager(SystemManager* pSystemManager);
 
+  void attachToAdminSocket(network::UdpSocketPtr pSocket) {
+    m_pAdminSocket = pSocket;
+  }
+
   // from BufferedPrivilegedTerminal->IBinaryTerminal interface:
   bool openSession(uint32_t /*nSessionId*/) override { return true; }
   void onSessionClosed(uint32_t /*nSessionId*/) override {}
@@ -48,6 +52,7 @@ private:
 private:
   config::AdministratorCfg    m_cfg;
   SystemManager*              m_pSystemManager;
+  network::UdpSocketPtr       m_pAdminSocket;
   administrator::ClockControl m_clockControl;
   administrator::Screen       m_screen;
   administrator::SpawnLogic   m_spawner;
@@ -55,8 +60,7 @@ private:
   utils::RandomSequence m_tokenGenerator;
 
   std::map<uint32_t, uint64_t> m_tokens;
-    // Key is sessionID, value is token
-
+    // Key is a sessionID, value is a token
 };
 
 using AdministratorPanelPtr = std::shared_ptr<AdministratorPanel>;

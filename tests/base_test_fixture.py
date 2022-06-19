@@ -86,15 +86,16 @@ class BaseTestFixture(unittest.TestCase):
         self.server.stop()
         BaseTestFixture.event_loop = None
 
-    async def login(self, player: str, server_ip: str, local_ip: str) \
+    async def login(self, player: str, server_ip: str) \
             -> (Optional[modules.Commutator], str):
         general_cfg = self.config.general
-        commutator = await procedures.login(
+        commutator, problem = await procedures.login(
             server_ip=server_ip,
             login_port=general_cfg.login_udp_port,
             login=self.config.players[player].login,
-            password=self.config.players[player].password,
-            local_ip=local_ip)
+            password=self.config.players[player].password)
+        if problem:
+            return None, problem
         if not await commutator.init():
             # TODO: release commutators resources
             return None, "Failed to init root commutator"

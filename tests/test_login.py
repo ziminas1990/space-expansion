@@ -1,3 +1,6 @@
+import asyncio
+import logging
+
 from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
@@ -43,6 +46,14 @@ class TestLogin(BaseTestFixture):
     @BaseTestFixture.run_as_sync
     async def test_login(self):
         commutator, error = \
-            await self.login("spy007", "127.0.0.1", "127.0.0.1")
-        self.assertIsNotNone(commutator)
+            await self.login("spy007", "127.0.0.1")
         self.assertIsNone(error)
+        self.assertIsNotNone(commutator)
+
+    @BaseTestFixture.run_as_sync
+    async def test_logins_in_turns(self):
+        for i in range(8):  # 8 is a hardcoded server's limit
+            logging.info(f"Iteration {i}")
+            commutator, error = \
+                await self.login("spy007", "127.0.0.1")
+            self.assertIsNotNone(commutator, f"{error} at iteration {i}")
