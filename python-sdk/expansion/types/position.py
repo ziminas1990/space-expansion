@@ -1,5 +1,4 @@
-
-from typing import Optional, NamedTuple, Tuple, Union
+from typing import Optional, NamedTuple, Tuple, Union, List
 import math
 from expansion.types import Vector, TimePoint
 
@@ -25,7 +24,17 @@ class Position(NamedTuple):
         position.vx = self.velocity.x
         position.vy = self.velocity.y
 
+    def to_pod(self) -> List[float]:
+        return [self.x, self.y, self.velocity.x, self.velocity.y]
+
+    def sqr_distance_to(self, other: Union['Position', Tuple[float, float]]) -> float:
+        if isinstance(other, Position):
+            return (self.x - other.x)**2 + (self.y - other.y)**2
+        else:
+            return (self.x - other[0]) ** 2 + (self.y - other[1]) ** 2
+
     def distance_to(self, other: Union['Position', Tuple[float, float]]) -> float:
+        # return math.sqrt(self.sqr_distance_to(other))
         if isinstance(other, Position):
             return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
         else:
@@ -36,6 +45,23 @@ class Position(NamedTuple):
             return Vector(x=other.x - self.x, y=other.y - self.y)
         else:
             return Vector(x=other[0] - self.x, y=other[1] - self.y)
+
+    def well_predicated_by(self,
+                           other: Optional["Position"],
+                           position_precise: float = 0.01,
+                           velocity_precise: float = 0.01) -> bool:
+        # Return true if this position can be predicated from 'other'
+        # position
+        if other is None:
+            return False
+        predicted = other.predict(at=self.timestamp.usec())
+        abs_sqr_pos_error = self.sqr_distance_to(predicted)
+        if abs_sqr_pos_error > position_precise * position_precise:
+            return False
+        abs_sqr_velocity_error = (self.velocity - predicted.velocity).abs_sqr()
+        if abs_sqr_velocity_error > velocity_precise * velocity_precise:
+            return False
+        return True
 
     def expired(self, timeout_ms: int = 100) -> bool:
         assert self.timestamp is not None

@@ -56,10 +56,31 @@ class PassiveScanner(BaseModule):
             status, objects = await session.wait_update()
 
     @staticmethod
-    def get_by_name(commutator: "Commutator", name: str) -> Optional["PassiveScanner"]:
+    def get_by_name(commutator: "Commutator", name: str) \
+            -> Optional["PassiveScanner"]:
         return BaseModule._get_by_name(
             commutator=commutator,
             type=ModuleType.PASSIVE_SCANNER,
             name=name
         )
 
+    @staticmethod
+    async def get_most_ranged(commutator: "Commutator") \
+            -> Optional["PassiveScanner"]:
+        async def better_than(candidate: "PassiveScanner",
+                              best: "PassiveScanner"):
+            best_spec = await best.get_specification()
+            if not best_spec:
+                return False
+            candidate_spec = await candidate.get_specification()
+            if not candidate_spec:
+                return False
+            return candidate_spec.scanning_radius_km > \
+                   best_spec.scanning_radius_km
+
+        # Return a scanner, that has the greates scanning range
+        return await BaseModule._find_best(
+            commutator=commutator,
+            type=ModuleType.PASSIVE_SCANNER,
+            better_than=better_than
+        )

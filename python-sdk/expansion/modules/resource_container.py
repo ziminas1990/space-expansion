@@ -138,6 +138,23 @@ class ResourceContainer(BaseModule):
         )
 
     @staticmethod
+    async def find_most_voluminous(commutator: "Commutator") -> Optional["ResourceContainer"]:
+        async def better_than(candidate: "ResourceContainer",
+                              best: "ResourceContainer"):
+            best_content = await best.get_content()
+            if not best_content:
+                return False
+            content = await candidate.get_content()
+            if not content:
+                return False
+            return content.volume > best_content.volume
+
+        return await BaseModule._find_best(
+            commutator=commutator,
+            type=ModuleType.RESOURCE_CONTAINER,
+            better_than=better_than)
+
+    @staticmethod
     async def find_most_free(commutator: "Commutator") -> Optional["ResourceContainer"]:
         async def better_than(candidate: "ResourceContainer",
                               best: "ResourceContainer"):

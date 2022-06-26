@@ -13,6 +13,9 @@ class Vector:
     def abs(self) -> float:
         return math.sqrt(self.x ** 2 + self.y ** 2)
 
+    def abs_sqr(self) -> float:
+        return self.x ** 2 + self.y ** 2
+
     def __neg__(self) -> 'Vector':
         return Vector(x=-self.x, y=-self.y)
 
@@ -73,7 +76,7 @@ class Vector:
         self.y *= k
         return self
 
-    def almost_null(self, delta = 0.001) -> bool:
+    def almost_null(self, delta=0.001) -> bool:
         return self.x ** 2 + self.y ** 2 < delta
 
     def decompose(self, other: "Vector") -> Tuple["Vector", "Vector"]:

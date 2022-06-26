@@ -25,7 +25,7 @@ class AccessPanelI:
 
         response, _ = await self.socket.wait_message()
         if not response:
-            return None, "response timeout"
+            return 0, 0, "response timeout"
 
         access_granted = get_message_field(
             response,

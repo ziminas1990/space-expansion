@@ -73,6 +73,7 @@ async def get_most_powerful_engine(commutator: Commutator) -> Optional[Engine]:
             choice = (engine, engine_spec)
     return choice[0] if choice else None
 
+
 def get_cargo(commutator: Commutator, name: str) -> Optional[ResourceContainer]:
     try:
         cargo = commutator.modules[ModuleType.RESOURCE_CONTAINER.value][name]

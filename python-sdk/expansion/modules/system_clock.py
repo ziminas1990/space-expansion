@@ -1,13 +1,16 @@
-from typing import Optional, Set, Callable, Awaitable, AsyncGenerator
+from typing import Optional, Set, Callable, Awaitable, AsyncGenerator, TYPE_CHECKING
 import threading
-import asyncio
 from math import isclose
 
 import expansion.interfaces.rpc as rpc
 import expansion.utils as utils
 import expansion.types as types
+from expansion.modules import ModuleType
 
 from .base_module import BaseModule, TunnelFactory
+
+if TYPE_CHECKING:
+    from expansion.modules import Commutator
 
 ConnectionFactory = Callable[[], Awaitable[rpc.SystemClockI]]
 
@@ -120,3 +123,10 @@ class SystemClock(rpc.SystemClockI, BaseModule):
             if self.server_time.usec() < timestamp:
                 self.server_time.update(timestamp)
             yield timestamp
+
+    @staticmethod
+    def find(commutator: "Commutator") -> Optional["SystemClock"]:
+        return BaseModule._get_any(
+            commutator=commutator,
+            type=ModuleType.SYSTEM_CLOCK
+        )

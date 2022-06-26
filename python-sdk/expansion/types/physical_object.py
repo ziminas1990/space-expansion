@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 import expansion.types as types
 
 
@@ -15,6 +15,17 @@ class PhysicalObject:
 
     def update(self, other: "PhysicalObject"):
         assert self.object_id == other.object_id
-        assert self.object_type == other.object_type
+        assert self.object_type == types.ObjectType.UNKNOWN or \
+               self.object_type == other.object_type
         if self.position is None or other.position.more_recent_than(self.position):
             self.position = other.position
+
+    def to_pod(self) -> Dict[str, Any]:
+        return {
+            "type": self.object_type.value,
+            "id": self.object_id,
+            "position": self.position.to_pod(),
+            "signature": {
+                "r": self.radius
+            }
+        }

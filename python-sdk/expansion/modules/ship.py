@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, AsyncIterable, TYPE_CHECKING
+from typing import Optional, List, AsyncIterable, TYPE_CHECKING
 
 import expansion.interfaces.rpc as rpc
 from expansion.types import Position
@@ -146,3 +146,16 @@ class Ship(Commutator, BaseModule):
                 except KeyError:
                     continue
         return None
+
+    @staticmethod
+    def get_all_ships(commutator: "Commutator") -> List["Ship"]:
+        ships: List[Ship] = []
+        for module_type, name2ship in commutator.modules.items():
+            if module_type.startswith(ModuleType.SHIP.value):
+                # Actually, we could just do
+                # ships.extend(name2ship.values())
+                # but using a loop to make type checker calm
+                for ship in name2ship.values():
+                    assert isinstance(ship, Ship)  # for type checker
+                    ships.append(ship)
+        return ships

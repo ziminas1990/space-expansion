@@ -34,7 +34,7 @@ class Commutator(BaseModule):
         commutator. Should be called after module is instantiated"""
         self.modules_info.clear()
 
-        modules: List[rpc.ModuleInfo] = await self._get_all_modules()
+        modules: Optional[List[rpc.ModuleInfo]] = await self._get_all_modules()
 
         if modules is None:
             self.logger.warning(f"Failed to get modules list!")
@@ -56,8 +56,8 @@ class Commutator(BaseModule):
 
     @BaseModule.use_session(
         terminal_type=rpc.CommutatorI,
-        return_on_unreachable=False,
-        return_on_cancel=False)
+        return_on_unreachable=None,
+        return_on_cancel=None)
     async def _get_all_modules(self, session: Optional[rpc.CommutatorI] = None) \
             -> Optional[List[rpc.ModuleInfo]]:
         return await session.get_all_modules()

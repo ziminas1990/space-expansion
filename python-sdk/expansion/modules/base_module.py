@@ -101,6 +101,26 @@ class BaseModule:
             return None
 
     @staticmethod
+    def _get_any(
+            commutator: "Commutator",
+            type: ModuleType) \
+            -> Optional["BaseModule"]:
+        try:
+            for candidate in commutator.modules[type.value].values():
+                return candidate
+            return None
+        except KeyError:
+            return None
+
+    @staticmethod
+    def _get_all(commutator: "Commutator", type: ModuleType) \
+            -> List["BaseModule"]:
+        try:
+            return list(commutator.modules[type.value].values())
+        except KeyError:
+            return []
+
+    @staticmethod
     def use_session(
             *,
             terminal_type: Type,
