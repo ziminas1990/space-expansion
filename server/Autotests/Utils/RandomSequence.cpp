@@ -95,7 +95,7 @@ TEST(RandomSequence, generate)
     {0, 1}
   };
 
-  for (const std::pair<int, int> limit: limits) {
+  for (const std::pair<int, int>& limit: limits) {
     RandomSequence generator(3234);
     std::vector<int> data = generator.generate(
           nTotal, limit.first, limit.second);

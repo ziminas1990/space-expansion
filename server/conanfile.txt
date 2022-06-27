@@ -1,5 +1,5 @@
 [requires]
-boost/1.69.0
+boost/1.79.0
 protobuf/3.9.1
 yaml-cpp/0.7.0
 gtest/1.8.1
