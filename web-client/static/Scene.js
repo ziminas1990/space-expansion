@@ -3,12 +3,20 @@ class Scene {
   constructor(stage) {
     this.stage = stage
     this.view = new StageView()
-    this.binding = new StageViewBinder(this.stage, this.view)
 
     this.asteroids_layer = new Konva.Layer();
     this.ships_layer = new Konva.Layer();
+    this.gui_layer = new Konva.Layer();
     this.stage.add(this.asteroids_layer);
     this.stage.add(this.ships_layer);
+    this.stage.add(this.gui_layer);
+
+    this.binding = new StageViewBinder(
+      this.view, 
+      this.stage,
+      // Note: GUI layer should not be moved or scaled by user
+      [this.ships_layer, this.asteroids_layer]
+    )
 
     this.shapes = new Map()
   }

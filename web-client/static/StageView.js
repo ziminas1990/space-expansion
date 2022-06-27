@@ -31,10 +31,10 @@ class StageView {
     return this.to_local(stage.getPointerPosition())
   }
 
-  apply(stage) {
-    let [, , , , current_tx, current_ty] = stage.getTransform().getMatrix()
-    stage.move({ "x": this.m[2] - current_tx, "y": this.m[5] - current_ty })
-    stage.scale({ "x": this.m[0], "y": this.m[4] })
+  apply(layer) {
+    let [, , , , current_tx, current_ty] = layer.getTransform().getMatrix()
+    layer.move({ "x": this.m[2] - current_tx, "y": this.m[5] - current_ty })
+    layer.scale({ "x": this.m[0], "y": this.m[4] })
   }
 
   bind_to_stage(stage) {
@@ -42,8 +42,9 @@ class StageView {
   }
 }
 
+
 class StageViewBinder {
-  constructor(stage, view) {
+  constructor(view, stage, layers) {
     let mouse_down = false;
     let prev_x = 0;
     let prev_y = 0;
@@ -60,7 +61,10 @@ class StageViewBinder {
       let [x, y] = view.get_pointer_position(stage)
       if (mouse_down) {
         view.translate(x - prev_x, y - prev_y)
-        view.apply(stage)
+        // Apply transform to layers
+        for (let layer of layers) {
+          view.apply(layer)
+        }
       }
       [prev_x, prev_y] = view.get_pointer_position(stage)
     });
@@ -95,7 +99,10 @@ class StageViewBinder {
       } else {
         view.scale(x, y, 1 / scale_by)
       }
-      view.apply(stage)
+      // Apply transform to layers
+      for (let layer of layers) {
+        view.apply(layer)
+      }
     });
   }
 }
