@@ -39,10 +39,11 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
         loop = asyncio.get_running_loop()
         self.transport, _ = await loop.create_datagram_endpoint(
             protocol_factory=lambda: self,
+            local_addr=("0.0.0.0", 0),  # Let system to use chose a port
             family=socket.AF_INET
         )
         self.local_addr = self.transport.get_extra_info("sockname")
-        local_port=self.local_addr[1]
+        local_port = self.local_addr[1]
         if self.channel_name == utils.generate_name(type(self)):
             self.channel_name = f"UDP.{local_port}"
         return self.transport is not None
