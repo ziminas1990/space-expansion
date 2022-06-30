@@ -14,6 +14,7 @@ function runApp() {
   }
 
   // Create components:
+  connection = new Connection()
   items = new ItemsContainer()
   let stage = new Konva.Stage({
     container: 'plot',
@@ -24,13 +25,13 @@ function runApp() {
 
   // Create a web-socket connection
   set_status("Connecting...")
-  const socket = new WebSocket('ws://127.0.0.1:5000');
-
-  socket.addEventListener('open', function (event) {
-    document.getElementById("status").innerHTML = "Connection established";
-  });
-
-  socket.addEventListener('message', function (event) {
+  connection.open(
+    window.location.host,
+    function (event) {
+      document.getElementById("status").innerHTML = "Connection established";
+    }
+  )
+  connection.addEventListener('message', function (event) {
     const update = JSON.parse(event.data);
     timestamp.server_us = update.ts
     timestamp.local_ms = Date.now()
