@@ -65,6 +65,27 @@ class StageViewBinder {
       [prev_x, prev_y] = view.get_pointer_position(stage)
     });
 
+    stage.on("touchstart", function (evt) {
+      mouse_down = true;
+      [prev_x, prev_y] = view.get_pointer_position(stage)
+    });
+
+    stage.on("touchend", function (evt) {
+      mouse_down = false;
+    });
+
+    stage.on("touchmove", function (evt) {
+      let [x, y] = view.get_pointer_position(stage)
+      if (mouse_down) {
+        view.translate(x - prev_x, y - prev_y)
+        // Apply transform to layers
+        for (let layer of layers) {
+          view.apply(layer)
+        }
+      }
+      [prev_x, prev_y] = view.get_pointer_position(stage)
+    });
+
     stage.on("wheel", function (e) {
       let [x, y] = view.get_pointer_position(stage)
       e.evt.preventDefault();
