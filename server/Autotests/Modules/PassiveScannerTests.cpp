@@ -15,6 +15,7 @@
 #include <Autotests/TestUtils/Connector.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/ClientSDK/Modules/ClientPassiveScanner.h>
+#include <Autotests/Modules/ModulesTestFixture.h>
 
 namespace autotests {
 
@@ -81,7 +82,7 @@ public:
   }
 };
 
-class PassiveScannerTests : public ::testing::Test
+class PassiveScannerTests : public ModulesTestFixture
 {
 public:
   PassiveScannerTests()
@@ -89,11 +90,9 @@ public:
     , m_nRadiusKm(1000)         // 1000 km
     , m_nMaxUpdateTimeMs(5000)  // 5 sec
     , m_nPassiveScannerSlot(modules::Commutator::invalidSlot())
-    , m_conveyor(1)
   {}
 
   void SetUp() override;
-  void TearDown() override;
 
   client::ClientCommutatorPtr shipCommutator();
 
@@ -130,47 +129,15 @@ protected:
   uint32_t    m_nShipSlot;
   uint32_t    m_nPassiveScannerSlot;
 
-  // Components on server side
-  utils::Clock                      m_clock;
-  conveyor::Conveyor                m_conveyor;
-  modules::PassiveScannerManagerPtr m_pPassiveScannerManager;
-  modules::CommutatorManagerPtr     m_pCommutatorManager;
-  newton::NewtonEnginePtr           m_pNewtonEngine;
-  std::function<void()>             m_fConveyorProceeder;
-
-  world::PlayerPtr                  m_pPlayer;
-  modules::ShipPtr                  m_pShip;
-  modules::PassiveScannerPtr        m_pPassiveScanner;
-
-  // Component, that connects client and server sides
-  PlayerConnectorPtr   m_pConnection;
-  PlayerConnectorGuard m_connectionGuard;
-
-  // Components on client's side
-  client::RouterPtr           m_pRouter;
-  client::ClientCommutatorPtr m_pClientCommutator;
-
+  modules::ShipPtr             m_pShip;
+  modules::PassiveScannerPtr m_pPassiveScanner;
 };
 
 void PassiveScannerTests::SetUp()
 {
-  m_clock.switchToDebugMode();
-  m_clock.setDebugTickUs(25000);  // 25ms per tick
-  m_clock.proceedRequest(0xFFFFFFFF);  // As long as it is required
-  m_clock.start(true);
-  utils::GlobalClock::set(&m_clock);
+  ModulesTestFixture::SetUp();
 
-  m_pCommutatorManager = std::make_shared<modules::CommutatorManager>();
-  m_pPassiveScannerManager = std::make_shared<modules::PassiveScannerManager>();
-  m_pNewtonEngine = std::make_shared<newton::NewtonEngine>();
-  m_conveyor.addLogicToChain(m_pNewtonEngine);
-  m_conveyor.addLogicToChain(m_pCommutatorManager);
-  m_conveyor.addLogicToChain(m_pPassiveScannerManager);
-
-  m_fConveyorProceeder = [this]() { this->proceedEnviroment(); };
-
-  // Components on server
-  m_pPlayer = world::Player::makeDummy("Player-1");
+  // Create a ship with a passive scanner on it
   m_pShip = std::make_shared<modules::Ship>(
         "Scout", "scout-1", m_pPlayer, 1000, 10);
   m_nShipSlot = m_pPlayer->getCommutator()->attachModule(m_pShip);
@@ -182,29 +149,6 @@ void PassiveScannerTests::SetUp()
         m_nMaxUpdateTimeMs);
   m_nPassiveScannerSlot = m_pShip->installModule(m_pPassiveScanner);
   ASSERT_NE(modules::Commutator::invalidSlot(), m_nPassiveScannerSlot);
-
-  const uint32_t nConnectionId = 5;
-  const uint32_t nRootSessionId = m_pPlayer->onNewConnection(nConnectionId);
-
-  // Components on client
-  m_pRouter = std::make_shared<client::Router>();
-  m_pRouter->setProceeder(m_fConveyorProceeder);
-
-  m_pConnection = std::make_shared<PlayerConnector>(nConnectionId);
-  m_connectionGuard.link(m_pConnection,
-                         m_pPlayer->getSessionMux()->asTerminal(),
-                         m_pRouter);
-
-  m_pClientCommutator = std::make_shared<client::ClientCommutator>(m_pRouter);
-  m_pClientCommutator->attachToChannel(m_pRouter->openSession(nRootSessionId));
-}
-
-void PassiveScannerTests::TearDown()
-{
-  m_pClientCommutator->detachChannel();
-  utils::GlobalClock::reset();
-  // Destructor will destroy 'm_connectionGuard' object, that will unlink
-  // the rest of the components
 }
 
 client::ClientCommutatorPtr PassiveScannerTests::shipCommutator()

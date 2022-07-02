@@ -170,7 +170,7 @@ TEST_F(EngineControllTests, MovingWithEngineTest)
   ASSERT_TRUE(ship.getPosition(currentPosition, currentVelocity));
 
   // 6. calculating expected position and velocity
-  double nShipMassKg = 10;
+  const double nShipMassKg = 10;
   geometry::Vector expectedAcc = thrust/nShipMassKg;
   geometry::Point expectedPosition =
       startPosition + startVelocity * nIntervalSec +
