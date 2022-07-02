@@ -6,19 +6,8 @@
 #include <yaml-cpp/yaml.h>
 
 #include <Privileged.pb.h>
-#include <Modules/Commutator/CommutatorManager.h>
 #include <Modules/AccessPanel/AccessPanel.h>
-#include <Modules/Ship/ShipManager.h>
-#include <Modules/Commutator/CommutatorManager.h>
-#include <Modules/Engine/EnginesManager.h>
-#include <Modules/CelestialScanner/CelestialScannerManager.h>
-#include <Modules/AsteroidScanner/AsteroidScannerManager.h>
-#include <Modules/ResourceContainer/ResourceContainerManager.h>
-#include <Modules/AsteroidMiner/AsteroidMinerManager.h>
-#include <Modules/BlueprintsStorage/BlueprintsStorageManager.h>
-#include <Modules/Shipyard/ShipyardManager.h>
-#include <Modules/SystemClock/SystemClockManager.h>
-#include <Modules/PassiveScanner/PassiveScannerManager.h>
+#include <Modules/Managers.h>
 #include <Conveyor/Proceeders.h>
 #include <World/Resources.h>
 #include <Arbitrators/ArbitratorsFactory.h>

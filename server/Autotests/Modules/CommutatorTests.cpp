@@ -4,8 +4,8 @@
 
 #include <Conveyor/Conveyor.h>
 #include <Modules/Fwd.h>
+#include <Modules/Managers.h>
 #include <Modules/Commutator/Commutator.h>
-#include <Modules/Commutator/CommutatorManager.h>
 #include <Autotests/TestUtils/Connector.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
 

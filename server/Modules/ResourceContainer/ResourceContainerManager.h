@@ -3,7 +3,6 @@
 
 namespace modules {
 
-
 class ResourceContainerManager
     : public CommonModulesManager<ResourceContainer, Cooldown::eResourceContainer>
 {

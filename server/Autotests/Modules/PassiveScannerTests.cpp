@@ -5,9 +5,8 @@
 #include <Utils/Randomizer.h>
 #include <World/Grid.h>
 #include <World/Player.h>
+#include <Modules/Managers.h>
 #include <Modules/PassiveScanner/PassiveScanner.h>
-#include <Modules/PassiveScanner/PassiveScannerManager.h>
-#include <Modules/Commutator/CommutatorManager.h>
 #include <Newton/NewtonEngine.h>
 #include <Geometry/Rectangle.h>
 #include <Modules/Ship/Ship.h>
