@@ -1,7 +1,7 @@
 #include "ShipBlueprint.h"
 
 #include <yaml-cpp/yaml.h>
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 #include <Blueprints/BlueprintsLibrary.h>
 #include <World/Player.h>
 #include <Utils/YamlReader.h>
@@ -21,13 +21,13 @@ modules::BaseModulePtr ShipBlueprint::build(
   return build(std::move(sName), pOwner, library);
 }
 
-ships::ShipPtr ShipBlueprint::build(
+modules::ShipPtr ShipBlueprint::build(
     std::string sName,
     world::PlayerWeakPtr pOwner,
     BlueprintsLibrary const& customLibrary) const
 {
-  ships::ShipPtr pShip =
-      std::make_shared<ships::Ship>(
+  modules::ShipPtr pShip =
+      std::make_shared<modules::Ship>(
         m_sType, std::move(sName), pOwner, m_weight, m_radius);
 
   for (auto const& kv : m_modules)
@@ -35,7 +35,7 @@ ships::ShipPtr ShipBlueprint::build(
     BaseBlueprintPtr pBlueprint = customLibrary.getBlueprint(kv.second);
     assert(pBlueprint);
     if (!pBlueprint) {
-      return ships::ShipPtr();
+      return modules::ShipPtr();
     }
 
     modules::BaseModulePtr pModule = pBlueprint->build(kv.first, pOwner);
@@ -119,4 +119,4 @@ void ShipBlueprint::dump(YAML::Node& out) const
         .add("modules", std::move(modules));
 }
 
-} // namespace ships
+} // namespace modules

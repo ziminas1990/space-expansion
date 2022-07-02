@@ -7,10 +7,6 @@
 #include <Utils/YamlForwardDeclarations.h>
 #include <Utils/RandomSequence.h>
 
-namespace ships {
-class Ship;
-}
-
 namespace world {
 class Player;
 using PlayerWeakPtr = std::weak_ptr<world::Player>;
@@ -18,6 +14,8 @@ using PlayerWeakPtr = std::weak_ptr<world::Player>;
 
 namespace modules
 {
+
+class Ship;
 
 // Each module should inherite BaseModule class
 class BaseModule : public network::BufferedPlayerTerminal
@@ -73,7 +71,7 @@ public:
   bool isActive()       const { return m_eState == State::eActive; }
   bool isDeactivating() const { return m_eState == State::eDeactivating; }
 
-  void installOn(ships::Ship* pShip);
+  void installOn(modules::Ship* pShip);
 
   world::PlayerWeakPtr getOwner() const { return m_pOwner; }
 
@@ -101,11 +99,11 @@ protected:
   virtual void handleSystemClockMessage(uint32_t, spex::ISystemClock const&) {}
 
   // Will be called once, when module is installed on some ship
-  virtual void onInstalled(ships::Ship* /*pPlatform*/) {}
+  virtual void onInstalled(modules::Ship* /*pPlatform*/) {}
 
   // returns a pointer to the ship, on which module is installed
-  ships::Ship*       getPlatform()       { return m_pPlatform; }
-  ships::Ship const* getPlatform() const { return m_pPlatform; }
+  modules::Ship*       getPlatform()       { return m_pPlatform; }
+  modules::Ship const* getPlatform() const { return m_pPlatform; }
 
   inline bool sendToClient(uint32_t nSessionId, spex::Message&& message) const {
     return network::BufferedPlayerTerminal::send(nSessionId, std::move(message));
@@ -134,7 +132,7 @@ private:
   world::PlayerWeakPtr      m_pOwner;
   Status                    m_eStatus;
   State                     m_eState;
-  ships::Ship*              m_pPlatform = nullptr;
+  modules::Ship*            m_pPlatform = nullptr;
 };
 
 using BaseModulePtr      = std::shared_ptr<BaseModule>;

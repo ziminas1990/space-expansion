@@ -7,7 +7,7 @@
 #include <Network/UdpSocket.h>
 #include <Network/SessionMux.h>
 #include <Modules/Commutator/Commutator.h>
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
 #include <Modules/SystemClock/SystemClock.h>
 #include <Blueprints/BlueprintsLibrary.h>
@@ -64,7 +64,7 @@ private:
     // Every player has it's own set of blueprint, that can be improoved during 
     // the game. At the beginning, all players have the same blueprints library
 
-  std::vector<ships::ShipPtr>   m_ships;
+  std::vector<modules::ShipPtr> m_ships;
 };
 
 } // namespace world

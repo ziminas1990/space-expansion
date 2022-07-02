@@ -63,8 +63,8 @@ PlayerPtr Player::load(
     if (!pShipBlueprint)
       return PlayerPtr();
 
-    ships::ShipPtr pShip =
-        std::static_pointer_cast<ships::Ship>(
+    modules::ShipPtr pShip =
+        std::static_pointer_cast<modules::Ship>(
           pShipBlueprint->build(std::move(sShipName), pPlayer));
     assert(pShip);
     if (!pShip)

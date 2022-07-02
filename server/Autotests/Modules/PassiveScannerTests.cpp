@@ -10,7 +10,7 @@
 #include <Modules/Commutator/CommutatorManager.h>
 #include <Newton/NewtonEngine.h>
 #include <Geometry/Rectangle.h>
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 #include <World/CelestialBodies/Asteroid.h>
 #include <World/CelestialBodies/AsteroidGenerator.h>
 #include <Autotests/TestUtils/Connector.h>
@@ -140,7 +140,7 @@ protected:
   std::function<void()>             m_fConveyorProceeder;
 
   world::PlayerPtr                  m_pPlayer;
-  ships::ShipPtr                    m_pShip;
+  modules::ShipPtr                  m_pShip;
   modules::PassiveScannerPtr        m_pPassiveScanner;
 
   // Component, that connects client and server sides
@@ -172,7 +172,7 @@ void PassiveScannerTests::SetUp()
 
   // Components on server
   m_pPlayer = world::Player::makeDummy("Player-1");
-  m_pShip = std::make_shared<ships::Ship>(
+  m_pShip = std::make_shared<modules::Ship>(
         "Scout", "scout-1", m_pPlayer, 1000, 10);
   m_nShipSlot = m_pPlayer->getCommutator()->attachModule(m_pShip);
 
@@ -274,7 +274,7 @@ void PassiveScannerTests::pickAllUpdates(
 struct Tool {
   // Number of helpers to authoring tests
 
-  static void moveShipToRandomPosition(ships::ShipPtr pShip,
+  static void moveShipToRandomPosition(modules::ShipPtr pShip,
                                        const geometry::Rectangle& area)
   {
     geometry::Point position;
@@ -310,10 +310,10 @@ struct Tool {
     return pAsteroid;
   }
 
-  static ships::ShipPtr spawnShip(const geometry::Rectangle& area,
-                                  world::PlayerWeakPtr pOwner)
+  static modules::ShipPtr spawnShip(const geometry::Rectangle& area,
+                                    world::PlayerWeakPtr pOwner)
   {
-    ships::ShipPtr pShip = std::make_unique<ships::Ship>(
+    modules::ShipPtr pShip = std::make_unique<modules::Ship>(
           "SomeShipType", "SomeShip", pOwner, 1000000, 10);
 
     geometry::Point position;
@@ -322,7 +322,7 @@ struct Tool {
     return pShip;
   }
 
-  static bool inRange(const ships::ShipPtr& pShip,
+  static bool inRange(const modules::ShipPtr& pShip,
                       const newton::PhysicalObject* pObject,
                       uint32_t nRadiusKm)
   {
@@ -369,7 +369,7 @@ TEST_F(PassiveScannerTests, ScanMultipleObjects)
   }
 
   world::PlayerPtr pOtherPlayer = world::Player::makeDummy("OtherPlayer");
-  std::vector<ships::ShipPtr> ships;
+  std::vector<modules::ShipPtr> ships;
   for (size_t i = 0; i < 200; ++i) {
     ships.push_back(Tool::spawnShip(grid.asRect(), pOtherPlayer));
   }
@@ -398,7 +398,7 @@ TEST_F(PassiveScannerTests, ScanMultipleObjects)
     ASSERT_EQ(expectedAsteroids, journal.allAsteroidsIds());
 
     std::set<uint32_t> expectedShips;
-    for (const ships::ShipPtr& pShip: ships) {
+    for (const modules::ShipPtr& pShip: ships) {
       if (Tool::inRange(m_pShip, pShip.get(), m_nRadiusKm)) {
         expectedShips.insert(pShip->getShipId());
       }

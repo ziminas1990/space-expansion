@@ -6,7 +6,7 @@
 #include <World/ObjectContainers.h>
 #include <SystemManager.h>
 
-namespace ships { class Ship; }
+namespace modules { class Ship; }
 namespace world { class Asteroid; }
 
 namespace administrator {

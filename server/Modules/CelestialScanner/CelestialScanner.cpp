@@ -1,6 +1,6 @@
 #include "CelestialScanner.h"
 
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 #include <Newton/PhysicalObject.h>
 #include <World/CelestialBodies/Asteroid.h>
 #include <World/Grid.h>

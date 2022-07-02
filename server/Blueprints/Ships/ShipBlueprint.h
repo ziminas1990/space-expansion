@@ -14,7 +14,7 @@ class Player;
 using PlayerWeakPtr = std::weak_ptr<Player>;
 }
 
-namespace ships {
+namespace modules {
 class Ship;
 using ShipPtr     = std::shared_ptr<Ship>;
 using ShipWeakPtr = std::weak_ptr<Ship>;
@@ -34,9 +34,9 @@ public:
   modules::BaseModulePtr build(std::string sName,
                                world::PlayerWeakPtr pOwner) const override;
 
-  ships::ShipPtr build(std::string sName,
-                       world::PlayerWeakPtr pOwner,
-                       blueprints::BlueprintsLibrary const& customLibrary) const;
+  modules::ShipPtr build(std::string sName,
+                         world::PlayerWeakPtr pOwner,
+                         blueprints::BlueprintsLibrary const& customLibrary) const;
     // Overrided build() function uses player's blueprints library to create ship's
     // modules, but this signature uses 'customLibrary' instead.
 
@@ -65,4 +65,4 @@ private:
   std::map<std::string, BlueprintName> m_modules;
 };
 
-} // namespace ships
+} // namespace modules

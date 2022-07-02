@@ -2,7 +2,7 @@
 
 #include <float.h>
 
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 #include <Modules/Shipyard/Shipyard.h>
 #include <Modules/ResourceContainer/ResourceContainer.h>
 #include <Utils/YamlReader.h>
@@ -29,7 +29,7 @@ uint32_t ResourceCollecting::score(world::PlayerPtr pPlayer)
 
   for (modules::BaseModulePtr const& pModule
        : pPlayer->getCommutator()->getAllModules()) {
-    ships::ShipPtr pShip = std::dynamic_pointer_cast<ships::Ship>(pModule);
+    modules::ShipPtr pShip = std::dynamic_pointer_cast<modules::Ship>(pModule);
     if (!pShip)
       continue;
 

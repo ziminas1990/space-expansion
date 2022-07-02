@@ -3,7 +3,7 @@
 #include <Utils/FloatComparator.h>
 #include <Utils/ItemsConverter.h>
 
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::ResourceContainer);
 

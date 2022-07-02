@@ -5,9 +5,9 @@
 #include <Utils/Clock.h>
 #include <World/Player.h>
 
-DECLARE_GLOBAL_CONTAINER_CPP(ships::Ship);
+DECLARE_GLOBAL_CONTAINER_CPP(modules::Ship);
 
-namespace ships
+namespace modules
 {
 
 Ship::Ship(

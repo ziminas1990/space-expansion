@@ -9,7 +9,7 @@
 #include <Utils/GlobalContainer.h>
 #include <Utils/SubscriptionsBox.h>
 
-namespace ships
+namespace modules
 {
 
 class Ship :

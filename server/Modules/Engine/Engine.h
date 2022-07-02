@@ -20,7 +20,7 @@ public:
 protected:
   // override from BaseModule
   void handleEngineMessage(uint32_t, spex::IEngine const&) override;
-  void onInstalled(ships::Ship* pPlatform) override;
+  void onInstalled(modules::Ship* pPlatform) override;
 
   void getSpecification(uint32_t nSessionId) const;
   void setThrust(spex::IEngine::ChangeThrust const& req);

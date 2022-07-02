@@ -1,7 +1,7 @@
 #include "ObjectContainers.h"
 
 #include <World/CelestialBodies/Asteroid.h>
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 
 namespace world {
 
@@ -38,7 +38,7 @@ PhysicalObjectsContainerPtr Containers::getContainerWith(ObjectType eObjectType)
       if (!pContainer) {
         pContainer =
             std::make_shared<utils::ConcreteObjectsContainer<
-            ships::Ship, newton::PhysicalObject>>();
+            modules::Ship, newton::PhysicalObject>>();
         m_pShips = pContainer;
       }
       return pContainer;

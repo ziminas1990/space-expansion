@@ -18,7 +18,7 @@
 
 #include "Newton/NewtonEngine.h"
 #include <AdministratorPanel/AdministratorPanel.h>
-#include "Ships/ShipsManager.h"
+#include <Modules/Ship/ShipsManager.h>
 #include "Modules/Commutator/CommutatorManager.h"
 #include "Modules/Engine/EnginesManager.h"
 #include "Modules/CelestialScanner/CelestialScannerManager.h"
@@ -86,7 +86,7 @@ private:
   // Managers for all logics
   newton::NewtonEnginePtr              m_pNewtonEngine;
   tools::ObjectsFilteringManagerPtr    m_pFilteringManager;
-  ships::ShipsManagerPtr               m_pShipsManager;
+  modules::ShipsManagerPtr             m_pShipsManager;
   modules::CommutatorManagerPtr        m_pCommutatorsManager;
   modules::EngineManagerPtr            m_pEnginesManager;
   modules::CelestialScannerManagerPtr  m_pCelestialScannerManager;

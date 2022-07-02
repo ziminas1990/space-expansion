@@ -1,5 +1,5 @@
 #include "Engine.h"
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Engine);
 
@@ -55,7 +55,7 @@ void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& messa
   }
 }
 
-void Engine::onInstalled(ships::Ship* pPlatform)
+void Engine::onInstalled(modules::Ship* pPlatform)
 {
   m_nThrustVectorId = pPlatform->createExternalForce();
 }

@@ -1,6 +1,6 @@
 #include "Shipyard.h"
 #include <Utils/YamlReader.h>
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 #include <Blueprints/Ships/ShipBlueprint.h>
 #include <World/Player.h>
 #include <Modules/Commutator/Commutator.h>
@@ -101,7 +101,7 @@ void Shipyard::handleShipyardMessage(uint32_t nTunnelId,
 
 void Shipyard::finishBuildingProcedure()
 {
-  ships::ShipPtr pNewShip = m_building.pShipBlueprint->build(
+  modules::ShipPtr pNewShip = m_building.pShipBlueprint->build(
         m_building.sShipName,
         getOwner(),
         m_building.localLibraryCopy);
@@ -151,7 +151,7 @@ void Shipyard::startBuildReq(uint32_t nSessionId, spex::IShipyard::StartBuild co
     return;
   }
 
-  ships::Ship*     pPlatform = getPlatform();
+  modules::Ship*   pPlatform = getPlatform();
   world::PlayerPtr pOwner    = getOwner().lock();
 
   if (!pPlatform || !pOwner) {

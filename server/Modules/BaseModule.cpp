@@ -5,7 +5,7 @@
 
 namespace modules {
 
-void BaseModule::installOn(ships::Ship* pShip)
+void BaseModule::installOn(modules::Ship* pShip)
 {
   m_pPlatform = pShip;
   if (m_pPlatform)

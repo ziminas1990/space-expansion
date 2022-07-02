@@ -2,7 +2,7 @@
 
 #include <Utils/Clock.h>
 #include <Newton/PhysicalObject.h>
-#include <Ships/Ship.h>
+#include <Modules/Ship/Ship.h>
 #include <World/CelestialBodies/Asteroid.h>
 #include <World/Grid.h>
 #include <Utils/YamlReader.h>
@@ -26,7 +26,7 @@ static void getTypeAndId(const newton::PhysicalObject* pObject,
       return;
     case world::ObjectType::eShip:
       eType = spex::ObjectType::OBJECT_SHIP;
-      nId = static_cast<const ships::Ship*>(pObject)->getShipId();
+      nId = static_cast<const modules::Ship*>(pObject)->getShipId();
       return;
     case world::ObjectType::eTotalObjectsTypes:
       assert(false);
@@ -218,7 +218,7 @@ void PassiveScanner::proceedGlobalScan()
   const double scanningRadiusSqr =
       static_cast<double>(m_nMaxScanningRadius) * m_nMaxScanningRadius;
 
-  const ships::Ship*     pPlatform   = getPlatform();
+  const modules::Ship*   pPlatform   = getPlatform();
   const world::Grid*     pGrid       = world::Grid::getGlobal();
   const geometry::Point& position    = pPlatform->getPosition();
   const uint64_t         nowUs       = utils::GlobalClock::now();
@@ -247,7 +247,7 @@ void PassiveScanner::proceedGlobalScan()
 
       if (pObject) {
         if (pObject->is(world::ObjectType::eShip) &&
-            static_cast<const ships::Ship*>(pObject)->getOwner().lock()
+            static_cast<const modules::Ship*>(pObject)->getOwner().lock()
             == getOwner().lock()) {
           // Ignore ships, that belong to the same player
           continue;
