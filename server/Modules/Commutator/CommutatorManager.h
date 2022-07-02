@@ -6,7 +6,8 @@
 namespace modules
 {
 
-using CommutatorManager    = CommonModulesManager<Commutator, Cooldown::eCommutator>;
-using CommutatorManagerPtr = std::shared_ptr<CommutatorManager>;
+class CommutatorManager 
+: public CommonModulesManager<Commutator, Cooldown::eCommutator>
+{};
 
 } // namespace modules

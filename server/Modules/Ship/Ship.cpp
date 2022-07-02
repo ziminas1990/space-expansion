@@ -1,6 +1,8 @@
 #include "Ship.h"
 
 #include <yaml-cpp/yaml.h>
+
+#include <Modules/Commutator/Commutator.h>
 #include <Utils/YamlReader.h>
 #include <Utils/Clock.h>
 #include <World/Player.h>

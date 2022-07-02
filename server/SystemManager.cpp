@@ -6,9 +6,20 @@
 #include <yaml-cpp/yaml.h>
 
 #include <Privileged.pb.h>
-#include "Modules/Commutator/CommutatorManager.h"
-#include <Modules/Ship/ShipsManager.h>
-#include "Conveyor/Proceeders.h"
+#include <Modules/Commutator/CommutatorManager.h>
+#include <Modules/AccessPanel/AccessPanel.h>
+#include <Modules/Ship/ShipManager.h>
+#include <Modules/Commutator/CommutatorManager.h>
+#include <Modules/Engine/EnginesManager.h>
+#include <Modules/CelestialScanner/CelestialScannerManager.h>
+#include <Modules/AsteroidScanner/AsteroidScannerManager.h>
+#include <Modules/ResourceContainer/ResourceContainerManager.h>
+#include <Modules/AsteroidMiner/AsteroidMinerManager.h>
+#include <Modules/BlueprintsStorage/BlueprintsStorageManager.h>
+#include <Modules/Shipyard/ShipyardManager.h>
+#include <Modules/SystemClock/SystemClockManager.h>
+#include <Modules/PassiveScanner/PassiveScannerManager.h>
+#include <Conveyor/Proceeders.h>
 #include <World/Resources.h>
 #include <Arbitrators/ArbitratorsFactory.h>
 #include <Utils/Printers.h>
@@ -161,7 +172,7 @@ bool SystemManager::createAllComponents()
 
   m_pNewtonEngine             = std::make_shared<newton::NewtonEngine>();
   m_pFilteringManager         = std::make_shared<tools::ObjectsFilteringManager>();
-  m_pShipsManager             = std::make_shared<modules::ShipsManager>();
+  m_pShipsManager             = std::make_shared<modules::ShipManager>();
   m_pCommutatorsManager       = std::make_shared<modules::CommutatorManager>();
   m_pEnginesManager           = std::make_shared<modules::EngineManager>();
   m_pCelestialScannerManager  = std::make_shared<modules::CelestialScannerManager>();

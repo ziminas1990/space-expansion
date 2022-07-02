@@ -67,6 +67,4 @@ private:
   world::PlayerStorageWeakPtr   m_pPlayersStorage;
 };
 
-using AccessPanelPtr = std::shared_ptr<AccessPanel>;
-
 } // namespace modules

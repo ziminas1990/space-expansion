@@ -6,10 +6,7 @@
 #include <Network/ProtobufChannel.h>
 #include <Network/UdpSocket.h>
 #include <Network/SessionMux.h>
-#include <Modules/Commutator/Commutator.h>
-#include <Modules/Ship/Ship.h>
-#include <Modules/BlueprintsStorage/BlueprintsStorage.h>
-#include <Modules/SystemClock/SystemClock.h>
+#include <Modules/Fwd.h>
 #include <Blueprints/BlueprintsLibrary.h>
 
 namespace world

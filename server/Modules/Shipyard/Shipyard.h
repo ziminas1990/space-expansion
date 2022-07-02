@@ -10,7 +10,8 @@
 #include <Blueprints/BlueprintsForwardDecls.h>
 #include <World/Resources.h>
 #include <Blueprints/BlueprintsLibrary.h>
-#include <Modules/ResourceContainer/ResourceContainer.h>
+#include <Modules/Fwd.h>
+
 
 namespace modules {
 
@@ -78,7 +79,5 @@ private:
       // Stores a number of usec, that passed after previos progress IND was sent
   } m_building;
 };
-
-using ShipyardPtr = std::shared_ptr<Shipyard>;
 
 } // namespace modules

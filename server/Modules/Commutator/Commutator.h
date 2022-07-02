@@ -89,7 +89,4 @@ private:
   std::shared_ptr<network::SessionMux> m_pSessionMux;
 };
 
-using CommutatorPtr     = std::shared_ptr<Commutator>;
-using CommutatorWeakPtr = std::weak_ptr<Commutator>;
-
 } // namespace modules

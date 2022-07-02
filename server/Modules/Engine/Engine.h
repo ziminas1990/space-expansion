@@ -32,6 +32,4 @@ private:
   uint32_t m_nTimeLeftUs     = 0;
 };
 
-using EnginePtr = std::shared_ptr<Engine>;
-
 } // namespace modules

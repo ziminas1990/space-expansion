@@ -63,6 +63,4 @@ private:
   std::vector<DetectedItem> m_detectedObjects;
 };
 
-using PassiveScannerPtr = std::shared_ptr<PassiveScanner>;
-
 } // namespace modules

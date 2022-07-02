@@ -3,7 +3,8 @@
 
 namespace modules {
 
-using ShipyardManager    = CommonModulesManager<Shipyard, Cooldown::eShipYard>;
-using ShipyardManagerPtr = std::shared_ptr<ShipyardManager>;
+class ShipyardManager
+: public CommonModulesManager<Shipyard, Cooldown::eShipYard>
+{};
 
 } // namespace modules

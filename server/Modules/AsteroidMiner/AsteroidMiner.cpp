@@ -1,6 +1,7 @@
 #include "AsteroidMiner.h"
 
 #include <Modules/Ship/Ship.h>
+#include <Modules/ResourceContainer/ResourceContainer.h>
 #include <World/CelestialBodies/Asteroid.h>
 #include <Utils/YamlReader.h>
 #include <Utils/ItemsConverter.h>

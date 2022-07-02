@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <Modules/BaseModule.h>
-#include <Modules/ResourceContainer/ResourceContainer.h>
+#include <Modules/Fwd.h>
 #include <Utils/GlobalContainer.h>
 #include <Utils/YamlForwardDeclarations.h>
 #include <World/Resources.h>

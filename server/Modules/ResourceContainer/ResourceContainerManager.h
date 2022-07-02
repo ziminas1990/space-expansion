@@ -25,6 +25,4 @@ private:
   std::atomic_size_t m_nNextId;
 };
 
-using ResourceContainerManagerPtr = std::shared_ptr<ResourceContainerManager>;
-
 } // namespace modules

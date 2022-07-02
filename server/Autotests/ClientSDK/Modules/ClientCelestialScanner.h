@@ -33,6 +33,4 @@ public:
 
 };
 
-using CelestialScannerPtr = std::shared_ptr<CelestialScanner>;
-
 }}  // namespace autotests::client

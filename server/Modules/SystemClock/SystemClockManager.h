@@ -6,7 +6,8 @@
 namespace modules
 {
 
-using SystemClockManager    = CommonModulesManager<SystemClock, Cooldown::eSystemClock>;
-using SystemClockManagerPtr = std::shared_ptr<SystemClockManager>;
+class SystemClockManager
+: public CommonModulesManager<SystemClock, Cooldown::eSystemClock>
+{};
 
 } // namespace modules

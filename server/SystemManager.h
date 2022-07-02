@@ -8,7 +8,6 @@
 #include "Conveyor/Conveyor.h"
 #include "Network/UdpDispatcher.h"
 #include "Network/ProtobufChannel.h"
-#include "Modules/AccessPanel/AccessPanel.h"
 #include "Newton/NewtonEngine.h"
 #include "World/PlayersStorage.h"
 #include <World/Grid.h>
@@ -18,18 +17,8 @@
 
 #include "Newton/NewtonEngine.h"
 #include <AdministratorPanel/AdministratorPanel.h>
-#include <Modules/Ship/ShipsManager.h>
-#include "Modules/Commutator/CommutatorManager.h"
-#include "Modules/Engine/EnginesManager.h"
-#include "Modules/CelestialScanner/CelestialScannerManager.h"
-#include "Modules/AsteroidScanner/AsteroidScannerManager.h"
-#include "Modules/ResourceContainer/ResourceContainerManager.h"
-#include "Modules/AsteroidMiner/AsteroidMinerManager.h"
-#include "Modules/BlueprintsStorage/BlueprintsStorageManager.h"
-#include "Modules/Shipyard/ShipyardManager.h"
-#include "Modules/SystemClock/SystemClockManager.h"
-#include "Modules/PassiveScanner/PassiveScannerManager.h"
-#include "Arbitrators/BaseArbitrator.h"
+#include <Modules/Fwd.h>
+#include <Arbitrators/BaseArbitrator.h>
 #include <ConveyorTools/ObjectsFilter.h>
 
 class SystemManager
@@ -86,7 +75,7 @@ private:
   // Managers for all logics
   newton::NewtonEnginePtr              m_pNewtonEngine;
   tools::ObjectsFilteringManagerPtr    m_pFilteringManager;
-  modules::ShipsManagerPtr             m_pShipsManager;
+  modules::ShipManagerPtr              m_pShipsManager;
   modules::CommutatorManagerPtr        m_pCommutatorsManager;
   modules::EngineManagerPtr            m_pEnginesManager;
   modules::CelestialScannerManagerPtr  m_pCelestialScannerManager;

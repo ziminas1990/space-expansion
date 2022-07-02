@@ -4,6 +4,7 @@
 #include <Blueprints/Ships/ShipBlueprint.h>
 #include <World/Player.h>
 #include <Modules/Commutator/Commutator.h>
+#include <Modules/ResourceContainer/ResourceContainer.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Shipyard);
 

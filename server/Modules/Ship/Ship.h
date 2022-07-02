@@ -3,8 +3,8 @@
 #include <vector>
 #include <memory>
 
+#include <Modules/Fwd.h>
 #include <Modules/BaseModule.h>
-#include <Modules/Commutator/Commutator.h>
 #include <Newton/PhysicalObject.h>
 #include <Utils/GlobalContainer.h>
 #include <Utils/SubscriptionsBox.h>
@@ -74,8 +74,5 @@ private:
 
   utils::SubscriptionsBox m_subscriptions;
 };
-
-using ShipPtr     = std::shared_ptr<Ship>;
-using ShipWeakPtr = std::weak_ptr<Ship>;
 
 } // namespace modules

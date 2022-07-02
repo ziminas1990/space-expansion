@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <Conveyor/Conveyor.h>
+#include <Modules/Fwd.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/Commutator/CommutatorManager.h>
 #include <Autotests/TestUtils/Connector.h>

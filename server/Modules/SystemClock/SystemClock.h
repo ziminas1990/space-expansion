@@ -54,6 +54,4 @@ private:
   // All sessions that requested monitoring
 };
 
-using SystemClockPtr = std::shared_ptr<SystemClock>;
-
 } // namespace modules

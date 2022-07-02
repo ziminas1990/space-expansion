@@ -3,6 +3,10 @@
 #include <Utils/StringUtils.h>
 #include <yaml-cpp/yaml.h>
 
+#include <Modules/BlueprintsStorage/BlueprintsStorage.h>
+#include <Modules/Commutator/Commutator.h>
+#include <Modules/Ship/Ship.h>
+#include <Modules/SystemClock/SystemClock.h>
 #include <Blueprints/Ships/ShipBlueprint.h>
 
 namespace world

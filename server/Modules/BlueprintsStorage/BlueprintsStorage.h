@@ -35,6 +35,4 @@ private:
   blueprints::BlueprintsLibrary const& getLibrary() const;
 };
 
-using BlueprintsStoragePtr = std::shared_ptr<BlueprintsStorage>;
-
 } // namespace modules
