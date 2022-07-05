@@ -37,11 +37,12 @@ class AdvancedViewer(QGraphicsView):
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         if self.__no_move:
-            position = self.mapToScene(event.x(), event.y())
+            position = self.mapToScene(int(event.x()), int(event.y()))
             self.left_click.emit(position.x(), position.y())
 
     def wheelEvent(self, event: QWheelEvent) -> None:
-        position = self.mapToScene(event.position().x(), event.position().y())
+        position = self.mapToScene(int(event.position().x()),
+                                   int(event.position().y()))
 
         self.translate(position.x(), position.y())
         if event.angleDelta().y() > 0:
