@@ -64,7 +64,4 @@ private:
   mutable utils::Mutex m_Mutex;
 };
 
-using UdpSocketPtr  = std::shared_ptr<UdpSocket>;
-using UdpSocketUptr = std::unique_ptr<UdpSocket>;
-
 } // namespace network

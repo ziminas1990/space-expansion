@@ -3,6 +3,8 @@
 #include "Interfaces.h"
 #include <functional>
 #include <vector>
+
+#include <Network/Fwd.h>
 #include <Utils/ChunksPool.h>
 
 namespace network {
@@ -50,8 +52,6 @@ private:
   IBinaryChannelPtr m_pChannel;
 };
 
-using BufferedTerminalPtr = std::shared_ptr<BufferedTerminal>;
-
 
 class IBufferedTerminalFactory
 {
@@ -60,8 +60,5 @@ public:
 
   virtual BufferedTerminalPtr make() = 0;
 };
-
-using IBufferedTerminalFactoryPtr     = std::shared_ptr<IBufferedTerminalFactory>;
-using IBufferedTerminalFactoryWeakPtr = std::weak_ptr<IBufferedTerminalFactory>;
 
 } // namespace network

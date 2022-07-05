@@ -3,9 +3,8 @@
 #include <memory>
 
 #include <Utils/YamlForwardDeclarations.h>
+#include <Network/Fwd.h>
 #include <Network/ProtobufChannel.h>
-#include <Network/UdpSocket.h>
-#include <Network/SessionMux.h>
 #include <Modules/Fwd.h>
 #include <Blueprints/BlueprintsLibrary.h>
 

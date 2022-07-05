@@ -6,9 +6,7 @@
 
 #include "ConfigDI/Containers.h"
 #include "Conveyor/Conveyor.h"
-#include "Network/UdpDispatcher.h"
-#include "Network/ProtobufChannel.h"
-#include "Newton/NewtonEngine.h"
+#include <Network/Fwd.h>
 #include "World/PlayersStorage.h"
 #include <World/Grid.h>
 #include <World/World.h>

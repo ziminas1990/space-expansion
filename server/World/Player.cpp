@@ -7,6 +7,8 @@
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/Ship/Ship.h>
 #include <Modules/SystemClock/SystemClock.h>
+#include <Network/UdpSocket.h>
+#include <Network/SessionMux.h>
 #include <Blueprints/Ships/ShipBlueprint.h>
 
 namespace world

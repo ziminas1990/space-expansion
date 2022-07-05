@@ -8,6 +8,10 @@
 #include <Privileged.pb.h>
 #include <Modules/AccessPanel/AccessPanel.h>
 #include <Modules/Managers.h>
+#include <Network/UdpSocket.h>
+#include <Network/UdpDispatcher.h>
+#include <Network/ProtobufChannel.h>
+#include <Newton/NewtonEngine.h>
 #include <Conveyor/Proceeders.h>
 #include <World/Resources.h>
 #include <Arbitrators/ArbitratorsFactory.h>

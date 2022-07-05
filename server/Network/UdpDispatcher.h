@@ -6,8 +6,7 @@
 #include <Conveyor/IAbstractLogic.h>
 #include <Utils/SimplePool.h>
 #include <Utils/Mutex.h>
-#include "BufferedTerminal.h"
-#include "UdpSocket.h"
+#include <Network/Fwd.h>
 
 namespace network
 {
@@ -38,7 +37,5 @@ private:
 
   utils::Mutex       m_Mutex;
 };
-
-using UdpDispatcherPtr = std::shared_ptr<UdpDispatcher>;
 
 } // namespace network

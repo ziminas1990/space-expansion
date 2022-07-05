@@ -1,4 +1,7 @@
-#include "UdpDispatcher.h"
+#include <Network/UdpDispatcher.h>
+
+#include <Network/BufferedTerminal.h>
+#include <Network/UdpSocket.h>
 
 namespace network {
 

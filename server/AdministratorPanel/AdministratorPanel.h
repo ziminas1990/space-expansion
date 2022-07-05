@@ -5,7 +5,7 @@
 
 #include <Network/BufferedProtobufTerminal.h>
 #include <Conveyor/IAbstractLogic.h>
-#include <Network/UdpDispatcher.h>
+#include <Network/Fwd.h>
 #include <ConfigDI/Containers.h>
 #include <Utils/RandomSequence.h>
 

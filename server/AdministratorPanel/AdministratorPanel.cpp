@@ -1,6 +1,10 @@
 #include "AdministratorPanel.h"
-#include <SystemManager.h>
+
 #include <random>
+
+#include <SystemManager.h>
+#include <Network/UdpSocket.h>
+#include <Network/UdpDispatcher.h>
 
 AdministratorPanel::AdministratorPanel(config::IAdministratorCfg const& cfg,
                                        unsigned int nTokenPattern)
