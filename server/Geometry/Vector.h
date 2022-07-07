@@ -107,6 +107,12 @@ public:
     m_length.nSqrValue = 1;
   }
 
+  Vector normalized() const {
+    Vector vec{x, y};
+    vec.normalize();
+    return vec;
+  }
+
   void setLength(double newLength)
   {
     normalize();
@@ -114,6 +120,12 @@ public:
     y *= newLength;
     m_length.nValue    = newLength;
     m_length.nSqrValue = newLength * newLength;
+  }
+
+  Vector ofLength(double length) const {
+    Vector vec{x, y};
+    vec.setLength(length);
+    return vec;
   }
 
   void toZero()

@@ -94,14 +94,13 @@ public:
 
   void SetUp() override;
 
-  client::ClientCommutatorPtr shipCommutator();
-
-  client::ClientPassiveScannerPtr spawnScanner();
-
-private:
-  void proceedEnviroment() {
-    m_conveyor.proceed(m_clock.getNextInterval());
+  virtual std::shared_ptr<world::Grid> createGlobalGrid() override {
+    // Each test will create it's own global grid
+    return nullptr;
   }
+
+  client::ClientCommutatorPtr shipCommutator();
+  client::ClientPassiveScannerPtr spawnScanner();
 
 protected:
 
@@ -114,13 +113,6 @@ protected:
       UpdatesJournal& journal,
       client::ClientPassiveScannerPtr pScanner);
 
-  void justWait(uint32_t nTimeMs) {
-    const uint64_t nStopAtUs = m_clock.now() + nTimeMs * 1000;
-    while (m_clock.now() < nStopAtUs) {
-      proceedEnviroment();
-    }
-  }
-
 protected:
   // Scanner params
   std::string m_sScannerName;
@@ -129,7 +121,7 @@ protected:
   uint32_t    m_nShipSlot;
   uint32_t    m_nPassiveScannerSlot;
 
-  modules::ShipPtr             m_pShip;
+  modules::ShipPtr           m_pShip;
   modules::PassiveScannerPtr m_pPassiveScanner;
 };
 
@@ -154,7 +146,7 @@ void PassiveScannerTests::SetUp()
 client::ClientCommutatorPtr PassiveScannerTests::shipCommutator()
 {
   client::Router::SessionPtr pTunnel =
-      m_pClientCommutator->openSession(m_nShipSlot);
+      m_pCommutatorCtrl->openSession(m_nShipSlot);
   if (!pTunnel) {
     return client::ClientCommutatorPtr();
   }

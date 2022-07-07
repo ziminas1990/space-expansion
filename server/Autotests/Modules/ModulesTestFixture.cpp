@@ -10,12 +10,20 @@ void ModulesTestFixture::SetUp()
   m_clock.start(true);
   utils::GlobalClock::set(&m_clock);
 
-  m_pCommutatorManager = std::make_shared<modules::CommutatorManager>();
-  m_pNewtonEngine = std::make_shared<newton::NewtonEngine>();
+  m_pGrid = createGlobalGrid();
+  if (m_pGrid) {
+    world::Grid::setGlobal(m_pGrid.get());
+  }
+
+  m_pNewtonEngine = std::make_shared<FreezableLogic>(
+                                      std::make_shared<newton::NewtonEngine>());
+  m_pCommutatorManager     = std::make_shared<modules::CommutatorManager>();
+  m_pEngineManager         = std::make_shared<modules::EngineManager>();
   m_pPassiveScannerManager = std::make_shared<modules::PassiveScannerManager>();
 
   m_conveyor.addLogicToChain(m_pNewtonEngine);
   m_conveyor.addLogicToChain(m_pCommutatorManager);
+  m_conveyor.addLogicToChain(m_pEngineManager);
   m_conveyor.addLogicToChain(m_pPassiveScannerManager);
 
   m_fConveyorProceeder = [this]() { this->proceedEnviroment(); };
@@ -35,8 +43,8 @@ void ModulesTestFixture::SetUp()
                          m_pPlayer->getSessionMux()->asTerminal(),
                          m_pRouter);
 
-  m_pClientCommutator = std::make_shared<client::ClientCommutator>(m_pRouter);
-  m_pClientCommutator->attachToChannel(m_pRouter->openSession(nRootSessionId));
+  m_pCommutatorCtrl = std::make_shared<client::ClientCommutator>(m_pRouter);
+  m_pCommutatorCtrl->attachToChannel(m_pRouter->openSession(nRootSessionId));
 }
 
 } // namespace autotests
