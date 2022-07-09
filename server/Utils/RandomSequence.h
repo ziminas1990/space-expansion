@@ -13,6 +13,12 @@ public:
     : m_nNextPattern(nInitialPattern)
   {}
 
+  uint16_t yield16() {
+    std::srand(m_nNextPattern);
+    m_nNextPattern = static_cast<unsigned int>(std::rand());
+    return static_cast<uint16_t>(std::rand());
+  }
+
   uint32_t yield() {
     std::srand(m_nNextPattern);
     m_nNextPattern = static_cast<unsigned int>(std::rand());

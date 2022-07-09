@@ -1,22 +1,35 @@
 #include <Network/SessionMux.h>
 #include <Utils/Clock.h>
+#include <Utils/RandomSequence.h>
+
 
 namespace network {
 
+static uint16_t generateToken(uint16_t old) {
+  static utils::RandomSequence tokensStream(time(nullptr));
+  uint16_t token = tokensStream.yield16();
+  while (token == old || token == 0) {
+    // quite unlikely but anyway
+    token = tokensStream.yield16();
+  }
+  return token;
+}
+
 void SessionMux::Session::removeChild(uint32_t nChildSessionId)
 {
-  // This requires a lnear search, but it shouldn't be critical
+  // This requires a linear search, but it shouldn't be critical
   for (size_t i = 0; i < m_children.size(); ++i) {
     if (m_children[i] == nChildSessionId) {
       m_children[i] = m_children.back();
       m_children.pop_back();
+      return;
     }
   }
 }
 
 void SessionMux::Session::die()
 {
-  // 'm_nSecretKey' should NOT be overwritten with 0 (see revive())
+  // 'm_nToken' should NOT be overwritten with 0 (see revive())
   m_nConnectionId    = 0;
   m_pHandler         = nullptr;
   m_nParentSessionId = 0;
@@ -29,7 +42,7 @@ void SessionMux::Session::revive(uint32_t           nConnectionId,
                                  IPlayerTerminalPtr pHandler)
 {
   assert(!isValid());
-  ++m_nSecretKey;
+  m_nToken = generateToken(m_nToken);
   m_nConnectionId    = nConnectionId;
   m_nParentSessionId = nParentSessionId;
   m_pHandler         = pHandler;
@@ -50,7 +63,7 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
 {
   // No need to lock here
   const uint32_t nSessionId    = message.tunnelid();
-  const uint32_t nSessionIndex = nSessionId & 0xFFFF;
+  const uint32_t nSessionIndex = nSessionId >> 16;
 
   if (nSessionId && nSessionIndex < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIndex];
@@ -78,13 +91,13 @@ void SessionMux::Socket::detachFromChannel()
 
 bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
 {
-  const uint16_t nSessionIdx = nSessionId & 0xFFFF;
+  const uint16_t nSessionIdx = nSessionId >> 16;
   message.set_tunnelid(nSessionId);
   message.set_timestamp(utils::GlobalClock::now());
   if (nSessionIdx < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
+    assert(session.sessionId() == nSessionId);
     return session.isValid()
-        && session.sessionId() == nSessionId
         && m_pChannel 
         && m_pChannel->send(session.m_nConnectionId, std::move(message));
   }
@@ -130,12 +143,11 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
   std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
-    assert(!connection.m_nRootSessionId
-           && "Connection has not been closed?");
+    assert(!connection.m_nRootSessionId && "Has connection been closed?");
     // TODO: try to find a session for reuse, using occpyIndex())?
     m_sessions.emplace_back(Session{
       static_cast<uint16_t>(m_sessions.size()),
-      1,  // A secret key (starts from 1)
+      generateToken(0),
       nConnectionId,
       0,  // parentSessionId, should be 0 here
       pHandler,
@@ -165,7 +177,7 @@ bool SessionMux::closeConnection(uint32_t nConnectionId)
 uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
                                    IPlayerTerminalPtr pHandler)
 {
-  const uint16_t nParentSessionIndex = nParentSessionId & 0xFFFF;
+  const uint16_t nParentSessionIndex = nParentSessionId >> 16;
 
   std::lock_guard<std::mutex> guard(m_mutex);
 
@@ -231,7 +243,7 @@ uint16_t SessionMux::occupyIndex()
 
 bool SessionMux::onSessionClosed(uint32_t nSessionId, bool lIsRecursive)
 {
-  const uint16_t nSessionIndex = nSessionId & 0xFFFF;
+  const uint16_t nSessionIndex = nSessionId >> 16;
 
   if (!nSessionIndex || nSessionIndex >= m_sessions.size()) {
     assert(!"Invalid session id");

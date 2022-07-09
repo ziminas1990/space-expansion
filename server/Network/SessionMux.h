@@ -19,14 +19,14 @@ private:
 
   struct Session {
     uint16_t              m_nIndex           = 0;
-    uint16_t              m_nSecretKey       = 0;
+    uint16_t              m_nToken           = 0;
     uint32_t              m_nConnectionId    = 0;
     uint32_t              m_nParentSessionId = 0;
     IPlayerTerminalPtr    m_pHandler         = nullptr;
     std::vector<uint32_t> m_children;
 
     bool     isValid()   const { return m_pHandler != nullptr; }
-    uint32_t sessionId() const { return (m_nSecretKey << 16) + m_nIndex; }
+    uint32_t sessionId() const { return (m_nIndex << 16) + m_nToken; }
     
     void removeChild(uint32_t nChildSessionId);
     void die();
