@@ -165,8 +165,8 @@ bool SessionMux::closeConnection(uint32_t nConnectionId)
   std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
-    assert(connection.isValid() && "Connection has not been opened?");
-    onSessionClosed(connection.m_nRootSessionId);
+    assert(connection.isValid() && "Has connection been opened?");
+    closeSessionLocked(connection.m_nRootSessionId, false);
     connection.m_nRootSessionId = 0;
     return true;
   }
@@ -209,7 +209,9 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
         nSessionIndex, 1, nConnectionId, nParentSessionId, pHandler, {}
       });
     }
-    return m_sessions.back().sessionId();
+    const uint32_t nSessionId = m_sessions[nSessionIndex].sessionId();
+    parentSession.m_children.push_back(nSessionId);
+    return nSessionId;
   }
   return 0;
 }
@@ -217,16 +219,31 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
 bool SessionMux::closeSession(uint32_t nSessionId)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
-  return onSessionClosed(nSessionId);
+  return closeSessionLocked(nSessionId);
+}
+
+void SessionMux::terminate()
+{
+  std::lock_guard<std::mutex> guard(m_mutex);
+
+  for (size_t i = 0; i < m_connections.size(); ++i) {
+    Connection& connection = m_connections[i];
+    if (connection.isValid()) {
+      closeSessionLocked(connection.m_nRootSessionId, false);
+      connection.closed();
+    }
+  }
 }
 
 void SessionMux::attach(IPlayerChannelPtr pChannel)
 {
+  std::lock_guard<std::mutex> guard(m_mutex);
   m_pSocket->attachToChannel(pChannel);
 }
 
 void SessionMux::detach()
 {
+  std::lock_guard<std::mutex> guard(m_mutex);
   m_pSocket->detachFromChannel();
 }
 
@@ -241,7 +258,7 @@ uint16_t SessionMux::occupyIndex()
   return candidate <= 0xFFFF ? static_cast<uint16_t>(candidate) : 0;
 }
 
-bool SessionMux::onSessionClosed(uint32_t nSessionId, bool lIsRecursive)
+bool SessionMux::closeSessionLocked(uint32_t nSessionId, bool lNotifyParent)
 {
   const uint16_t nSessionIndex = nSessionId >> 16;
 
@@ -252,9 +269,8 @@ bool SessionMux::onSessionClosed(uint32_t nSessionId, bool lIsRecursive)
 
   Session& session = m_sessions[nSessionIndex];
   if (session.isValid() && session.sessionId() == nSessionId) {
-    if (!lIsRecursive) {
-      // Notify parent session
-      const uint16_t nParentSessionIndex = session.m_nParentSessionId & 0xFFFF;
+    if (lNotifyParent) {
+      const uint16_t nParentSessionIndex = session.m_nParentSessionId >> 16;
       if (nParentSessionIndex < m_sessions.size()) {
         Session& parentSession = m_sessions[nParentSessionIndex];
         if (parentSession.isValid() &&
@@ -266,7 +282,7 @@ bool SessionMux::onSessionClosed(uint32_t nSessionId, bool lIsRecursive)
 
     // First close child sessions then close this session
     for (uint32_t nChildSessionId : session.m_children) {
-      onSessionClosed(nChildSessionId, true);
+      closeSessionLocked(nChildSessionId, false);
     }
 
     // Notify the client and close the session
