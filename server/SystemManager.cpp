@@ -26,17 +26,6 @@ SystemManager::SystemManager(uint32_t seed)
   , m_world(m_randomizer.yield())
 {}
 
-SystemManager::~SystemManager()
-{
-  m_pAccessPanel->detachFromChannel();
-  m_pLoginChannel->detachFromChannel();
-  m_pLoginChannel->detachFromTerminal();
-  m_pAdministratorPanel->detachFromChannel();
-  m_pPrivilegedChannel->detachFromChannel();
-  m_pPrivilegedChannel->detachFromTerminal();
-  delete m_pConveyor;
-}
-
 bool SystemManager::initialize(const config::IApplicationCfg &cfg)
 {
   m_configuration = cfg;
@@ -161,7 +150,7 @@ void SystemManager::nextCycle()
 
 bool SystemManager::createAllComponents()
 {
-  m_pConveyor = new conveyor::Conveyor(m_configuration.getTotalThreads());
+  m_pConveyor.reset(new conveyor::Conveyor(m_configuration.getTotalThreads()));
 
   m_pNewtonEngine             = std::make_shared<newton::NewtonEngine>();
   m_pFilteringManager         = std::make_shared<tools::ObjectsFilteringManager>();
@@ -209,24 +198,21 @@ bool SystemManager::configureComponents()
 
 bool SystemManager::linkComponents()
 {
-  if (m_pPrivilegedChannel && m_pAdministratorPanel) {
+  if (m_pPrivilegedChannel && m_pAdministratorPanel) {    
     m_pPrivilegedSocket = m_pUdpDispatcher->createUdpSocket(
           m_configuration.getAdministratorCfg().getPort(), true);
-    m_pPrivilegedSocket->attachToTerminal(m_pPrivilegedChannel);
-    m_pPrivilegedChannel->attachToChannel(m_pPrivilegedSocket);
-    m_pPrivilegedChannel->attachToTerminal(m_pAdministratorPanel);
+    m_linker.link(m_pPrivilegedSocket, m_pPrivilegedChannel);
+    m_linker.link(m_pPrivilegedChannel, m_pAdministratorPanel);
     m_pAdministratorPanel->attachToAdminSocket(m_pPrivilegedSocket);
-    m_pAdministratorPanel->attachToChannel(m_pPrivilegedChannel);
     m_pAdministratorPanel->attachToSystemManager(this);
   }
 
   m_pLoginSocket = m_pUdpDispatcher->createUdpSocket(
         m_configuration.getLoginUdpPort(), true);
-  m_pLoginSocket->attachToTerminal(m_pLoginChannel);
-  m_pLoginChannel->attachToChannel(m_pLoginSocket);
-  m_pLoginChannel->attachToTerminal(m_pAccessPanel);
+  m_linker.link(m_pLoginSocket, m_pLoginChannel);
+  m_linker.link(m_pLoginChannel, m_pAccessPanel);
+
   m_pAccessPanel->attachToLoginSocket(m_pLoginSocket);
-  m_pAccessPanel->attachToChannel(m_pLoginChannel);
   m_pAccessPanel->attachToPlayerStorage(m_pPlayersStorage);
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);
 

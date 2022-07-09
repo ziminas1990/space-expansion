@@ -46,7 +46,7 @@ public:
 
   bool loadState(YAML::Node const& source, LoadMask mask = LoadMask().loadAll());
 
-  world::ObjectType getType() const override {
+  virtual world::ObjectType getType() const {
     return world::ObjectType::ePhysicalObject;
   }
 

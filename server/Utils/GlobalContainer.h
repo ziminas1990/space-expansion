@@ -95,10 +95,7 @@ private:
 // NOTE: Inheriting this class you MUST:
 // 1. put DECLARE_GLOBAL_CONTAINER_CPP somewhere in your cpp-file with Inheriter
 //    name (with all namespaces!)
-// 2. call GlobalContainer<Inheriter>::registerSelf(this) in your constructor
-//
-// Optionally you may also:
-// 1. override virtual "getType()"
+// 2. call GlobalObject<Inheriter>::registerSelf(this) in your constructor
 template<typename Inheriter>
 class GlobalObject
 {
@@ -127,10 +124,6 @@ public:
         pObserver->onRemoved(m_nInstanceId);
       }
     }
-  }
-
-  virtual world::ObjectType getType()       const {
-    return world::ObjectType::eUnspecified;
   }
 
   uint32_t getInstanceId() const { return m_nInstanceId; }
