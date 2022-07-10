@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <Network/Interfaces.h>
+#include <Network/Fwd.h>
 
 namespace utils {
 
@@ -41,6 +42,12 @@ public:
 
   void link(network::IPrivilegedChannelPtr pChannel,
             network::IPrivilegedTerminalPtr pTerminal);
+
+  void link(network::SessionMuxPtr pSessionMux,
+            network::IPlayerTerminalPtr pTerminal);
+
+  void link(network::IPlayerChannelPtr pChannel,
+            network::SessionMuxPtr pSessionMux);
 
 };
 

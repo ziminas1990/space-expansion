@@ -7,6 +7,7 @@
 #include <Network/ProtobufChannel.h>
 #include <Modules/Fwd.h>
 #include <Blueprints/BlueprintsLibrary.h>
+#include <Utils/Linker.h>
 
 namespace world
 {
@@ -55,6 +56,8 @@ private:
   modules::CommutatorPtr        m_pEntryPoint;
   modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
+
+  utils::Linker m_linker;
 
   blueprints::BlueprintsLibrary m_blueprints;
     // Every player has it's own set of blueprint, that can be improoved during 
