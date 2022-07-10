@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
-#include <Network/SessionMux.h>
+#include <Network/Fwd.h>
 
 namespace modules {
 
@@ -20,7 +20,7 @@ class Commutator :
 public:
   static uint32_t invalidSlot() { return UINT32_MAX; }
 
-  Commutator(std::shared_ptr<network::SessionMux> pSessionMux);
+  Commutator(network::SessionMuxWeakPtr pSessionMux);
 
   uint32_t attachModule(BaseModulePtr pModule);
     // Attach module to commutator. Return slotId - number of slot, to which
@@ -86,7 +86,7 @@ private:
   std::vector<BaseModulePtr> m_modules;
   std::vector<std::vector<uint32_t>> m_activeSessions;
 
-  std::shared_ptr<network::SessionMux> m_pSessionMux;
+  network::SessionMuxWeakPtr m_pSessionMux;
 };
 
 } // namespace modules

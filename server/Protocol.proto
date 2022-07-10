@@ -343,6 +343,7 @@ message ICommutator {
     MODULE_OFFLINE     = 2;
     REJECTED_BY_MODULE = 3;
     INVALID_TUNNEL     = 4;
+    COMMUTATOR_OFFLINE = 5;
   }
   
   message ModuleInfo {
@@ -401,7 +402,7 @@ message ISystemClock {
 }
 
 message Message {
-  uint32 tunnelId = 1;
+  uint32 tunnelId  = 1;
   uint64 timestamp = 2;
 
   oneof choice {

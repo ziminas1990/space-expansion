@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <Protocol.pb.h>
 
+#include <Network/SessionMux.h>
 #include <Utils/Clock.h>
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
@@ -30,7 +31,7 @@ void Commutator::Slot::reset()
   assert(!isValid());
 }
 
-Commutator::Commutator(std::shared_ptr<network::SessionMux> pSessionMux)
+Commutator::Commutator(network::SessionMuxWeakPtr pSessionMux)
   : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
   , m_pSessionMux(pSessionMux)
 {
@@ -41,7 +42,11 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
 {
   // We assume, that this operation is rather rare therefore we can afford to
   // execute it in O(N) time
-  pModule->attachToChannel(m_pSessionMux->asChannel());
+
+  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
+  assert(pSessionMux);
+
+  pModule->attachToChannel(pSessionMux->asChannel());
   
   for (uint32_t nSlotId = 0; nSlotId < m_modules.size(); ++nSlotId)
   {
@@ -77,13 +82,14 @@ BaseModulePtr Commutator::findModuleByType(std::string const& sType) const
 
 void Commutator::detachFromModules()
 {
+  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
+  assert(pSessionMux);
+
   const size_t nTotalSolts = m_modules.size();
   assert(m_modules.size() == m_activeSessions.size());
   for (uint32_t nSlotId = 0; nSlotId < nTotalSolts; ++nSlotId) {
-    const BaseModulePtr& pModule = m_modules[nSlotId];
     for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
-      m_pSessionMux->closeSession(nSessionId);
-      pModule->onSessionClosed(nSessionId);
+      pSessionMux->closeSession(nSessionId);
     }
   }
   m_modules.clear();
@@ -92,6 +98,9 @@ void Commutator::detachFromModules()
 
 void Commutator::checkSlots()
 {
+  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
+  assert(pSessionMux);
+
   const size_t nTotalModules = m_modules.size();
   assert(m_activeSessions.size() == nTotalModules);
   for (uint32_t nSlotId = 0; nSlotId < nTotalModules; ++nSlotId) {
@@ -101,7 +110,7 @@ void Commutator::checkSlots()
     if (pModule) {
       if (!pModule->isOnline()) {
         for (uint32_t nSessionId : activeSessions) {
-          m_pSessionMux->closeSession(nSessionId);
+          pSessionMux->closeSession(nSessionId);
         }
         activeSessions.clear();
       }
@@ -179,6 +188,12 @@ void Commutator::getAllModulesInfo(uint32_t nSessionId) const
 
 void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
 {
+  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
+  if (!pSessionMux) {
+    sendOpenTunnelFailed(nSessionId, spex::ICommutator::COMMUTATOR_OFFLINE);
+    return;
+  }
+
   if (nSlot >= m_modules.size()) {
     sendOpenTunnelFailed(nSessionId, spex::ICommutator::INVALID_SLOT);
     return;
@@ -191,10 +206,10 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
   }
 
   const uint32_t nChildSessionId = 
-      m_pSessionMux->createSession(nSessionId, pModule);
+      pSessionMux->createSession(nSessionId, pModule);
 
   if (!pModule->openSession(nChildSessionId)) {
-    m_pSessionMux->closeSession(nChildSessionId);
+    pSessionMux->closeSession(nChildSessionId);
     sendOpenTunnelFailed(nSessionId, spex::ICommutator::REJECTED_BY_MODULE);
     return;
   }
@@ -207,7 +222,13 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
 
 void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
 {
-  if (!m_pSessionMux->closeSession(nTunnelId)) {
+  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
+  if (!pSessionMux) {
+    sendCloseTunnelStatus(nSessionId, spex::ICommutator::COMMUTATOR_OFFLINE);
+    return;
+  }
+
+  if (!pSessionMux->closeSession(nTunnelId)) {
     sendCloseTunnelStatus(nSessionId, spex::ICommutator::INVALID_TUNNEL);
     return;
   }
@@ -229,13 +250,16 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
 
 void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
 {
+  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
+  assert(pSessionMux);
+
   if (nSlotId >= m_modules.size()) {
     assert(!"Inconsistent state!");
     return;
   }
 
   for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
-    m_pSessionMux->closeSession(nSessionId);
+    pSessionMux->closeSession(nSessionId);
     m_modules[nSlotId]->onSessionClosed(nSessionId);
   }
   m_modules[nSlotId].reset();
