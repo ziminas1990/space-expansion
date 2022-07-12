@@ -170,7 +170,7 @@ void AsteroidMiner::onSpecificationRequest(uint32_t nTunnelId)
 
 world::Asteroid* AsteroidMiner::getAsteroid(uint32_t nAsteroidId)
 {
-  if (nAsteroidId >= world::AsteroidsContainer::Total()) {
+  if (nAsteroidId >= world::AsteroidsContainer::Size()) {
     return nullptr;
   }
   return world::AsteroidsContainer::Instance(nAsteroidId);

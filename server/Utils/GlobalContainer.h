@@ -53,7 +53,11 @@ public:
   // Return all objects in caontainers as an array. Note that array may
   // contain null pointers (due to perfomance reason).
 
-  static uint32_t   Total() { return static_cast<uint32_t>(gInstances.size()); }
+  static uint32_t Size() { return static_cast<uint32_t>(gInstances.size()); }
+  // Return a size of GlobalContainer.
+  // Note: size is a length of instances vector, but some entries in this
+  // vector may contain 'nullptr'. Use 'Total()' to get a number of registered
+  // items in container.
 
   static Inheriter* Instance(uint32_t nInstanceId) {
     assert(nInstanceId < gInstances.size());
@@ -61,6 +65,7 @@ public:
   }
 
   static bool Empty() { return gRegisteredObjectsCounter == 0; }
+  static bool Total() { return gRegisteredObjectsCounter; }
 
   static void AttachObserver(IObserver* pObserver) {
     // I assume that application should not register a lot of
