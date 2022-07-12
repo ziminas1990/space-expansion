@@ -1,9 +1,16 @@
 #include <Autotests/Modules/ModulesTestFixture.h>
 
+#include <Network/SessionMux.h>
+#include <Utils/GlobalContainerUtils.h>
+
 namespace autotests {
 
 void ModulesTestFixture::SetUp()
 {
+  std::stringstream problem;
+  ASSERT_TRUE(utils::GlobalContainerUtils::checkAllContainersAreEmpty(problem))
+    << problem.str();
+
   m_clock.switchToDebugMode();
   m_clock.setDebugTickUs(25000);       // 25ms per tick
   m_clock.proceedRequest(0xFFFFFFFF);  // As long as it is required

@@ -15,6 +15,7 @@
 
 namespace modules {
 
+MODULE_FWD_DECLARATION(BaseModule)
 MODULE_FWD_DECLARATION(AccessPanel)
 MODULE_FWD_DECLARATION(AsteroidMiner)
 MODULE_FWD_DECLARATION(AsteroidScanner)

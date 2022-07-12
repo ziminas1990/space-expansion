@@ -83,16 +83,18 @@ public:
                          IPlayerTerminalPtr pHandler);
   bool closeSession(uint32_t nSessionId);
 
+  // Close all connections and their sessions
+  void terminate();
+
   IPlayerChannelPtr  asChannel()  const { return m_pSocket; }
   IPlayerTerminalPtr asTerminal() const { return m_pSocket; }
-
-  void attach(IPlayerChannelPtr pChannel);
-  void detach();
 
 private:
   uint16_t occupyIndex();
 
-  bool onSessionClosed(uint32_t nSessionId, bool lIsRecursive = false);
+  bool closeConnectionLocked(uint32_t nSessionId);
+
+  bool closeSessionLocked(uint32_t nSessionId, bool lNotifyParent = true);
 };
 
 using SessionMuxPtr = std::shared_ptr<SessionMux>;

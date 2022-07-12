@@ -6,9 +6,11 @@
 #include <Modules/Fwd.h>
 #include <Modules/Managers.h>
 #include <Modules/Commutator/Commutator.h>
+#include <Network/SessionMux.h>
+#include <Utils/Linker.h>
+
 #include <Autotests/TestUtils/Connector.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
-
 #include <Autotests/ClientSDK/SyncPipe.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/Mocks/MockedBaseModule.h>
@@ -45,6 +47,8 @@ protected:
   client::PlayerPipePtr         m_pRootPipe;
   client::RouterPtr             m_pRouter;
   client::ClientCommutatorPtr   m_pClient;
+
+  utils::Linker                 m_linker;
 };
 
 void CommutatorTests::SetUp()
@@ -85,27 +89,21 @@ void CommutatorTests::SetUp()
   // Linking components
   const uint32_t nConnectionId = 3;
   m_pConnection = std::make_shared<PlayerConnector>(nConnectionId);
-  m_pConnection->attachToTerminal(m_pSessionMux->asTerminal());
-  m_pSessionMux->attach(m_pConnection);
+
+  m_linker.link(m_pConnection, m_pSessionMux->asTerminal());
+  m_linker.link(m_pSessionMux, m_pCommutatator);
+
   m_pConnection->attachToTerminal(m_pRouter);
   m_pRouter->attachToDownlevel(m_pConnection);
 
   // Create a root session
   const uint32_t nRootSession = 
     m_pSessionMux->addConnection(nConnectionId, m_pCommutatator);
-  m_pCommutatator->attachToChannel(m_pSessionMux->asChannel());
   m_pClient->attachToChannel(m_pRouter->openSession(nRootSession));
-
 }
 
 void CommutatorTests::TearDown()
 {
-  m_pCommutatator->detachFromModules();
-  m_pConnection->detachFromTerminal();
-  m_pSessionMux->detach();
-  m_pCommutatator->detachFromChannel();
-  m_pCommutatator->detachFromModules();
-
   m_pRouter->detachDownlevel();
   m_pClient->detachChannel();
 }

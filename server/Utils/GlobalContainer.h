@@ -17,6 +17,8 @@
   template<> \
   Mutex GlobalContainer<Inheriter>::gMutex = Mutex(); \
   template<> \
+  size_t GlobalContainer<Inheriter>::gRegisteredObjectsCounter = 0; \
+  template<> \
   std::vector<Inheriter*> GlobalContainer<Inheriter>::gInstances = std::vector<Inheriter*>(); \
   template<> \
   std::vector<GlobalContainer<Inheriter>::IObserver*>\
@@ -51,14 +53,19 @@ public:
   // Return all objects in caontainers as an array. Note that array may
   // contain null pointers (due to perfomance reason).
 
-  static uint32_t   Total() { return static_cast<uint32_t>(gInstances.size()); }
+  static uint32_t Size() { return static_cast<uint32_t>(gInstances.size()); }
+  // Return a size of GlobalContainer.
+  // Note: size is a length of instances vector, but some entries in this
+  // vector may contain 'nullptr'. Use 'Total()' to get a number of registered
+  // items in container.
 
   static Inheriter* Instance(uint32_t nInstanceId) {
     assert(nInstanceId < gInstances.size());
     return gInstances[nInstanceId];
   }
 
-  static bool Empty() { return gInstances.empty(); }
+  static bool Empty() { return gRegisteredObjectsCounter == 0; }
+  static bool Total() { return gRegisteredObjectsCounter; }
 
   static void AttachObserver(IObserver* pObserver) {
     // I assume that application should not register a lot of
@@ -87,6 +94,7 @@ private:
   static ThreadSafePool<uint32_t> gIdPool;
     // ObjectIds, that can be reused to new objects
   static Mutex                    gMutex;
+  static size_t                   gRegisteredObjectsCounter;
   static std::vector<Inheriter*>  gInstances;
   static std::vector<IObserver*>  gObservers;
 };
@@ -95,10 +103,7 @@ private:
 // NOTE: Inheriting this class you MUST:
 // 1. put DECLARE_GLOBAL_CONTAINER_CPP somewhere in your cpp-file with Inheriter
 //    name (with all namespaces!)
-// 2. call GlobalContainer<Inheriter>::registerSelf(this) in your constructor
-//
-// Optionally you may also:
-// 1. override virtual "getType()"
+// 2. call GlobalObject<Inheriter>::registerSelf(this) in your constructor
 template<typename Inheriter>
 class GlobalObject
 {
@@ -122,15 +127,13 @@ public:
     assert(m_nInstanceId < Container::gInstances.size());
     if (m_nInstanceId < Container::gInstances.size()) {
       Container::gInstances[m_nInstanceId] = nullptr;
+      assert(Container::gRegisteredObjectsCounter > 0);
+      --Container::gRegisteredObjectsCounter;
       Container::gIdPool.release(m_nInstanceId);
       for (IObserver* pObserver: Container::gObservers) {
         pObserver->onRemoved(m_nInstanceId);
       }
     }
-  }
-
-  virtual world::ObjectType getType()       const {
-    return world::ObjectType::eUnspecified;
   }
 
   uint32_t getInstanceId() const { return m_nInstanceId; }
@@ -146,6 +149,9 @@ protected:
       Container::gInstances.push_back(pSelf);
     } else {
       Container::gInstances[m_nInstanceId] = pSelf;
+    }
+    if (pSelf) {
+      ++Container::gRegisteredObjectsCounter;
     }
     for (IObserver* pObserver: Container::gObservers) {
       pObserver->onRegistered(m_nInstanceId, pSelf);
