@@ -49,9 +49,6 @@ public:
   void link(network::SessionMuxPtr pSessionMux,
             network::IPlayerTerminalPtr pTerminal);
 
-  void link(network::IPlayerChannelPtr pChannel,
-            network::SessionMuxPtr pSessionMux);
-
   uint32_t attachModule(const modules::CommutatorPtr& pCommutator,
                         const modules::BaseModulePtr& pModule);
 

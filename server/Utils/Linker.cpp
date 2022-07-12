@@ -87,13 +87,6 @@ void Linker::link(network::SessionMuxPtr pSessionMux,
     link_terminal_to_channel(pSessionMux->asChannel(), pTerminal));
 }
 
-void Linker::link(network::IPlayerChannelPtr pChannel,
-                  network::SessionMuxPtr pSessionMux)
-{
-  m_links.emplace_back(
-    link_channel_to_terminal(pChannel, pSessionMux->asTerminal()));
-}
-
 uint32_t Linker::attachModule(const modules::CommutatorPtr& pCommutator,
                               const modules::BaseModulePtr& pModule)
 {

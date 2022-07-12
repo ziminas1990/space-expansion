@@ -235,18 +235,6 @@ void SessionMux::terminate()
   }
 }
 
-void SessionMux::attach(IPlayerChannelPtr pChannel)
-{
-  std::lock_guard<std::mutex> guard(m_mutex);
-  m_pSocket->attachToChannel(pChannel);
-}
-
-void SessionMux::detach()
-{
-  std::lock_guard<std::mutex> guard(m_mutex);
-  m_pSocket->detachFromChannel();
-}
-
 uint16_t SessionMux::occupyIndex()
 {
   if (!m_indexesToReuse.empty()) {

@@ -105,22 +105,6 @@ BaseModulePtr Commutator::findModuleByType(std::string const& sType) const
   return BaseModulePtr();
 }
 
-void Commutator::detachFromModules()
-{
-  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
-  assert(pSessionMux);
-
-  const size_t nTotalSolts = m_modules.size();
-  assert(m_modules.size() == m_activeSessions.size());
-  for (uint32_t nSlotId = 0; nSlotId < nTotalSolts; ++nSlotId) {
-    for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
-      pSessionMux->closeSession(nSessionId);
-    }
-  }
-  m_modules.clear();
-  m_activeSessions.clear();
-}
-
 void Commutator::checkSlots()
 {
   network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();

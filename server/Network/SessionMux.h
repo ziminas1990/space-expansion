@@ -89,9 +89,6 @@ public:
   IPlayerChannelPtr  asChannel()  const { return m_pSocket; }
   IPlayerTerminalPtr asTerminal() const { return m_pSocket; }
 
-  void attach(IPlayerChannelPtr pChannel);
-  void detach();
-
 private:
   uint16_t occupyIndex();
 

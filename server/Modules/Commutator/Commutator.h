@@ -37,8 +37,6 @@ public:
     // Return module with the specified 'sType'. If module doesn't exist, return null.
     // Note that call has O(n) complicity
 
-  void detachFromModules();
-
   // Check if all slotes are still active; if some slot is NOT active anymore,
   // commutator will send an indication
   void checkSlots();
