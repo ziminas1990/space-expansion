@@ -1,5 +1,7 @@
 #include <Autotests/Modules/ModulesTestFixture.h>
 
+#include <Network/SessionMux.h>
+
 namespace autotests {
 
 void ModulesTestFixture::SetUp()

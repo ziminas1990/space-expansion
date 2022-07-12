@@ -42,15 +42,15 @@ PlayerPtr Player::load(
     return PlayerPtr();
   }
 
-  pPlayer->m_pEntryPoint->attachToChannel(pPlayer->m_pSesionMux->asChannel());
-
   pPlayer->m_pSystemClock =
       std::make_shared<modules::SystemClock>("SystemClock", pPlayer);
-  pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pSystemClock);
-
   pPlayer->m_pBlueprintsExplorer =
       std::make_shared<modules::BlueprintsStorage>(pPlayer);
-  pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pBlueprintsExplorer);
+
+  pPlayer->m_linker.attachModule(
+    pPlayer->m_pEntryPoint, pPlayer->m_pSystemClock);
+  pPlayer->m_linker.attachModule(
+    pPlayer->m_pEntryPoint, pPlayer->m_pBlueprintsExplorer);
 
   YAML::Node const& shipsState = state["ships"];
   if (!shipsState.IsDefined()) {
@@ -76,8 +76,9 @@ PlayerPtr Player::load(
         std::static_pointer_cast<modules::Ship>(
           pShipBlueprint->build(std::move(sShipName), pPlayer));
     assert(pShip);
-    if (!pShip)
+    if (!pShip) {
       return PlayerPtr();
+    }
 
     if (!pShip->loadState(kv.second)) {
       assert("Failed to load ship" == nullptr);
@@ -94,20 +95,6 @@ PlayerPtr Player::makeDummy(std::string sLogin)
   // Can't use 'std::make_shared' here since Player's constructor is private
   return std::shared_ptr<Player>(
         new Player(std::move(sLogin), blueprints::BlueprintsLibrary()));
-}
-
-Player::~Player()
-{
-  if (m_pBlueprintsExplorer) {
-    m_pBlueprintsExplorer->detachFromChannel();
-  }
-  if (m_pEntryPoint) {
-    m_pEntryPoint->detachFromModules();
-  }
-  if (m_pSesionMux) {
-    m_pSesionMux->terminate();
-    m_pSesionMux->detach();
-  }
 }
 
 uint32_t Player::onNewConnection(uint32_t nConnectionId)

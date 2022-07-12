@@ -26,6 +26,9 @@ public:
     // Attach module to commutator. Return slotId - number of slot, to which
     // the module has been attached
 
+  bool detachModule(uint32_t nSloteId, const BaseModulePtr& pModule);
+    // Detach the specified 'pModule', attached to the specified 'nSlotId'.
+
   BaseModulePtr findModuleByName(std::string const& sName) const;
     // Return module with the specified 'sName'. If module doesn't exist, return null.
     // Note that call has O(n) complicity

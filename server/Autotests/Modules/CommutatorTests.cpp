@@ -6,9 +6,10 @@
 #include <Modules/Fwd.h>
 #include <Modules/Managers.h>
 #include <Modules/Commutator/Commutator.h>
+#include <Network/SessionMux.h>
+
 #include <Autotests/TestUtils/Connector.h>
 #include <Autotests/Mocks/Modules/MockedCommutator.h>
-
 #include <Autotests/ClientSDK/SyncPipe.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/Mocks/MockedBaseModule.h>
@@ -104,7 +105,6 @@ void CommutatorTests::TearDown()
   m_pConnection->detachFromTerminal();
   m_pSessionMux->detach();
   m_pCommutatator->detachFromChannel();
-  m_pCommutatator->detachFromModules();
 
   m_pRouter->detachDownlevel();
   m_pClient->detachChannel();

@@ -28,8 +28,6 @@ public:
   static PlayerPtr makeDummy(std::string sLogin);
   // Create non initialized Player object (may be used in tests purposes)
 
-  ~Player();
-
   network::UdpSocketPtr getUdpSocket() const { return m_pUdpChannel; }
   void attachToUdpSocket(network::UdpSocketPtr pSocket);
 
@@ -57,13 +55,14 @@ private:
   modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
 
-  utils::Linker m_linker;
-
   blueprints::BlueprintsLibrary m_blueprints;
     // Every player has it's own set of blueprint, that can be improoved during 
     // the game. At the beginning, all players have the same blueprints library
 
   std::vector<modules::ShipPtr> m_ships;
+
+  // Linker is placed to the end to be destroyed first (and destroy all links)
+  utils::Linker m_linker;
 };
 
 } // namespace world

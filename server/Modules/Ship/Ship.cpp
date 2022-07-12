@@ -29,13 +29,6 @@ Ship::Ship(
   );
 }
 
-Ship::~Ship()
-{
-  m_pCommutator->detachFromModules();
-  for (auto& kv : m_Modules)
-    kv.second->onDoestroyed();
-}
-
 bool Ship::loadState(YAML::Node const& source)
 {
   if (!PhysicalObject::loadState(
@@ -73,7 +66,7 @@ uint32_t Ship::installModule(modules::BaseModulePtr pModule)
     return modules::Commutator::invalidSlot();
   }
   m_Modules.insert(std::make_pair(pModule->getModuleName(), pModule));
-  const uint32_t nSlot = m_pCommutator->attachModule(pModule);
+  const uint32_t nSlot = m_linker.attachModule(m_pCommutator, pModule);
   pModule->installOn(this);
   return nSlot;
 }

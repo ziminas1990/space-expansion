@@ -62,6 +62,31 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
   return static_cast<uint32_t>(m_modules.size()) - 1;
 }
 
+bool Commutator::detachModule(uint32_t nSlotId, const BaseModulePtr& pModule)
+{
+  if (nSlotId >= m_modules.size()) {
+    assert(!"Invalid slot!");
+    return false;
+  }
+
+  const BaseModulePtr& pInstalledModule = m_modules[nSlotId];
+  if (pInstalledModule != pModule) {
+    assert(!"Unexpected module");
+    return false;
+  }
+  pModule->detachFromChannel();
+
+  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
+  if (pSessionMux) {
+    for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
+      pSessionMux->closeSession(nSessionId);
+    }
+  }
+  m_activeSessions[nSlotId].clear();
+  m_modules[nSlotId].reset();
+  return true;
+}
+
 BaseModulePtr Commutator::findModuleByName(std::string const& sName) const
 {
   for (const BaseModulePtr& pModule : m_modules) {

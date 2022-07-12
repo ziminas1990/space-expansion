@@ -4,33 +4,36 @@
 #include <functional>
 #include <Network/Interfaces.h>
 #include <Network/Fwd.h>
+#include <Modules/Fwd.h>
 
 namespace utils {
 
 class Linker {
 private:
 
-  class Unlinker {
+  // Stores a link. Actually, the only purpose of this class is to
+  // destroy a stored link. So, it's an RAII approach to manage links.
+  class Link {
   private:
     std::function<void()> m_fUnlinkCallback;
 
   public:
-    Unlinker(std::function<void()>&& unlinker) 
+    Link(std::function<void()>&& unlinker) 
     : m_fUnlinkCallback(std::move(unlinker))
     {}
-    Unlinker(Unlinker&& other) noexcept = default;
+    Link(Link&& other) noexcept = default;
 
-    ~Unlinker() {
+    ~Link() {
       if (m_fUnlinkCallback) {
         m_fUnlinkCallback();
       }
     }
 
   private:
-    Unlinker(const Unlinker& other) = delete;
+    Link(const Link& other) = delete;
   };
 
-  std::vector<Unlinker> m_unlinkers;
+  std::vector<Link> m_links;
 
 public:
 
@@ -48,6 +51,9 @@ public:
 
   void link(network::IPlayerChannelPtr pChannel,
             network::SessionMuxPtr pSessionMux);
+
+  uint32_t attachModule(const modules::CommutatorPtr& pCommutator,
+                        const modules::BaseModulePtr& pModule);
 
 };
 

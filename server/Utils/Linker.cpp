@@ -1,7 +1,10 @@
 #include <Utils/Linker.h>
-#include <Network/SessionMux.h>
 
 #include <memory>
+
+#include <Network/SessionMux.h>
+#include <Modules/Commutator/Commutator.h>
+#include <Modules/BaseModule.h>
 
 namespace utils {
 
@@ -62,33 +65,52 @@ static std::function<void()> link_channel_to_terminal(
 void Linker::link(network::IBinaryChannelPtr pChannel,
                   network::IBinaryTerminalPtr pTerminal)
 {
-  m_unlinkers.emplace_back(mutual_link(pChannel, pTerminal));
+  m_links.emplace_back(mutual_link(pChannel, pTerminal));
 }
 
 void Linker::link(network::IPlayerChannelPtr pChannel,
                   network::IPlayerTerminalPtr pTerminal)
 {
-  m_unlinkers.emplace_back(mutual_link(pChannel, pTerminal));
+  m_links.emplace_back(mutual_link(pChannel, pTerminal));
 }
 
 void Linker::link(network::IPrivilegedChannelPtr pChannel,
                   network::IPrivilegedTerminalPtr pTerminal)
 {
-  m_unlinkers.emplace_back(mutual_link(pChannel, pTerminal));
+  m_links.emplace_back(mutual_link(pChannel, pTerminal));
 }
 
 void Linker::link(network::SessionMuxPtr pSessionMux,
                   network::IPlayerTerminalPtr pTerminal)
 {
-  m_unlinkers.emplace_back(
+  m_links.emplace_back(
     link_terminal_to_channel(pSessionMux->asChannel(), pTerminal));
 }
 
 void Linker::link(network::IPlayerChannelPtr pChannel,
                   network::SessionMuxPtr pSessionMux)
 {
-  m_unlinkers.emplace_back(
+  m_links.emplace_back(
     link_channel_to_terminal(pChannel, pSessionMux->asTerminal()));
+}
+
+uint32_t Linker::attachModule(const modules::CommutatorPtr& pCommutator,
+                              const modules::BaseModulePtr& pModule)
+{
+  const uint32_t nSlotId = pCommutator->attachModule(pModule);
+
+  modules::CommutatorWeakPtr pCommutatorWeak = pCommutator;
+  modules::BaseModuleWeakPtr pModuleWeak = pModule;
+  m_links.emplace_back(
+    [nSlotId, pCommutatorWeak, pModuleWeak]() {
+      modules::CommutatorPtr pCommutator = pCommutatorWeak.lock();
+      modules::BaseModulePtr pModule     = pModuleWeak.lock();
+      if (pCommutator && pModule) {
+        pCommutator->detachModule(nSlotId, pModule);
+      }
+    }
+  );
+  return nSlotId;
 }
 
 }  // namespace utils

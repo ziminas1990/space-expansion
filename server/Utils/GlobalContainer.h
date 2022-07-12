@@ -17,6 +17,8 @@
   template<> \
   Mutex GlobalContainer<Inheriter>::gMutex = Mutex(); \
   template<> \
+  size_t GlobalContainer<Inheriter>::gRegisteredObjectsCounter = 0; \
+  template<> \
   std::vector<Inheriter*> GlobalContainer<Inheriter>::gInstances = std::vector<Inheriter*>(); \
   template<> \
   std::vector<GlobalContainer<Inheriter>::IObserver*>\
@@ -58,7 +60,7 @@ public:
     return gInstances[nInstanceId];
   }
 
-  static bool Empty() { return gInstances.empty(); }
+  static bool Empty() { return gRegisteredObjectsCounter == 0; }
 
   static void AttachObserver(IObserver* pObserver) {
     // I assume that application should not register a lot of
@@ -87,6 +89,7 @@ private:
   static ThreadSafePool<uint32_t> gIdPool;
     // ObjectIds, that can be reused to new objects
   static Mutex                    gMutex;
+  static size_t                   gRegisteredObjectsCounter;
   static std::vector<Inheriter*>  gInstances;
   static std::vector<IObserver*>  gObservers;
 };
@@ -119,6 +122,8 @@ public:
     assert(m_nInstanceId < Container::gInstances.size());
     if (m_nInstanceId < Container::gInstances.size()) {
       Container::gInstances[m_nInstanceId] = nullptr;
+      assert(Container::gRegisteredObjectsCounter > 0);
+      --Container::gRegisteredObjectsCounter;
       Container::gIdPool.release(m_nInstanceId);
       for (IObserver* pObserver: Container::gObservers) {
         pObserver->onRemoved(m_nInstanceId);
@@ -139,6 +144,9 @@ protected:
       Container::gInstances.push_back(pSelf);
     } else {
       Container::gInstances[m_nInstanceId] = pSelf;
+    }
+    if (pSelf) {
+      ++Container::gRegisteredObjectsCounter;
     }
     for (IObserver* pObserver: Container::gObservers) {
       pObserver->onRegistered(m_nInstanceId, pSelf);
