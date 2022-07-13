@@ -36,6 +36,10 @@ class SessionsMux(Terminal):
             if message.session:
                 if message.session.closed_ind:
                     self.owner.on_session_closed(self.session_id)
+                elif message.session.heartbeat:
+                    # A heartbeat message should be just sent back
+                    self.send(message)
+                    return
             # Pass a message to a client
             if timestamp is None:
                 timestamp = message.timestamp

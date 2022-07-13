@@ -2,6 +2,7 @@
 #include <Utils/Clock.h>
 #include <Utils/RandomSequence.h>
 
+DECLARE_GLOBAL_CONTAINER_CPP(network::SessionMux);
 
 namespace network {
 
@@ -62,6 +63,9 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
       closeSession(nSessionId);
     }
   }
+
+  Connection& connection = m_pOwner->m_connections[nConnectionId];
+  connection.m_nLastMessageReceivedAt = utils::GlobalClock::now();
 }
 
 void SessionMux::Socket::onSessionClosed(uint32_t nConnectionId)
@@ -125,6 +129,7 @@ void SessionMux::Socket::detachFromTerminal()
 SessionMux::SessionMux(uint8_t nConnectionsLimit)
   : m_connections(nConnectionsLimit), m_pSocket(std::make_shared<Socket>(this))
 {
+  GlobalObject<SessionMux>::registerSelf(this);
   m_sessions.reserve(1024);
   // SessionId = 0 should never be used
   m_sessions.push_back(Session());
@@ -232,6 +237,31 @@ bool SessionMux::closeSession(uint32_t nSessionId)
   }
 }
 
+void SessionMux::checkConnectionsActivity(uint64_t now)
+{
+  constexpr uint64_t disconnectTimeoutUs = 4000000 * 3.5; // ~1400 ms
+
+  const size_t nTotal = m_connections.size();
+  for (size_t nConnectionId = 0; nConnectionId < nTotal; ++ nConnectionId) {
+    Connection& connection = m_connections[nConnectionId];
+    if (!connection.isOpened()) {
+      continue;
+    }
+    if (connection.isTimeToSendHeartbeat(now)) {
+      const uint64_t nSilencePeriod = now - connection.m_nLastMessageReceivedAt;
+      if (nSilencePeriod < disconnectTimeoutUs) {  // [[likely]]
+        spex::Message heartbeat;
+        heartbeat.mutable_session()->set_heartbeat(true);
+        m_pSocket->send(connection.getRootSession(), std::move(heartbeat));
+        connection.m_nLastHeartBeatSentAt = now;
+      } else {
+        closeConnection(nConnectionId);
+        // Note: 'connection' reference is invalidated now
+      }
+    }
+  }
+}
+
 uint16_t SessionMux::occupyIndex()
 {
   if (!m_indexesToReuse.empty()) {
@@ -317,6 +347,22 @@ bool SessionMux::isRootSession(const Session& session) const
         && connection.getRootSession() == session.sessionId();
   }
   assert(!"Invalid session id");
+}
+
+bool SessionMuxManager::prephare(uint16_t, uint32_t, uint64_t now)
+{
+  using SessionMuxContainer = utils::GlobalContainer<SessionMux>;
+  for (SessionMux* pSessionMux : SessionMuxContainer::AllInstancies()) {
+    if (pSessionMux) {
+      pSessionMux->checkConnectionsActivity(now);
+    }
+  }
+  return false;  // No need to proceed stage, everything is already done
+}
+
+void SessionMuxManager::proceed(uint16_t, uint32_t, uint64_t)
+{
+  assert("!Should never be called");
 }
 
 } // network
