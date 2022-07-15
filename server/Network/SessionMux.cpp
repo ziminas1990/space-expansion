@@ -15,38 +15,21 @@ static uint16_t generateToken(uint16_t old) {
   return token;
 }
 
-void SessionMux::Session::removeChild(uint32_t nChildSessionId)
-{
-  // This requires a linear search, but it shouldn't be critical
-  for (size_t i = 0; i < m_children.size(); ++i) {
-    if (m_children[i] == nChildSessionId) {
-      m_children[i] = m_children.back();
-      m_children.pop_back();
-      return;
-    }
-  }
-}
-
 void SessionMux::Session::die()
 {
   // 'm_nToken' should NOT be overwritten with 0 (see revive())
   m_nConnectionId    = 0;
   m_pHandler         = nullptr;
-  m_nParentSessionId = 0;
-  m_children.clear();
   assert(!isValid());
 }
 
 void SessionMux::Session::revive(uint32_t           nConnectionId,
-                                 uint32_t           nParentSessionId,
                                  IPlayerTerminalPtr pHandler)
 {
   assert(!isValid());
-  m_nToken = generateToken(m_nToken);
-  m_nConnectionId    = nConnectionId;
-  m_nParentSessionId = nParentSessionId;
-  m_pHandler         = pHandler;
-  m_children.clear();
+  m_nToken        = generateToken(m_nToken);
+  m_nConnectionId = nConnectionId;
+  m_pHandler      = pHandler;
   assert(isValid());
 }
 
@@ -77,13 +60,16 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
 void SessionMux::Socket::onSessionClosed(uint32_t nConnectionId)
 {
   // A client closed the connection
-  m_pOwner->closeConnection(nConnectionId);
+  if (m_pOwner) {
+    m_pOwner->closeConnection(nConnectionId);
+  }
 }
 
 void SessionMux::Socket::attachToChannel(IPlayerChannelPtr pChannel)
 {
   m_pChannel = pChannel;
 }
+
 void SessionMux::Socket::detachFromChannel()
 {
   m_pChannel = nullptr;
@@ -117,7 +103,7 @@ bool SessionMux::Socket::isValid() const
 
 void SessionMux::Socket::attachToTerminal(IPlayerTerminalPtr)
 {
-  assert(!"Operation makes no sence");
+  assert(!"Operation makes no sense");
 }
 
 void SessionMux::Socket::detachFromTerminal()
@@ -143,18 +129,17 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
   std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
-    assert(!connection.m_nRootSessionId && "Has connection been closed?");
+    assert(!connection.isOpened() && "Has connection been closed?");
     // TODO: try to find a session for reuse, using occpyIndex())?
     m_sessions.emplace_back(Session{
       static_cast<uint16_t>(m_sessions.size()),
       generateToken(0),
       nConnectionId,
-      0,  // parentSessionId, should be 0 here
-      pHandler,
-      {}
+      pHandler
     });
-    connection.m_nRootSessionId = m_sessions.back().sessionId();
-    return connection.m_nRootSessionId;
+    const uint32_t nSessionId = m_sessions.back().sessionId();
+    connection.m_sessions.push_back(nSessionId);
+    return nSessionId;
   }
   assert(!"Invalid connection id");
   return 0;
@@ -165,9 +150,11 @@ bool SessionMux::closeConnection(uint32_t nConnectionId)
   std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
-    assert(connection.isValid() && "Has connection been opened?");
-    closeSessionLocked(connection.m_nRootSessionId, false);
-    connection.m_nRootSessionId = 0;
+    assert(connection.isOpened() && "Has connection been opened?");
+    for (uint32_t nSessionId: connection.m_sessions) {
+      closeSessionLocked(nSessionId);
+    }
+    connection.closed();
     return true;
   }
   assert(!"Invalid connection id");
@@ -187,7 +174,7 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
   }
 
   // Get connection id from the specified parent session
-  Session& parentSession = m_sessions[nParentSessionIndex];
+  const Session& parentSession = m_sessions[nParentSessionIndex];
   if (!parentSession.isValid() ||
       parentSession.sessionId() != nParentSessionId) {
     // Either parent session is not valid or secret key doesn't match
@@ -199,19 +186,11 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
   // Add a new session
   const uint16_t nSessionIndex = occupyIndex();
   if (nSessionIndex) {
-    if (nSessionIndex < m_sessions.size()) {
-      // Reusing previously closed session
-      Session& session = m_sessions[nSessionIndex];
-      assert(session.m_nIndex == nSessionIndex);
-      session.revive(nConnectionId, nParentSessionId, pHandler);
-    } else {
-      m_sessions.push_back(Session{
-        nSessionIndex, 1, nConnectionId, nParentSessionId, pHandler, {}
-      });
-    }
-    const uint32_t nSessionId = m_sessions[nSessionIndex].sessionId();
-    parentSession.m_children.push_back(nSessionId);
-    return nSessionId;
+    assert(nSessionIndex < m_sessions.size());
+    Session& session = m_sessions[nSessionIndex];
+    assert(session.m_nIndex == nSessionIndex);
+    session.revive(nConnectionId, pHandler);
+    return m_sessions[nSessionIndex].sessionId();
   }
   return 0;
 }
@@ -222,31 +201,21 @@ bool SessionMux::closeSession(uint32_t nSessionId)
   return closeSessionLocked(nSessionId);
 }
 
-void SessionMux::terminate()
-{
-  std::lock_guard<std::mutex> guard(m_mutex);
-
-  for (size_t i = 0; i < m_connections.size(); ++i) {
-    Connection& connection = m_connections[i];
-    if (connection.isValid()) {
-      closeSessionLocked(connection.m_nRootSessionId, false);
-      connection.closed();
-    }
-  }
-}
-
 uint16_t SessionMux::occupyIndex()
 {
   if (!m_indexesToReuse.empty()) {
     const uint16_t nIndex = m_indexesToReuse.back();
     m_indexesToReuse.pop_back();
     return nIndex;
+  } else if (m_sessions.size() < 0xFFFF) {
+    const uint16_t index = static_cast<uint16_t>(m_sessions.size());
+    m_sessions.push_back(Session{index, 0, 0, nullptr});
+    return m_sessions.size() - 1;
   }
-  const size_t candidate = m_sessions.size();
-  return candidate <= 0xFFFF ? static_cast<uint16_t>(candidate) : 0;
+  return 0;
 }
 
-bool SessionMux::closeSessionLocked(uint32_t nSessionId, bool lNotifyParent)
+bool SessionMux::closeSessionLocked(uint32_t nSessionId)
 {
   const uint16_t nSessionIndex = nSessionId >> 16;
 
@@ -257,32 +226,13 @@ bool SessionMux::closeSessionLocked(uint32_t nSessionId, bool lNotifyParent)
 
   Session& session = m_sessions[nSessionIndex];
   if (session.isValid() && session.sessionId() == nSessionId) {
-    if (lNotifyParent) {
-      const uint16_t nParentSessionIndex = session.m_nParentSessionId >> 16;
-      if (nParentSessionIndex < m_sessions.size()) {
-        Session& parentSession = m_sessions[nParentSessionIndex];
-        if (parentSession.isValid() &&
-            parentSession.sessionId() == session.m_nParentSessionId) {
-          parentSession.removeChild(nSessionId);
-        }
-      }
-    }
-
-    // First close child sessions then close this session
-    for (uint32_t nChildSessionId : session.m_children) {
-      closeSessionLocked(nChildSessionId, false);
-    }
-
     // Notify the client and close the session
     spex::Message message;
     message.mutable_commutator()->set_close_tunnel_ind(true);
     m_pSocket->send(nSessionId, std::move(message));
 
-    session.m_pHandler->onSessionClosed(session.sessionId());
-
-    // If a root session is closed, connection should be closed as well
-    if (session.m_nParentSessionId == 0) {
-      m_pSocket->closeConnection(session.m_nConnectionId);
+    if (session.m_pHandler) {
+      session.m_pHandler->onSessionClosed(session.sessionId());
     }
 
     session.die();

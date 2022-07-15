@@ -11,27 +11,31 @@ class SessionMux
 private:
 
   struct Connection {
-    uint32_t m_nRootSessionId = 0;
+    Connection() {
+      m_sessions.reserve(1024);
+    }
 
-    bool isValid() const { return m_nRootSessionId != 0; }
-    void closed() { m_nRootSessionId = 0; }
+    bool                  m_lUp = false;
+    std::vector<uint32_t> m_sessions;
+
+    bool isOpened() const { return m_lUp; }
+    void closed() {
+      m_lUp = false;
+      m_sessions.clear();
+    }
   };
 
   struct Session {
     uint16_t              m_nIndex           = 0;
     uint16_t              m_nToken           = 0;
     uint32_t              m_nConnectionId    = 0;
-    uint32_t              m_nParentSessionId = 0;
     IPlayerTerminalPtr    m_pHandler         = nullptr;
-    std::vector<uint32_t> m_children;
 
     bool     isValid()   const { return m_pHandler != nullptr; }
     uint32_t sessionId() const { return (m_nIndex << 16) + m_nToken; }
     
-    void removeChild(uint32_t nChildSessionId);
     void die();
     void revive(uint32_t           nRootSessionId,
-                uint32_t           nParentSession,
                 IPlayerTerminalPtr pHandler);
 
   };
@@ -83,18 +87,13 @@ public:
                          IPlayerTerminalPtr pHandler);
   bool closeSession(uint32_t nSessionId);
 
-  // Close all connections and their sessions
-  void terminate();
-
   IPlayerChannelPtr  asChannel()  const { return m_pSocket; }
   IPlayerTerminalPtr asTerminal() const { return m_pSocket; }
 
 private:
   uint16_t occupyIndex();
 
-  bool closeConnectionLocked(uint32_t nSessionId);
-
-  bool closeSessionLocked(uint32_t nSessionId, bool lNotifyParent = true);
+  bool closeSessionLocked(uint32_t nSessionId);
 };
 
 using SessionMuxPtr = std::shared_ptr<SessionMux>;
