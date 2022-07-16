@@ -7,6 +7,17 @@ namespace autotests {
 template<typename MessageType> struct Unpacker;
 
 template<>
+struct Unpacker<spex::ISessionControl> {
+  inline static
+  spex::Message::ChoiceCase choice() { return spex::Message::kSession; }
+
+  inline static
+  const spex::ISessionControl& unpack(const spex::Message& message) {
+    return message.session();
+  }
+};
+
+template<>
 struct Unpacker<spex::IAccessPanel> {
   inline static
   spex::Message::ChoiceCase choice() { return spex::Message::kAccessPanel; }

@@ -69,6 +69,7 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
         // BaseModule class
         return;
       }
+      case spex::Message::kSession:
       case spex::Message::kGame:
       case spex::Message::CHOICE_NOT_SET: {
         // Just ignoring

@@ -9,4 +9,11 @@ void ClientBaseModule::dropQueuedMessage()
   }
 }
 
-}}
+bool ClientBaseModule::waitCloseInd()
+{
+  spex::ISessionControl response;
+  return wait(response)
+      && response.choice_case() != spex::ISessionControl::kClosedInd;
+}
+
+}}  // namespace autotests::client

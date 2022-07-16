@@ -70,7 +70,6 @@ private:
 
   void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
   void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);
-  void sendCloseTunnelInd(uint32_t nTunnelId);
 
 private:
   struct Slot {

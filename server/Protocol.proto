@@ -9,6 +9,17 @@ package spex;
 //=============================================================================
 // Modules interfaces
 
+message ISessionControl {
+
+  oneof choice {
+    // Requests
+    bool close = 1;
+    
+    // Indications
+    bool closed_ind = 21;
+  }
+}
+
 message IAccessPanel {
 
   message LoginRequest {
@@ -366,10 +377,8 @@ message ICommutator {
     uint32     open_tunnel_report  = 23;
     Status     open_tunnel_failed  = 24;
     Status     close_tunnel_status = 25;
-    bool       close_tunnel_ind    = 26;
   }
 }
-
 
 message IGame {
 
@@ -407,6 +416,7 @@ message Message {
 
   oneof choice {
     // All possible interfaces are listed here
+    ISessionControl    session            = 10;
     IAccessPanel       accessPanel        = 13;
     ICommutator        commutator         = 14;
     IShip              ship               = 15;

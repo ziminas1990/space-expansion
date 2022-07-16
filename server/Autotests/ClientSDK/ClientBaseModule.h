@@ -38,6 +38,8 @@ public:
 
   void dropQueuedMessage();
 
+  bool waitCloseInd();
+
 private:
   PlayerPipePtr m_pSyncPipe;
 };

@@ -237,7 +237,7 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
     return;
   }
 
-  if (!pSessionMux->closeSession(nTunnelId)) {
+  if (!pSessionMux->closeSession(nTunnelId) && nTunnelId == nSessionId) {
     sendCloseTunnelStatus(nSessionId, spex::ICommutator::INVALID_TUNNEL);
     return;
   }
@@ -254,9 +254,7 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
     }
   }
 
-  if (nTunnelId != nSessionId) {
-    sendCloseTunnelStatus(nSessionId, spex::ICommutator::SUCCESS);
-  }
+  sendCloseTunnelStatus(nSessionId, spex::ICommutator::SUCCESS);
 }
 
 void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
@@ -291,14 +289,6 @@ void Commutator::sendCloseTunnelStatus(uint32_t nSessionId,
   spex::Message message;
   message.mutable_commutator()->set_close_tunnel_status(eStatus);
   sendToClient(nSessionId, std::move(message));
-}
-
-void Commutator::sendCloseTunnelInd(uint32_t nTunnelId)
-{
-  // Indication must be sent into tunnel, not to the parent session
-  spex::Message message;
-  message.mutable_commutator()->set_close_tunnel_ind(true);
-  send(nTunnelId, std::move(message));
 }
 
 } // namespace modules

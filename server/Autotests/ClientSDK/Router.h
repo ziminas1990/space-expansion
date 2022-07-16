@@ -30,9 +30,9 @@ public:
     }
 
     bool waitCloseTunnelInd() {
-      spex::ICommutator closeInd;
-      return wait(closeInd)
-          && spex::ICommutator::kCloseTunnelInd == closeInd.choice_case();
+      spex::ISessionControl indication;
+      return wait(indication)
+          && spex::ISessionControl::kClosedInd == indication.choice_case();
     }
 
   private:

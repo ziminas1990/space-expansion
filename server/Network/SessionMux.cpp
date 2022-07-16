@@ -268,7 +268,7 @@ bool SessionMux::closeSessionLocked(uint32_t nSessionId)
   if (session.isValid() && session.sessionId() == nSessionId) {
     // Notify the client and close the session
     spex::Message message;
-    message.mutable_commutator()->set_close_tunnel_ind(true);
+    message.mutable_session()->set_closed_ind(true);
     m_pSocket->send(nSessionId, std::move(message));
 
     if (session.m_pHandler) {

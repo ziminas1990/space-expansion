@@ -33,7 +33,8 @@ class SessionsMux(Terminal):
                     self.owner.on_session_opened(
                         session_id=message.commutator.open_tunnel_report,
                         channel=self.channel)
-                elif message.commutator.close_tunnel_ind:
+            if message.session:
+                if message.session.closed_ind:
                     self.owner.on_session_closed(self.session_id)
             # Pass a message to a client
             if timestamp is None:
