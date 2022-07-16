@@ -52,7 +52,6 @@ class BaseModule:
         return True
 
     async def open_session(self, terminal_type: Type) -> Optional[Endpoint]:
-        """Return an existing available channel or open a new one."""
         session, error = await self._tunnel_factory()
         if session is not None:
             # Create terminal and link it with tunnel

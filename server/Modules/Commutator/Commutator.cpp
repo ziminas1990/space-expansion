@@ -254,7 +254,9 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
     }
   }
 
-  sendCloseTunnelStatus(nSessionId, spex::ICommutator::SUCCESS);
+  if (nTunnelId != nSessionId) {
+    sendCloseTunnelStatus(nSessionId, spex::ICommutator::SUCCESS);
+  }
 }
 
 void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)

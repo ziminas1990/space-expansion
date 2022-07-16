@@ -130,6 +130,7 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
     assert(!connection.isOpened() && "Has connection been closed?");
+    assert(connection.m_sessions.empty());
     // TODO: try to find a session for reuse, using occpyIndex())?
     m_sessions.emplace_back(Session{
       static_cast<uint16_t>(m_sessions.size()),
@@ -139,6 +140,7 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
     });
     const uint32_t nSessionId = m_sessions.back().sessionId();
     connection.m_sessions.push_back(nSessionId);
+    connection.m_lUp = true;
     return nSessionId;
   }
   assert(!"Invalid connection id");
@@ -148,17 +150,21 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
 bool SessionMux::closeConnection(uint32_t nConnectionId)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
+  return closeConnectionLocked(nConnectionId);
+}
+
+void SessionMux::onConnectionClosed(uint32_t nConnectionId)
+{
+  std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
     assert(connection.isOpened() && "Has connection been opened?");
     for (uint32_t nSessionId: connection.m_sessions) {
-      closeSessionLocked(nSessionId);
+      onSessionClosedLocked(nSessionId);
     }
     connection.closed();
-    return true;
   }
   assert(!"Invalid connection id");
-  return false;
 }
 
 uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
@@ -182,15 +188,23 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
     return 0;
   }
   const uint32_t nConnectionId = parentSession.m_nConnectionId;
+  assert(nConnectionId < m_connections.size());
 
   // Add a new session
   const uint16_t nSessionIndex = occupyIndex();
   if (nSessionIndex) {
     assert(nSessionIndex < m_sessions.size());
+
     Session& session = m_sessions[nSessionIndex];
     assert(session.m_nIndex == nSessionIndex);
     session.revive(nConnectionId, pHandler);
-    return m_sessions[nSessionIndex].sessionId();
+    const uint32_t nSessionId = session.sessionId();
+
+    Connection& connection = m_connections[nConnectionId];
+    assert(connection.isOpened());
+    connection.m_sessions.push_back(nSessionId);
+
+    return nSessionId;
   }
   return 0;
 }
@@ -198,7 +212,17 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
 bool SessionMux::closeSession(uint32_t nSessionId)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
-  return closeSessionLocked(nSessionId);
+  const uint16_t nSessionIndex = nSessionId >> 16;
+  if (nSessionIndex < m_sessions.size()) {
+    Session& session = m_sessions[nSessionIndex];
+    if (isRootSession(session)) {
+      return closeConnectionLocked(session.m_nConnectionId);
+    } else {
+      return closeSessionLocked(nSessionId);
+    }
+  } else {
+    return false;
+  }
 }
 
 uint16_t SessionMux::occupyIndex()
@@ -213,6 +237,22 @@ uint16_t SessionMux::occupyIndex()
     return m_sessions.size() - 1;
   }
   return 0;
+}
+
+bool SessionMux::closeConnectionLocked(uint32_t nConnectionId)
+{
+  std::lock_guard<std::mutex> guard(m_mutex);
+  if (nConnectionId < m_connections.size()) {
+    Connection& connection = m_connections[nConnectionId];
+    assert(connection.isOpened() && "Has connection been opened?");
+    for (uint32_t nSessionId: connection.m_sessions) {
+      closeSessionLocked(nSessionId);
+    }
+    connection.closed();
+    return true;
+  }
+  assert(!"Invalid connection id");
+  return false;
 }
 
 bool SessionMux::closeSessionLocked(uint32_t nSessionId)
@@ -241,6 +281,35 @@ bool SessionMux::closeSessionLocked(uint32_t nSessionId)
   }
 
   return false;
+}
+
+void SessionMux::onSessionClosedLocked(uint32_t nSessionId)
+{
+  const uint16_t nSessionIndex = nSessionId >> 16;
+  if (!nSessionIndex || nSessionIndex >= m_sessions.size()) {
+    assert(!"Invalid session id");
+    return;
+  }
+
+  Session& session = m_sessions[nSessionIndex];
+  if (session.isValid() && session.sessionId() == nSessionId) {
+    if (session.m_pHandler) {
+      session.m_pHandler->onSessionClosed(session.sessionId());
+    }
+    session.die();
+    m_indexesToReuse.push_back(session.m_nIndex);
+  }
+}
+
+bool SessionMux::isRootSession(const Session& session) const
+{
+  if (session.m_nConnectionId < m_connections.size()) {
+    const Connection& connection = m_connections[session.m_nConnectionId];
+    assert(connection.isOpened());
+    return connection.isOpened() 
+        && connection.getRootSession() == session.sessionId();
+  }
+  assert(!"Invalid session id");
 }
 
 } // network
