@@ -255,6 +255,7 @@ bool SessionMux::closeConnectionLocked(uint32_t nConnectionId)
       closeSessionLocked(nSessionId);
     }
     connection.closed();
+    m_pSocket->closeConnection(nConnectionId);
     return true;
   }
   assert(!"Invalid connection id");
