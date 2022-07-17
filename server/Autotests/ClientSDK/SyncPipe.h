@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <functional>
+#include <type_traits>
 
 #include "Interfaces.h"
 #include <Protocol.pb.h>
@@ -57,6 +58,16 @@ public:
   // override from ITerminal<FrameType>
   void onMessageReceived(FrameType&& message) override
   {
+    if constexpr (std::is_same_v<FrameType, spex::Message>) {
+      // In case heartbeat is received, it should be sent back
+      if (message.choice_case() == spex::Message::kSession) {
+        if (message.session().choice_case() == 
+            spex::ISessionControl::kHeartbeat) {
+          send(std::move(message));
+          return;
+        }
+      }
+    }
     m_receivedMessages.push(std::move(message));
   }
 

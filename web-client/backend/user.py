@@ -28,7 +28,7 @@ class User:
         return True
 
     def is_anonymous(self) -> bool:
-        return self.user_id is "anonymous"
+        return self.user_id == "anonymous"
 
     def get_id(self) -> str:
         return self.user_id

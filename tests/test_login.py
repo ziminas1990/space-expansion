@@ -64,4 +64,4 @@ class TestLogin(BaseTestFixture):
             commutator, error = \
                 await self.login("spy007", "127.0.0.1")
             self.assertIsNotNone(commutator, f"{error} at iteration {i}")
-            await commutator.disconnect()
+            commutator.disconnect()

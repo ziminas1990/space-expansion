@@ -254,8 +254,9 @@ class TestCase(BaseTestFixture):
                                progress_cb=progress_cb)
         )
         # waiting for some cycles
-        ok, _ = await self.system_clock_proceed(proceed_ms=miner_spec.cycle_time_ms * 5.5,
-                                                timeout_s=5)
+        ok, _ = await self.system_clock_proceed(
+            proceed_ms=int(miner_spec.cycle_time_ms * 5.5),
+            timeout_s=5)
         self.assertTrue(ok)
         self.assertFalse(mining_task.done())
 

@@ -14,6 +14,8 @@ class IAbstractLogic
 public:
   virtual ~IAbstractLogic() = default;
 
+  // Return a number of total stages. A 'prephare()' method for each stage
+  // will be called then.
   virtual uint16_t getStagesCount() = 0;
 
   // This function will be called for each stage before calling proceedStage().

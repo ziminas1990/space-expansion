@@ -6,6 +6,11 @@
 #include <yaml-cpp/yaml.h>
 
 #include <Privileged.pb.h>
+
+#include <Network/UdpDispatcher.h>
+#include <Network/ProtobufChannel.h>
+#include <Newton/NewtonEngine.h>
+#include <Network/SessionMux.h>
 #include <Modules/AccessPanel/AccessPanel.h>
 #include <Modules/Managers.h>
 #include <Network/UdpSocket.h>
@@ -152,6 +157,7 @@ bool SystemManager::createAllComponents()
 {
   m_pConveyor.reset(new conveyor::Conveyor(m_configuration.getTotalThreads()));
 
+  m_pSessionMuxManager        = std::make_shared<network::SessionMuxManager>();
   m_pNewtonEngine             = std::make_shared<newton::NewtonEngine>();
   m_pFilteringManager         = std::make_shared<tools::ObjectsFilteringManager>();
   m_pShipsManager             = std::make_shared<modules::ShipManager>();
@@ -222,6 +228,7 @@ bool SystemManager::linkComponents()
   if (m_pAdministratorPanel) {
     m_pConveyor->addLogicToChain(m_pAdministratorPanel);
   }
+  m_pConveyor->addLogicToChain(m_pSessionMuxManager);
   m_pConveyor->addLogicToChain(m_pNewtonEngine);
   m_pConveyor->addLogicToChain(m_pFilteringManager);
   m_pConveyor->addLogicToChain(m_pCommutatorsManager);

@@ -2,17 +2,14 @@
 #include <Utils/Clock.h>
 #include <Utils/RandomSequence.h>
 
+DECLARE_GLOBAL_CONTAINER_CPP(network::SessionMux);
 
 namespace network {
 
 static uint16_t generateToken(uint16_t old) {
   static utils::RandomSequence tokensStream(time(nullptr));
-  uint16_t token = tokensStream.yield16();
-  while (token == old || token == 0) {
-    // quite unlikely but anyway
-    token = tokensStream.yield16();
-  }
-  return token;
+  const uint16_t token = tokensStream.yield16();
+  return token > 0 && token != old ? token : generateToken(old);
 }
 
 void SessionMux::Session::die()
@@ -62,6 +59,9 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
       closeSession(nSessionId);
     }
   }
+
+  Connection& connection = m_pOwner->m_connections[nConnectionId];
+  connection.m_nLastMessageReceivedAt = utils::GlobalClock::now();
 }
 
 void SessionMux::Socket::onSessionClosed(uint32_t nConnectionId)
@@ -89,8 +89,11 @@ bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
   message.set_timestamp(utils::GlobalClock::now());
   if (nSessionIdx < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
-    assert(session.sessionId() == nSessionId);
+    // For functional tests debugging:
+    // std::cerr << "Send to " << (nSessionId >> 16) << ":\n" << 
+    //            message.DebugString() << std::endl;
     return session.isValid()
+        && session.sessionId() == nSessionId
         && m_pChannel 
         && m_pChannel->send(session.m_nConnectionId, std::move(message));
   }
@@ -125,6 +128,7 @@ void SessionMux::Socket::detachFromTerminal()
 SessionMux::SessionMux(uint8_t nConnectionsLimit)
   : m_connections(nConnectionsLimit), m_pSocket(std::make_shared<Socket>(this))
 {
+  GlobalObject<SessionMux>::registerSelf(this);
   m_sessions.reserve(1024);
   // SessionId = 0 should never be used
   m_sessions.push_back(Session());
@@ -148,6 +152,8 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
     const uint32_t nSessionId = m_sessions.back().sessionId();
     connection.m_sessions.push_back(nSessionId);
     connection.m_lUp = true;
+    connection.m_nLastMessageReceivedAt = utils::GlobalClock::now();
+    connection.m_nLastHeartbeatSentAt   = utils::GlobalClock::now();
     return nSessionId;
   }
   assert(!"Invalid connection id");
@@ -229,6 +235,31 @@ bool SessionMux::closeSession(uint32_t nSessionId)
     }
   } else {
     return false;
+  }
+}
+
+void SessionMux::checkConnectionsActivity(uint64_t now)
+{
+  constexpr uint64_t disconnectTimeoutUs = 400000 * 3.5; // ~1400 ms
+
+  const size_t nTotal = m_connections.size();
+  for (size_t nConnectionId = 0; nConnectionId < nTotal; ++ nConnectionId) {
+    Connection& connection = m_connections[nConnectionId];
+    if (!connection.isOpened()) {
+      continue;
+    }
+    if (connection.isTimeToSendHeartbeat(now)) {
+      const uint64_t nSilencePeriod = now - connection.m_nLastMessageReceivedAt;
+      if (nSilencePeriod < disconnectTimeoutUs) {  // [[likely]]
+        spex::Message heartbeat;
+        heartbeat.mutable_session()->set_heartbeat(true);
+        m_pSocket->send(connection.getRootSession(), std::move(heartbeat));
+        connection.m_nLastHeartbeatSentAt = now;
+      } else {
+        closeConnection(nConnectionId);
+        // Note: 'connection' reference is invalidated now
+      }
+    }
   }
 }
 
@@ -317,6 +348,22 @@ bool SessionMux::isRootSession(const Session& session) const
         && connection.getRootSession() == session.sessionId();
   }
   assert(!"Invalid session id");
+}
+
+bool SessionMuxManager::prephare(uint16_t, uint32_t, uint64_t now)
+{
+  using SessionMuxContainer = utils::GlobalContainer<SessionMux>;
+  for (SessionMux* pSessionMux : SessionMuxContainer::AllInstancies()) {
+    if (pSessionMux) {
+      pSessionMux->checkConnectionsActivity(now);
+    }
+  }
+  return false;  // No need to proceed stage, everything is already done
+}
+
+void SessionMuxManager::proceed(uint16_t, uint32_t, uint64_t)
+{
+  assert("!Should never be called");
 }
 
 } // network

@@ -42,10 +42,11 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
             local_addr=("0.0.0.0", 0),  # Let system to use chose a port
             family=socket.AF_INET
         )
-        self.local_addr = self.transport.get_extra_info("sockname")
-        local_port = self.local_addr[1]
-        if self.channel_name == utils.generate_name(type(self)):
-            self.channel_name = f"UDP.{local_port}"
+        if self.transport is not None:
+            self.local_addr = self.transport.get_extra_info("sockname")
+            local_port = self.local_addr[1]
+            if self.channel_name == utils.generate_name(type(self)):
+                self.channel_name = f"UDP.{local_port}"
         return self.transport is not None
 
     def set_remote(self, ip: str, port: int):
@@ -62,7 +63,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     # Override from Channel
     def send(self, message: bytes) -> bool:
         """Write the specified 'message' to channel"""
-        assert self.remote is not None
+        assert self.transport is not None
         if self.__trace_mode:
             self.channel_logger.debug(f"Sending:\n{len(message)} bytes to {self.remote}")
         self.transport.sendto(message, addr=self.remote)
@@ -71,6 +72,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     # Override from Channel
     async def close(self):
         # UDP channel don't need to be closed
+        assert self.transport is not None
         self.channel_logger.info("Closed")
 
     def connection_made(self, transport):
@@ -79,6 +81,7 @@ class UdpChannel(Channel, asyncio.BaseProtocol):
     def datagram_received(self, data: bytes, addr):
         if self.__trace_mode:
             self.channel_logger.debug(f"Received {len(data)} bytes from {addr}")
+        assert self.transport is not None
         if self.terminal:
             self.terminal.on_receive(data, None)
         else:

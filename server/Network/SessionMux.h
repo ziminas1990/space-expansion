@@ -3,10 +3,12 @@
 #include <mutex>
 
 #include <Network/Interfaces.h>
+#include <Conveyor/IAbstractLogic.h>
+#include <Utils/GlobalContainer.h>
 
 namespace network {
 
-class SessionMux
+class SessionMux : public utils::GlobalObject<SessionMux>
 {
 private:
 
@@ -17,6 +19,10 @@ private:
 
     bool                  m_lUp = false;
     std::vector<uint32_t> m_sessions;
+    // When was the last valid message received from client?
+    uint64_t m_nLastMessageReceivedAt = 0;
+    // WHen was the last heartbeat sent?
+    uint64_t m_nLastHeartbeatSentAt   = 0;
 
     bool isOpened() const { return m_lUp; }
 
@@ -28,6 +34,14 @@ private:
     void closed() {
       m_lUp = false;
       m_sessions.clear();
+      m_nLastMessageReceivedAt = 0;
+      m_nLastHeartbeatSentAt = 0;
+    }
+
+    bool isTimeToSendHeartbeat(uint64_t now) const {
+      constexpr uint64_t heartbeatTimeoutUs  = 400000; // 400ms
+      return heartbeatTimeoutUs <= (now - m_nLastMessageReceivedAt)
+          && heartbeatTimeoutUs <= (now - m_nLastHeartbeatSentAt);
     }
   };
 
@@ -56,6 +70,7 @@ private:
     Socket(SessionMux* pOwner) : m_pOwner(pOwner) {}
 
     void closeConnection(uint32_t nConnectionId);
+    bool sendHeartbeat(uint32_t nConnectionId);
 
     // Overrides from IPlayerTerminal
     bool openSession(uint32_t) override { return true; }
@@ -71,7 +86,6 @@ private:
     bool isValid() const override;
     void attachToTerminal(IPlayerTerminalPtr pTerminal) override;
     void detachFromTerminal() override;
-
   };
 
 private:
@@ -98,6 +112,13 @@ public:
   IPlayerChannelPtr  asChannel()  const { return m_pSocket; }
   IPlayerTerminalPtr asTerminal() const { return m_pSocket; }
 
+  // Check if there is any connection, that had no activity (incomnig messages)
+  // for some period of time. For such connection send a 'heartbeat' message.
+  // If inactivity exceeds 2 seconds, close the connection.
+  void checkConnectionsActivity(uint64_t now);
+
+  virtual size_t getCooldownTimeUs() const { return 100 * 1000; }
+
 private:
   uint16_t occupyIndex();
 
@@ -109,6 +130,12 @@ private:
   bool isRootSession(const Session& session) const;
 };
 
-using SessionMuxPtr = std::shared_ptr<SessionMux>;
+class SessionMuxManager : public conveyor::IAbstractLogic
+{
+public:
+  uint16_t getStagesCount() override { return 1; }
+  bool prephare(uint16_t nStageId, uint32_t nIntervalUs, uint64_t now) override;
+  void proceed(uint16_t nStageId, uint32_t nIntervalUs, uint64_t now) override;
+};
 
 }  // namespace network

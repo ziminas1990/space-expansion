@@ -12,11 +12,15 @@ package spex;
 message ISessionControl {
 
   oneof choice {
+    // Both directions
+    bool heartbeat = 1;
+
     // Requests
-    bool close = 1;
+    bool close = 16;
     
     // Indications
-    bool closed_ind = 21;
+    bool closed_ind = 64;
+
   }
 }
 

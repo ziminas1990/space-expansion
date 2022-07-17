@@ -4,17 +4,17 @@
 #include <Utils/YamlForwardDeclarations.h>
 #include <Utils/RandomSequence.h>
 
-#include "ConfigDI/Containers.h"
-#include "Conveyor/Conveyor.h"
+#include <ConfigDI/Containers.h>
+#include <Conveyor/Conveyor.h>
 #include <Network/Fwd.h>
-#include "World/PlayersStorage.h"
+#include <World/PlayersStorage.h>
 #include <World/Grid.h>
 #include <World/World.h>
-#include "Blueprints/BlueprintsLibrary.h"
+#include <Blueprints/BlueprintsLibrary.h>
 #include <Utils/Clock.h>
 #include <Utils/Linker.h>
 
-#include "Newton/NewtonEngine.h"
+#include <Newton/NewtonEngine.h>
 #include <AdministratorPanel/AdministratorPanel.h>
 #include <Modules/Fwd.h>
 #include <Arbitrators/BaseArbitrator.h>
@@ -71,6 +71,7 @@ private:
     // the start of the game
 
   // Managers for all logics
+  network::SessionMuxManagerPtr        m_pSessionMuxManager;
   newton::NewtonEnginePtr              m_pNewtonEngine;
   tools::ObjectsFilteringManagerPtr    m_pFilteringManager;
   modules::ShipManagerPtr              m_pShipsManager;
