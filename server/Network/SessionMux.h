@@ -22,7 +22,7 @@ private:
     // When was the last valid message received from client?
     uint64_t m_nLastMessageReceivedAt = 0;
     // WHen was the last heartbeat sent?
-    uint64_t m_nLastHeartBeatSentAt   = 0;
+    uint64_t m_nLastHeartbeatSentAt   = 0;
 
     bool isOpened() const { return m_lUp; }
 
@@ -35,13 +35,13 @@ private:
       m_lUp = false;
       m_sessions.clear();
       m_nLastMessageReceivedAt = 0;
-      m_nLastHeartBeatSentAt = 0;
+      m_nLastHeartbeatSentAt = 0;
     }
 
-    bool isTimeToSendHeartbeat(uint64_t now) {
-      constexpr uint64_t heartbeatTimeoutUs  = 4000000; // 400ms
+    bool isTimeToSendHeartbeat(uint64_t now) const {
+      constexpr uint64_t heartbeatTimeoutUs  = 400000; // 400ms
       return heartbeatTimeoutUs <= (now - m_nLastMessageReceivedAt)
-          || heartbeatTimeoutUs <= (now - m_nLastHeartBeatSentAt);
+          && heartbeatTimeoutUs <= (now - m_nLastHeartbeatSentAt);
     }
   };
 

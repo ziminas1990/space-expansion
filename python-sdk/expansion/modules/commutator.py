@@ -70,6 +70,13 @@ class Commutator(BaseModule):
                            slot_id: int,
                            session: Optional[rpc.CommutatorI] = None) \
             -> Tuple[Optional["Channel"], Optional[str]]:
+        # What will happen:
+        # 1. send an 'open_tunnel' request to the server
+        # 2. server sends 'open_tunnel_report'
+        # 3. when SessionMux see the 'open_tunnel_report' it spawns a new
+        #    corresponding session for it (and the report it to uplevel as
+        #    usual)
+        # 4. here, we get and return the session, created in step 3
         status, session_id = await session.open_tunnel(port=slot_id)
         if status.is_success():
             return self.session_mux.get_channel_for_session(session_id), None

@@ -8,12 +8,8 @@ namespace network {
 
 static uint16_t generateToken(uint16_t old) {
   static utils::RandomSequence tokensStream(time(nullptr));
-  uint16_t token = tokensStream.yield16();
-  while (token == old || token == 0) {
-    // quite unlikely but anyway
-    token = tokensStream.yield16();
-  }
-  return token;
+  const uint16_t token = tokensStream.yield16();
+  return token > 0 && token != old ? token : generateToken(old);
 }
 
 void SessionMux::Session::die()
@@ -93,8 +89,11 @@ bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
   message.set_timestamp(utils::GlobalClock::now());
   if (nSessionIdx < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
-    assert(session.sessionId() == nSessionId);
+    // For functional tests debugging:
+    // std::cerr << "Send to " << (nSessionId >> 16) << ":\n" << 
+    //            message.DebugString() << std::endl;
     return session.isValid()
+        && session.sessionId() == nSessionId
         && m_pChannel 
         && m_pChannel->send(session.m_nConnectionId, std::move(message));
   }
@@ -153,6 +152,8 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
     const uint32_t nSessionId = m_sessions.back().sessionId();
     connection.m_sessions.push_back(nSessionId);
     connection.m_lUp = true;
+    connection.m_nLastMessageReceivedAt = utils::GlobalClock::now();
+    connection.m_nLastHeartbeatSentAt   = utils::GlobalClock::now();
     return nSessionId;
   }
   assert(!"Invalid connection id");
@@ -239,7 +240,7 @@ bool SessionMux::closeSession(uint32_t nSessionId)
 
 void SessionMux::checkConnectionsActivity(uint64_t now)
 {
-  constexpr uint64_t disconnectTimeoutUs = 4000000 * 3.5; // ~1400 ms
+  constexpr uint64_t disconnectTimeoutUs = 400000 * 3.5; // ~1400 ms
 
   const size_t nTotal = m_connections.size();
   for (size_t nConnectionId = 0; nConnectionId < nTotal; ++ nConnectionId) {
@@ -253,7 +254,7 @@ void SessionMux::checkConnectionsActivity(uint64_t now)
         spex::Message heartbeat;
         heartbeat.mutable_session()->set_heartbeat(true);
         m_pSocket->send(connection.getRootSession(), std::move(heartbeat));
-        connection.m_nLastHeartBeatSentAt = now;
+        connection.m_nLastHeartbeatSentAt = now;
       } else {
         closeConnection(nConnectionId);
         // Note: 'connection' reference is invalidated now

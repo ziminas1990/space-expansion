@@ -10,13 +10,11 @@ class SessionsMux(Terminal):
     class Session(Channel, Terminal):
         def __init__(self,
                      session_id: int,
-                     owner: "SessionsMux",
                      name: Optional[str] = None,
                      trace_mode: bool = False,
                      *args, **kwargs):
             super().__init__(name, trace_mode, *args, **kwargs)
             self.session_id = session_id
-            self.owner = owner
 
         # Override from Channel
         def send(self, message: Any) -> bool:
@@ -26,29 +24,14 @@ class SessionsMux(Terminal):
 
         # Override from Terminal
         def on_receive(self, message: Any, timestamp: Optional[int]):
-            if message.commutator:
-                if message.commutator.open_tunnel_report:
-                    # Another session has been opened using this one.
-                    # Spawn a new session object for the session.
-                    self.owner.on_session_opened(
-                        session_id=message.commutator.open_tunnel_report,
-                        channel=self.channel)
-            if message.session:
-                if message.session.closed_ind:
-                    self.owner.on_session_closed(self.session_id)
-                elif message.session.heartbeat:
-                    # A heartbeat message should be just sent back
-                    self.send(message)
-                    return
-            # Pass a message to a client
-            if timestamp is None:
-                timestamp = message.timestamp
+            if self.terminal is None:
+                assert False
+            assert self.terminal is not None
             self.terminal.on_receive(message, timestamp)
 
         # Override from Channel
         async def close(self):
             self.detach_terminal()
-            self.owner.on_session_closed(self.session_id)
 
     def __init__(self, trace_mode=False, *args, **kwargs):
         super().__init__("Router", trace_mode, *args, **kwargs)
@@ -60,7 +43,6 @@ class SessionsMux(Terminal):
         assert(session_id not in self.sessions)
         session = SessionsMux.Session(
             session_id=session_id,
-            owner=self,
             name=self.get_name(),
             trace_mode=self.trace_mode())
         session.attach_channel(channel)
@@ -76,14 +58,31 @@ class SessionsMux(Terminal):
             # Session has NOT been created
             return None
 
-    def on_session_closed(self, session_id):
-        self.sessions.pop(session_id)
-
     def on_receive(self, message: Any, timestamp: Optional[int]):
         if self._trace_mode:
             self.terminal_logger.debug(f"Got\n{message}")
         try:
-            self.sessions[message.tunnelId].on_receive(message, timestamp)
+            session = self.sessions[message.tunnelId]
+            if message.WhichOneof("choice") == "commutator":
+                if message.commutator.WhichOneof("choice") == "open_tunnel_report":
+                    # Another session has been opened using this one.
+                    # Spawn a new session object for the session.
+                    self.on_session_opened(
+                        session_id=message.commutator.open_tunnel_report,
+                        channel=session.channel)
+            if message.WhichOneof("choice") == "session":
+                if message.session.WhichOneof("choice") == "closed_ind":
+                    session.on_channel_detached()
+                    self.sessions.pop(session.session_id)
+                elif message.session.WhichOneof("choice") == "heartbeat":
+                    # A heartbeat message should be just sent back
+                    # No need to pass it to uplevel
+                    session.send(message)
+                    return
+            # Pass a message to a client
+            if timestamp is None:
+                timestamp = message.timestamp
+            session.on_receive(message, timestamp)
         except KeyError:
             self.terminal_logger.error(f"invalid session {message.tunnelId}")
 
