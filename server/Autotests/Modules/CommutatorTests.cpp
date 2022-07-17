@@ -36,6 +36,16 @@ TEST_F(CommutatorTests, CloseSession)
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
     ship, Helper::EngineParams().maxThrust(nMaxThrust));
+
+  // If session to the ship is closed, engine should be avaliable anyway
+  ASSERT_TRUE(ship->disconnect());
+
+  client::EngineSpecification spec;
+  ASSERT_TRUE(engine->getSpecification(spec));
+  
+  // If a root session is closed, engine session should also be closed
+  ASSERT_TRUE(m_pCommutatorCtrl->disconnect());
+  ASSERT_TRUE(engine->waitCloseInd());
 }
 
 }  // namespace autotests

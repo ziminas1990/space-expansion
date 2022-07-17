@@ -248,7 +248,6 @@ uint16_t SessionMux::occupyIndex()
 
 bool SessionMux::closeConnectionLocked(uint32_t nConnectionId)
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
   if (nConnectionId < m_connections.size()) {
     Connection& connection = m_connections[nConnectionId];
     assert(connection.isOpened() && "Has connection been opened?");

@@ -38,6 +38,8 @@ public:
 
   void dropQueuedMessage();
 
+  bool disconnect();
+
   bool waitCloseInd();
 
 private:
