@@ -27,8 +27,6 @@ public:
 
   void proceed(uint32_t nIntervalUs) override;
 
-  // Override from BaseModule->IProtobufTerminal
-  bool openSession(uint32_t) override { return true; }
   void onSessionClosed(uint32_t nSessionId) override;
 
 private:

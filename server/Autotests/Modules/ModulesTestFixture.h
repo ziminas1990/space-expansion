@@ -43,6 +43,8 @@ public:
 
 protected:
 
+  client::ClientCommutatorPtr openNewConnection();
+
   void proceedEnviroment() {
     m_conveyor.proceed(m_clock.getNextInterval());
   }

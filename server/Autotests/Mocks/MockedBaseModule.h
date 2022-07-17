@@ -33,10 +33,8 @@ public:
   bool expectSilence(uint32_t nSessionId, uint16_t nTimeoutMs);
 
   // overrides from ITerminal interface
-  bool openSession(uint32_t /*nSessionId*/) override { return true; }
   void onMessageReceived(
       uint32_t nSessionId, spex::Message const& message) override;
-  void onSessionClosed(uint32_t /*nSessionId*/) override {}
   void attachToChannel(network::IPlayerChannelPtr pChannel) override;
   void detachFromChannel() override;
 
