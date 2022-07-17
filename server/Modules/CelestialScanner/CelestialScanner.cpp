@@ -38,6 +38,7 @@ void CelestialScanner::onSessionClosed(uint32_t nSessionId)
     m_nTunnelId = 0;
     switchToIdleState();
   }
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void CelestialScanner::handleCelestialScannerMessage(

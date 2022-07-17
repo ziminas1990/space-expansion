@@ -44,15 +44,22 @@ void SessionMux::Socket::closeConnection(uint32_t nConnectionId)
 void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId, 
                                            spex::Message const& message)
 {
-  // No need to lock here
-  const uint32_t nSessionId    = message.tunnelid();
-  const uint32_t nSessionIndex = nSessionId >> 16;
+  // No need to lock anything here
+  const uint32_t nSessionId = message.tunnelid();
 
-  if (nSessionId && nSessionIndex < m_pOwner->m_sessions.size()) {
-    const Session& session = m_pOwner->m_sessions[nSessionIndex];
-    if (session.m_nConnectionId == nConnectionId &&
-        session.sessionId() == nSessionId) {
-      session.m_pHandler->onMessageReceived(nSessionId, message);
+  if (message.choice_case() != spex::Message::kSession) {  // [[likely]]
+    const uint32_t nSessionIndex = nSessionId >> 16;
+    if (nSessionId && nSessionIndex < m_pOwner->m_sessions.size()) {
+      const Session& session = m_pOwner->m_sessions[nSessionIndex];
+      if (session.m_nConnectionId == nConnectionId &&
+          session.sessionId() == nSessionId) {
+        session.m_pHandler->onMessageReceived(nSessionId, message);
+      }
+    }
+  } else {
+    if (message.session().choice_case() == spex::ISessionControl::kClose) {
+      // Got an ISessionControl message
+      closeSession(nSessionId);
     }
   }
 }

@@ -68,17 +68,6 @@ void Shipyard::proceed(uint32_t nIntervalUs)
   }
 }
 
-bool Shipyard::openSession(uint32_t nSessionId)
-{
-  m_openedSessions.insert(nSessionId);
-  return true;
-}
-
-void Shipyard::onSessionClosed(uint32_t nSessionId)
-{
-  m_openedSessions.erase(nSessionId);
-}
-
 void Shipyard::handleShipyardMessage(uint32_t nTunnelId,
                                      spex::IShipyard const& message)
 {
@@ -213,7 +202,7 @@ void Shipyard::sendBuildingReport(spex::IShipyard::Status eStatus, double progre
       message.mutable_shipyard()->mutable_building_report();
   pBody->set_status(eStatus);
   pBody->set_progress(progress);
-  for (uint32_t nSessionId : m_openedSessions) {
+  for (uint32_t nSessionId : getOpenedSession()) {
     sendToClient(nSessionId, std::move(message));
   }
 }
@@ -237,7 +226,7 @@ void Shipyard::sendBuildComplete(std::string&& sShipName, uint32_t nSlotId)
       message.mutable_shipyard()->mutable_building_complete();
   pBody->set_slot_id(nSlotId);
   pBody->set_ship_name(std::move(sShipName));
-  for (uint32_t nSessionId : m_openedSessions)
+  for (uint32_t nSessionId : getOpenedSession())
     sendToClient(nSessionId, std::move(message));
 }
 

@@ -30,19 +30,16 @@ public:
     // Detach the specified 'pModule', attached to the specified 'nSlotId'.
 
   BaseModulePtr findModuleByName(std::string const& sName) const;
-    // Return module with the specified 'sName'. If module doesn't exist, return null.
-    // Note that call has O(n) complicity
+    // Return module with the specified 'sName'. If module doesn't exist, 
+    // return null. Note that call has O(n) complicity
 
   BaseModulePtr findModuleByType(std::string const& sType) const;
-    // Return module with the specified 'sType'. If module doesn't exist, return null.
-    // Note that call has O(n) complicity
+    // Return module with the specified 'sType'. If module doesn't exist, 
+    // return null. Note that call has O(n) complicity
 
   // Check if all slotes are still active; if some slot is NOT active anymore,
   // commutator will send an indication
   void checkSlots();
-
-  // overrides from network::IPrutubufTerminal
-  bool openSession(uint32_t) override { return true; }
 
   size_t totalSlots() const { return m_modules.size(); }
 
@@ -72,19 +69,8 @@ private:
   void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);
 
 private:
-  struct Slot {
-    BaseModulePtr         m_pModule;
-    std::vector<uint32_t> m_activeSessions;
-
-    bool isValid() const { return m_pModule != nullptr; }
-    bool removeSessionId(uint32_t nSessionId);
-    void reset();
-  };
-
-private:
   // index - slotId
   std::vector<BaseModulePtr> m_modules;
-  std::vector<std::vector<uint32_t>> m_activeSessions;
 
   network::SessionMuxWeakPtr m_pSessionMux;
 };

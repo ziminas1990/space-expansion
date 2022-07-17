@@ -11,26 +11,6 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
 namespace modules
 {
 
-bool Commutator::Slot::removeSessionId(uint32_t nSessionId)
-{
-  const size_t total = m_activeSessions.size();
-  for (size_t i = 0; i < total; ++i) {
-    if (m_activeSessions[i] == nSessionId) {
-      m_activeSessions[i] = m_activeSessions.back();
-      m_activeSessions.pop_back();
-      return true;
-    }
-  }
-  return false;
-}
-
-void Commutator::Slot::reset()
-{
-  m_pModule = nullptr;
-  m_activeSessions.clear();
-  assert(!isValid());
-}
-
 Commutator::Commutator(network::SessionMuxWeakPtr pSessionMux)
   : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
   , m_pSessionMux(pSessionMux)
@@ -58,7 +38,6 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
     }
   }
   m_modules.push_back(pModule);
-  m_activeSessions.push_back({});
   return static_cast<uint32_t>(m_modules.size()) - 1;
 }
 
@@ -78,11 +57,10 @@ bool Commutator::detachModule(uint32_t nSlotId, const BaseModulePtr& pModule)
 
   network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
   if (pSessionMux) {
-    for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
+    for (const uint32_t nSessionId : pModule->getOpenedSession()) {
       pSessionMux->closeSession(nSessionId);
     }
   }
-  m_activeSessions[nSlotId].clear();
   m_modules[nSlotId].reset();
   return true;
 }
@@ -111,17 +89,18 @@ void Commutator::checkSlots()
   assert(pSessionMux);
 
   const size_t nTotalModules = m_modules.size();
-  assert(m_activeSessions.size() == nTotalModules);
   for (uint32_t nSlotId = 0; nSlotId < nTotalModules; ++nSlotId) {
-    BaseModulePtr& pModule                = m_modules[nSlotId];
-    std::vector<uint32_t>& activeSessions = m_activeSessions[nSlotId];
-
+    BaseModulePtr& pModule = m_modules[nSlotId];
     if (pModule) {
-      if (!pModule->isOnline()) {
-        for (uint32_t nSessionId : activeSessions) {
-          pSessionMux->closeSession(nSessionId);
-        }
-        activeSessions.clear();
+      if (pModule->isOnline() || !pModule->hasOpenedSessions()) {  // [[likely]]
+        continue;
+      }
+      // Module is offline or destroyed AND has opened sessions. Sessions
+      // should be closed now.
+      // Note: have to make a copy of opened sessions vector
+      const std::vector<uint32_t> openedSessions = pModule->getOpenedSession();
+      for (uint32_t nSessionId : openedSessions) {
+        pSessionMux->closeSession(nSessionId);
       }
       if (pModule->isDestroyed()) {
         pModule.reset();
@@ -222,7 +201,6 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
     sendOpenTunnelFailed(nSessionId, spex::ICommutator::REJECTED_BY_MODULE);
     return;
   }
-  m_activeSessions[nSlot].push_back(nChildSessionId);
 
   spex::Message message;
   message.mutable_commutator()->set_open_tunnel_report(nChildSessionId);
@@ -242,18 +220,6 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
     return;
   }
 
-  // Linear search here :(
-  for (std::vector<uint32_t>& sessions: m_activeSessions) {
-    const size_t total = sessions.size();
-    for (size_t i = 0; i < total; ++i) {
-      if (sessions[i] == nSessionId) {
-        sessions[i] = sessions.back();
-        sessions.pop_back();
-        return;
-      }
-    }
-  }
-
   sendCloseTunnelStatus(nSessionId, spex::ICommutator::SUCCESS);
 }
 
@@ -267,12 +233,15 @@ void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
     return;
   }
 
-  for (uint32_t nSessionId : m_activeSessions[nSlotId]) {
-    pSessionMux->closeSession(nSessionId);
-    m_modules[nSlotId]->onSessionClosed(nSessionId);
+  BaseModulePtr& pModule = m_modules[nSlotId];
+  if (pModule->hasOpenedSessions()) {
+    // Have to make a copy of opened sessions vector
+    std::vector<uint32_t> openedSessions = pModule->getOpenedSession();
+    for (const uint32_t nSessionId : openedSessions) {
+      pSessionMux->closeSession(nSessionId);
+    }
   }
-  m_modules[nSlotId].reset();
-  m_activeSessions[nSlotId].clear();
+  pModule.reset();
 }
 
 void Commutator::sendOpenTunnelFailed(uint32_t nSessionId,

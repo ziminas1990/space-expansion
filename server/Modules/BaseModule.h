@@ -2,10 +2,11 @@
 
 #include <memory>
 #include <string>
-#include <Network/BufferedProtobufTerminal.h>
 
+#include <Network/BufferedProtobufTerminal.h>
 #include <Utils/YamlForwardDeclarations.h>
 #include <Utils/RandomSequence.h>
+#include <Utils/Mutex.h>
 
 namespace world {
 class Player;
@@ -20,6 +21,8 @@ class Ship;
 // Each module should inherite BaseModule class
 class BaseModule : public network::BufferedPlayerTerminal
 {
+  static constexpr size_t gSessionsLimit = 64;
+
 private:
   enum class Status {
     eOffline,
@@ -43,7 +46,9 @@ public:
       m_pOwner(std::move(pOwner)),
       m_eStatus(Status::eOnline),
       m_eState(State::eIdle)
-  {}
+  {
+    m_activeSessons.reserve(gSessionsLimit);
+  }
 
   virtual bool loadState(YAML::Node const& /*source*/) { return true; }
   virtual void proceed(uint32_t /*nIntervalUs*/) { switchToIdleState(); }
@@ -78,8 +83,12 @@ public:
   // from IProtobufTerminal:
   // By default, there is no reason to reject new session opening and there is
   // nothing to do, when some session has been closed
-  bool openSession(uint32_t /*nSessionId*/) override { return true; }
-  void onSessionClosed(uint32_t /*nSessionId*/) override {}
+  bool openSession(uint32_t nSessionId) override;
+  void onSessionClosed(uint32_t nSessionId) override;
+  bool hasOpenedSessions() const { return !m_activeSessons.empty(); }
+  const std::vector<uint32_t> getOpenedSession() const {
+    return m_activeSessons;
+  }
 
 protected:
   // overrides from BufferedProtobufTerminal interface
@@ -110,14 +119,12 @@ protected:
   }
 
   void switchToIdleState() {
-    if (m_eState == State::eIdle)
-      return;
-    m_eState = State::eDeactivating;
+    if (m_eState != State::eIdle)
+      m_eState = State::eDeactivating;
   }
   void switchToActiveState() {
-    if (m_eState == State::eActive)
-      return;
-    m_eState = State::eActivating;
+    if (m_eState != State::eActive)
+      m_eState = State::eActivating;
   }
 
 private:
@@ -127,12 +134,14 @@ private:
   };
 
 private:
-  std::string               m_sModuleType;
-  std::string               m_sModuleName;
-  world::PlayerWeakPtr      m_pOwner;
-  Status                    m_eStatus;
-  State                     m_eState;
-  modules::Ship*            m_pPlatform = nullptr;
+  utils::Mutex          m_mutex;
+  std::string           m_sModuleType;
+  std::string           m_sModuleName;
+  world::PlayerWeakPtr  m_pOwner;
+  Status                m_eStatus;
+  State                 m_eState;
+  modules::Ship*        m_pPlatform = nullptr;
+  std::vector<uint32_t> m_activeSessons;
 };
 
 using BaseModulePtr      = std::shared_ptr<BaseModule>;

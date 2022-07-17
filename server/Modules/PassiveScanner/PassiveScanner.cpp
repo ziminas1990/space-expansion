@@ -161,6 +161,7 @@ void PassiveScanner::onSessionClosed(uint32_t nSessionId)
   if (!lHasActiveSessions) {
     switchToIdleState();
   }
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void PassiveScanner::handlePassiveScannerMessage(

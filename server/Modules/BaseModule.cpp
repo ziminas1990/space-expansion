@@ -12,8 +12,32 @@ void BaseModule::installOn(modules::Ship* pShip)
     onInstalled(pShip);
 }
 
+bool BaseModule::openSession(uint32_t nSessionId)
+{
+  std::lock_guard<utils::Mutex> guard(m_mutex);
+  if (m_activeSessons.size() < gSessionsLimit) {  // [[likely]]
+    m_activeSessons.push_back(nSessionId);
+    return true;
+  }
+  return false;
+}
+
+void BaseModule::onSessionClosed(uint32_t nSessionId)
+{
+  std::lock_guard<utils::Mutex> guard(m_mutex);
+  // Linear search here :(
+  for (size_t i = 0; i < m_activeSessons.size(); ++i) {
+    if (m_activeSessons[i] == nSessionId) {
+      m_activeSessons[i] = m_activeSessons.back();
+      m_activeSessons.pop_back();
+    }
+  }
+}
+
 void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
+  // Lock is not required here: message are never handled concurrently for
+  // particular module
   if (isOnline()) {
     switch(message.choice_case()) {
       case spex::Message::kCommutator: {
