@@ -28,11 +28,13 @@ class SessionsMux(Terminal):
         def on_receive(self, message: Any, timestamp: Optional[int]):
             if message.commutator:
                 if message.commutator.open_tunnel_report:
-                    # Another session has been opened using this one
-                    self.owner.on_session_created(
+                    # Another session has been opened using this one.
+                    # Spawn a new session object for the session.
+                    self.owner.on_session_opened(
                         session_id=message.commutator.open_tunnel_report,
                         channel=self.channel)
-                elif message.commutator.close_tunnel_ind:
+            if message.session:
+                if message.session.closed_ind:
                     self.owner.on_session_closed(self.session_id)
             # Pass a message to a client
             if timestamp is None:
@@ -49,8 +51,8 @@ class SessionsMux(Terminal):
         self.sessions: Dict[int, SessionsMux.Session] = {}
         self.channel: Optional[Channel] = None
 
-    def on_session_created(self, session_id: int,
-                           channel: Channel = None) -> Channel:
+    def on_session_opened(self, session_id: int,
+                          channel: Channel = None) -> Channel:
         assert(session_id not in self.sessions)
         session = SessionsMux.Session(
             session_id=session_id,

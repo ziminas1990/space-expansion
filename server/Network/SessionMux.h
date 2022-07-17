@@ -19,6 +19,12 @@ private:
     std::vector<uint32_t> m_sessions;
 
     bool isOpened() const { return m_lUp; }
+
+    uint32_t getRootSession() const {
+      assert(isOpened() && !m_sessions.empty());
+      return m_sessions.front();
+    }
+
     void closed() {
       m_lUp = false;
       m_sessions.clear();
@@ -37,7 +43,6 @@ private:
     void die();
     void revive(uint32_t           nRootSessionId,
                 IPlayerTerminalPtr pHandler);
-
   };
 
 
@@ -82,9 +87,12 @@ public:
   // Create a new connection and return it's root session id
   uint32_t addConnection(uint32_t nConnectionId, IPlayerTerminalPtr pHandler);
   bool closeConnection(uint32_t nConnectionId);
+  void onConnectionClosed(uint32_t nConnectionId);
 
   uint32_t createSession(uint32_t nParentSessionId, 
                          IPlayerTerminalPtr pHandler);
+  // Close session, specified by 'nSessionId'. If session is a root session
+  // of some connection, close a connection and all sessions, related with it.
   bool closeSession(uint32_t nSessionId);
 
   IPlayerChannelPtr  asChannel()  const { return m_pSocket; }
@@ -93,7 +101,12 @@ public:
 private:
   uint16_t occupyIndex();
 
+  bool closeConnectionLocked(uint32_t nConnectionId);
+
   bool closeSessionLocked(uint32_t nSessionId);
+  void onSessionClosedLocked(uint32_t nSessionId);
+
+  bool isRootSession(const Session& session) const;
 };
 
 using SessionMuxPtr = std::shared_ptr<SessionMux>;

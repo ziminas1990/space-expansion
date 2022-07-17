@@ -46,7 +46,7 @@ async def login(server_ip: str,
 
         protobuf_channel.attach_to_terminal(session_mux)
 
-        session = session_mux.on_session_created(
+        session = session_mux.on_session_opened(
             session_id=session_id,
             channel=protobuf_channel)
         return session, None

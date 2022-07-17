@@ -36,7 +36,7 @@ class IOTerminal(Endpoint):
         try:
             message, timestamp = \
                 await asyncio.wait_for(self.queue.get(), timeout=timeout)
-            if get_message_field(message, ["commutator", "close_tunnel_ind"]):
+            if get_message_field(message, ["session", "closed_ind"]):
                 raise ChannelClosed()
             return message, timestamp
         except asyncio.TimeoutError:

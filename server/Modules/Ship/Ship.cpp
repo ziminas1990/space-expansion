@@ -102,6 +102,7 @@ modules::BaseModulePtr Ship::getModuleByName(std::string const& sName) const
 void Ship::onSessionClosed(uint32_t nSessionId)
 {
   m_subscriptions.remove(nSessionId);
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)

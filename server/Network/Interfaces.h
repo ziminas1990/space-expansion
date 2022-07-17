@@ -46,8 +46,14 @@ class ITerminal
 public:
   virtual ~ITerminal() = default;
 
+  // Note: function may be called concurrently and needs synchronization
   virtual bool openSession(uint32_t nSessionId) = 0;
+
+  // Handle a received message. This function doesn't need any synchronization
+  // since messages are never handled concurrently for a particular terminal.
   virtual void onMessageReceived(uint32_t nSessionId, FrameType const& frame) = 0;
+
+  // Note: function may be called concurrently and needs synchronization
   virtual void onSessionClosed(uint32_t nSessionId) = 0;
 
   virtual void attachToChannel(IChannelPtr<FrameType> pChannel) = 0;

@@ -9,4 +9,18 @@ void ClientBaseModule::dropQueuedMessage()
   }
 }
 
-}}
+bool ClientBaseModule::disconnect()
+{
+  spex::Message request;
+  request.mutable_session()->set_close(true);
+  return send(std::move(request)) && waitCloseInd();
+}
+
+bool ClientBaseModule::waitCloseInd()
+{
+  spex::ISessionControl response;
+  return wait(response)
+      && response.choice_case() == spex::ISessionControl::kClosedInd;
+}
+
+}}  // namespace autotests::client

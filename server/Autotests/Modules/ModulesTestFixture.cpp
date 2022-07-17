@@ -38,13 +38,13 @@ void ModulesTestFixture::SetUp()
   // Components on server
   m_pPlayer = world::Player::makeDummy("Player-1");
 
-  const uint32_t nConnectionId = 5;
-  const uint32_t nRootSessionId = m_pPlayer->onNewConnection(nConnectionId);
-
   // Components on client
   m_pRouter = std::make_shared<client::Router>();
   m_pRouter->setProceeder(m_fConveyorProceeder);
 
+  // Establish the connection and create a root session for commutator
+  const uint32_t nConnectionId = 5;
+  const uint32_t nRootSessionId = m_pPlayer->onNewConnection(nConnectionId);
   m_pConnection = std::make_shared<PlayerConnector>(nConnectionId);
   m_connectionGuard.link(m_pConnection,
                          m_pPlayer->getSessionMux()->asTerminal(),

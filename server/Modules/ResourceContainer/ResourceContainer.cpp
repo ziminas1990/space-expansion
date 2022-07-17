@@ -100,6 +100,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
 void ResourceContainer::onSessionClosed(uint32_t nSessionId)
 {
   m_monitoringSessions.removeFirst(nSessionId);
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void ResourceContainer::sendUpdatesIfRequired()

@@ -1,8 +1,10 @@
 import asyncio
-from typing import List, Optional, Any, Callable, Awaitable, Tuple, Type, Dict, TYPE_CHECKING
+from typing import List, Optional, Any, Callable, Awaitable, Tuple, Type, Dict, Set, TYPE_CHECKING
 import logging
 from enum import Enum
 import time
+
+import expansion.api as api
 
 if TYPE_CHECKING:
     from decorator import decorator
@@ -45,14 +47,15 @@ class BaseModule:
         self.name = name
         self.logger = logging.getLogger(name)
         self._tunnel_factory = tunnel_factory
-        # All opened channels, that may be used to send requests
-        self._sessions: Dict[Type, List[Endpoint]] = {}
+        # All opened sessions
+        self._sessions: Set[Endpoint] = set()
+        # All opened channels, that may be (re)used to send requests
+        self._pending_sessions: Dict[Type, List[Endpoint]] = {}
 
     async def init(self) -> bool:
         return True
 
     async def open_session(self, terminal_type: Type) -> Optional[Endpoint]:
-        """Return an existing available channel or open a new one."""
         session, error = await self._tunnel_factory()
         if session is not None:
             # Create terminal and link it with tunnel
@@ -60,12 +63,21 @@ class BaseModule:
             assert isinstance(terminal, Endpoint)
             session.attach_to_terminal(terminal)
             terminal.attach_channel(session)
+            self._sessions.add(terminal)
             return terminal
         else:
             self.logger.warning(
                 f"Failed to open tunnel for the {terminal_type.__name__}:"
                 f"{error}")
             return None
+
+    # Close all sessions to this module. A 'closed_ind' will be sent to each
+    # session.
+    def disconnect(self):
+        request = api.Message()
+        request.session.close = True
+        for session in self._sessions:
+            session.send(request)
 
     @staticmethod
     def _is_actual(value: Tuple[Optional[Any], int],
@@ -160,7 +172,7 @@ class BaseModule:
                 session: Optional[Endpoint] = None
                 for attempt in range(retries):
                     try:
-                        session = self._sessions.setdefault(terminal_type, []).pop(-1)
+                        session = self._pending_sessions.setdefault(terminal_type, []).pop(-1)
                     except IndexError:
                         # No sessions to reuse, open a new one
                         session = await self.open_session(terminal_type)
@@ -189,7 +201,7 @@ class BaseModule:
                     raise e
                 finally:
                     if reuse_session:
-                        self._sessions.setdefault(terminal_type, []) \
+                        self._pending_sessions.setdefault(terminal_type, []) \
                             .append(session)
                     else:
                         await session.close()
