@@ -59,5 +59,6 @@ async def main():
             app.processEvents()
     except asyncio.CancelledError as ex:
         logging.error(ex)
+        tactical_core.stop()
 
 asyncio.run(main())

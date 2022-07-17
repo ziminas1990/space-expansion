@@ -53,6 +53,9 @@ class TacticalCore:
 
         return True
 
+    def stop(self):
+        self.root_commutator.disconnect()
+
     def move_ship(self, ship_name:str, x: float, y: float):
         try:
             ship = self.player.ships[ship_name]
