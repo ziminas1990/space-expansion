@@ -73,7 +73,7 @@ class BaseModule:
 
     # Close all sessions to this module. A 'closed_ind' will be sent to each
     # session.
-    async def disconnect(self):
+    def disconnect(self):
         request = api.Message()
         request.session.close = True
         for session in self._sessions:
