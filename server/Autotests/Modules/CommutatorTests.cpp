@@ -13,8 +13,10 @@ TEST_F(CommutatorTests, Breath)
   // Check that commutator works and we can spawn ships and modules and
   // attach to them
 
+  Connection connection = Helper::connect(*this, 5);
+
   ShipBinding ship = Helper::spawnShip(
-    *this, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -30,8 +32,10 @@ TEST_F(CommutatorTests, CloseSession)
   // Check that if root session is closed, all other sessions will be closed
   // as well.
 
+  Connection connection = Helper::connect(*this, 5);
+
   ShipBinding ship = Helper::spawnShip(
-    *this, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -44,7 +48,7 @@ TEST_F(CommutatorTests, CloseSession)
   ASSERT_TRUE(engine->getSpecification(spec));
   
   // If a root session is closed, engine session should also be closed
-  ASSERT_TRUE(m_pCommutatorCtrl->disconnect());
+  ASSERT_TRUE(connection->disconnect());
   ASSERT_TRUE(engine->waitCloseInd());
 }
 

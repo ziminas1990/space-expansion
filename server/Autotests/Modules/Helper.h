@@ -4,11 +4,13 @@
 
 #include <Modules/All.h>
 #include <World/Player.h>
+#include <Autotests/TestUtils/Connector.h>
 #include <Autotests/Modules/ModulesTestFixture.h>
 #include <Autotests/ClientSDK/Router.h>
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
-
+#include <Autotests/ClientSDK/Modules/ClientCommutator.h>
+#include <Utils/Linker.h>
 
 #define DECLARE_ATTRIBUTE(Container, AttrType, AttrName, DefaultValue) \
   private: AttrType m_##AttrName = DefaultValue; \
@@ -22,6 +24,17 @@
 
 
 namespace autotests {
+
+struct Connection {
+  uint32_t                    m_nRootSessionId = 0;
+  utils::Linker               m_linker;
+  PlayerConnectorPtr          m_pConnection;
+  client::ClientCommutatorPtr m_pCommutatorCtrl;
+
+  client::ClientCommutatorPtr operator->() const {
+    return m_pCommutatorCtrl;
+  }
+};
 
 template<typename ServerModule, typename ClientModule>
 struct ModuleBind {
@@ -52,7 +65,11 @@ struct Helper {
     DECLARE_ATTRIBUTE(EngineParams, uint32_t,    maxThrust, 100000);
   };
 
+  static Connection connect(ModulesTestFixture& env,
+                            uint32_t            nConnectionId);
+
   static ShipBinding spawnShip(ModulesTestFixture&   testFixture,
+                               const Connection&     connection,
                                world::PlayerPtr      pOwner,
                                const geometry::Point position,
                                const ShipParams& params)
@@ -68,9 +85,7 @@ struct Helper {
     
     client::ShipPtr pShipCtrl =
       std::make_shared<client::Ship>(testFixture.m_pRouter);
-
-    pShipCtrl->attachToChannel(
-      testFixture.m_pCommutatorCtrl->openSession(nSlotId));
+    pShipCtrl->attachToChannel(connection->openSession(nSlotId));
     return {pShip, pCommutator, nSlotId, pShipCtrl};
   }
 

@@ -78,45 +78,14 @@ template<typename FrameType>
 using ConnectorPtr = std::shared_ptr<Connector<FrameType>>;
 
 template<typename FrameType>
-class ConnectorGuard {
-private:
-  ConnectorPtr<FrameType>          m_pConnector;
-  network::ITerminalPtr<FrameType> m_pServerSide;
-  client::ITerminalPtr<FrameType>  m_pClientSide;
+using ConnectorWeakPtr = std::weak_ptr<Connector<FrameType>>;
 
-public:
-  ConnectorGuard() = default;
-  ConnectorGuard(const ConnectorGuard<FrameType>& other) = delete;
-  ConnectorGuard(ConnectorGuard<FrameType>&& other) = default;
-  ~ConnectorGuard() {
-    if (m_pConnector) {
-      m_pConnector->detachFromTerminal();
-    }
-  }
+using PlayerConnector        = Connector<spex::Message>;
+using PlayerConnectorPtr     = std::shared_ptr<PlayerConnector>;
+using PlayerConnectorWeakPtr = std::weak_ptr<PlayerConnector>;
 
-  void link(ConnectorPtr<FrameType> pConnector,
-            network::ITerminalPtr<FrameType> pServerSide,
-            client::ITerminalPtr<FrameType> pClientSide)
-  {
-    m_pConnector  = pConnector;
-    m_pServerSide = pServerSide;
-    m_pClientSide = pClientSide;
-
-    m_pConnector->attachToTerminal(m_pServerSide);
-    m_pConnector->attachToTerminal(m_pClientSide);
-    m_pServerSide->attachToChannel(m_pConnector);
-    m_pClientSide->attachToDownlevel(m_pConnector);
-  }
-
-};
-
-using PlayerConnector    = Connector<spex::Message>;
-using PlayerConnectorPtr = std::shared_ptr<PlayerConnector>;
-
-using AdminConnector    = Connector<admin::Message>;
-using AdminConnectorPtr = std::shared_ptr<AdminConnector>;
-
-using PlayerConnectorGuard = ConnectorGuard<spex::Message>;
-using AdminConnectorGuard  = ConnectorGuard<admin::Message>;
+using AdminConnector        = Connector<admin::Message>;
+using AdminConnectorPtr     = std::shared_ptr<AdminConnector>;
+using AdminConnectorWeakPtr = std::weak_ptr<AdminConnector>;
 
 } // namespace autotests

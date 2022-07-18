@@ -26,11 +26,8 @@ public:
   void SetUp() override;
 
   void TearDown() override {
-    m_pCommutatorCtrl->detachChannel();
     world::Grid::setGlobal(nullptr);
     utils::GlobalClock::reset();
-    // Destructor will destroy 'm_connectionGuard' object, that will unlink
-    // the rest of the components
   }
 
   virtual std::shared_ptr<world::Grid> createGlobalGrid()
@@ -73,13 +70,8 @@ protected:
 
   world::PlayerPtr                  m_pPlayer;
 
-  // Component, that connects client and server sides
-  PlayerConnectorPtr   m_pConnection;
-  PlayerConnectorGuard m_connectionGuard;
-
   // Components on client's side
-  client::RouterPtr           m_pRouter;
-  client::ClientCommutatorPtr m_pCommutatorCtrl;
+  client::RouterPtr m_pRouter;
 };
 
 }  // namespace autotests

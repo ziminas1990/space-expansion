@@ -10,8 +10,10 @@ class EngineTests : public ModulesTestFixture
 
 TEST_F(EngineTests, GetSpecification)
 {
+  Connection connection = Helper::connect(*this, 5);
+
   ShipBinding ship = Helper::spawnShip(
-    *this, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -24,8 +26,10 @@ TEST_F(EngineTests, GetSpecification)
 
 TEST_F(EngineTests, SetAndGetThrust)
 {
+  Connection connection = Helper::connect(*this, 5);
+
   ShipBinding ship = Helper::spawnShip(
-    *this, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -42,8 +46,10 @@ TEST_F(EngineTests, SetAndGetThrust)
 
 TEST_F(EngineTests, SetThrustExceedsMaxThrust)
 {
+  Connection connection = Helper::connect(*this, 5);
+
   ShipBinding ship = Helper::spawnShip(
-    *this, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -62,8 +68,10 @@ TEST_F(EngineTests, SetThrustExceedsMaxThrust)
 
 TEST_F(EngineTests, MovingWithEngine)
 {
+  Connection connection = Helper::connect(*this, 5);
+
   ShipBinding ship = Helper::spawnShip(
-    *this, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 10000;
   EngineBinding engine = Helper::spawnEngine(

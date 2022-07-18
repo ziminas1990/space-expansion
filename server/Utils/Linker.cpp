@@ -5,6 +5,7 @@
 #include <Network/SessionMux.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/BaseModule.h>
+#include <Autotests/TestUtils/Connector.h>
 
 namespace utils {
 
@@ -85,6 +86,24 @@ void Linker::link(network::SessionMuxPtr pSessionMux,
 {
   m_links.emplace_back(
     link_terminal_to_channel(pSessionMux->asChannel(), pTerminal));
+}
+
+void Linker::link(autotests::PlayerConnectorPtr pConnector,
+                  network::IPlayerTerminalPtr pServerSide,
+                  autotests::client::IPlayerTerminalPtr  pClientSide)
+{
+  pConnector->attachToTerminal(pServerSide);
+  pConnector->attachToTerminal(pClientSide);
+  pServerSide->attachToChannel(pConnector);
+  pClientSide->attachToDownlevel(pConnector);
+
+  autotests::PlayerConnectorWeakPtr pConnectorWeak = pConnector;
+  m_links.emplace_back([pConnectorWeak]() {
+    autotests::PlayerConnectorPtr pConnector = pConnectorWeak.lock();
+    if (pConnector) {
+      pConnector->detachFromTerminal();
+    }
+  });
 }
 
 uint32_t Linker::attachModule(const modules::CommutatorPtr& pCommutator,

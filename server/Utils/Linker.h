@@ -2,7 +2,9 @@
 
 #include <vector>
 #include <functional>
+
 #include <Network/Interfaces.h>
+#include <Autotests/TestUtils/Connector.h>
 #include <Network/Fwd.h>
 #include <Modules/Fwd.h>
 
@@ -48,6 +50,10 @@ public:
 
   void link(network::SessionMuxPtr pSessionMux,
             network::IPlayerTerminalPtr pTerminal);
+
+  void link(autotests::PlayerConnectorPtr pConnector,
+            network::IPlayerTerminalPtr pServerSide,
+            autotests::client::IPlayerTerminalPtr  pClientSide);
 
   uint32_t attachModule(const modules::CommutatorPtr& pCommutator,
                         const modules::BaseModulePtr& pModule);

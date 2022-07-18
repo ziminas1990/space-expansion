@@ -16,6 +16,7 @@
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/ClientSDK/Modules/ClientPassiveScanner.h>
 #include <Autotests/Modules/ModulesTestFixture.h>
+#include <Autotests/Modules/Helper.h>
 
 namespace autotests {
 
@@ -121,6 +122,7 @@ protected:
   uint32_t    m_nShipSlot;
   uint32_t    m_nPassiveScannerSlot;
 
+  Connection                 m_connection;
   modules::ShipPtr           m_pShip;
   modules::PassiveScannerPtr m_pPassiveScanner;
 };
@@ -141,12 +143,14 @@ void PassiveScannerTests::SetUp()
         m_nMaxUpdateTimeMs);
   m_nPassiveScannerSlot = m_pShip->installModule(m_pPassiveScanner);
   ASSERT_NE(modules::Commutator::invalidSlot(), m_nPassiveScannerSlot);
+
+  m_connection = Helper::connect(*this, 5);
 }
 
 client::ClientCommutatorPtr PassiveScannerTests::shipCommutator()
 {
   client::Router::SessionPtr pTunnel =
-      m_pCommutatorCtrl->openSession(m_nShipSlot);
+      m_connection->openSession(m_nShipSlot);
   if (!pTunnel) {
     return client::ClientCommutatorPtr();
   }
@@ -266,8 +270,8 @@ struct Tool {
   }
 };
 
-TEST_F(PassiveScannerTests, getSpecification) {
-
+TEST_F(PassiveScannerTests, getSpecification)
+{
   const uint32_t nScanningRadius = m_nRadiusKm * 1000;
   // Scanning radius covers 5 cells, Grid has 25 * 25 size
   world::Grid grid(25, nScanningRadius / 5);
