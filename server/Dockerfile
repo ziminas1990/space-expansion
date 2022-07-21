@@ -21,4 +21,16 @@ RUN apt  update && apt install -y mcedit && \
     cp   /space-expansion.cfg /space-expansion.cfg.backup && \
     echo "alias server_run='/usr/bin/space-expansion-server /space-expansion.cfg'" >> ~/.bashrc && \
     echo "alias config_edit='mcedit /space-expansion.cfg'" >> ~/.bashrc && \
-    echo "alias config_restore='rm /space-expansion.cfg && cp /space-expansion.cfg.backup /space-expansion.cfg'" >> ~/.bashrc
+    echo "alias config_restore='rm /space-expansion.cfg && cp /space-expansion.cfg.backup /space-expansion.cfg'" >> ~/.bashrc && \
+    touch /etc/motd && \
+    echo "############################################################" >> /etc/motd && \
+    echo "#                                                          #" >> /etc/motd && \
+    echo "#           Welcome to the space-expansion server!         #" >> /etc/motd && \
+    echo "# Run the following commands:                              #" >> /etc/motd && \
+    echo "# 'server_run'     - to start a server                     #" >> /etc/motd && \
+    echo "# 'config_edit'    - to edit server configuration          #" >> /etc/motd && \
+    echo "#                    (press F2 to save and F10 to exit)    #" >> /etc/motd && \
+    echo "# 'config_restore' - to restore default configuration      #" >> /etc/motd && \
+    echo "#                    in case it was accidentaly corrupted  #" >> /etc/motd && \
+    echo "############################################################" >> /etc/motd && \
+    echo "cat /etc/motd" >> /etc/bash.bashrc
