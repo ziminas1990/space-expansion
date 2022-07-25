@@ -30,26 +30,16 @@ function runApp() {
       document.getElementById("status").innerHTML = "Connection established";
     }
   )
-   let item = undefined;
    connection.addEventListener('message', function (event) { 
    const update = JSON.parse(event.data);  
    timestamp.server_us = update.ts;             
    timestamp.local_ms = Date.now()               
-   set_status(JSON.stringify(timestamp)); 
-   if(item === undefined) {                
-      for (let object_info of update.items) {
-         item = new Item(object_info);          
-         item.timestamp = timestamp.server_us;  
-         items.update_item(item);
-   }} 
-   else {                                                              
-      for (let object_info of update.items) {   
-         //?console.log("hi from messege")
-         let update_item = new Item(object_info);
-         update_item.update();
-      }}               
+   set_status(JSON.stringify(timestamp));
+   for (let object_info of update.items) {       // каждому итему пришедшему с сервера
+      items.update_item(object_info)             // вызываем методы, описанный в ItemsContainer
+    }
    });
-
+   
   animation = new Konva.Animation(function (frame) {
     scene.update(items, predict_now())
   });

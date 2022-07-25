@@ -1,5 +1,5 @@
 let last_items = new Map;
-class Position {
+class Position {                //при первой записи у объекта класса Item можно не записывать ускорение так как оно не посчитано
   constructor([x, y, vx, vy]) {
     this.x = x;
     this.y = y;
@@ -18,18 +18,11 @@ class Item {
     this.timestamp = timestamp;
   }
 
-   update() {
-      //считаем ускорение
-      let key_update_item = this.strkey();
-      let last_item = items.items.get(key_update_item); //id: 0 item_type: "asteroid" position: Position  ax: 0 ay: 0 vx: 1 vy: 1 x: 7169.459495998263 y: 7269.459495736856 [[Prototype]]: Object radius: 50 timestamp: 7297158952
-      this.position.ax = (this.position.vx - last_item.position.vx)/(this.timestamp - last_item.timestamp);
-      this.position.ay = (this.position.vy - last_item.position.vy)/(this.timestamp - last_item.timestamp);
-      console.log(this)
-      //отправляем новый переписанный item в мапу itemsContainer
-      items.update_item(this);
-      console.log(items);
+   update(item_from_update) {                 // у итема на которое пришло обновление переопределяем значения, а новое значение передали в параметре                                      // this - это старое значение  item_from_update - это новое значение, считаем ускорение
+      this.position.ax = (item_from_update.pos[2] - this.position.vx)/(item_from_update.ts - this.timestamp); 
+      this.position.ay = (item_from_update.pos[3] - this.position.vy)/(item_from_update.ts - this.timestamp);
+      this.timestamp = item_from_update.ts;   // перезаписываем время с последнего обновления 
    }
-
 
   strkey() {
     return this.item_type + "." + this.id;
@@ -49,10 +42,16 @@ class ItemsContainer {
     this.items = new Map();
   }
 
-
-  update_item(item) {
-    this.items.set(item.strkey(), item)
-  }
+  update_item(item) {                             // один итем из массива пришедшего с сервера
+   let str_key = item.type + "." + item.id;       // записываем его ключ в строку 
+      if (this.items.has(str_key)) {              // если такой итем уже есть  
+         let last_item = this.items.get(str_key); // записываем его прошлое значение (это item и через него имеем  доступ к методу класса Item)
+         last_item.update(item);                  // обновляем его передавая новое значение распарсенного итема
+      } else {                                    // если же такого итема еще нет, то
+         let new_item = new Item(item);           // создаем новый инстенс  класса ITEM (не считаем ему ускорение так как в 1 раз у него нет данных о прошлой скорости)
+         this.items.set(str_key, new_item);       // добавляем его в мапу                       
+      }
+   }  
 
   items_stream() {
     return this.items.values()

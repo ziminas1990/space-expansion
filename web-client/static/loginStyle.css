@@ -1,0 +1,284 @@
+*{	padding: 0;margin: 0;border: 0;}
+*,*:before,*:after{-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;}
+:focus,:active{outline: none;}
+a:focus,a:active{outline: none;}
+nav,footer,header,aside{display: block;}
+html,body{height: 100%;width: 100%;font-size: 100%;line-height: 1;font-size: 14px;-ms-text-size-adjust: 100%;-moz-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;}
+input,button,textarea{font-family:inherit;}
+input::-ms-clear{display: none;}
+button{cursor: pointer;}
+button::-moz-focus-inner {padding:0;border:0; }
+a, a:visited{text-decoration: none;}
+a:hover{text-decoration: none;}
+ul li{list-style: none;}
+li {list-style-type: none;} 
+img{vertical-align: top;}
+h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
+/*---------обнуление -----------*/
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+body {
+   font-family: "Roboto", sans-serif;
+}
+.header {
+   margin: 30px 30px;
+   width: auto;
+   height: auto; 
+   display: flex;
+   justify-content: center;
+   background-color: rgba(128, 128, 128, 0.067); 
+   border-radius: 10px;
+   font-weight: 700;   
+}
+.header__logo {
+   padding: 20px 120px 20px 60px;
+   margin: 0px 700px 0px 0px;
+   font-size: 50px;
+   color: rgba(83, 83, 83, 0.8); 
+}
+.headerBtn {
+   padding: 15px 40px 15px 15px;
+   display: flex;
+   justify-content: space-between;   
+}
+.signupBtn {
+   padding: 15px;
+   background-color:  transparent; 
+   color: rgba(0, 0, 0, 0.3);
+   font-size: 30px;
+   font-weight: 700;
+}
+.loginBtn {
+   padding: 15px;
+   background-color:  transparent;
+   color: rgba(0, 0, 0, 0.6);
+   font-size: 30px;
+   font-weight: 700;
+}
+.form {
+   margin: 100px auto;
+   max-width: 600px;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   font-size: 30px;
+   color: rgba(0, 0, 0, 0.7);
+}
+input {
+   min-height: 60px;
+   margin: 10px;
+   border: 2px solid rgba(0, 0, 0, 0.1);
+   border-radius: 10px;
+   font-size: 20px;
+   color: rgba(0, 0, 0, 0.8);
+}
+#ip {
+   padding: 15px;
+   font-size: 25px;
+   letter-spacing: 2px; 
+   color: rgba(0, 0, 0, 0.7);
+   }
+#ip::placeholder {
+   font-style: italic;
+   color: rgba(0, 0, 0, 0.4);
+}
+#login {
+   padding: 15px;
+   font-weight: 400;
+   font-size: 30px;
+   letter-spacing: 2px; 
+   color: rgba(0, 0, 0, 0.7);
+   }
+#password {
+   padding: 15px;
+   letter-spacing: 5px; 
+   }
+[for="ip"] {
+   margin: 0px 0px 5px 15px;
+}
+[for="login"] {
+   margin: 0px 0px 5px 15px;
+}
+[for="password"] {
+   margin: 0px 0px 5px 15px;
+}
+[type="submit"] {
+   color: white;
+   letter-spacing: 5px;
+   background-color: rgba(0, 119, 255, 0.7);
+}
+   /* интерактивность формы */
+   input:hover {
+      background-color:  rgba(0,0,0,0.03);
+      box-shadow: 0 5px 15px 0 rgba(0,0,0,0.2);
+   }
+   input:active {
+      box-shadow: 0 5px 15px 0 rgba(0,0,0,0.2);
+   }
+   input:focus {
+      background-color:  rgba(0,0,0,0.03);
+      box-shadow: 0 5px 15px 0 rgba(0,0,0,0.2);
+   }
+   .signupBtn:hover {
+      filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.3))
+   }
+   .loginBtn:hover {
+      filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.3))
+   }
+   [type="submit"]:hover {
+      background-color: rgba(1, 106, 226, 0.7);
+      box-shadow: 0 5px 15px 0 rgba(0,0,0,0.2);
+   }  
+   [type="submit"]:active {
+      background-color: rgba(1, 78, 167, 0.7);
+      -webkit-box-shadow: 3px -9px 10px 0px rgba(34, 60, 80, 0.2);
+      -moz-box-shadow: 3px -9px 10px 0px rgba(34, 60, 80, 0.2);
+      box-shadow: 3px -9px 10px 0px rgba(34, 60, 80, 0.2);
+   }
+/* адаптив обычных экранов браузера */
+@media (max-width: 1600px) {
+   .header {
+      justify-content: space-between;
+   }    
+   .header__logo {
+      margin: 0px;
+   }
+}
+/* адаптив для экранов браузера и планшета с небольшой высотой */
+@media (max-height: 799px) {
+   .form {
+      margin: 50px auto;
+   }
+   input {
+      height: 50px;
+   }
+}
+/* адаптив для свернутого окна браузера и планшетов */
+@media (max-width: 780px) {
+   .header {
+      margin: 0;
+      background-color: rgba(0, 0, 0, 0.05); 
+      border-radius: 0px;
+   }
+   .header__logo {
+      width: 200px;
+      margin: 0px 40px 0px 0px;
+      padding: 15px 15px 15px 20px;  
+      font-size: 40px;   
+      color: rgba(83, 83, 83, 0.9); 
+   }
+   .headerBtn {
+      padding: 10px 30px 10px 10px;
+      display: flex;
+      flex-direction: column-reverse;
+      justify-content: center;      
+      }
+   .signupBtn {
+      padding: 5px;
+      color: rgba(0, 0, 0, 0.3);
+      font-size: 20px;
+      text-align: end;
+   }
+   .loginBtn {
+      padding: 5px;
+      font-size: 20px;
+      text-align: end;
+   }
+   .form {
+      margin: 50px auto;
+      } 
+   input {
+      margin: 0px 15px;
+      padding: 10px;
+      font-size: 20px;
+      letter-spacing: 5px; 
+   }   
+}
+/* адаптив для смартфонов */
+@media (max-width: 440px) {
+   .header__logo {
+      padding: 20px; 
+      font-size: 30px; 
+   }
+   .headerBtn {
+      margin: 0px 15px 0px 0px;
+      padding: 0px 15px 0px 0px;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;   
+      }
+   .signupBtn {
+      margin: 0px 10px 0px 0px;
+      width: 30px;
+      height: 30px;
+      font-size: 0px;
+      background: url(./img/signup3.png) 50% no-repeat;
+      background-size: cover;
+   }
+   .loginBtn {
+      position: relative;
+      top: -3px;
+      width: 30px;
+      height: 30px;
+      font-size: 0px;
+      background: url(./img/login2.png) 50% no-repeat;
+      background-size:  cover;
+   }
+   .form {
+      margin: 50px auto;
+      max-width: 400px;
+      font-size: 20px;
+      color: rgba(0, 0, 0, 0.7);
+   }
+   input {
+      margin: 5px 5px;
+      min-height: 20px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      color: rgba(0, 0, 0, 0.8);
+      font-size: 20px;
+      letter-spacing: 5px; 
+   }
+   #ip {
+      padding: 5px;
+      font-size: 20px;
+      color: rgba(0, 0, 0, 0.7);
+      }  
+   #login {
+      padding: 5px;
+      font-size: 20px;
+      color: rgba(0, 0, 0, 0.7);
+      }
+   #password {
+      padding: 5px;
+      }
+   [for="ip"] {
+      margin: 0px 0px 5px 10px;
+   }
+   [for="login"] {
+      margin: 0px 0px 5px 10px;
+   }[for="password"] {
+      margin: 0px 0px 5px 10px;
+   }
+   [type="submit"] {
+      margin: 30px 5px 0px 5px;
+      padding: 5px;
+   }
+}
+/* адаптив для смартфонов с маленьким экраном */
+@media (max-width: 320px) {
+   .header__logo {
+      padding: 15px; 
+      font-size: 25px;
+   }
+   .signupBtn {
+      margin: 0px 10px 0px 0px;
+      width: 20px;
+      height: 20px;
+   }
+   .loginBtn {
+      width: 20px;
+      height: 20px;
+   }
+}
