@@ -27,8 +27,6 @@ namespace autotests {
 
 struct Connection {
   uint32_t                    m_nRootSessionId = 0;
-  utils::Linker               m_linker;
-  PlayerConnectorPtr          m_pConnection;
   client::ClientCommutatorPtr m_pCommutatorCtrl;
 
   client::ClientCommutatorPtr operator->() const {
@@ -68,14 +66,14 @@ struct Helper {
   static Connection connect(ModulesTestFixture& env,
                             uint32_t            nConnectionId);
 
-  static ShipBinding spawnShip(ModulesTestFixture&   testFixture,
+  static ShipBinding spawnShip(ModulesTestFixture&   env,
                                const Connection&     connection,
                                world::PlayerPtr      pOwner,
                                const geometry::Point position,
                                const ShipParams& params)
   {
-
-    modules::ShipPtr pShip = std::make_unique<modules::Ship>(
+    // Spawn a ship and attach it to commutator:
+    modules::ShipPtr pShip = std::make_shared<modules::Ship>(
       params.shipType(), params.shipName(), pOwner, params.weight(),
       params.radius());
     pShip->moveTo(position);
@@ -83,8 +81,10 @@ struct Helper {
     modules::CommutatorPtr pCommutator = pOwner->getCommutator();
     const uint32_t         nSlotId     = pCommutator->attachModule(pShip);
     
+    // Create a ship on client side and connect it with server side
     client::ShipPtr pShipCtrl =
-      std::make_shared<client::Ship>(testFixture.m_pRouter);
+      std::make_shared<client::Ship>(env.m_pRouter);
+
     pShipCtrl->attachToChannel(connection->openSession(nSlotId));
     return {pShip, pCommutator, nSlotId, pShipCtrl};
   }

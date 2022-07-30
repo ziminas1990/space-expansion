@@ -12,6 +12,8 @@
 #include <Autotests/TestUtils/Connector.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/TestUtils/FreezableLogic.h>
+#include <Autotests/TestUtils/Connector.h>
+#include <Utils/Linker.h>
 #include <Modules/Managers.h>
 
 namespace autotests {
@@ -72,6 +74,11 @@ protected:
 
   // Components on client's side
   client::RouterPtr m_pRouter;
+
+  // Connects client and server side
+  PlayerConnectorPtr m_pConnector;
+
+  utils::Linker m_linker;
 };
 
 }  // namespace autotests
