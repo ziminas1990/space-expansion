@@ -41,6 +41,11 @@ void ModulesTestFixture::SetUp()
   // Components on client
   m_pRouter = std::make_shared<client::Router>();
   m_pRouter->setProceeder(m_fConveyorProceeder);
+
+  m_pConnector = std::make_shared<PlayerConnector>();
+  m_linker.link(m_pConnector,
+                m_pPlayer->getSessionMux()->asTerminal(),
+                m_pRouter);
 }
 
 } // namespace autotests
