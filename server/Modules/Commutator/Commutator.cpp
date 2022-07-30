@@ -16,6 +16,7 @@ Commutator::Commutator(network::SessionMuxWeakPtr pSessionMux)
   , m_pSessionMux(pSessionMux)
 {
   GlobalObject<Commutator>::registerSelf(this);
+  m_monitoringSessions.reserve(16);
 }
 
 uint32_t Commutator::attachModule(BaseModulePtr pModule)
@@ -34,11 +35,14 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
     {
       onModuleHasBeenDetached(nSlotId);
       m_modules[nSlotId] = pModule;
+      sendModuleAttachedUpdate(nSlotId);
       return nSlotId;
     }
   }
   m_modules.push_back(pModule);
-  return static_cast<uint32_t>(m_modules.size()) - 1;
+  const uint32_t nSlotId = static_cast<uint32_t>(m_modules.size()) - 1;
+  sendModuleAttachedUpdate(nSlotId);
+  return nSlotId;
 }
 
 bool Commutator::detachModule(uint32_t nSlotId, const BaseModulePtr& pModule)
@@ -62,6 +66,7 @@ bool Commutator::detachModule(uint32_t nSlotId, const BaseModulePtr& pModule)
     }
   }
   m_modules[nSlotId].reset();
+  sendModuleDetachedUpdate(nSlotId);
   return true;
 }
 
@@ -85,6 +90,8 @@ BaseModulePtr Commutator::findModuleByType(std::string const& sType) const
 
 void Commutator::checkSlots()
 {
+  // Check if any of modules, attached to commutator, have been destroyed
+
   network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
   assert(pSessionMux);
 
@@ -103,10 +110,23 @@ void Commutator::checkSlots()
         pSessionMux->closeSession(nSessionId);
       }
       if (pModule->isDestroyed()) {
-        pModule.reset();
+        detachModule(nSlotId, pModule);
+        // NOTE: 'pModule' reference is invalidated here
       }
     }
   }
+}
+
+void Commutator::onSessionClosed(uint32_t nSessionId)
+{
+  const size_t total = m_monitoringSessions.size();
+  for (size_t i = 0; i < total; ++i) {
+    if (m_monitoringSessions[i] == nSessionId) {
+      m_monitoringSessions[i] = m_monitoringSessions.back();
+      m_monitoringSessions.pop_back();
+    }
+  }
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void Commutator::handleCommutatorMessage(uint32_t nSessionId,
@@ -127,6 +147,9 @@ void Commutator::handleCommutatorMessage(uint32_t nSessionId,
       return;
     case spex::ICommutator::kCloseTunnel:
       onCloseTunnelRequest(nSessionId, message.close_tunnel());
+      return;
+    case spex::ICommutator::kMonitor:
+      onMonitoringRequest(nSessionId);
       return;
     default:
       return;
@@ -223,6 +246,16 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
   sendCloseTunnelStatus(nSessionId, spex::ICommutator::SUCCESS);
 }
 
+void Commutator::onMonitoringRequest(uint32_t nSessionId)
+{
+  if (m_monitoringSessions.size() == 8) {
+    sendMonitorStatus(nSessionId, spex::ICommutator::TOO_MANY_SESSIONS);
+    return;
+  }
+  m_monitoringSessions.push_back(nSessionId);
+  sendMonitorStatus(nSessionId, spex::ICommutator::SUCCESS);
+}
+
 void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
 {
   network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
@@ -258,6 +291,40 @@ void Commutator::sendCloseTunnelStatus(uint32_t nSessionId,
   spex::Message message;
   message.mutable_commutator()->set_close_tunnel_status(eStatus);
   sendToClient(nSessionId, std::move(message));
+}
+
+void Commutator::sendMonitorStatus(uint32_t nSessionId,
+                                   spex::ICommutator::Status eStatus) const
+{
+  spex::Message message;
+  message.mutable_commutator()->set_monitor_ack(eStatus);
+  sendToClient(nSessionId, std::move(message));
+}
+
+void Commutator::sendModuleAttachedUpdate(uint32_t nSlotId) const
+{
+  assert(nSlotId < m_modules.size() && m_modules[nSlotId]);
+  const BaseModulePtr& pModule = m_modules[nSlotId];
+
+  spex::Message update;
+  spex::ICommutator::ModuleInfo* pBody =
+      update.mutable_commutator()->mutable_update()->mutable_module_attached();
+  pBody->set_slot_id(nSlotId);
+  pBody->set_module_type(pModule->getModuleType());
+  pBody->set_module_name(pModule->getModuleName());
+
+  for (uint32_t nMonitoringSession: m_monitoringSessions) {
+    sendToClient(nMonitoringSession, spex::Message(update));
+  }
+}
+
+void Commutator::sendModuleDetachedUpdate(uint32_t nSlotId) const
+{
+  spex::Message update;
+  update.mutable_commutator()->mutable_update()->set_module_detached(nSlotId);
+  for (uint32_t nMonitoringSession: m_monitoringSessions) {
+    sendToClient(nMonitoringSession, spex::Message(update));
+  }
 }
 
 } // namespace modules

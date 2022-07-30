@@ -130,13 +130,12 @@ private:
          nId = static_cast<uint32_t>(m_nNextId.fetch_add(1)))
     {
       BaseModule* pModule = utils::GlobalContainer<ModuleType>::Instance(nId);
-      if (!pModule) {
-        continue;
-      }
-      pModule->handleBufferedMessages();
-      if (pModule->isActivating()) {
-        m_busyModulesIds.push(nId);
-        pModule->onActivated();
+      if (pModule) {
+        pModule->handleBufferedMessages();
+        if (pModule->isActivating()) {
+          m_busyModulesIds.push(nId);
+          pModule->onActivated();
+        }
       }
     }
   }
