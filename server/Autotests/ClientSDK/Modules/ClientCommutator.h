@@ -31,6 +31,12 @@ public:
 
   Router::SessionPtr openSession(uint32_t nSlotId);
   bool closeTunnel(Router::SessionPtr pSession);
+  
+  bool monitoring();
+  bool waitMonitoringStatus(spex::ICommutator::Status expected);
+  bool waitUpdate(spex::ICommutator::Update& update);
+  bool waitModuleAttached(spex::ICommutator::ModuleInfo& info);
+  bool waitModuleDetached(uint32_t& nSlotId);
 
   // Additional functions, that are used in autotests:
   bool sendOpenTunnel(uint32_t nSlotId);

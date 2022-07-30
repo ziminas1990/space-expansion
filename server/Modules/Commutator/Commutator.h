@@ -37,9 +37,10 @@ public:
     // Return module with the specified 'sType'. If module doesn't exist, 
     // return null. Note that call has O(n) complicity
 
-  // Check if all slotes are still active; if some slot is NOT active anymore,
-  // commutator will send an indication
   void checkSlots();
+    // Check if modules in some slots are offline now, or marked destroyed.
+    // For such modules close all active connections. Detach destroyed
+    // modules from commutator.
 
   size_t totalSlots() const { return m_modules.size(); }
 
@@ -50,6 +51,8 @@ public:
   const std::vector<BaseModulePtr>& getAllModules() const {
     return m_modules;
   }
+
+  void onSessionClosed(uint32_t nSessionId) override;
 
 protected:
   // overrides from BaseModule
@@ -62,17 +65,23 @@ private:
   void getAllModulesInfo(uint32_t nSessionId) const;
   void onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot);
   void onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId);
+  void onMonitoringRequest(uint32_t nSessionId);
 
   void onModuleHasBeenDetached(uint32_t nSlotId);
 
   void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
   void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);
+  void sendMonitorStatus(uint32_t nSessionId,
+                         spex::ICommutator::Status eStatus) const;
+  void sendModuleAttachedUpdate(uint32_t nSlotId) const;
+  void sendModuleDetachedUpdate(uint32_t nSlotId) const;
 
 private:
+  network::SessionMuxWeakPtr m_pSessionMux;
   // index - slotId
   std::vector<BaseModulePtr> m_modules;
 
-  network::SessionMuxWeakPtr m_pSessionMux;
+  std::vector<uint32_t> m_monitoringSessions;
 };
 
 } // namespace modules
