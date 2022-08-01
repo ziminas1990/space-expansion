@@ -133,6 +133,9 @@ class CommutatorI(IOTerminal):
         response, _ = await self.wait_message(timeout=0.1)
         if not response:
             return CommutatorI.Status.RESPONSE_TIMEOUT, None
+        # Note: once 'open_tunnel_report' is passed through 'sessions_mux',
+        # it creates a new related session object, that can be retreived by
+        # 'get_channel_for_session()'
         tunnel_id = get_message_field(
             response,
             ["commutator", "open_tunnel_report"])

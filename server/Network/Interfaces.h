@@ -14,10 +14,14 @@ const uint32_t gInvalidSessionId = uint32_t(-1);
 template<typename FrameType> class ITerminal;
 template<typename FrameType>
 using ITerminalPtr = std::shared_ptr<ITerminal<FrameType>>;
+template<typename FrameType>
+using ITerminalWeakPtr  = std::weak_ptr<ITerminal<FrameType>>;
 
 template<typename FrameType> class IChannel;
 template<typename FrameType>
 using IChannelPtr  = std::shared_ptr<IChannel<FrameType>>;
+template<typename FrameType>
+using IChannelWeakPtr  = std::weak_ptr<IChannel<FrameType>>;
 
 
 template<typename FrameType>
@@ -42,8 +46,14 @@ class ITerminal
 public:
   virtual ~ITerminal() = default;
 
+  // Note: function may be called concurrently and needs synchronization
   virtual bool openSession(uint32_t nSessionId) = 0;
+
+  // Handle a received message. This function doesn't need any synchronization
+  // since messages are never handled concurrently for a particular terminal.
   virtual void onMessageReceived(uint32_t nSessionId, FrameType const& frame) = 0;
+
+  // Note: function may be called concurrently and needs synchronization
   virtual void onSessionClosed(uint32_t nSessionId) = 0;
 
   virtual void attachToChannel(IChannelPtr<FrameType> pChannel) = 0;
@@ -70,28 +80,28 @@ struct BinaryMessage
 
 
 using IBinaryChannel             = IChannel<BinaryMessage>;
-using IBinaryChannelPtr          = std::shared_ptr<IBinaryChannel>;
-using IBinaryChannelWeakPtr      = std::weak_ptr<IBinaryChannel>;
+using IBinaryChannelPtr          = IChannelPtr<BinaryMessage>;
+using IBinaryChannelWeakPtr      = IChannelWeakPtr<BinaryMessage>;
 
 using IBinaryTerminal            = ITerminal<BinaryMessage>;
-using IBinaryTerminalPtr         = std::shared_ptr<IBinaryTerminal>;
-using IBinaryTerminalWeakPtr     = std::weak_ptr<IBinaryTerminal>;
+using IBinaryTerminalPtr         = ITerminalPtr<BinaryMessage>;
+using IBinaryTerminalWeakPtr     = ITerminalWeakPtr<BinaryMessage>;
 
 using IPlayerChannel             = IChannel<spex::Message>;
-using IPlayerChannelPtr          = std::shared_ptr<IPlayerChannel>;
-using IPlayerChannelWeakPtr      = std::weak_ptr<IPlayerChannel>;
+using IPlayerChannelPtr          = IChannelPtr<spex::Message>;
+using IPlayerChannelWeakPtr      = IChannelWeakPtr<spex::Message>;
 
 using IPrivilegedChannel         = IChannel<admin::Message>;
-using IPrivilegedChannelPtr      = std::shared_ptr<IPrivilegedChannel>;
-using IPrivilegedChannelWeakPtr  = std::weak_ptr<IPrivilegedChannel>;
+using IPrivilegedChannelPtr      = IChannelPtr<admin::Message>;
+using IPrivilegedChannelWeakPtr  = IChannelWeakPtr<admin::Message>;
 
 using IPlayerTerminal            = ITerminal<spex::Message>;
-using IPlayerTerminalPtr         = std::shared_ptr<IPlayerTerminal>;
-using IPlayerTerminalWeakPtr     = std::weak_ptr<IPlayerTerminal>;
+using IPlayerTerminalPtr         = ITerminalPtr<spex::Message>;
+using IPlayerTerminalWeakPtr     = ITerminalWeakPtr<spex::Message>;
 
 using IPrivilegedTerminal        = ITerminal<admin::Message>;
-using IPrivilegedTerminalPtr     = std::shared_ptr<IPrivilegedTerminal>;
-using IPrivilegedTerminalWeakPtr = std::weak_ptr<IPrivilegedTerminal>;
+using IPrivilegedTerminalPtr     = ITerminalPtr<admin::Message>;
+using IPrivilegedTerminalWeakPtr = ITerminalWeakPtr<admin::Message>;
 
 
 } // namespace network

@@ -24,7 +24,7 @@ async def login(server_ip: str,
 
     session_mux = SessionsMux()
 
-    async def tunnel_factory() -> (Optional[Channel], Optional[str]):
+    async def open_new_connection() -> (Optional[Channel], Optional[str]):
         udp_channel = UdpChannel(
             on_closed_cb=lambda: logging.warning(f"Socket is closed!"))
         if not await udp_channel.open():
@@ -45,15 +45,14 @@ async def login(server_ip: str,
         udp_channel.set_remote(server_ip, remote_port)
 
         protobuf_channel.attach_to_terminal(session_mux)
-
-        session = session_mux.on_session_created(
+        session = session_mux.on_session_opened(
             session_id=session_id,
             channel=protobuf_channel)
         return session, None
 
     return Commutator(
         session_mux=session_mux,
-        tunnel_factory=tunnel_factory,
+        tunnel_factory=open_new_connection,
         modules_factory=module_factory,
         name="Root"
     ), None

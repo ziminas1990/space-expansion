@@ -12,6 +12,8 @@
 #include <Autotests/TestUtils/Connector.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/TestUtils/FreezableLogic.h>
+#include <Autotests/TestUtils/Connector.h>
+#include <Utils/Linker.h>
 #include <Modules/Managers.h>
 
 namespace autotests {
@@ -26,11 +28,8 @@ public:
   void SetUp() override;
 
   void TearDown() override {
-    m_pCommutatorCtrl->detachChannel();
     world::Grid::setGlobal(nullptr);
     utils::GlobalClock::reset();
-    // Destructor will destroy 'm_connectionGuard' object, that will unlink
-    // the rest of the components
   }
 
   virtual std::shared_ptr<world::Grid> createGlobalGrid()
@@ -42,6 +41,8 @@ public:
   void resumeNewtonEngine() { m_pNewtonEngine->resume(); }
 
 protected:
+
+  client::ClientCommutatorPtr openNewConnection();
 
   void proceedEnviroment() {
     m_conveyor.proceed(m_clock.getNextInterval());
@@ -71,13 +72,13 @@ protected:
 
   world::PlayerPtr                  m_pPlayer;
 
-  // Component, that connects client and server sides
-  PlayerConnectorPtr   m_pConnection;
-  PlayerConnectorGuard m_connectionGuard;
-
   // Components on client's side
-  client::RouterPtr           m_pRouter;
-  client::ClientCommutatorPtr m_pCommutatorCtrl;
+  client::RouterPtr m_pRouter;
+
+  // Connects client and server side
+  PlayerConnectorPtr m_pConnector;
+
+  utils::Linker m_linker;
 };
 
 }  // namespace autotests

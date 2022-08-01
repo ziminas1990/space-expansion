@@ -51,9 +51,17 @@ class TestLogin(BaseTestFixture):
         self.assertIsNotNone(commutator)
 
     @BaseTestFixture.run_as_sync
-    async def test_logins_in_turns(self):
+    async def test_simultaneous_login(self):
         for i in range(8):  # 8 is a hardcoded server's limit
             logging.info(f"Iteration {i}")
             commutator, error = \
                 await self.login("spy007", "127.0.0.1")
             self.assertIsNotNone(commutator, f"{error} at iteration {i}")
+
+    @BaseTestFixture.run_as_sync
+    async def test_multiple_logins(self):
+        for i in range(100):
+            commutator, error = \
+                await self.login("spy007", "127.0.0.1")
+            self.assertIsNotNone(commutator, f"{error} at iteration {i}")
+            commutator.disconnect()

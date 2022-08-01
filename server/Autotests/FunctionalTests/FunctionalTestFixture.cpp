@@ -3,6 +3,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include <Utils/Printers.h>
+#include <Utils/GlobalContainerUtils.h>
 
 #define DEFAULT_SEED 1
 
@@ -18,6 +19,10 @@ FunctionalTestFixture::FunctionalTestFixture()
 
 void FunctionalTestFixture::SetUp()
 {
+  std::stringstream problem;
+  ASSERT_TRUE(utils::GlobalContainerUtils::checkAllContainersAreEmpty(problem))
+    << problem.str();
+
   m_cfg = prephareConfiguration();
 
   auto localHost = boost::asio::ip::address::from_string("127.0.0.1");
@@ -95,7 +100,6 @@ void FunctionalTestFixture::TearDown()
   std::cout << "Ticks = " << stat.nTicksCounter << ", real time = " <<
                utils::toTime(stat.nRealTimeUs) << ", ingame time = " <<
                utils::toTime(stat.nIngameTimeUs) << std::endl;
-
 }
 
 config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()

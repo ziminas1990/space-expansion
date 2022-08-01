@@ -6,6 +6,9 @@
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/Ship/Ship.h>
+#include <Network/ProtobufChannel.h>
+#include <Network/UdpSocket.h>
+#include <Network/SessionMux.h>
 #include <Modules/SystemClock/SystemClock.h>
 #include <Network/UdpSocket.h>
 #include <Network/SessionMux.h>
@@ -21,7 +24,7 @@ Player::Player(std::string&& sLogin,
     m_pEntryPoint(std::make_shared<modules::Commutator>(m_pSesionMux)),
     m_blueprints(std::move(blueprints))
 {
-  m_pEntryPoint->attachToChannel(m_pSesionMux->asChannel());
+  m_linker.link(m_pSesionMux, m_pEntryPoint);
 }
 
 PlayerPtr Player::load(
@@ -35,19 +38,19 @@ PlayerPtr Player::load(
         new Player(std::move(sLogin), std::move(blueprints)));
 
   if (!utils::YamlReader(state).read("password", pPlayer->m_sPassword)) {
-    assert(false);
+    assert(!"Password is not specified");
     return PlayerPtr();
   }
 
-  pPlayer->m_pEntryPoint->attachToChannel(pPlayer->m_pSesionMux->asChannel());
-
   pPlayer->m_pSystemClock =
       std::make_shared<modules::SystemClock>("SystemClock", pPlayer);
-  pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pSystemClock);
-
   pPlayer->m_pBlueprintsExplorer =
       std::make_shared<modules::BlueprintsStorage>(pPlayer);
-  pPlayer->m_pEntryPoint->attachModule(pPlayer->m_pBlueprintsExplorer);
+
+  pPlayer->m_linker.attachModule(
+    pPlayer->m_pEntryPoint, pPlayer->m_pSystemClock);
+  pPlayer->m_linker.attachModule(
+    pPlayer->m_pEntryPoint, pPlayer->m_pBlueprintsExplorer);
 
   YAML::Node const& shipsState = state["ships"];
   if (!shipsState.IsDefined()) {
@@ -73,8 +76,9 @@ PlayerPtr Player::load(
         std::static_pointer_cast<modules::Ship>(
           pShipBlueprint->build(std::move(sShipName), pPlayer));
     assert(pShip);
-    if (!pShip)
+    if (!pShip) {
       return PlayerPtr();
+    }
 
     if (!pShip->loadState(kv.second)) {
       assert("Failed to load ship" == nullptr);
@@ -93,27 +97,6 @@ PlayerPtr Player::makeDummy(std::string sLogin)
         new Player(std::move(sLogin), blueprints::BlueprintsLibrary()));
 }
 
-Player::~Player()
-{
-  if (m_pUdpChannel) {
-    m_pUdpChannel->detachFromTerminal();
-  }
-  if (m_pProtobufChannel) {
-    m_pProtobufChannel->detachFromTerminal();
-    m_pProtobufChannel->detachFromChannel();
-  }
-  if (m_pSesionMux) {
-    m_pSesionMux->detach();
-  }
-  if (m_pEntryPoint) {
-    m_pEntryPoint->detachFromChannel();
-    m_pEntryPoint->detachFromModules();
-  }
-  if (m_pBlueprintsExplorer) {
-    m_pBlueprintsExplorer->detachFromChannel();
-  }
-}
-
 uint32_t Player::onNewConnection(uint32_t nConnectionId)
 {
   return m_pSesionMux->addConnection(nConnectionId, m_pEntryPoint);
@@ -124,11 +107,9 @@ void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)
   m_pUdpChannel = pSocket;
   if (!m_pProtobufChannel) {
     m_pProtobufChannel = std::make_shared<network::PlayerChannel>();
-    m_pProtobufChannel->attachToTerminal(m_pSesionMux->asTerminal());
-    m_pSesionMux->asTerminal()->attachToChannel(m_pProtobufChannel);
+    m_linker.link(m_pProtobufChannel, m_pSesionMux->asTerminal());
   }
-  m_pProtobufChannel->attachToChannel(m_pUdpChannel);
-  m_pUdpChannel->attachToTerminal(m_pProtobufChannel);
+  m_linker.link(m_pUdpChannel, m_pProtobufChannel);
 }
 
 } // namespace world

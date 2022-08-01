@@ -92,7 +92,7 @@ void AsteroidScanner::onScanRequest(uint32_t nTunnelId, uint32_t nAsteroidId)
 
 world::Asteroid* AsteroidScanner::getAndCheckAsteroid(uint32_t nAsteroidId)
 {
-  if (nAsteroidId >= world::AsteroidsContainer::Total()) {
+  if (nAsteroidId >= world::AsteroidsContainer::Size()) {
     return nullptr;
   }
   world::Asteroid* pAsteroid = world::AsteroidsContainer::Instance(nAsteroidId);

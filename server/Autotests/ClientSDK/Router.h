@@ -23,16 +23,16 @@ public:
 
     // overrides from SyncPipe
     bool send(spex::Message&& message) override {
-        // std::cout << "Send to " << (m_nSessionId & 0xFFFF) << ":\n" <<
+        // std::cout << "Send to " << (m_nSessionId >> 16) << ":\n" <<
         //              message.DebugString() << std::endl;
         message.set_tunnelid(m_nSessionId);
         return PlayerPipe::send(std::move(message));
     }
 
     bool waitCloseTunnelInd() {
-      spex::ICommutator closeInd;
-      return wait(closeInd)
-          && spex::ICommutator::kCloseTunnelInd == closeInd.choice_case();
+      spex::ISessionControl indication;
+      return wait(indication)
+          && spex::ISessionControl::kClosedInd == indication.choice_case();
     }
 
   private:

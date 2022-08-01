@@ -4,16 +4,17 @@
 #include <Utils/YamlForwardDeclarations.h>
 #include <Utils/RandomSequence.h>
 
-#include "ConfigDI/Containers.h"
-#include "Conveyor/Conveyor.h"
+#include <ConfigDI/Containers.h>
+#include <Conveyor/Conveyor.h>
 #include <Network/Fwd.h>
-#include "World/PlayersStorage.h"
+#include <World/PlayersStorage.h>
 #include <World/Grid.h>
 #include <World/World.h>
-#include "Blueprints/BlueprintsLibrary.h"
+#include <Blueprints/BlueprintsLibrary.h>
 #include <Utils/Clock.h>
+#include <Utils/Linker.h>
 
-#include "Newton/NewtonEngine.h"
+#include <Newton/NewtonEngine.h>
 #include <AdministratorPanel/AdministratorPanel.h>
 #include <Modules/Fwd.h>
 #include <Arbitrators/BaseArbitrator.h>
@@ -23,7 +24,6 @@ class SystemManager
 {
 public:
   SystemManager(uint32_t seed);
-  ~SystemManager();
 
   bool initialize(config::IApplicationCfg const& cfg);
   bool loadWorldState(YAML::Node const& data);
@@ -53,12 +53,12 @@ private:
   void printStatistic();
 
 private:
-  config::ApplicationCfg       m_configuration;
-  utils::Clock                 m_clock;
-  conveyor::Conveyor*          m_pConveyor = nullptr;
-  std::vector<std::thread*>    m_slaves;
-  boost::asio::io_service      m_IoService;
-  utils::RandomSequence        m_randomizer;
+  config::ApplicationCfg              m_configuration;
+  utils::Clock                        m_clock;
+  boost::asio::io_service             m_IoService;
+  std::unique_ptr<conveyor::Conveyor> m_pConveyor;
+  std::vector<std::thread*>           m_slaves;
+  utils::RandomSequence               m_randomizer;
 
 #ifdef AUTOTESTS_MODE
   boost::fibers::barrier m_barrier = boost::fibers::barrier(2);
@@ -71,6 +71,7 @@ private:
     // the start of the game
 
   // Managers for all logics
+  network::SessionMuxManagerPtr        m_pSessionMuxManager;
   newton::NewtonEnginePtr              m_pNewtonEngine;
   tools::ObjectsFilteringManagerPtr    m_pFilteringManager;
   modules::ShipManagerPtr              m_pShipsManager;
@@ -84,6 +85,8 @@ private:
   modules::BlueprintsStorageManagerPtr m_pBlueprintsStorageManager;
   modules::ShipyardManagerPtr          m_pShipyardManager;
   modules::SystemClockManagerPtr       m_pSystemClockManager;
+
+  utils::Linker m_linker;
 
   // Receiving stacks
   network::UdpDispatcherPtr     m_pUdpDispatcher;

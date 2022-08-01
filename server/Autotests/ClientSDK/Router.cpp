@@ -26,7 +26,7 @@ bool Router::closeSession(uint32_t nSessionId)
 void Router::onMessageReceived(spex::Message&& message)
 {
   auto I = m_sessions.find(message.tunnelid());
-  //std::cout << "Received in " << (message.tunnelid() & 0xFFFF) <<
+  // std::cout << "Received in " << (message.tunnelid() >> 16) <<
   //             ":\n" << message.DebugString() << std::endl;
   if (I != m_sessions.end()) {
     SessionPtr pSession = I->second;

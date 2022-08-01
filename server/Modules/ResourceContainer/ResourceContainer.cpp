@@ -61,7 +61,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
   }
 
   assert(port.m_nContainerId <
-         utils::GlobalContainer<ResourceContainer>::Total());
+         utils::GlobalContainer<ResourceContainer>::Size());
   ResourceContainer* pReceiver =
       utils::GlobalContainer<ResourceContainer>::Instance(port.m_nContainerId);
 
@@ -100,6 +100,7 @@ void ResourceContainer::proceed(uint32_t nIntervalUs)
 void ResourceContainer::onSessionClosed(uint32_t nSessionId)
 {
   m_monitoringSessions.removeFirst(nSessionId);
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void ResourceContainer::sendUpdatesIfRequired()

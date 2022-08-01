@@ -62,6 +62,7 @@ void SystemClock::onSessionClosed(uint32_t nSessionId)
 {
   m_subscriptions.remove(nSessionId);
   forgetRingSession(nSessionId);
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void SystemClock::waitFor(uint32_t nSessionId, uint64_t time)

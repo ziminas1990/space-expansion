@@ -1,9 +1,16 @@
 #include <Autotests/Modules/ModulesTestFixture.h>
 
+#include <Network/SessionMux.h>
+#include <Utils/GlobalContainerUtils.h>
+
 namespace autotests {
 
 void ModulesTestFixture::SetUp()
 {
+  std::stringstream problem;
+  ASSERT_TRUE(utils::GlobalContainerUtils::checkAllContainersAreEmpty(problem))
+    << problem.str();
+
   m_clock.switchToDebugMode();
   m_clock.setDebugTickUs(25000);       // 25ms per tick
   m_clock.proceedRequest(0xFFFFFFFF);  // As long as it is required
@@ -31,20 +38,14 @@ void ModulesTestFixture::SetUp()
   // Components on server
   m_pPlayer = world::Player::makeDummy("Player-1");
 
-  const uint32_t nConnectionId = 5;
-  const uint32_t nRootSessionId = m_pPlayer->onNewConnection(nConnectionId);
-
   // Components on client
   m_pRouter = std::make_shared<client::Router>();
   m_pRouter->setProceeder(m_fConveyorProceeder);
 
-  m_pConnection = std::make_shared<PlayerConnector>(nConnectionId);
-  m_connectionGuard.link(m_pConnection,
-                         m_pPlayer->getSessionMux()->asTerminal(),
-                         m_pRouter);
-
-  m_pCommutatorCtrl = std::make_shared<client::ClientCommutator>(m_pRouter);
-  m_pCommutatorCtrl->attachToChannel(m_pRouter->openSession(nRootSessionId));
+  m_pConnector = std::make_shared<PlayerConnector>();
+  m_linker.link(m_pConnector,
+                m_pPlayer->getSessionMux()->asTerminal(),
+                m_pRouter);
 }
 
 } // namespace autotests

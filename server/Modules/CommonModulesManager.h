@@ -124,7 +124,7 @@ private:
     // busy modules (it will be proceeded until is switches to Idle state)
 
     const uint32_t nTotalModules =
-        utils::GlobalContainer<ModuleType>::Total();
+        utils::GlobalContainer<ModuleType>::Size();
     uint32_t nId = static_cast<uint32_t>(m_nNextId.fetch_add(1));
     for (; nId < nTotalModules;
          nId = static_cast<uint32_t>(m_nNextId.fetch_add(1)))

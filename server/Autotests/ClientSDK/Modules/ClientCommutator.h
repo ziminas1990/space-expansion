@@ -39,7 +39,6 @@ public:
 
   bool sendCloseTunnel(uint32_t nTunnelId);
   bool waitCloseTunnelStatus(spex::ICommutator::Status& status);
-  bool waitCloseTunnelInd();
 
   bool sendTotalSlotsReq();
   bool waitTotalSlots(uint32_t& nSlots);

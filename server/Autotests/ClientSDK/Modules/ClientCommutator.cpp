@@ -109,13 +109,6 @@ bool ClientCommutator::waitCloseTunnelStatus(spex::ICommutator::Status& status)
   return true;
 }
 
-bool ClientCommutator::waitCloseTunnelInd()
-{
-  spex::ICommutator message;
-  return wait(message)
-      && message.choice_case() == spex::ICommutator::kCloseTunnelInd;
-}
-
 bool ClientCommutator::sendTotalSlotsReq()
 {
   spex::Message request;

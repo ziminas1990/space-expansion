@@ -33,9 +33,6 @@ public:
   bool loadState(YAML::Node const& data) override;
   void proceed(uint32_t nIntervalUs) override;
 
-  bool openSession(uint32_t nSessionId) override;
-  void onSessionClosed(uint32_t nSessionId) override;
-
 private:
   void handleShipyardMessage(
       uint32_t nTunnelId, spex::IShipyard const& message) override;
@@ -60,8 +57,6 @@ private:
 
   modules::ResourceContainerPtr m_pContainer;
     // Container, which resources will be consumed during the build
-
-  std::set<uint32_t> m_openedSessions;
 
   struct BuildingTask {
     BuildingTask() : progress(0), nIntervalSinceLastInd(0) {}

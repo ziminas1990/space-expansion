@@ -1,10 +1,20 @@
 #pragma once
 
+#include <type_traits>
+
 #include <Network/Interfaces.h>
 #include <Autotests/ClientSDK/Interfaces.h>
 
 namespace autotests {
 
+// This class provides a way to connect client::Router and network::SessionMux
+// with each other as if they were communicating through the real network.
+//
+// Connector must be aware about all connections and sessions, opened
+// currently, and, in additional, how sessions map to connections. On the other
+// hand, it should be transparent to client code. Once client opens a new
+// session, it shouldn't be abliged to register it in connector. That is why
+// Connector 
 template<typename FrameType>
 class Connector:
     public network::IChannel<FrameType>,
@@ -15,28 +25,61 @@ public:
   using IClientTerminalPtr = client::ITerminalPtr<FrameType>;
 
 private:
-  uint32_t           m_nConnectionId;
   IServerTerminalPtr m_pServiceSide;
   IClientTerminalPtr m_pClientSide;
 
+  // Key - sessionId, value - connectionId
+  std::map<uint32_t, uint32_t> m_session2conection;
+  // Key - connectionId, value - sessions
+  std::map<uint32_t, std::set<uint32_t>> m_connection2sessions;
+
 public:
 
-  Connector(uint32_t nConnectionId) : m_nConnectionId(nConnectionId) {}
+  void onNewConnection(uint32_t nConnectionId, uint32_t nRootSessionId) {
+    assert(m_connection2sessions.find(nConnectionId) == m_connection2sessions.end());
+    assert(m_session2conection.find(nRootSessionId) == m_session2conection.end());
+    m_connection2sessions[nConnectionId] = {nRootSessionId};
+    m_session2conection[nRootSessionId] = nConnectionId;
+  }
 
   // Overrides network::IChannel<FrameType>
-  bool send(uint32_t nSessionId, FrameType&& frame) override
+  bool send(uint32_t nConnectionId, FrameType&& frame) override
   {
-    assert(nSessionId == m_nConnectionId);
+    checkPair(nConnectionId, frame.tunnelid());
     if (m_pClientSide) {
+      // Handle 'open_tunnel_report' or 'close_ind' messages:
+      if constexpr (std::is_same_v<FrameType, spex::Message>) {
+        switch (frame.choice_case()) {
+          case spex::Message::kCommutator:
+            onCommutatorMessage(nConnectionId, frame.commutator());
+            break;
+          case spex::Message::kSession:
+            onSessionMessage(nConnectionId,
+                             frame.tunnelid(),
+                             frame.session());
+            break;
+          default:
+            break;
+        }
+      }
+
       m_pClientSide->onMessageReceived(FrameType(frame));
       return true;
     }
     return false;
   }
 
-  void closeSession(uint32_t nSessionId) override
+  // Should only be called by server side (SessionMux). From server's point of
+  // view, each session is a connection.
+  void closeSession(uint32_t nConnectionId) override
   {
-    assert(nSessionId == m_nConnectionId);
+    auto it = m_connection2sessions.find(nConnectionId);
+    assert(it != m_connection2sessions.end());
+    for (uint32_t nSessionId: it->second) {
+      checkPair(nConnectionId, nSessionId);
+      m_session2conection.erase(nSessionId);
+    }
+    m_connection2sessions.erase(it);
   }
 
   bool isValid() const override {
@@ -49,8 +92,10 @@ public:
 
   // Overrides client::IChannel<FrameType>
   bool send(FrameType&& message) override {
+    auto it = m_session2conection.find(message.tunnelid());
+    assert(it != m_session2conection.end());
     if (m_pServiceSide) {
-      m_pServiceSide->onMessageReceived(m_nConnectionId, message);
+      m_pServiceSide->onMessageReceived(it->second, message);
       return true;
     }
     return false;
@@ -71,6 +116,55 @@ public:
       m_pClientSide.reset();
     }
   }
+
+private:
+  void checkPair(uint32_t nConnectionId, uint32_t nSessionId)
+  {
+    {
+      auto it = m_session2conection.find(nSessionId);
+      assert(it != m_session2conection.end());
+      assert(it->second == nConnectionId);
+    }
+    {
+      auto it = m_connection2sessions.find(nConnectionId);
+      assert(it != m_connection2sessions.end());
+      assert(it->second.find(nSessionId) != it->second.end());
+    }
+  }
+
+  void onNewSession(uint32_t nSessionId, uint32_t nConnectionId) {
+    assert(m_session2conection.find(nSessionId) == m_session2conection.end());
+    m_session2conection[nSessionId] = nConnectionId;
+
+    auto it = m_connection2sessions.find(nConnectionId);
+    assert(it != m_connection2sessions.end());
+    assert(it->second.find(nSessionId) == it->second.end());
+    it->second.insert(nSessionId);
+  }
+
+  void onCommutatorMessage(uint32_t nConnectionId,
+                           const spex::ICommutator& message)
+  {
+    // If client openes a new session, we should associate it's id
+    // with a corresponding connection
+    if (message.choice_case() == spex::ICommutator::kOpenTunnelReport) {
+      const uint32_t nSessionId = message.open_tunnel_report();
+      onNewSession(nSessionId, nConnectionId);
+    }
+  }
+
+  void onSessionMessage(uint32_t nConnectionId, 
+                        uint32_t nSessionId,
+                        const spex::ISessionControl& message)
+  {
+    // If an existing session is closed, we should remove it from internal
+    // session <-> connection mappings
+    if (message.choice_case() == spex::ISessionControl::kClosedInd) {
+      checkPair(nConnectionId, nSessionId);
+      m_session2conection.erase(nSessionId);
+      m_connection2sessions[nConnectionId].erase(nSessionId);
+    }
+  }
 };
 
 
@@ -78,45 +172,14 @@ template<typename FrameType>
 using ConnectorPtr = std::shared_ptr<Connector<FrameType>>;
 
 template<typename FrameType>
-class ConnectorGuard {
-private:
-  ConnectorPtr<FrameType>          m_pConnector;
-  network::ITerminalPtr<FrameType> m_pServerSide;
-  client::ITerminalPtr<FrameType>  m_pClientSide;
+using ConnectorWeakPtr = std::weak_ptr<Connector<FrameType>>;
 
-public:
-  ConnectorGuard() = default;
-  ConnectorGuard(const ConnectorGuard<FrameType>& other) = delete;
-  ConnectorGuard(ConnectorGuard<FrameType>&& other) = default;
-  ~ConnectorGuard() {
-    if (m_pConnector) {
-      m_pConnector->detachFromTerminal();
-    }
-  }
+using PlayerConnector        = Connector<spex::Message>;
+using PlayerConnectorPtr     = std::shared_ptr<PlayerConnector>;
+using PlayerConnectorWeakPtr = std::weak_ptr<PlayerConnector>;
 
-  void link(ConnectorPtr<FrameType> pConnector,
-            network::ITerminalPtr<FrameType> pServerSide,
-            client::ITerminalPtr<FrameType> pClientSide)
-  {
-    m_pConnector  = pConnector;
-    m_pServerSide = pServerSide;
-    m_pClientSide = pClientSide;
-
-    m_pConnector->attachToTerminal(m_pServerSide);
-    m_pConnector->attachToTerminal(m_pClientSide);
-    m_pServerSide->attachToChannel(m_pConnector);
-    m_pClientSide->attachToDownlevel(m_pConnector);
-  }
-
-};
-
-using PlayerConnector    = Connector<spex::Message>;
-using PlayerConnectorPtr = std::shared_ptr<PlayerConnector>;
-
-using AdminConnector    = Connector<admin::Message>;
-using AdminConnectorPtr = std::shared_ptr<AdminConnector>;
-
-using PlayerConnectorGuard = ConnectorGuard<spex::Message>;
-using AdminConnectorGuard  = ConnectorGuard<admin::Message>;
+using AdminConnector        = Connector<admin::Message>;
+using AdminConnectorPtr     = std::shared_ptr<AdminConnector>;
+using AdminConnectorWeakPtr = std::weak_ptr<AdminConnector>;
 
 } // namespace autotests

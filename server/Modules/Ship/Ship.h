@@ -8,6 +8,7 @@
 #include <Newton/PhysicalObject.h>
 #include <Utils/GlobalContainer.h>
 #include <Utils/SubscriptionsBox.h>
+#include <Utils/Linker.h>
 
 namespace modules
 {
@@ -23,7 +24,6 @@ public:
        world::PlayerWeakPtr pOwner,
        double weight,
        double radius);
-  ~Ship() override;
 
   bool loadState(YAML::Node const& source) override;
   void proceed(uint32_t nIntervalUs);
@@ -71,6 +71,7 @@ private:
 private:
   modules::CommutatorPtr                        m_pCommutator;
   std::map<std::string, modules::BaseModulePtr> m_Modules;
+  utils::Linker                                 m_linker;
 
   utils::SubscriptionsBox m_subscriptions;
 };

@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
-#include <Network/SessionMux.h>
+#include <Network/Fwd.h>
 
 namespace modules {
 
@@ -20,28 +20,26 @@ class Commutator :
 public:
   static uint32_t invalidSlot() { return UINT32_MAX; }
 
-  Commutator(std::shared_ptr<network::SessionMux> pSessionMux);
+  Commutator(network::SessionMuxWeakPtr pSessionMux);
 
   uint32_t attachModule(BaseModulePtr pModule);
     // Attach module to commutator. Return slotId - number of slot, to which
     // the module has been attached
 
+  bool detachModule(uint32_t nSloteId, const BaseModulePtr& pModule);
+    // Detach the specified 'pModule', attached to the specified 'nSlotId'.
+
   BaseModulePtr findModuleByName(std::string const& sName) const;
-    // Return module with the specified 'sName'. If module doesn't exist, return null.
-    // Note that call has O(n) complicity
+    // Return module with the specified 'sName'. If module doesn't exist, 
+    // return null. Note that call has O(n) complicity
 
   BaseModulePtr findModuleByType(std::string const& sType) const;
-    // Return module with the specified 'sType'. If module doesn't exist, return null.
-    // Note that call has O(n) complicity
-
-  void detachFromModules();
+    // Return module with the specified 'sType'. If module doesn't exist, 
+    // return null. Note that call has O(n) complicity
 
   // Check if all slotes are still active; if some slot is NOT active anymore,
   // commutator will send an indication
   void checkSlots();
-
-  // overrides from network::IPrutubufTerminal
-  bool openSession(uint32_t) override { return true; }
 
   size_t totalSlots() const { return m_modules.size(); }
 
@@ -69,24 +67,12 @@ private:
 
   void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
   void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);
-  void sendCloseTunnelInd(uint32_t nTunnelId);
-
-private:
-  struct Slot {
-    BaseModulePtr         m_pModule;
-    std::vector<uint32_t> m_activeSessions;
-
-    bool isValid() const { return m_pModule != nullptr; }
-    bool removeSessionId(uint32_t nSessionId);
-    void reset();
-  };
 
 private:
   // index - slotId
   std::vector<BaseModulePtr> m_modules;
-  std::vector<std::vector<uint32_t>> m_activeSessions;
 
-  std::shared_ptr<network::SessionMux> m_pSessionMux;
+  network::SessionMuxWeakPtr m_pSessionMux;
 };
 
 } // namespace modules

@@ -20,7 +20,7 @@ void ResourceContainerManager::proceedAdditionalStage(
     [[maybe_unused]] uint64_t nNowUs)
 {
   uint32_t nId = m_nNextId.fetch_add(1);
-  const size_t nTotalModules = AllModules::Total();
+  const size_t nTotalModules = AllModules::Size();
   for (; nId < nTotalModules; nId = m_nNextId.fetch_add(1))
   {
     ResourceContainer* pModule = AllModules::Instance(nId);
