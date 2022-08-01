@@ -213,7 +213,7 @@ input {
       width: 30px;
       height: 30px;
       font-size: 0px;
-      background: url(./img/signup3.png) 50% no-repeat;
+      background: url(./img/signup.png) 50% no-repeat;
       background-size: cover;
    }
    .loginBtn {
@@ -222,7 +222,7 @@ input {
       width: 30px;
       height: 30px;
       font-size: 0px;
-      background: url(./img/login2.png) 50% no-repeat;
+      background: url(./img/login.png) 50% no-repeat;
       background-size:  cover;
    }
    .form {

@@ -4,8 +4,8 @@ function set_status(status) {
 
 function runApp() {
   timestamp = {
-   "server_us": 0,
-   "local_ms": 0
+    "server_us": 0,
+    "local_ms": 0
   }
 
   predict_now = function () {
@@ -29,17 +29,17 @@ function runApp() {
     function (event) {
       document.getElementById("status").innerHTML = "Connection established";
     }
-  )
+  )   
    connection.addEventListener('message', function (event) { 
    const update = JSON.parse(event.data);  
    timestamp.server_us = update.ts;             
    timestamp.local_ms = Date.now()               
    set_status(JSON.stringify(timestamp));
-   for (let object_info of update.items) {       // каждому итему пришедшему с сервера
-      items.update_item(object_info)             // вызываем методы, описанный в ItemsContainer
+   for (let object_info of update.items) {       
+      items.update_item(object_info)             
     }
    });
-   
+
   animation = new Konva.Animation(function (frame) {
     scene.update(items, predict_now())
   });
