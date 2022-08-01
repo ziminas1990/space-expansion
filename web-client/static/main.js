@@ -1,4 +1,3 @@
-
 function set_status(status) {
   document.getElementById("status").innerHTML = status
 }
@@ -12,7 +11,7 @@ function runApp() {
   predict_now = function () {
     return timestamp.server_us + (Date.now() - timestamp.local_ms) * 1000
   }
-
+  
   // Create components:
   connection = new Connection()
   items = new ItemsContainer()
@@ -30,20 +29,17 @@ function runApp() {
     function (event) {
       document.getElementById("status").innerHTML = "Connection established";
     }
-  )
-  connection.addEventListener('message', function (event) {
-    const update = JSON.parse(event.data);
-    timestamp.server_us = update.ts
-    timestamp.local_ms = Date.now()
-    set_status(JSON.stringify(timestamp));
-    for (let object_info of update.items) {
-      item = new Item(object_info)
-      item.timestamp = timestamp.server_us
-      items.update_item(item)
+  )   
+   connection.addEventListener('message', function (event) { 
+   const update = JSON.parse(event.data);  
+   timestamp.server_us = update.ts;             
+   timestamp.local_ms = Date.now()               
+   set_status(JSON.stringify(timestamp));
+   for (let object_info of update.items) {       
+      items.update_item(object_info)             
     }
-  });
+   });
 
-  // Start scene animation
   animation = new Konva.Animation(function (frame) {
     scene.update(items, predict_now())
   });
