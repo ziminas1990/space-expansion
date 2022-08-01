@@ -10,9 +10,6 @@
 
 namespace blueprints {
 
-class BaseBlueprint;
-using BaseBlueprintPtr = std::shared_ptr<BaseBlueprint>;
-
 // Blueprints are used to create items like modules or whole ships.
 // Blueprint must be immutable. Blueprint object, that has been created once, should
 // be never changed.
