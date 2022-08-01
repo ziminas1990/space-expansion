@@ -1,4 +1,15 @@
-from typing import Dict, List, Optional, Callable, Tuple, TYPE_CHECKING
+import asyncio
+from typing import (
+    Dict,
+    List,
+    Set,
+    Optional,
+    Callable,
+    Tuple,
+    Iterable,
+    AsyncIterable,
+    TYPE_CHECKING
+)
 
 import expansion.interfaces.rpc as rpc
 from expansion.transport import SessionsMux
@@ -24,35 +35,85 @@ class Commutator(BaseModule):
                          name=self.name)
         self.session_mux = session_mux
         self.modules_factory = modules_factory
-        self.modules_info: Dict[str, Dict[str, int]] = {}
-        # Map: module_type -> module_name -> slot_id
-        self.modules: Dict[str, Dict[str, BaseModule]] = {}
+        # Map: slot_id -> (module_type, module_name)
+        self.slots: Dict[int, Tuple[str, str]] = {}
         # Map: module_type -> module_name -> module
+        self.modules: Dict[str, Dict[str, BaseModule]] = {}
 
-    async def init(self) -> bool:
-        """Retrieve an information about all modules, attached to the
-        commutator. Should be called after module is instantiated"""
-        self.modules_info.clear()
+        self._monitoring_task = None
+
+    async def update(self) -> bool:
+        """Request modules list from server and check if any modules were
+        added or removed. Do the synchronization."""
 
         modules: Optional[List[rpc.ModuleInfo]] = await self._get_all_modules()
-
         if modules is None:
             self.logger.warning(f"Failed to get modules list!")
             return False
 
         for module in modules:
-            modules_of_type = self.modules_info.setdefault(module.type, {})
-            modules_of_type.update({
-                module.name: module.slot_id
-            })
-            self.add_module(module.type, module.name, module.slot_id)
-
-        for module_type, name2module in self.modules.items():
-            for module_name, module in name2module.items():
-                if not await module.init():
-                    self.logger.warning(f"Can't init {module_type} '{module_name}'")
-
+            try:
+                existing = self.slots[module.slot_id]
+                if existing[0] != module.type or existing[1] != module.name:
+                    # Old module was replaced with a new one
+                    self._on_module_detached(module.slot_id)
+                    await self._on_module_attached(module)
+            except KeyError:
+                # new module
+                await self._on_module_attached(module)
+        # TODO: Check if any slots were detached
         return True
+
+    async def init(self) -> bool:
+        """Retrieve an information about all modules, attached to the
+        commutator. Should be called after module is instantiated"""
+        return await self.update()
+
+    # This generator starts monitoring session and returns all received updates.
+    # If no updates are received during the specified 'timeout', return None.
+    # Stop if get an invalid status from server, or connection (session) is
+    # closed or task is canceled.
+    @BaseModule.use_session_for_generators(
+        terminal_type=rpc.CommutatorI,
+        return_on_unreachable=None
+    )
+    async def monitoring(self,
+                         timeout: float = 0.5,
+                         session: Optional[rpc.CommutatorI] = None) \
+            -> AsyncIterable[Optional[rpc.CommutatorUpdate]]:
+        status: rpc.CommutatorI.Status = await session.monitor()
+        while status.is_success():
+            status, update = await session.wait_update()
+            if update:
+                # Update self first, then return an update
+                if update.module_attached:
+                    await self._on_module_attached(
+                        update.module_attached)
+                elif update.module_detached:
+                    self._on_module_detached(update.module_detached)
+                yield update
+            else:
+                yield None
+
+    async def _on_module_attached(self, module: rpc.ModuleInfo):
+        module_instance = self.instantiate_module(module)
+        if module_instance:
+            if await module_instance.init():
+                self.modules.setdefault(module.type, {}).update({
+                    module.name: module_instance
+                })
+                self.slots.update({
+                    module.slot_id: (module.type, module.name)
+                })
+            else:
+                self.logger.warning(f"Can't init {module.type} '{module.name}'")
+
+    def _on_module_detached(self, slot_id: int):
+        try:
+            module_type, module_name = self.slots[slot_id]
+            del self.modules[module_type][module_name]
+        except KeyError:
+            return
 
     @BaseModule.use_session(
         terminal_type=rpc.CommutatorI,
@@ -83,28 +144,19 @@ class Commutator(BaseModule):
         else:
             return None, str(status)
 
-    def add_module(self, module_type: str, name: str, slot_id: int) -> bool:
+    def instantiate_module(self, module_info: rpc.ModuleInfo) \
+            -> Optional[BaseModule]:
         async def tunnel_factory():
-            return await self._open_tunnel(slot_id)
+            return await self._open_tunnel(module_info.slot_id)
 
         module_instance, error = self.modules_factory(
-            module_type,
-            name,
+            module_info.type,
+            module_info.name,
             self.session_mux,
             tunnel_factory)
-
-        if error is not None:
-            self.logger.warning(f"Failed to connect to {module_type} '{name}': "
-                                f"{error}!")
-            return False
-
-        try:
-            modules = self.modules[module_type]
-            modules.update({
-                name: module_instance
-            })
-        except KeyError:
-            self.modules.update({
-                module_type: {name: module_instance}
-            })
-        return True
+        if error is None:
+            return module_instance
+        else:
+            self.logger.warning(f"Failed to connect to {module_info.type} "
+                                f"'{module_info.name}': {error}!")
+            return None

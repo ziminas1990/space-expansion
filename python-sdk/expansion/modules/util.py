@@ -34,16 +34,6 @@ def get_ship(commutator: Commutator, ship_type: str, ship_name: str) -> Optional
         return None
 
 
-def get_all_ships(commutator: Commutator) -> List[Ship]:
-    ships: List[Ship] = []
-    for module_type, name2module in commutator.modules.items():
-        if module_type.startswith(ModuleType.SHIP.value):
-            for ship in name2module.values():
-                assert isinstance(ship, Ship)
-                ships.append(ship)
-    return ships
-
-
 def get_engine(commutator: Commutator, name: str) -> Optional[Engine]:
     try:
         engine = commutator.modules[ModuleType.ENGINE.value][name]

@@ -1,11 +1,10 @@
-from typing import Optional, Any, Dict, List, NamedTuple, Tuple
+from typing import Optional, List, NamedTuple, Tuple
 import logging
 from enum import Enum
 
 import expansion.api as api
 from expansion.api.utils import get_message_field
 from expansion.transport import IOTerminal
-from expansion.transport.proxy_channel import ProxyChannel
 from expansion.transport.channel import Channel
 
 
@@ -21,6 +20,21 @@ class ModuleInfo(NamedTuple):
                           name=info.module_name)
 
 
+class Update(NamedTuple):
+    module_attached: Optional[ModuleInfo] = None
+    module_detached: Optional[int] = None
+
+    @staticmethod
+    def from_protobuf(update: api.ICommutator.Update) -> Optional["Update"]:
+        if update.WhichOneof('choice') == "module_attached":
+            module_info = ModuleInfo.from_protubuf(update.module_attached)
+            return Update(module_attached=module_info)
+        elif update.WhichOneof('choice') == "module_detached":
+            return Update(module_detached=update.module_detached)
+        assert "Unknown update type"
+        return None
+
+
 class CommutatorI(IOTerminal):
     """Commutator is a module, that can be used to access another modules,
     attached to the commutator
@@ -32,6 +46,8 @@ class CommutatorI(IOTerminal):
         MODULE_OFFLINE = "module offline"
         REJECTED_BY_MODULE = "rejected by module"
         INVALID_TUNNEL = "invalid tunnel"
+        COMMUTATOR_OFFLINE = "commutator offline"
+        TOO_MANY_SESSIONS = "too many monitoring sessions"
         # Internal SDK statuses:
         FAILED_TO_SEND_REQUEST = "failed to send request"
         RESPONSE_TIMEOUT = "response timeout"
@@ -51,6 +67,8 @@ class CommutatorI(IOTerminal):
                 ProtobufStatus.MODULE_OFFLINE: ModuleStatus.MODULE_OFFLINE,
                 ProtobufStatus.REJECTED_BY_MODULE: ModuleStatus.REJECTED_BY_MODULE,
                 ProtobufStatus.INVALID_TUNNEL: ModuleStatus.INVALID_TUNNEL,
+                ProtobufStatus.COMMUTATOR_OFFLINE: ModuleStatus.COMMUTATOR_OFFLINE,
+                ProtobufStatus.TOO_MANY_SESSIONS: ModuleStatus.TOO_MANY_SESSIONS,
             }[status]
 
     def __init__(self, name: str = __name__):
@@ -166,3 +184,36 @@ class CommutatorI(IOTerminal):
         if status is None:
             return CommutatorI.Status.UNEXPECTED_RESPONSE
         return CommutatorI.Status.convert(status)
+
+    @Channel.return_on_close(Status.CHANNEL_CLOSED)
+    async def monitor(self) -> Status:
+        request = api.Message()
+        request.commutator.monitor = True
+        self.send(request)
+
+        # it shouldn't take much time
+        response, _ = await self.wait_message(timeout=0.2)
+        if not response:
+            return CommutatorI.Status.RESPONSE_TIMEOUT
+
+        status = get_message_field(
+            response,
+            ["commutator", "monitor_ack"])
+        if status is None:
+            return CommutatorI.Status.UNEXPECTED_RESPONSE
+        return CommutatorI.Status.convert(status)
+
+    @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
+    async def wait_update(self, timeout: int = 1) \
+            -> Tuple[Status, Optional[Update]]:
+        message, _ = await self.wait_message(timeout=timeout)
+        if not message:
+            # Just no updates
+            return CommutatorI.Status.SUCCESS, None
+
+        update = get_message_field(message, ["commutator", "update"])
+        if update is not None:
+            return CommutatorI.Status.SUCCESS, Update.from_protobuf(update)
+        return CommutatorI.Status.UNEXPECTED_RESPONSE, None
+
+

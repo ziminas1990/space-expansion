@@ -1,5 +1,5 @@
 from .access_panel import AccessPanelI
-from .commutator import CommutatorI, ModuleInfo
+from .commutator import CommutatorI, ModuleInfo, Update as CommutatorUpdate
 from .ship import ShipI, State as ShipState
 from .engine import EngineI, Specification as EngineSpec
 from .celestial_scanner import CelestialScannerI, Specification as CelestialScannerSpec
