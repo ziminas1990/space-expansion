@@ -20,9 +20,12 @@ class Item {
   }
 
   update(item_from_update) {
+    
+    this.position.x = item_from_update.pos[0];
+    this.position.y = item_from_update.pos[1];
     this.position.ax = (item_from_update.pos[2] - this.position.vx)/(item_from_update.ts - this.timestamp); 
-    this.position.ay = (item_from_update.pos[3] - this.position.vy)/(item_from_update.ts - this.timestamp);
-    this.timestamp = item_from_update.ts;   
+    this.position.ay = (item_from_update.pos[3] - this.position.vy)/(item_from_update.ts - this.timestamp);  
+    this.timestamp = item_from_update.ts;
   }
 
   strkey() {
