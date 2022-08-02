@@ -20,15 +20,17 @@ class Item {
    }
 
   update(item_from_update) {
+    this.timestamp = item_from_update.ts;
+    this.position.x = item_from_update.pos[0];
+    this.position.y = item_from_update.pos[1];
     this.position.ax = (item_from_update.pos[2] - this.position.vx)/(item_from_update.ts - this.timestamp); 
     this.position.ay = (item_from_update.pos[3] - this.position.vy)/(item_from_update.ts - this.timestamp);
-    this.timestamp = item_from_update.ts;   
   }
 
   strkey() {
     return this.item_type + "." + this.id;
    }
-
+   
   predict_position(at) {
     let dt_sec = (at - this.timestamp) / 10**6
     let dt_half_sqr = dt_sec * dt_sec / 2;
