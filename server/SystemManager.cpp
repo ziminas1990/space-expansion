@@ -223,13 +223,13 @@ bool SystemManager::linkComponents()
   m_pAccessPanel->attachToConnectionManager(m_pUdpDispatcher);
 
   // Building the conveyor
+  m_pConveyor->addLogicToChain(m_pNewtonEngine);
   m_pConveyor->addLogicToChain(m_pUdpDispatcher);
   m_pConveyor->addLogicToChain(m_pAccessPanel);
   if (m_pAdministratorPanel) {
     m_pConveyor->addLogicToChain(m_pAdministratorPanel);
   }
   m_pConveyor->addLogicToChain(m_pSessionMuxManager);
-  m_pConveyor->addLogicToChain(m_pNewtonEngine);
   m_pConveyor->addLogicToChain(m_pFilteringManager);
   m_pConveyor->addLogicToChain(m_pCommutatorsManager);
   m_pConveyor->addLogicToChain(m_pSystemClockManager);

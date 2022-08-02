@@ -87,6 +87,32 @@ message Spawn {
 
 }
 
+message BasicManipulator {
+
+  enum Status {
+    OBJECT_DOESNT_EXIST = 0;
+  }
+
+  message ObjectId {
+    spex.ObjectType object_type = 1;
+    uint32          id          = 2;
+  };
+
+  message Move {
+    ObjectId      object_id = 1;
+    spex.Position position  = 2;
+  };
+  
+  oneof choice {    
+    ObjectId object_req = 1;
+    Move     move       = 2;
+    
+    
+    Status              problem  = 128;
+    spex.PhysicalObject object   = 129;
+    uint32              moved_at = 130;
+  }
+}
 
 message Message {
   uint64 token = 1;
@@ -94,10 +120,11 @@ message Message {
 
   oneof choice {
     // All possible interfaces are listed here
-    Access      access       = 5;
-    SystemClock system_clock = 6;
-    Screen      screen       = 7;
-    Spawn       spawn        = 8;
+    Access           access       = 5;
+    SystemClock      system_clock = 6;
+    Screen           screen       = 7;
+    Spawn            spawn        = 8;
+    BasicManipulator manipulator = 9;
   }
 }
 
