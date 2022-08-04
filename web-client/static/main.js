@@ -36,7 +36,7 @@ function runApp() {
    timestamp.local_ms = Date.now()               
    set_status(JSON.stringify(timestamp));
    for (let object_info of update.items) {       
-      items.update_item(object_info)             
+      items.update_item(object_info);             
     }
    });
 
