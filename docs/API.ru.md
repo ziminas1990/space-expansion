@@ -1,7 +1,7 @@
 # Space-Expansion API
 
 **Оглавление:**
-* [Общие сведения о протоколе взаимодействия](API.ru/protocol-general.md)
+* [API in general](API.ru/api-general.md)
 * [Интерфейс IAccessPanel](API.ru/IAccessPanel.md) - как авторизоваться на сервере?
 * [Что такое коммутатор?](API.ru/commutator-general.md)
 * [Интерфейс ICommutator](API.ru/ICommutator.md) - управление туннелями (виртуальными каналами) к кораблям и устройствам
