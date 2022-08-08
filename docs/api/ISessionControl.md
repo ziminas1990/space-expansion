@@ -5,8 +5,9 @@ Once player is logged in, he gets a UDP port on which to send all further reques
 
 <img src="./ISessionControl/fig1.svg" alt="virtual_connections" width="800" class="center"/>
 
-So, **session** is such a virtual connection. Each session has a **session_id** - a unique identifier, such that the same player can't have two sessions with the same *session_id* even in two different physical connections.  
-To assign a message to a particular session, corresponding *session_id* value should be send as `tunnelId` field of `Message` object. Once server receives a message, it gets a *session_id* and forward this message to related module. Once module handled a request, it sends a response with the same *session_id* so the client can know which module the response has been sent to.
+So, **session** is such a virtual connection. Each session has a **session_id** - a unique identifier, such that the same player can't have two sessions with the same *session_id* even in two different physical connections.
+
+To assign a message to a particular session, corresponding *session_id* value should be send as `tunnelId` field of `Message` object. Once server receives a message, it uses a *session_id* to forward this message to the corresponding module. Once module handled a request, it sends a response with the same *session_id* so the client can know which module the response has been sent to.
 
 A **root session** is a session, that is opened once client is logged in. If root session is closed for any reason, a physical connection is automatically closed as well. Hence, root session and physical connection have the same life time.
 

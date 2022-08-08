@@ -2,8 +2,8 @@
 
 **Оглавление:**
 * [API in general](api/api-general.md)
-* [IAccessPanel interface](api/IAccessPanel.md) - как авторизоваться на сервере?
-* [ISessionControl interface](api/ISessionControl.md) - сессии и управление ими
+* [IAccessPanel interface](api/IAccessPanel.md) - how to log in?
+* [ISessionControl interface](api/ISessionControl.md) - what is *session* and how to control them?
 
 **Устаревшая документация:**
 * [Что такое коммутатор?](API.ru/commutator-general.md)
