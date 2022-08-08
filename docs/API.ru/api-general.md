@@ -1,7 +1,7 @@
 # API in general
 Space-expansion API is based on [Google Protobuf](https://developers.google.com/protocol-buffers). It has two files:
 1. [CommonTypes.proto](https://github.com/ziminas1990/space-expansion/blob/master/server/CommonTypes.proto) - describes some common types
-2. [Protocol.proto](https://github.com/ziminas1990/space-expansion/blob/master/Protocol.proto) - describes all interfaces
+2. [Protocol.proto](https://github.com/ziminas1990/space-expansion/blob/master/server/Protocol.proto) - describes all interfaces
 
 Both files use ["Proto3 language guide"](https://developers.google.com/protocol-buffers/docs/proto3) specification. [UDP](https://en.wikipedia.org/wiki/User_Datagram_Protocol) protocol is used as a transport for exchanging messages with server.
 

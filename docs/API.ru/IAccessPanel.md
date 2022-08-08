@@ -1,36 +1,37 @@
-# Авторизация и интерфейс IAccessPanel
-Для того, чтобы начать работу с сервером, необходимо авторизоваться. Авторизация реализована достаточно просто - для этой задачи предусмотрен интерфейс IAccessPanel:
+# IAccessPanel
+**IAccessPanel** interface provides an authentication mechanism:
 ```protobuf
 message IAccessPanel {
 
   message LoginRequest {
     string login    = 1;
     string password = 2;
-    string ip       = 3;
-    uint32 port     = 4;
+  }
+
+  message AccessGranted {
+    uint32 port       = 1;
+    uint32 session_id = 2;  
   }
   
   oneof choice {
     LoginRequest login     = 1;
     
-    uint32 access_granted  = 21;
-    string access_rejected = 22;
+    AccessGranted access_granted  = 21;
+    string        access_rejected = 22;
   }
 }
 ```
+Interfaces defines a single `login` request and two possible responses: `access_granted` and `access_rejected`.
 
-Содержит следующие внутренние типы:
-  - **LoginRequest** - тип для команды **login**; содержит следующие поля:
-	  - **login** - имя пользователя;
-	  - **password** - пароль для доступа;
-	  - **ip:port** - IP-адрес (IPv4) и порт, с которого сервер должен принимать сообщения; все сообщения полученные с другого адреса будут проигнорированы.
+In order to login, player should send a `login` request to a **login UDP port** on server. This port is configured by server administrator. A `login` request has the following fields:
+1. `login` - player's login;
+2. `password` - player's password.
 
-Данный интерфейс имеет единственную команду **login**. Эта команда должна быть отправлена на IP:Port, на котором сервер принимает запросы на авторизацию. Их можно уточнить у администратора сервера (указываются в настройках сервера при его запуске).
+If login/password pair is correct, server sends a `access_granted` response, that has the following fields:
 
-> Напомню, что прежде чем отправить сообщение LoginRequest, его необходимо обернуть в сообщение IAccessPanel, которое, в свою очередь, нужно обернуть в сообщение Message! Подробнее см. ["Общие сведения о протоколе взаимодействия"](protocol-general.md)
+1. `port` a UDP port, on which client should send all further requests
+2. `session_id` - a root session id (it will be explained later).
 
-В ответ сервер может отправить одно из двух сообщений:
-  - **access_granted** - сообщает об успешной авторизации; содержащее порт на который необходимо отправлять все последующие сообщения;
-  - **access_rejected** - сообщает об ошибке авторизации, содержащее описание ошибки.
+Note that player MUST use **the same** socket to send all further requests, since server stores `ip:port` pair, that was used to send `login` request and will ignore any messages, sent from another `ip:port`.
 
-После успешной авторизации сервер открывает UDP-порт на порту который был передан в ответе **access_granted** и ожидает сообщения от отправителя **IP:Port**, которые были указаны в **login**.
+If the login/password pair is wrong or any other problem has occurred, an `access_rejected` response will be sent to player. It carries a string, that describes the problem.
