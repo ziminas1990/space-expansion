@@ -3,7 +3,7 @@
 **Оглавление:**
 * [API in general](api/api-general.md)
 * [IAccessPanel interface](api/IAccessPanel.md) - как авторизоваться на сервере?
-* [ISessionControl interface](api/IAccessPanel.md) - сессии и управление ими
+* [ISessionControl interface](api/ISessionControl.md) - сессии и управление ими
 * [Что такое коммутатор?](API.ru/commutator-general.md)
 * [Интерфейс ICommutator](API.ru/ICommutator.md) - управление туннелями (виртуальными каналами) к кораблям и устройствам
 * [Интерфейс INavigation](API.ru/INavigation.md) - определения позиции объекта в пространстве
