@@ -3,7 +3,7 @@
 First of all, let's define what is session.  
 Once player is logged in, he gets a UDP port on which to send all further requests. It forms a single UDP connection between player and server. It is also called as **physical connecton**. But since the player needs to communicate independently with a number of different modules on the server, a single physical connection should be somehow split into a number of virtual connections, one per each module:  
 
-<img src="./ISessionControl/fig1.svg" alt="virtual_connections" width="800" class="center"/>
+<img src="./ISessionControl/fig1.svg" alt="virtual_connections" width="1000" class="center"/>
 
 So, **session** is such a virtual connection. Each session has a **session_id** - a unique identifier, such that the same player can't have two sessions with the same *session_id* even in two different physical connections.
 
