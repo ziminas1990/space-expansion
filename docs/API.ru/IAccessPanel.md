@@ -23,7 +23,7 @@ message IAccessPanel {
 ```
 Interfaces defines a single `login` request and two possible responses: `access_granted` and `access_rejected`.
 
-In order to login, player should send a `login` request to a **login UDP port** on server. This port is configured by server administrator. A `login` request has the following fields:
+To log in, the player must send a `login` request to the server's **login UDP port**. This port is configured by server administrator. A `login` request has the following fields:
 1. `login` - player's login;
 2. `password` - player's password.
 
