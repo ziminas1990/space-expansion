@@ -70,5 +70,5 @@ $env:PYTHONPATH="$DEMO_SOURCE\python-sdk"
 
 # Run the client
 cd $DEMO_SOURCE\demo
-./main.py
+py ./main.py
 ```
