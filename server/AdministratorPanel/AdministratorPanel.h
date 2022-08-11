@@ -12,6 +12,7 @@
 #include <AdministratorPanel/ClockControl.h>
 #include <AdministratorPanel/Screen.h>
 #include <AdministratorPanel/Spawn.h>
+#include <AdministratorPanel/BasicManipulator.h>
 
 class SystemManager;
 
@@ -50,12 +51,13 @@ private:
   void sendLoginFailed(uint32_t nSessionId);
 
 private:
-  config::AdministratorCfg    m_cfg;
-  SystemManager*              m_pSystemManager;
-  network::UdpSocketPtr       m_pAdminSocket;
-  administrator::ClockControl m_clockControl;
-  administrator::Screen       m_screen;
-  administrator::SpawnLogic   m_spawner;
+  config::AdministratorCfg        m_cfg;
+  SystemManager*                  m_pSystemManager;
+  network::UdpSocketPtr           m_pAdminSocket;
+  administrator::ClockControl     m_clockControl;
+  administrator::Screen           m_screen;
+  administrator::SpawnLogic       m_spawner;
+  administrator::BasicManipulator m_manipulator;
 
   utils::RandomSequence m_tokenGenerator;
 

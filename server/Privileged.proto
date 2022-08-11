@@ -124,7 +124,7 @@ message Message {
     SystemClock      system_clock = 6;
     Screen           screen       = 7;
     Spawn            spawn        = 8;
-    BasicManipulator manipulator = 9;
+    BasicManipulator manipulator  = 9;
   }
 }
 

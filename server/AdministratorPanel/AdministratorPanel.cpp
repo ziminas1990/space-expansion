@@ -20,6 +20,7 @@ void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
   m_clockControl.setup(m_pSystemManager, getChannel());
   m_screen.setup(m_pSystemManager, getChannel());
   m_spawner.setup(m_pSystemManager, getChannel());
+  m_manipulator.setup(getChannel());
 }
 
 bool AdministratorPanel::prephare(
@@ -61,6 +62,9 @@ void AdministratorPanel::handleMessage(uint32_t nSessionId,
       return;
     case admin::Message::kScreen:
       m_screen.handleMessage(nSessionId, message.screen());
+      return;
+    case admin::Message::kManipulator:
+      m_manipulator.handleMessage(nSessionId, message.manipulator());
       return;
     default:
       return;

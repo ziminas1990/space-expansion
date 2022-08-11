@@ -18,6 +18,10 @@ public:
   void handleMessage(uint32_t nSessionId, 
                      const admin::BasicManipulator& message);
 
+  void setup(network::IPrivilegedChannelPtr pChannel) {
+    m_pChannel = pChannel;
+  }
+
 private:
   void onObjectRequest(uint32_t nSessionId,
                        const admin::BasicManipulator::ObjectId& objectId);

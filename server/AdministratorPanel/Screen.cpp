@@ -12,19 +12,6 @@ namespace world { class Asteroid; }
 
 namespace administrator {
 
-static world::ObjectType convert(spex::ObjectType eType)
-{
-  switch (eType) {
-    case spex::ObjectType::OBJECT_SHIP:
-      return world::ObjectType::eShip;
-    case spex::ObjectType::OBJECT_ASTEROID:
-      return world::ObjectType::eAsteroid;
-    default:
-      assert("Unexpected type" == nullptr);
-  }
-  return world::ObjectType::eUnknown;
-}
-
 Screen::Screen() : m_pFilter(std::make_shared<tools::RectangeFilter>())
 {}
 
@@ -102,7 +89,7 @@ void Screen::show(uint32_t nSessionId, spex::ObjectType eType)
   }
 
   world::PhysicalObjectsContainerPtr pObjects =
-      m_containersCache.getContainerWith(convert(eType));
+      m_containersCache.getContainerWith(utils::convert(eType));
   if (!pObjects) {
     sendStatus(nSessionId, admin::Screen::FAILED);
     return;

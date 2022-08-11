@@ -1,6 +1,7 @@
 #include <AdministratorPanel/BasicManipulator.h>
 
 #include <Utils/ItemsConverter.h>
+#include <Utils/Clock.h>
 #include <World/CelestialBodies/Asteroid.h>
 #include <Modules/Ship/Ship.h>
 
@@ -89,6 +90,7 @@ bool BasicManipulator::sendObject(uint32_t nSessionId,
                                   const newton::PhysicalObject* pObject)
 {
   admin::Message response;
+  response.set_timestamp(utils::GlobalClock::now());
   spex::PhysicalObject* body = response.mutable_manipulator()->mutable_object();
   utils::convert(pObject, body);
   return m_pChannel && m_pChannel->send(nSessionId, std::move(response));
@@ -97,6 +99,7 @@ bool BasicManipulator::sendObject(uint32_t nSessionId,
 bool BasicManipulator::sendMovedAt(uint32_t nSessionId)
 {
   admin::Message response;
+  response.set_timestamp(utils::GlobalClock::now());
   response.mutable_manipulator()->set_moved_at(utils::GlobalClock::now());
   return m_pChannel && m_pChannel->send(nSessionId, std::move(response));
 }
