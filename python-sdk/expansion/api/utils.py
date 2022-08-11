@@ -1,10 +1,10 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 
 def get_message_field(message: Any, path: List[str]) -> Optional[Any]:
     """Read a field with the specified 'path' in the specified 'message'
 
-     login_response = extract_message(response, "access.login")
+     login_response = extract_message(response, ["access", "login"])
 
      In this case function will check, that 'response' has 'access' field,
      and 'access' field has 'login' field. If all is Ture, it will return

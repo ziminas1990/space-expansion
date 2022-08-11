@@ -6,7 +6,8 @@ from expansion.interfaces.privileged import (
     Access,
     SystemClock,
     Demux,
-    Spawner
+    Spawner,
+    BasicManipulator
 )
 
 
@@ -30,15 +31,18 @@ class Administrator:
         self.access_panel = Access(f"{self.name}.access")
         self.system_clock = SystemClock(f"{self.name}.clock")
         self.spawner = Spawner(f"{self.name}.spawner")
+        self.manipulator = BasicManipulator(f"{self.name}.manipulator")
 
         # Linking components of the stack
         self.access_panel.attach_channel(self.demux)
         self.system_clock.attach_channel(self.demux)
         self.spawner.attach_channel(self.demux)
+        self.manipulator.attach_channel(self.demux)
         self.demux.attach_terminals({
             "access": self.access_panel,
             "system_clock": self.system_clock,
-            "spawn": self.spawner
+            "spawn": self.spawner,
+            "manipulator": self.manipulator
         })
         self.demux.attach_channel(self.protobuf_channel)
         self.protobuf_channel.attach_to_terminal(self.demux)

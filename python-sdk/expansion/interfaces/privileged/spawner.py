@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 import expansion.api as api
 from expansion.transport import IOTerminal

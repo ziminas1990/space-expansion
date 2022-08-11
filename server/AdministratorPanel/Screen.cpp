@@ -4,35 +4,13 @@
 #include <ConveyorTools/PhysicalObjectsFilters.h>
 #include <World/ObjectTypes.h>
 #include <World/ObjectContainers.h>
+#include <Utils/ItemsConverter.h>
 #include <SystemManager.h>
 
 namespace modules { class Ship; }
 namespace world { class Asteroid; }
 
 namespace administrator {
-
-static world::ObjectType convert(spex::ObjectType eType)
-{
-  switch (eType) {
-    case spex::ObjectType::OBJECT_SHIP:
-      return world::ObjectType::eShip;
-    case spex::ObjectType::OBJECT_ASTEROID:
-      return world::ObjectType::eAsteroid;
-    default:
-      assert("Unexpected type" == nullptr);
-  }
-  return world::ObjectType::eUnknown;
-}
-
-inline void convert(newton::PhysicalObject* pFrom, spex::PhysicalObject* pTo)
-{
-  pTo->set_id(pFrom->getInstanceId());
-  pTo->set_x(pFrom->getPosition().x);
-  pTo->set_y(pFrom->getPosition().y);
-  pTo->set_vx(static_cast<float>(pFrom->getVelocity().getX()));
-  pTo->set_vy(static_cast<float>(pFrom->getVelocity().getY()));
-  pTo->set_r(static_cast<float>(pFrom->getRadius()));
-}
 
 Screen::Screen() : m_pFilter(std::make_shared<tools::RectangeFilter>())
 {}
@@ -67,7 +45,7 @@ void Screen::proceed(uint32_t nIntervalUs)
     pChunk->set_left(static_cast<uint32_t>(filtered.size() - end));
     for(size_t i = begin; i < end; ++i) {
       if (filtered[i]) {
-        convert(filtered[i], pChunk->add_object());
+        utils::convert(filtered[i], pChunk->add_object());
       }
     }
 
@@ -111,7 +89,7 @@ void Screen::show(uint32_t nSessionId, spex::ObjectType eType)
   }
 
   world::PhysicalObjectsContainerPtr pObjects =
-      m_containersCache.getContainerWith(convert(eType));
+      m_containersCache.getContainerWith(utils::convert(eType));
   if (!pObjects) {
     sendStatus(nSessionId, admin::Screen::FAILED);
     return;

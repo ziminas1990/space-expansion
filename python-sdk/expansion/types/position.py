@@ -18,6 +18,11 @@ class Position(NamedTuple):
                         velocity=Vector(x=position.vx, y=position.vy),
                         timestamp=TimePoint(timestamp))
 
+    @staticmethod
+    def almost_equal(left: "Position", right: "Position", delta=0.001):
+        return (left.x - right.x) ** 2 + (left.y - right.y) ** 2 < delta ** 2 \
+               and Vector.almost_equal(left.velocity, right.velocity, delta)
+
     def to_protobuf(self, position: api.types.Position):
         position.x = self.x
         position.y = self.y

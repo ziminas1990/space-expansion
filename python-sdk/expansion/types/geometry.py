@@ -79,8 +79,12 @@ class Vector:
     def almost_null(self, delta=0.001) -> bool:
         return self.x ** 2 + self.y ** 2 < delta
 
+    @staticmethod
+    def almost_equal(left: "Vector", right: "Vector", delta=0.001):
+        return (left.x - right.x) ** 2 + (left.y - right.y) ** 2 < delta ** 2
+
     def decompose(self, other: "Vector") -> Tuple["Vector", "Vector"]:
-        """Decompose vector into two vectors: one is parralel to 'other' and
+        """Decompose vector into two vectors: one is parrallel to 'other' and
         another is perpendicular to it."""
         if self.abs() < 0.001:
             return Vector(0, 0), Vector(0, 0)
