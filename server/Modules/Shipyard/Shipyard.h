@@ -7,7 +7,7 @@
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
 #include <Utils/YamlForwardDeclarations.h>
-#include <Blueprints/BlueprintsForwardDecls.h>
+#include <Blueprints/Fwd.h>
 #include <World/Resources.h>
 #include <Blueprints/BlueprintsLibrary.h>
 #include <Modules/Fwd.h>

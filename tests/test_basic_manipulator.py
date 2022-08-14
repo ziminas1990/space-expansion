@@ -35,7 +35,7 @@ class TestCase(BaseTestFixture):
         spawner = self.administrator.spawner
         manipulator = self.administrator.manipulator
         for i in range(500):
-            spawned_asteroid = await spawner.spawn_asteroid(
+            status, spawned_asteroid = await spawner.spawn_asteroid(
                 position=randomizer.random_position(
                     rect=types.Rect(-1000, 1000, -1000, 1000),
                     min_speed=0,
@@ -68,7 +68,7 @@ class TestCase(BaseTestFixture):
         manipulator = self.administrator.manipulator
 
         for i in range(500):
-            spawned_asteroid = await spawner.spawn_asteroid(
+            status, spawned_asteroid = await spawner.spawn_asteroid(
                 position=randomizer.random_position(
                     rect=types.Rect(-1000, 1000, -1000, 1000),
                     min_speed=0,
@@ -81,7 +81,7 @@ class TestCase(BaseTestFixture):
             asteroids.append(spawned_asteroid)
 
         for spawned_asteroid in asteroids:
-            spawned_asteroid = await spawner.spawn_asteroid(
+            status, asteroid = await spawner.spawn_asteroid(
                 position=randomizer.random_position(
                     rect=types.Rect(-1000, 1000, -1000, 1000),
                     min_speed=0,
@@ -90,6 +90,8 @@ class TestCase(BaseTestFixture):
                 composition=types.make_resources(ice=100),
                 radius=10
             )
+            self.assertTrue(status.is_success())
+            self.assertIsNotNone(asteroid)
 
             # Get spawned asteroid from server
             status, asteroid = await manipulator.get_object(

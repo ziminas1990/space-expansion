@@ -24,15 +24,16 @@ modules::BaseModulePtr ShipBlueprint::build(
 modules::ShipPtr ShipBlueprint::build(
     std::string sName,
     world::PlayerWeakPtr pOwner,
-    BlueprintsLibrary const& customLibrary) const
+    const BlueprintsLibrary& blueprintsLibrary) const
 {
   modules::ShipPtr pShip =
       std::make_shared<modules::Ship>(
         m_sType, std::move(sName), pOwner, m_weight, m_radius);
 
+  // Create ship's modules
   for (auto const& kv : m_modules)
   {
-    BaseBlueprintPtr pBlueprint = customLibrary.getBlueprint(kv.second);
+    BaseBlueprintPtr pBlueprint = blueprintsLibrary.getBlueprint(kv.second);
     assert(pBlueprint);
     if (!pBlueprint) {
       return modules::ShipPtr();

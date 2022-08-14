@@ -92,17 +92,18 @@ class TestCase(BaseTestFixture):
 
         ship_position = await miner_1.get_position()
 
-        spawned_asteroids: List[types.PhysicalObject] = [
-            await self.administrator.get_spawner().spawn_asteroid(
-                position=randomizer.random_position(
-                    center=ship_position,
-                    radius=2 * spec.scanning_radius_km * 1000
-                ),
-                composition=types.make_resources(ice=100, metals=32),
-                radius=randomizer.random_value(5, 20)
+        spawned_asteroids: List[types.PhysicalObject] = []
+        for i in range(1000):
+            status, asteroid =\
+                await self.administrator.get_spawner().spawn_asteroid(
+                    position=randomizer.random_position(
+                        center=ship_position,
+                        radius=2 * spec.scanning_radius_km * 1000
+                    ),
+                    composition=types.make_resources(ice=100, metals=32),
+                    radius=randomizer.random_value(5, 20)
             )
-            for i in range(1000)
-        ]
+            spawned_asteroids.append(asteroid)
 
         # Take 10 seconds to scan
         scanned_objects = await TestCase.scanning(scanner, clock, 10000)

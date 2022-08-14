@@ -7,7 +7,7 @@ namespace utils {
 class StringUtils {
 public:
   static void split(char separator,
-                    std::string_view const& source,
+                    std::string_view source,
                     std::string& left,
                     std::string& right);
 

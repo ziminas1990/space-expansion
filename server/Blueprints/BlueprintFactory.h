@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Blueprints/Fwd.h>
 #include <Blueprints/BaseBlueprint.h>
 #include <Utils/YamlForwardDeclarations.h>
 

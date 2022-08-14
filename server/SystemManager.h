@@ -37,6 +37,8 @@ public:
 
   world::World& getWorld() { return m_world; }
 
+  world::PlayerStoragePtr getPlayers() const { return m_pPlayersStorage; }
+
   tools::ObjectsFilteringManagerPtr getFilteringManager() const {
     return m_pFilteringManager;
   }

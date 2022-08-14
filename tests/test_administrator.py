@@ -7,6 +7,7 @@ from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
 from randomizer import Randomizer
 import expansion.types as types
+from expansion.interfaces.privileged import Spawner
 
 
 class TestCase(BaseTestFixture):
@@ -73,7 +74,7 @@ class TestCase(BaseTestFixture):
         spawner = self.administrator.spawner
         for i in range(100):
             now = await self.system_clock_time()
-            asteroid = await spawner.spawn_asteroid(
+            status, asteroid = await spawner.spawn_asteroid(
                 position=randomizer.random_position(
                     rect=types.Rect(-1000, 1000, -1000, 1000),
                     min_speed=0,
@@ -84,3 +85,75 @@ class TestCase(BaseTestFixture):
             )
             assert asteroid is not None
             assert asteroid.position.timestamp.usec() >= now
+
+    @BaseTestFixture.run_as_sync
+    async def test_spawn_ships(self):
+        self.assertTrue(await self.system_clock_play())
+        randomizer = Randomizer(2132)
+        spawner = self.administrator.spawner
+        manipulator = self.administrator.manipulator
+
+        spawned_ships = []
+        for i in range(100):
+            status, ship = await spawner.spawn_ship(
+                player="spy007",
+                blueprint="Ship/Miner",
+                ship_name=f"Miner_{i}",
+                position=randomizer.random_position(
+                    rect=types.Rect(-1000, 1000, -1000, 1000),
+                    min_speed=0,
+                    max_speed=1000
+                )
+            )
+            assert status.is_success(), f"on iteration {i}, status = {status}"
+            self.assertEqual(status, Spawner.Status.SUCCESS)
+            self.assertIsNotNone(ship)
+            spawned_ships.append(ship)
+
+        # Check that all ships really exist:
+        for spawned_ship in spawned_ships:
+            status, ship = await manipulator.get_object(
+                object_type=spawned_ship.object_type,
+                object_id=spawned_ship.object_id
+            )
+            self.assertTrue(status.is_success())
+            self.assertIsNotNone(ship)
+            self.assertTrue(types.Position.almost_equal(
+                spawned_ship.position.predict(
+                    at=ship.position.timestamp.usec()),
+                ship.position
+            ))
+
+    @BaseTestFixture.run_as_sync
+    async def test_spawn_ship_fails(self):
+        self.assertTrue(await self.system_clock_play())
+        randomizer = Randomizer(2132)
+        spawner = self.administrator.spawner
+        position = types.Position(x=0, y=0, velocity=types.Vector(0, 0))
+
+        status, ship = await spawner.spawn_ship(
+            player="spy007",
+            blueprint="Ship/dgfdg",
+            ship_name=f"Miner",
+            position=position
+        )
+        self.assertEqual(status, Spawner.Status.BLUEPRINT_DOESNT_EXIST)
+        self.assertIsNone(ship)
+
+        status, ship = await spawner.spawn_ship(
+            player="spy0fd07",
+            blueprint="Ship/Miner",
+            ship_name=f"Miner",
+            position=position
+        )
+        self.assertEqual(status, Spawner.Status.PLAYER_DOESNT_EXIST)
+        self.assertIsNone(ship)
+
+        status, ship = await spawner.spawn_ship(
+            player="spy007",
+            blueprint="PassiveScanner/Military Scanner",
+            ship_name=f"Miner",
+            position=position
+        )
+        self.assertEqual(status, Spawner.Status.NOT_A_SHIP_BLUEPRINT)
+        self.assertIsNone(ship)

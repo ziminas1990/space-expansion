@@ -10,7 +10,7 @@ namespace blueprints {
 class BlueprintName
 {
 public:
-  static BlueprintName make(std::string const& sFullName)
+  static BlueprintName make(std::string_view sFullName)
   {
     std::string sModuleClass;
     std::string sModuleType;

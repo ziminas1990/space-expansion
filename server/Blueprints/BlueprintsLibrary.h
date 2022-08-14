@@ -5,8 +5,8 @@
 #include <functional>
 
 #include <Utils/YamlForwardDeclarations.h>
-#include "BlueprintsForwardDecls.h"
-#include "BlueprintName.h"
+#include <Blueprints/Fwd.h>
+#include <Blueprints/BlueprintName.h>
 
 namespace blueprints {
 
