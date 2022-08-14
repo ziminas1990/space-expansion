@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <Privileged.pb.h>
 #include <Network/Interfaces.h>
+#include <Geometry/Point.h>
+#include <Geometry/Vector.h>
 
 class SystemManager;
 
@@ -14,6 +16,13 @@ class SpawnLogic {
     // Channel to client
 
   uint32_t spawnAsteroid(const admin::Spawn::Asteroid& asteroid);
+  
+  void spawnShip(uint32_t                nSessionId,
+                 const std::string&      sPlayerLogin,
+                 std::string_view        sBlueprintName,
+                 std::string_view        sShipName,
+                 const geometry::Point&  position,
+                 const geometry::Vector& velocity);
 
 public:
 
@@ -26,6 +35,9 @@ public:
 
   void handleMessage(uint32_t nSessionId, const admin::Spawn& message);
 
+private:
+  bool sendShipId(uint32_t nSessionId, uint32_t nShipId);
+  bool sendProblem(uint32_t nSessionId, admin::Spawn::Status problem);
 };
 
 } // namespace administrator

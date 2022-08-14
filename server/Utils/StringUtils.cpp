@@ -5,7 +5,7 @@
 namespace utils {
 
 void StringUtils::split(char separator,
-                        const std::string_view &source,
+                        std::string_view source,
                         std::string &left,
                         std::string &right)
 {

@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='admin',
   syntax='proto3',
   serialized_options=_b('\370\001\001'),
-  serialized_pb=_b('\n\x10Privileged.proto\x12\x05\x61\x64min\x1a\x11\x43ommonTypes.proto\"\x87\x01\n\x06\x41\x63\x63\x65ss\x12$\n\x05login\x18\x01 \x01(\x0b\x32\x13.admin.Access.LoginH\x00\x12\x12\n\x07success\x18\x80\x01 \x01(\x04H\x00\x12\x0f\n\x04\x66\x61il\x18\x81\x01 \x01(\x08H\x00\x1a(\n\x05Login\x12\r\n\x05login\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\tB\x08\n\x06\x63hoice\"\xf0\x02\n\x0bSystemClock\x12\x12\n\x08time_req\x18\x01 \x01(\x08H\x00\x12\x12\n\x08mode_req\x18\x02 \x01(\x08H\x00\x12\x1d\n\x13switch_to_real_time\x18\x03 \x01(\x08H\x00\x12\x1e\n\x14switch_to_debug_mode\x18\x04 \x01(\x08H\x00\x12\x13\n\tterminate\x18\x05 \x01(\x08H\x00\x12\x1a\n\x10tick_duration_us\x18\x06 \x01(\rH\x00\x12\x17\n\rproceed_ticks\x18\x07 \x01(\rH\x00\x12\x0e\n\x03now\x18\x81\x01 \x01(\x04H\x00\x12,\n\x06status\x18\x82\x01 \x01(\x0e\x32\x19.admin.SystemClock.StatusH\x00\"h\n\x06Status\x12\x12\n\x0eMODE_REAL_TIME\x10\x00\x12\x0e\n\nMODE_DEBUG\x10\x01\x12\x13\n\x0fMODE_TERMINATED\x10\x02\x12\x11\n\rCLOCK_IS_BUSY\x10\x03\x12\x12\n\x0eINTERNAL_ERROR\x10\x04\x42\x08\n\x06\x63hoice\"\x98\x02\n\x06Screen\x12&\n\x04move\x18\x01 \x01(\x0b\x32\x16.admin.Screen.PositionH\x00\x12 \n\x04show\x18\x02 \x01(\x0e\x32\x10.spex.ObjectTypeH\x00\x12\'\n\x06status\x18\x81\x01 \x01(\x0e\x32\x14.admin.Screen.StatusH\x00\x12-\n\x07objects\x18\x82\x01 \x01(\x0b\x32\x19.spex.PhysicalObjectsListH\x00\x1a?\n\x08Position\x12\t\n\x01x\x18\x02 \x01(\x01\x12\t\n\x01y\x18\x03 \x01(\x01\x12\r\n\x05width\x18\x04 \x01(\x01\x12\x0e\n\x06height\x18\x05 \x01(\x01\"!\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01\x42\x08\n\x06\x63hoice\"\xb8\x01\n\x05Spawn\x12)\n\x08\x61steroid\x18\x01 \x01(\x0b\x32\x15.admin.Spawn.AsteroidH\x00\x12\x16\n\x0b\x61steroid_id\x18\x81\x01 \x01(\rH\x00\x1a\x62\n\x08\x41steroid\x12 \n\x08position\x18\x01 \x01(\x0b\x32\x0e.spex.Position\x12$\n\x0b\x63omposition\x18\x02 \x01(\x0b\x32\x0f.spex.Resources\x12\x0e\n\x06radius\x18\x03 \x01(\x01\x42\x08\n\x06\x63hoice\"\xb5\x03\n\x10\x42\x61sicManipulator\x12\x36\n\nobject_req\x18\x01 \x01(\x0b\x32 .admin.BasicManipulator.ObjectIdH\x00\x12,\n\x04move\x18\x02 \x01(\x0b\x32\x1c.admin.BasicManipulator.MoveH\x00\x12\x32\n\x07problem\x18\x80\x01 \x01(\x0e\x32\x1e.admin.BasicManipulator.StatusH\x00\x12\'\n\x06object\x18\x81\x01 \x01(\x0b\x32\x14.spex.PhysicalObjectH\x00\x12\x13\n\x08moved_at\x18\x82\x01 \x01(\rH\x00\x1a=\n\x08ObjectId\x12%\n\x0bobject_type\x18\x01 \x01(\x0e\x32\x10.spex.ObjectType\x12\n\n\x02id\x18\x02 \x01(\r\x1a]\n\x04Move\x12\x33\n\tobject_id\x18\x01 \x01(\x0b\x32 .admin.BasicManipulator.ObjectId\x12 \n\x08position\x18\x02 \x01(\x0b\x32\x0e.spex.Position\"!\n\x06Status\x12\x17\n\x13OBJECT_DOESNT_EXIST\x10\x00\x42\x08\n\x06\x63hoice\"\xf2\x01\n\x07Message\x12\r\n\x05token\x18\x01 \x01(\x04\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12\x1f\n\x06\x61\x63\x63\x65ss\x18\x05 \x01(\x0b\x32\r.admin.AccessH\x00\x12*\n\x0csystem_clock\x18\x06 \x01(\x0b\x32\x12.admin.SystemClockH\x00\x12\x1f\n\x06screen\x18\x07 \x01(\x0b\x32\r.admin.ScreenH\x00\x12\x1d\n\x05spawn\x18\x08 \x01(\x0b\x32\x0c.admin.SpawnH\x00\x12.\n\x0bmanipulator\x18\t \x01(\x0b\x32\x17.admin.BasicManipulatorH\x00\x42\x08\n\x06\x63hoiceB\x03\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x10Privileged.proto\x12\x05\x61\x64min\x1a\x11\x43ommonTypes.proto\"\x87\x01\n\x06\x41\x63\x63\x65ss\x12$\n\x05login\x18\x01 \x01(\x0b\x32\x13.admin.Access.LoginH\x00\x12\x12\n\x07success\x18\x80\x01 \x01(\x04H\x00\x12\x0f\n\x04\x66\x61il\x18\x81\x01 \x01(\x08H\x00\x1a(\n\x05Login\x12\r\n\x05login\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\tB\x08\n\x06\x63hoice\"\xf0\x02\n\x0bSystemClock\x12\x12\n\x08time_req\x18\x01 \x01(\x08H\x00\x12\x12\n\x08mode_req\x18\x02 \x01(\x08H\x00\x12\x1d\n\x13switch_to_real_time\x18\x03 \x01(\x08H\x00\x12\x1e\n\x14switch_to_debug_mode\x18\x04 \x01(\x08H\x00\x12\x13\n\tterminate\x18\x05 \x01(\x08H\x00\x12\x1a\n\x10tick_duration_us\x18\x06 \x01(\rH\x00\x12\x17\n\rproceed_ticks\x18\x07 \x01(\rH\x00\x12\x0e\n\x03now\x18\x81\x01 \x01(\x04H\x00\x12,\n\x06status\x18\x82\x01 \x01(\x0e\x32\x19.admin.SystemClock.StatusH\x00\"h\n\x06Status\x12\x12\n\x0eMODE_REAL_TIME\x10\x00\x12\x0e\n\nMODE_DEBUG\x10\x01\x12\x13\n\x0fMODE_TERMINATED\x10\x02\x12\x11\n\rCLOCK_IS_BUSY\x10\x03\x12\x12\n\x0eINTERNAL_ERROR\x10\x04\x42\x08\n\x06\x63hoice\"\x98\x02\n\x06Screen\x12&\n\x04move\x18\x01 \x01(\x0b\x32\x16.admin.Screen.PositionH\x00\x12 \n\x04show\x18\x02 \x01(\x0e\x32\x10.spex.ObjectTypeH\x00\x12\'\n\x06status\x18\x81\x01 \x01(\x0e\x32\x14.admin.Screen.StatusH\x00\x12-\n\x07objects\x18\x82\x01 \x01(\x0b\x32\x19.spex.PhysicalObjectsListH\x00\x1a?\n\x08Position\x12\t\n\x01x\x18\x02 \x01(\x01\x12\t\n\x01y\x18\x03 \x01(\x01\x12\r\n\x05width\x18\x04 \x01(\x01\x12\x0e\n\x06height\x18\x05 \x01(\x01\"!\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01\x42\x08\n\x06\x63hoice\"\xf3\x03\n\x05Spawn\x12!\n\x04ship\x18\x01 \x01(\x0b\x32\x11.admin.Spawn.ShipH\x00\x12)\n\x08\x61steroid\x18\x02 \x01(\x0b\x32\x15.admin.Spawn.AsteroidH\x00\x12\'\n\x07problem\x18\x80\x01 \x01(\x0e\x32\x13.admin.Spawn.StatusH\x00\x12\x16\n\x0b\x61steroid_id\x18\x81\x01 \x01(\rH\x00\x12\x12\n\x07ship_id\x18\x82\x01 \x01(\rH\x00\x1a\x62\n\x08\x41steroid\x12 \n\x08position\x18\x01 \x01(\x0b\x32\x0e.spex.Position\x12$\n\x0b\x63omposition\x18\x02 \x01(\x0b\x32\x0f.spex.Resources\x12\x0e\n\x06radius\x18\x03 \x01(\x01\x1a^\n\x04Ship\x12\x0e\n\x06player\x18\x01 \x01(\t\x12\x11\n\tblueprint\x18\x02 \x01(\t\x12\x11\n\tship_name\x18\x03 \x01(\t\x12 \n\x08position\x18\x04 \x01(\x0b\x32\x0e.spex.Position\"y\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\x17\n\x13PLAYER_DOESNT_EXIST\x10\x01\x12\x1a\n\x16\x42LUEPRINT_DOESNT_EXIST\x10\x02\x12\x18\n\x14NOT_A_SHIP_BLUEPRINT\x10\x03\x12\x13\n\x0f\x43\x41NT_SPAWN_SHIP\x10\x04\x42\x08\n\x06\x63hoice\"\xb5\x03\n\x10\x42\x61sicManipulator\x12\x36\n\nobject_req\x18\x01 \x01(\x0b\x32 .admin.BasicManipulator.ObjectIdH\x00\x12,\n\x04move\x18\x02 \x01(\x0b\x32\x1c.admin.BasicManipulator.MoveH\x00\x12\x32\n\x07problem\x18\x80\x01 \x01(\x0e\x32\x1e.admin.BasicManipulator.StatusH\x00\x12\'\n\x06object\x18\x81\x01 \x01(\x0b\x32\x14.spex.PhysicalObjectH\x00\x12\x13\n\x08moved_at\x18\x82\x01 \x01(\rH\x00\x1a=\n\x08ObjectId\x12%\n\x0bobject_type\x18\x01 \x01(\x0e\x32\x10.spex.ObjectType\x12\n\n\x02id\x18\x02 \x01(\r\x1a]\n\x04Move\x12\x33\n\tobject_id\x18\x01 \x01(\x0b\x32 .admin.BasicManipulator.ObjectId\x12 \n\x08position\x18\x02 \x01(\x0b\x32\x0e.spex.Position\"!\n\x06Status\x12\x17\n\x13OBJECT_DOESNT_EXIST\x10\x00\x42\x08\n\x06\x63hoice\"\xf2\x01\n\x07Message\x12\r\n\x05token\x18\x01 \x01(\x04\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12\x1f\n\x06\x61\x63\x63\x65ss\x18\x05 \x01(\x0b\x32\r.admin.AccessH\x00\x12*\n\x0csystem_clock\x18\x06 \x01(\x0b\x32\x12.admin.SystemClockH\x00\x12\x1f\n\x06screen\x18\x07 \x01(\x0b\x32\r.admin.ScreenH\x00\x12\x1d\n\x05spawn\x18\x08 \x01(\x0b\x32\x0c.admin.SpawnH\x00\x12.\n\x0bmanipulator\x18\t \x01(\x0b\x32\x17.admin.BasicManipulatorH\x00\x42\x08\n\x06\x63hoiceB\x03\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[CommonTypes__pb2.DESCRIPTOR,])
 
@@ -82,6 +82,40 @@ _SCREEN_STATUS = _descriptor.EnumDescriptor(
 )
 _sym_db.RegisterEnumDescriptor(_SCREEN_STATUS)
 
+_SPAWN_STATUS = _descriptor.EnumDescriptor(
+  name='Status',
+  full_name='admin.Spawn.Status',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='SUCCESS', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PLAYER_DOESNT_EXIST', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='BLUEPRINT_DOESNT_EXIST', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='NOT_A_SHIP_BLUEPRINT', index=3, number=3,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CANT_SPAWN_SHIP', index=4, number=4,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=1207,
+  serialized_end=1328,
+)
+_sym_db.RegisterEnumDescriptor(_SPAWN_STATUS)
+
 _BASICMANIPULATOR_STATUS = _descriptor.EnumDescriptor(
   name='Status',
   full_name='admin.BasicManipulator.Status',
@@ -95,8 +129,8 @@ _BASICMANIPULATOR_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1420,
-  serialized_end=1453,
+  serialized_start=1735,
+  serialized_end=1768,
 )
 _sym_db.RegisterEnumDescriptor(_BASICMANIPULATOR_STATUS)
 
@@ -424,8 +458,59 @@ _SPAWN_ASTEROID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=915,
-  serialized_end=1013,
+  serialized_start=1011,
+  serialized_end=1109,
+)
+
+_SPAWN_SHIP = _descriptor.Descriptor(
+  name='Ship',
+  full_name='admin.Spawn.Ship',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='player', full_name='admin.Spawn.Ship.player', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='blueprint', full_name='admin.Spawn.Ship.blueprint', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ship_name', full_name='admin.Spawn.Ship.ship_name', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='position', full_name='admin.Spawn.Ship.position', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1111,
+  serialized_end=1205,
 )
 
 _SPAWN = _descriptor.Descriptor(
@@ -436,15 +521,36 @@ _SPAWN = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='asteroid', full_name='admin.Spawn.asteroid', index=0,
+      name='ship', full_name='admin.Spawn.ship', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='asteroid_id', full_name='admin.Spawn.asteroid_id', index=1,
+      name='asteroid', full_name='admin.Spawn.asteroid', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='problem', full_name='admin.Spawn.problem', index=2,
+      number=128, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='asteroid_id', full_name='admin.Spawn.asteroid_id', index=3,
       number=129, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ship_id', full_name='admin.Spawn.ship_id', index=4,
+      number=130, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -452,8 +558,9 @@ _SPAWN = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_SPAWN_ASTEROID, ],
+  nested_types=[_SPAWN_ASTEROID, _SPAWN_SHIP, ],
   enum_types=[
+    _SPAWN_STATUS,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -465,7 +572,7 @@ _SPAWN = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=839,
-  serialized_end=1023,
+  serialized_end=1338,
 )
 
 
@@ -502,8 +609,8 @@ _BASICMANIPULATOR_OBJECTID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1262,
-  serialized_end=1323,
+  serialized_start=1577,
+  serialized_end=1638,
 )
 
 _BASICMANIPULATOR_MOVE = _descriptor.Descriptor(
@@ -539,8 +646,8 @@ _BASICMANIPULATOR_MOVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1325,
-  serialized_end=1418,
+  serialized_start=1640,
+  serialized_end=1733,
 )
 
 _BASICMANIPULATOR = _descriptor.Descriptor(
@@ -601,8 +708,8 @@ _BASICMANIPULATOR = _descriptor.Descriptor(
       name='choice', full_name='admin.BasicManipulator.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1026,
-  serialized_end=1463,
+  serialized_start=1341,
+  serialized_end=1778,
 )
 
 
@@ -677,8 +784,8 @@ _MESSAGE = _descriptor.Descriptor(
       name='choice', full_name='admin.Message.choice',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1466,
-  serialized_end=1708,
+  serialized_start=1781,
+  serialized_end=2023,
 )
 
 _ACCESS_LOGIN.containing_type = _ACCESS
@@ -742,13 +849,27 @@ _SCREEN.fields_by_name['objects'].containing_oneof = _SCREEN.oneofs_by_name['cho
 _SPAWN_ASTEROID.fields_by_name['position'].message_type = CommonTypes__pb2._POSITION
 _SPAWN_ASTEROID.fields_by_name['composition'].message_type = CommonTypes__pb2._RESOURCES
 _SPAWN_ASTEROID.containing_type = _SPAWN
+_SPAWN_SHIP.fields_by_name['position'].message_type = CommonTypes__pb2._POSITION
+_SPAWN_SHIP.containing_type = _SPAWN
+_SPAWN.fields_by_name['ship'].message_type = _SPAWN_SHIP
 _SPAWN.fields_by_name['asteroid'].message_type = _SPAWN_ASTEROID
+_SPAWN.fields_by_name['problem'].enum_type = _SPAWN_STATUS
+_SPAWN_STATUS.containing_type = _SPAWN
+_SPAWN.oneofs_by_name['choice'].fields.append(
+  _SPAWN.fields_by_name['ship'])
+_SPAWN.fields_by_name['ship'].containing_oneof = _SPAWN.oneofs_by_name['choice']
 _SPAWN.oneofs_by_name['choice'].fields.append(
   _SPAWN.fields_by_name['asteroid'])
 _SPAWN.fields_by_name['asteroid'].containing_oneof = _SPAWN.oneofs_by_name['choice']
 _SPAWN.oneofs_by_name['choice'].fields.append(
+  _SPAWN.fields_by_name['problem'])
+_SPAWN.fields_by_name['problem'].containing_oneof = _SPAWN.oneofs_by_name['choice']
+_SPAWN.oneofs_by_name['choice'].fields.append(
   _SPAWN.fields_by_name['asteroid_id'])
 _SPAWN.fields_by_name['asteroid_id'].containing_oneof = _SPAWN.oneofs_by_name['choice']
+_SPAWN.oneofs_by_name['choice'].fields.append(
+  _SPAWN.fields_by_name['ship_id'])
+_SPAWN.fields_by_name['ship_id'].containing_oneof = _SPAWN.oneofs_by_name['choice']
 _BASICMANIPULATOR_OBJECTID.fields_by_name['object_type'].enum_type = CommonTypes__pb2._OBJECTTYPE
 _BASICMANIPULATOR_OBJECTID.containing_type = _BASICMANIPULATOR
 _BASICMANIPULATOR_MOVE.fields_by_name['object_id'].message_type = _BASICMANIPULATOR_OBJECTID
@@ -847,12 +968,20 @@ Spawn = _reflection.GeneratedProtocolMessageType('Spawn', (_message.Message,), d
     # @@protoc_insertion_point(class_scope:admin.Spawn.Asteroid)
     ))
   ,
+
+  Ship = _reflection.GeneratedProtocolMessageType('Ship', (_message.Message,), dict(
+    DESCRIPTOR = _SPAWN_SHIP,
+    __module__ = 'Privileged_pb2'
+    # @@protoc_insertion_point(class_scope:admin.Spawn.Ship)
+    ))
+  ,
   DESCRIPTOR = _SPAWN,
   __module__ = 'Privileged_pb2'
   # @@protoc_insertion_point(class_scope:admin.Spawn)
   ))
 _sym_db.RegisterMessage(Spawn)
 _sym_db.RegisterMessage(Spawn.Asteroid)
+_sym_db.RegisterMessage(Spawn.Ship)
 
 BasicManipulator = _reflection.GeneratedProtocolMessageType('BasicManipulator', (_message.Message,), dict(
 

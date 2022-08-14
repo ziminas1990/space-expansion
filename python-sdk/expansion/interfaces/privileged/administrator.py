@@ -1,5 +1,5 @@
-from typing import Optional, Dict
-from expansion.transport import UdpChannel, ProtobufChannel, Terminal
+from typing import Optional
+from expansion.transport import UdpChannel, ProtobufChannel
 import expansion.api as api
 from expansion.utils import generate_name
 from expansion.interfaces.privileged import (

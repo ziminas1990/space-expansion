@@ -73,16 +73,34 @@ message Screen {
 
 message Spawn {
 
+  enum Status {
+    SUCCESS                = 0;
+    PLAYER_DOESNT_EXIST    = 1;
+    BLUEPRINT_DOESNT_EXIST = 2;
+    NOT_A_SHIP_BLUEPRINT   = 3;
+    CANT_SPAWN_SHIP        = 4;
+  }
+
   message Asteroid {
     spex.Position  position    = 1;
     spex.Resources composition = 2;
     double         radius      = 3;
   }
 
+  message Ship {
+    string         player    = 1;
+    string         blueprint = 2;
+    string         ship_name  = 3;
+    spex.Position  position  = 4;
+  }
+  
   oneof choice {
-    Asteroid asteroid = 1;
+    Ship     ship     = 1;
+    Asteroid asteroid = 2;
 
-    uint32 asteroid_id = 129;
+    Status  problem     = 128;
+    uint32  asteroid_id = 129;
+    uint32  ship_id     = 130;
   }
 
 }

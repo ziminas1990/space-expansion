@@ -24,7 +24,7 @@ class BasicManipulator(IOTerminal):
             return self == BasicManipulator.Status.SUCCESS
 
         @staticmethod
-        def from_protobuf(mode: api.admin.SystemClock.Status):
+        def from_protobuf(mode: api.admin.BasicManipulator.Status):
             try:
                 return {
                     api.admin.BasicManipulator.Status.OBJECT_DOESNT_EXIST:

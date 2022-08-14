@@ -33,12 +33,15 @@ public:
 
   modules::BaseModulePtr build(std::string sName,
                                world::PlayerWeakPtr pOwner) const override;
+    // Use this blueprint to build a new ship with the specified 'sName' name
+    // for the specified 'pOwner' player.
 
   modules::ShipPtr build(std::string sName,
                          world::PlayerWeakPtr pOwner,
-                         blueprints::BlueprintsLibrary const& customLibrary) const;
-    // Overrided build() function uses player's blueprints library to create ship's
-    // modules, but this signature uses 'customLibrary' instead.
+                         const BlueprintsLibrary& blueprintsLibrary) const;
+    // Use this blueprint to build a new ship with the specified 'sName' name
+    // for the specified 'pOwner' player. Use the specified 'blueprintsLibrary'
+    // to fetch blueprints for ship's modules.
 
   bool checkDependencies(blueprints::BlueprintsLibrary const& library) const;
     // Check, if all required module's blueprints are presented in the specified
