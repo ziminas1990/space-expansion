@@ -29,9 +29,6 @@ TEST_F(CommutatorTests, Breath)
 
 TEST_F(CommutatorTests, Monitoring)
 {
-  // Check that if root session is closed, all other sessions will be closed
-  // as well.
-
   Connection connection = Helper::connect(*this, 3);
   
   std::vector<Connection> monitoringSessions;

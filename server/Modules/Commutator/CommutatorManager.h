@@ -36,6 +36,7 @@ public:
         m_nNextId = 0;
         return !utils::GlobalContainer<Commutator>::Empty();
       case eCheckSlots:
+        m_nNextId = 0;
         return nNowUs > m_nLastSlotsCheckUs + 25000;
       default: {
         return false;
