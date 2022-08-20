@@ -1,11 +1,12 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, List
+import time
 import asyncio
 
 from expansion.api import get_message_field
-from expansion.transport import Endpoint, Terminal, Channel, ChannelClosed
+from expansion.transport import Terminal, Channel, ChannelClosed
 
 
-class IOTerminal(Endpoint):
+class IOTerminal(Channel, Terminal):
     """IOTerminal may be attached to the channel (as a terminal inheritor)
     and can be used by the client code as a channel. It uses internal queue
     to store all incoming messages until they are read by a client (see
@@ -41,6 +42,21 @@ class IOTerminal(Endpoint):
             return message, timestamp
         except asyncio.TimeoutError:
             return None, None
+
+    async def wait_exact(self, message: List[str], timeout: float = 1.0) \
+            -> Tuple[Optional[Any], Optional[int]]:
+        """Await for the specified 'message' but not more than 'timeout' seconds.
+        Ignore all other received messages. Return expected message and timestamp or
+        None"""
+        while timeout > 0:
+            start_at = time.monotonic()
+            received_msg, timestemp = await self.wait_message(timeout)
+            expected_msg = get_message_field(received_msg, message)
+            if expected_msg is not None:
+                return expected_msg, timestemp
+            # Got unexpected message. Just ignoring it
+            timeout -= time.monotonic() - start_at
+        return None, None
 
     def wrap_channel(self, down_level: Channel):
         self.attach_channel(down_level)
