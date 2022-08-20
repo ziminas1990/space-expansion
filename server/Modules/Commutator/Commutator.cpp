@@ -23,7 +23,6 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
 {
   // We assume, that this operation is rather rare therefore we can afford to
   // execute it in O(N) time
-
   network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
   assert(pSessionMux);
 

@@ -80,10 +80,6 @@ class CommutatorI(IOTerminal):
         super().attach_channel(channel=channel)
 
     # Override from IOTerminal->Terminal
-    async def close(self):
-        assert False, "Operation is not supported for commutators"
-
-    # Override from IOTerminal->Terminal
     def on_receive(self, message: api.Message, timestamp: Optional[int]):
         if message.timestamp is not None:
             timestamp = message.timestamp
@@ -189,7 +185,8 @@ class CommutatorI(IOTerminal):
     async def monitor(self) -> Status:
         request = api.Message()
         request.commutator.monitor = True
-        self.send(request)
+        if not self.send(request):
+            return CommutatorI.Status.FAILED_TO_SEND_REQUEST
 
         # it shouldn't take much time
         response, _ = await self.wait_message(timeout=0.2)
@@ -204,7 +201,7 @@ class CommutatorI(IOTerminal):
         return CommutatorI.Status.convert(status)
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
-    async def wait_update(self, timeout: int = 1) \
+    async def wait_update(self, timeout: float = 1) \
             -> Tuple[Status, Optional[Update]]:
         message, _ = await self.wait_message(timeout=timeout)
         if not message:

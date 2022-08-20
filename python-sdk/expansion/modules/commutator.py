@@ -69,26 +69,23 @@ class Commutator(BaseModule):
         commutator. Should be called after module is instantiated"""
         return await self.update()
 
-    # This generator starts monitoring session and returns all received updates.
-    # If no updates are received during the specified 'timeout', return None.
-    # Stop if get an invalid status from server, or connection (session) is
-    # closed or task is canceled.
     @BaseModule.use_session_for_generators(
         terminal_type=rpc.CommutatorI,
         return_on_unreachable=None
     )
-    async def monitoring(self,
-                         timeout: float = 0.5,
-                         session: Optional[rpc.CommutatorI] = None) \
+    async def monitoring(self, session: Optional[rpc.CommutatorI] = None) \
             -> AsyncIterable[Optional[rpc.CommutatorUpdate]]:
         status: rpc.CommutatorI.Status = await session.monitor()
         while status.is_success():
-            status, update = await session.wait_update()
+            # Return None immediately once monitoring has started.
+            # It doesn't break a contract but let client know that
+            # monitoring procedure has started
+            yield None
+            status, update = await session.wait_update(timeout=0.5)
             if update:
                 # Update self first, then return an update
                 if update.module_attached:
-                    await self._on_module_attached(
-                        update.module_attached)
+                    await self._on_module_attached(update.module_attached)
                 elif update.module_detached:
                     self._on_module_detached(update.module_detached)
                 yield update
