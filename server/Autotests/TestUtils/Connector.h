@@ -14,7 +14,7 @@ namespace autotests {
 // currently, and, in additional, how sessions map to connections. On the other
 // hand, it should be transparent to client code. Once client opens a new
 // session, it shouldn't be abliged to register it in connector. That is why
-// Connector 
+// Connector hooks some ICommutator and ISessionControl messages
 template<typename FrameType>
 class Connector:
     public network::IChannel<FrameType>,

@@ -60,6 +60,54 @@ bool ClientCommutator::closeTunnel(Router::SessionPtr pSession)
       && m_pRouter->closeSession(pSession->sessionId());
 }
 
+bool ClientCommutator::monitoring()
+{
+  spex::Message request;
+  request.mutable_commutator()->set_monitor(true);
+  return send(std::move(request))
+      && waitMonitoringStatus(spex::ICommutator::SUCCESS);
+}
+
+bool ClientCommutator::waitMonitoringStatus(spex::ICommutator::Status expected)
+{
+  spex::ICommutator message;
+  return wait(message)
+      && message.choice_case() == spex::ICommutator::kMonitorAck
+      && message.monitor_ack() == expected;
+}
+
+bool ClientCommutator::waitUpdate(spex::ICommutator::Update& update)
+{
+  spex::ICommutator message;
+  if (!wait(message) || message.choice_case() != spex::ICommutator::kUpdate) {
+    return false;
+  }
+  update = message.update();
+  return true;
+}
+
+bool ClientCommutator::waitModuleAttached(spex::ICommutator::ModuleInfo& info)
+{
+  spex::ICommutator::Update update;
+  if (!waitUpdate(update) || 
+      update.choice_case() != spex::ICommutator::Update::kModuleAttached) {
+    return false;
+  }
+  info = update.module_attached();
+  return true;
+}
+
+bool ClientCommutator::waitModuleDetached(uint32_t& nSlotId)
+{
+  spex::ICommutator::Update update;
+  if (!waitUpdate(update) || 
+      update.choice_case() != spex::ICommutator::Update::kModuleDetached) {
+    return false;
+  }
+  nSlotId = update.module_detached();
+  return true;
+}
+
 bool ClientCommutator::sendOpenTunnel(uint32_t nSlotId)
 {
   spex::Message request;

@@ -14,7 +14,6 @@ from .blueprints_library import BlueprintsLibrary
 from .util import (
     get_system_clock,
     get_ship,
-    get_all_ships,
     get_engine,
     get_all_engines,
     get_most_powerful_engine,

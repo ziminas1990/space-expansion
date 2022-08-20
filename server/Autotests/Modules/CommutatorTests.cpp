@@ -27,6 +27,36 @@ TEST_F(CommutatorTests, Breath)
   ASSERT_EQ(nMaxThrust, spec.nMaxThrust);
 }
 
+TEST_F(CommutatorTests, Monitoring)
+{
+  Connection connection = Helper::connect(*this, 3);
+  
+  std::vector<Connection> monitoringSessions;
+  for (uint32_t nConnectionId = 4; nConnectionId <= 7; ++nConnectionId) {
+    Connection monitoring = Helper::connect(*this, nConnectionId);
+    ASSERT_TRUE(monitoring->monitoring());
+    monitoringSessions.push_back(std::move(monitoring));
+  }
+
+  ShipBinding ship = Helper::spawnShip(
+    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+
+  for (Connection& monitoring: monitoringSessions) {
+    spex::ICommutator::ModuleInfo info;
+    ASSERT_TRUE(monitoring->waitModuleAttached(info));
+    EXPECT_EQ(info.slot_id(), ship.m_nSlotId);
+  }
+
+  // Detach module
+  ship.m_pRemote->onDoestroyed();
+
+  for (Connection& monitoring: monitoringSessions) {
+    uint32_t nSlotId;
+    ASSERT_TRUE(monitoring->waitModuleDetached(nSlotId));
+    EXPECT_EQ(nSlotId, ship.m_nSlotId);
+  }
+}
+
 TEST_F(CommutatorTests, CloseSession)
 {
   // Check that if root session is closed, all other sessions will be closed

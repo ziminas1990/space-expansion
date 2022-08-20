@@ -59,9 +59,9 @@ class Ship(Commutator, BaseModule):
                            at_us: Optional[int] = None,
                            cache_expiring_ms: int = 10,
                            timeout: float = 0.5) -> Optional[Position]:
-        """Get the current ship's position. If the position was cached more than the
-        specified 'cache_expiring_ms' milliseconds ago, than it will be updated.
-        Otherwise a cached position will be returned.
+        """Get the current ship's position. If the position was cached more than
+        the specified 'cache_expiring_ms' milliseconds ago, than it will be
+        updated. Otherwise, a cached position will be returned.
         If updating position is required (cache has expired), the request will be
         sent to the server and this call will block control until the response is
         received or the specified 'timeout' occurs.
