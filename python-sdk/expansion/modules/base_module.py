@@ -139,14 +139,14 @@ class BaseModule:
             return_on_unreachable: Any,
             retries: int = 3,
             return_on_cancel: Optional[Any] = None,
-            exclusive: bool = False):
+            close_after_use: bool = False):
         """Get an available session with the specified
         'terminal_type' from a sessions pool and pass it to the
         underlying function. If there are no available session
         in the pool, make up to 'retires' attempts to open a
         new one. If all attempts fail, return 'return_on_unreachable'
         value.
-        If 'exclusive' flag is NOT set to True, then
+        If 'close_after_use' flag is NOT set to True, then
         session should be returned to a sessions pool for
         further reuse. If 'exclusive' flag is True, OR any
         exception occurs during underlying call, then session
@@ -157,7 +157,7 @@ class BaseModule:
         If any other exception occurs, it should be re raised as
         well.
         If 'session' argument is passed to wrapped call by user,
-        than just pass it to underlying call and do nothing more.
+        then just pass it to underlying call and do nothing more.
         """
 
         def _decorator(func):
@@ -172,10 +172,12 @@ class BaseModule:
                 session: Optional[IOTerminal] = None
                 for attempt in range(retries):
                     try:
-                        session = self._pending_sessions.setdefault(terminal_type, []).pop(-1)
-                        # TODO: SES-177 Check that session has NOT been closed
-                        # while it was in '_pending_sessions' pool (or use
-                        # another approach).
+                        # Looking for a session to be reused.
+                        # Note: '_pending_sessions' may contain non-valid
+                        # session in case it was closed after put.
+                        while session is None or not session.is_valid():
+                            session = self._pending_sessions.setdefault(
+                                terminal_type, []).pop(-1)
                     except IndexError:
                         # No sessions to reuse, open a new one
                         session = await self.open_session(terminal_type)
@@ -186,13 +188,13 @@ class BaseModule:
                     return return_on_unreachable
 
                 # Pass session to wrapped function
-                reuse_session: bool = not exclusive
+                nonlocal close_after_use
                 try:
                     return await func(*args, **kwargs, session=session)
                 except asyncio.CancelledError as e:
                     # Something went wrong, so we can't afford to reuse this
                     # session anymore
-                    reuse_session = False
+                    close_after_use = True
                     if return_on_cancel is not None:
                         return return_on_cancel
                     else:
@@ -200,10 +202,10 @@ class BaseModule:
                 except Exception as e:
                     # Something went wrong, so we can't afford to reuse this
                     # session anymore
-                    reuse_session = False
+                    close_after_use = True
                     raise e
                 finally:
-                    if reuse_session:
+                    if not close_after_use:
                         self._pending_sessions.setdefault(terminal_type, []) \
                             .append(session)
                     else:
