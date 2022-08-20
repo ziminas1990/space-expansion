@@ -13,7 +13,7 @@ else:
     def decorator(func):
         return func
 
-from expansion.transport import Channel, Endpoint
+from expansion.transport import Channel, IOTerminal
 
 TunnelOrError = Tuple[Optional[Channel], Optional[str]]
 TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
@@ -48,19 +48,19 @@ class BaseModule:
         self.logger = logging.getLogger(name)
         self._tunnel_factory = tunnel_factory
         # All opened sessions
-        self._sessions: Set[Endpoint] = set()
+        self._sessions: Set[IOTerminal] = set()
         # All opened channels, that may be (re)used to send requests
-        self._pending_sessions: Dict[Type, List[Endpoint]] = {}
+        self._pending_sessions: Dict[Type, List[IOTerminal]] = {}
 
     async def init(self) -> bool:
         return True
 
-    async def open_session(self, terminal_type: Type) -> Optional[Endpoint]:
+    async def open_session(self, terminal_type: Type) -> Optional[IOTerminal]:
         session, error = await self._tunnel_factory()
         if session is not None:
             # Create terminal and link it with tunnel
-            terminal: Optional[Endpoint] = terminal_type()
-            assert isinstance(terminal, Endpoint)
+            terminal: Optional[IOTerminal] = terminal_type()
+            assert isinstance(terminal, IOTerminal)
             session.attach_to_terminal(terminal)
             terminal.attach_channel(session)
             self._sessions.add(terminal)
@@ -147,7 +147,7 @@ class BaseModule:
         new one. If all attempts fail, return 'return_on_unreachable'
         value.
         If 'exclusive' flag is NOT set to True, then
-        session should be returned back to a sessions pool for
+        session should be returned to a sessions pool for
         further reuse. If 'exclusive' flag is True, OR any
         exception occurs during underlying call, then session
         should be closed and never reused.
@@ -169,10 +169,13 @@ class BaseModule:
                     return await func(*args, **kwargs)
 
                 self: BaseModule = args[0]
-                session: Optional[Endpoint] = None
+                session: Optional[IOTerminal] = None
                 for attempt in range(retries):
                     try:
                         session = self._pending_sessions.setdefault(terminal_type, []).pop(-1)
+                        # TODO: SES-177 Check that session has NOT been closed
+                        # while it was in '_pending_sessions' pool (or use
+                        # another approach).
                     except IndexError:
                         # No sessions to reuse, open a new one
                         session = await self.open_session(terminal_type)
@@ -235,7 +238,7 @@ class BaseModule:
                 assert "session" not in kwargs
 
                 self: BaseModule = args[0]
-                session: Optional[Endpoint] = None
+                session: Optional[IOTerminal] = None
                 for attempt in range(retries):
                     session = await self.open_session(terminal_type)
                     if session is not None:

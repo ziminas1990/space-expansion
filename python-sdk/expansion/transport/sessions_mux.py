@@ -25,7 +25,8 @@ class SessionsMux(Terminal):
         # Override from Terminal
         def on_receive(self, message: Any, timestamp: Optional[int]):
             if self.terminal is None:
-                assert False
+                assert False, f"WARNING: Drop message (no terminal attached):" \
+                              f"\n{message}"
             assert self.terminal is not None
             self.terminal.on_receive(message, timestamp)
 
@@ -40,6 +41,8 @@ class SessionsMux(Terminal):
 
     def on_session_opened(self, session_id: int,
                           channel: Channel = None) -> Channel:
+        # Note: session object is not attached to the terminal yet, it should
+        # be done by client, who has just opened a session.
         assert(session_id not in self.sessions)
         session = SessionsMux.Session(
             session_id=session_id,
@@ -65,8 +68,8 @@ class SessionsMux(Terminal):
             session = self.sessions[message.tunnelId]
             if message.WhichOneof("choice") == "commutator":
                 if message.commutator.WhichOneof("choice") == "open_tunnel_report":
-                    # Another session has been opened using this one.
-                    # Spawn a new session object for the session.
+                    # Another session has been opened using this one. Spawn a
+                    # new 'session' object for the session.
                     self.on_session_opened(
                         session_id=message.commutator.open_tunnel_report,
                         channel=session.channel)
