@@ -16,11 +16,15 @@ class SessionsMux(Terminal):
             super().__init__(name, trace_mode, *args, **kwargs)
             self.session_id = session_id
 
+        def on_closed_ind(self):
+            self.on_channel_detached()
+            self.terminal.on_channel_detached()
+
         # Override from Channel
         def send(self, message: Any) -> bool:
             # Just add a tunnel_id
             message.tunnelId = self.session_id
-            return self.channel.send(message)
+            return self.channel and self.channel.send(message)
 
         # Override from Terminal
         def on_receive(self, message: Any, timestamp: Optional[int]):
@@ -75,7 +79,7 @@ class SessionsMux(Terminal):
                         channel=session.channel)
             if message.WhichOneof("choice") == "session":
                 if message.session.WhichOneof("choice") == "closed_ind":
-                    session.on_channel_detached()
+                    session.on_closed_ind()
                     self.sessions.pop(session.session_id)
                 elif message.session.WhichOneof("choice") == "heartbeat":
                     # A heartbeat message should be just sent back

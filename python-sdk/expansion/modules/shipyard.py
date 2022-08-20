@@ -51,7 +51,7 @@ class Shipyard(BaseModule):
 
     @BaseModule.use_session(
         terminal_type=ShipyardI,
-        exclusive=True,
+        close_after_use=True,
         return_on_unreachable=(Status.FAILED_TO_SEND_REQUEST, None, None),
         return_on_cancel=(Status.CANCELED, None, None))
     async def build_ship(self,

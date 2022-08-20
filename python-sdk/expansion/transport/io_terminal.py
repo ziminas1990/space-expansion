@@ -13,7 +13,8 @@ class IOTerminal(Channel, Terminal):
     the 'wait_message' call).
     """
 
-    def __init__(self, name: Optional[str] = None,
+    def __init__(self,
+                 name: Optional[str] = None,
                  trace_mode: bool = False,
                  *args, **kwargs):
         assert asyncio.get_running_loop() is not None
@@ -27,6 +28,9 @@ class IOTerminal(Channel, Terminal):
 
     def get_name(self) -> str:
         return super(IOTerminal, self).get_name()
+
+    def is_valid(self) -> bool:
+        return self.channel is not None
 
     # Override from Endpoint
     async def wait_message(self, timeout: float = 1.0) -> \

@@ -86,7 +86,7 @@ class ResourceContainer(BaseModule):
 
     @BaseModule.use_session(
         terminal_type=ResourceContainerI,
-        exclusive=True,
+        close_after_use=True,
         return_on_unreachable=Status.FAILED_TO_SEND_REQUEST,
         return_on_cancel=Status.CANCELED)
     async def transfer(
