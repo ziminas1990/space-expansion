@@ -40,7 +40,7 @@ class TacticalCore:
         self.time_monitoring_task = asyncio.create_task(self.monitor_time())
 
         # Getting all available ships:
-        remote_ships = modules.get_all_ships(self.root_commutator)
+        remote_ships = modules.Ship.get_all_ships(self.root_commutator)
         for remote_ship in remote_ships:
             if not remote_ship.start_monitoring():
                 self.log.warning(f"Failed to start monitoring ship {remote_ship.name}")
@@ -100,7 +100,7 @@ class TacticalCore:
                     ship_type, f"Miner-{next_id}",
                     lambda s, p: self.log.info(f"Shipyard: {s} {p}"))
             next_id += 1
-            success = self.root_commutator.add_module(ship_type, name, port)
+            success = await self.root_commutator.update()
             if not success:
                 self.log.error("Failed to register new ship")
                 continue
