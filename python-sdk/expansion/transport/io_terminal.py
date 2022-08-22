@@ -20,7 +20,6 @@ class IOTerminal(Channel, Terminal):
         assert asyncio.get_running_loop() is not None
         super().__init__(channel_name=name, terminal_name=name, *args, **kwargs)
         self.queue: asyncio.Queue = asyncio.Queue()
-        self.channel: Optional[Channel] = None
         self._trace_mode = trace_mode
 
     def set_trace_mode(self, on: bool):
@@ -92,13 +91,3 @@ class IOTerminal(Channel, Terminal):
             self.terminal_logger.warning(f"Drop message: queue is full!")
         if self._trace_mode:
             self.terminal_logger.debug(f"Queue size: {self.queue.qsize()}")
-
-    # Override from Terminal
-    def attach_channel(self, channel: Channel):
-        super().attach_channel(channel)  # For logging
-        self.channel = channel
-
-    # Override from Terminal
-    def on_channel_detached(self):
-        super().on_channel_detached()  # For logging
-        self.channel = None

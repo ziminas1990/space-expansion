@@ -41,7 +41,7 @@ class Demux(Terminal, Channel):
     def attach_channel(self, channel: 'Channel'):
         self.channel = channel
 
-    def on_channel_detached(self):
+    def on_channel_closed(self):
         self.channel = None
 
     def attach_to_terminal(self, terminal: 'Terminal'):

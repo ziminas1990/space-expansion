@@ -44,10 +44,6 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
   // No need to lock anything here
   const uint32_t nSessionId = message.tunnelid();
 
-  // For functional tests debugging:
-  // std::cerr << "Received in " << (nSessionId >> 16) <<
-  //           ":\n" << message.DebugString() << std::endl;
-
   if (message.choice_case() != spex::Message::kSession) {  // [[likely]]
     const uint32_t nSessionIndex = nSessionId >> 16;
     if (nSessionId && nSessionIndex < m_pOwner->m_sessions.size()) {
@@ -58,8 +54,9 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
       }
     }
   } else {
+    // Got an ISessionControl message. It shouldn't be passed to uplevel but should
+    // be just handled right here.
     if (message.session().choice_case() == spex::ISessionControl::kClose) {
-      // Got an ISessionControl message
       closeSession(nSessionId);
     }
   }
@@ -93,9 +90,6 @@ bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
   message.set_timestamp(utils::GlobalClock::now());
   if (nSessionIdx < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
-    // For functional tests debugging:
-    // std::cerr << "Send to " << (nSessionId >> 16) << ":\n" << 
-    //            message.DebugString() << std::endl;
     return session.isValid()
         && session.sessionId() == nSessionId
         && m_pChannel 

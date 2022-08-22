@@ -71,8 +71,8 @@ class BaseModule:
                 f"{error}")
             return None
 
-    # Close all sessions to this module. A 'closed_ind' will be sent to each
-    # session.
+    # Close all sessions to this module. A 'closed_ind' will be sent back
+    # to each session.
     def disconnect(self):
         request = api.Message()
         request.session.close = True
