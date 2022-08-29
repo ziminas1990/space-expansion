@@ -33,9 +33,6 @@ class Ship(Commutator, BaseModule):
         self.position: Optional[Position] = None
         self.state: Optional[rpc.ShipState] = None
 
-        # Monitoring facilities
-        self.__monitoring_task: Optional[asyncio.Task] = None
-
     async def init(self) -> bool:
         return await super().init()
 
@@ -107,31 +104,21 @@ class Ship(Commutator, BaseModule):
         state = await session.monitor(interval_ms)
         if not state:
             return
+        self.__update_state(state)
         yield state
         timeout = 5 * interval_ms / 1000
         while True:
             state = await session.wait_state(timeout)
             if state:
+                self.__update_state(state)
                 yield state
             else:
                 return
 
-    def start_monitoring(self, interval_ms: int = 50):
-        async def __impl():
-            async for state in self.monitoring(interval_ms):
-                self.state = state
-                if state.position:
-                    self.position = state.position
-
-        if self.__monitoring_task:
-            self.stop_monitoring()
-        self.__monitoring_task = \
-            asyncio.get_running_loop().create_task(__impl())
-
-    def stop_monitoring(self):
-        if self.__monitoring_task:
-            self.__monitoring_task.cancel()
-            self.__monitoring_task = None
+    def __update_state(self, state: rpc.ShipState):
+        self.state = state
+        if state.position:
+            self.position = state.position
 
     @staticmethod
     def get_ship_by_name(
