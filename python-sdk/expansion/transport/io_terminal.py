@@ -32,7 +32,6 @@ class IOTerminal(Channel, Terminal):
     def is_valid(self) -> bool:
         return self.channel is not None
 
-    # Override from Endpoint
     async def wait_message(self, timeout: float = 1.0) -> \
             Tuple[Optional[Any], Optional[int]]:
         """Await for a message on the internal queue for not more than the

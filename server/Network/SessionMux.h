@@ -96,7 +96,7 @@ private:
   std::shared_ptr<Socket>  m_pSocket;
 
 public:
-  SessionMux(uint8_t nConnectionsLimit = 8);
+  SessionMux(uint8_t nConnectionsLimit = 16);
 
   // Create a new connection and return it's root session id
   uint32_t addConnection(uint32_t nConnectionId, IPlayerTerminalPtr pHandler);

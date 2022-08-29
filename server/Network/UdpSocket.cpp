@@ -4,7 +4,7 @@
 
 namespace network {
 
-constexpr size_t nPersistentSessionsLimit = 8;
+constexpr size_t nPersistentSessionsLimit = 16;
 constexpr size_t nSessionsLimit           = 512;
 constexpr size_t nReceiveBufferSize       = 8196;
 
@@ -35,6 +35,7 @@ UdpSocket::createPersistentSession(udp::endpoint const& remote)
         m_pTerminal->openSession(i))
     {
       m_sessions[i] = remote;
+      std::cout << "Persistant session #" << i << " created" << std::endl;
       return i;
     }
   }
@@ -86,6 +87,7 @@ bool UdpSocket::send(uint32_t nSessionId, BinaryMessage&& message)
 void UdpSocket::closeSession(uint32_t nSessionId)
 {
   if (nSessionId < m_sessions.size()) {
+    //std::cout << "Close session #" << nSessionId << std::endl;
     m_sessions[nSessionId] = udp::endpoint();
   }
 }
@@ -125,18 +127,19 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
               *nSessionId, BinaryMessage(m_pReceiveBuffer.data(), nTotalBytes));
 
     } else if (m_lPromiscMode) {
+      //size_t nAlreadyOpened = 0;
       for(size_t i = nPersistentSessionsLimit; i < m_sessions.size(); ++i) {
         // To prevent spamming from the same IP:
-        size_t nAlreadyOpened = 0;
-        if (m_senderAddress.address() == m_sessions[i].address()) {
-          ++nAlreadyOpened;
-          if (nAlreadyOpened == nPersistentSessionsLimit) {
-            // Too many simultanious requests from the same IP
-            return;
-          }
-        }
+        // if (m_senderAddress.address() == m_sessions[i].address()) {
+        //   ++nAlreadyOpened;
+        //   if (nAlreadyOpened == nPersistentSessionsLimit) {
+        //     // Too many simultanious requests from the same IP
+        //     return;
+        //   }
+        // }
         if (!nSessionId && m_sessions[i] == udp::endpoint()) {
           nSessionId = i;
+          break;
         }
       }
 

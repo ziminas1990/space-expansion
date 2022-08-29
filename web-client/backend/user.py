@@ -1,6 +1,7 @@
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, List
 import asyncio
 from expansion import modules, types, procedures
+from expansion.interfaces import rpc
 import secrets
 
 
@@ -15,7 +16,8 @@ class User:
         self.asteroids: Dict[int, types.PhysicalObject] = {}
         self.token: str = secrets.token_urlsafe(8)
 
-        self._async_tasks: List[Any] = []
+        # Hack: lump all async tasks to one pile
+        self._async_tasks: List[asyncio.Task] = []
         self.now: int = 0
 
     def connected(self) -> bool:
@@ -50,6 +52,8 @@ class User:
             return "Failed to instantiate system clock"
         self._async_tasks.append(
             asyncio.create_task(self._monitor_time()))
+        self._async_tasks.append(
+            asyncio.create_task(self._monitor_commutator()))
 
         # Export all ships and start monitoring for them
         for ship in modules.Ship.get_all_ships(self.commutator):
@@ -57,7 +61,7 @@ class User:
         return None
 
     async def on_new_ship(self, ship: modules.Ship):
-        ship.start_monitoring()  # automatically updates it's state
+        self._async_tasks.append(ship.create_self_monitoring_task())
         self.ships.append(ship)
         # if ship has a passive scanner, attach to it
         scanner = await modules.PassiveScanner.get_most_ranged(ship)
@@ -80,6 +84,23 @@ class User:
             async for time in self.system_clock.monitor(interval_ms=25):
                 self.now = time
             # Something went wrong. Try one more time in 0.25 seconds
+            await asyncio.sleep(0.25)
+
+    async def _monitor_commutator(self):
+        while True:
+            async for update in self.commutator.monitoring():
+                if update is None:
+                    continue
+                assert isinstance(update, rpc.CommutatorUpdate)
+                if update.module_attached:
+                    if update.module_attached.type.startswith("Ship/"):
+                        ship = modules.Ship.get_ship_by_name(
+                            commutator=self.commutator,
+                            name=update.module_attached.name
+                        )
+                        if ship:
+                            await self.on_new_ship(ship)
+            # Something went wrong, try one more time in 0.25 seconds
             await asyncio.sleep(0.25)
 
     @staticmethod
