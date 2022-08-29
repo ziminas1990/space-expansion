@@ -115,6 +115,19 @@ class Ship(Commutator, BaseModule):
             else:
                 return
 
+    # Create a task, that constantly monitors and updates ship's state
+    def create_self_monitoring_task(self) -> Optional[asyncio.Task]:
+        async def impl():
+            try:
+                while True:
+                    async for _ in self.monitoring():
+                        # update has already been applied in
+                        # 'self.monitoring()', hence, nothing needs to be done
+                        pass
+            except asyncio.CancelledError:
+                return
+        return asyncio.create_task(impl())
+
     def __update_state(self, state: rpc.ShipState):
         self.state = state
         if state.position:
