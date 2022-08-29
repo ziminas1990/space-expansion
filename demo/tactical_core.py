@@ -1,9 +1,11 @@
+import types
 from typing import Optional
 import asyncio
 
 from expansion import modules
 from expansion.modules import Commutator, SystemClock, ModuleType, Shipyard, ResourceContainer
 from expansion.types import TimePoint, Position, Vector
+import expansion.interfaces.rpc as rpc
 import logging
 
 from ship import Ship
@@ -22,9 +24,10 @@ class TacticalCore:
         self.time = TimePoint(0)
         self.log: logging.Logger = logging.getLogger("TacticalCore")
 
-        self.random_mining: Optional[RandomMining] = None
-
+        self.commutator_monitoring_task: Optional[asyncio.Task] = None
         self.time_monitoring_task: Optional[asyncio.Task] = None
+        self.build_miners_task: Optional[asyncio.Task] = None
+        self.random_mining_task: Optional[RandomMining] = None
 
     async def initialize(self) -> bool:
         # Initializing root commutator and system clock
@@ -42,14 +45,13 @@ class TacticalCore:
         # Getting all available ships:
         remote_ships = modules.Ship.get_all_ships(self.root_commutator)
         for remote_ship in remote_ships:
-            if not remote_ship.start_monitoring():
-                self.log.warning(f"Failed to start monitoring ship {remote_ship.name}")
             ship = Ship(
                 remote=remote_ship,
                 the_world=self.world,
                 system_clock=self.system_clock)
+            ship.start_self_monitoring()
             ship.start_passive_scanning()
-            self.player.ships[remote_ship.name] = ship
+            self.player.ships[ship.name] = ship
 
         return True
 
@@ -95,25 +97,37 @@ class TacticalCore:
         next_id = 10
         ship_type = "Ship/Civilian-Miner"
         while True:
-            status, name, port =\
-                await shipyard.build_ship(
-                    ship_type, f"Miner-{next_id}",
-                    lambda s, p: self.log.info(f"Shipyard: {s} {p}"))
+            await shipyard.build_ship(
+                ship_type, f"Miner-{next_id}",
+                lambda s, p: self.log.info(f"Shipyard: {s} {p}"))
             next_id += 1
-            success = await self.root_commutator.update()
-            if not success:
-                self.log.error("Failed to register new ship")
-                continue
-            remote_ship = modules.Ship.get_ship_by_name(self.root_commutator, name)
-            miner = Ship(remote_ship, self.world, self.system_clock)
-            assert name not in self.player.ships
-            success = await miner.remote.init()
-            if not success:
-                self.log.error(f"Failed to init miner {name}")
-                continue
-            remote_ship.start_monitoring()
-            self.player.ships.update({name: miner})
-            self.random_mining.add_ship(miner)
+
+    async def monitor_commutator(self):
+        while True:
+            async for update in self.root_commutator.monitoring():
+                if update is not None:
+                    assert isinstance(update, rpc.CommutatorUpdate)
+                    if update.module_attached:
+                        if update.module_attached.type.startswith("Ship/"):
+                            self.__on_ship_spawned(update.module_attached)
+
+    def __on_ship_spawned(self, ship_info: rpc.ModuleInfo):
+        remote_ship = modules.Ship.get_ship_by_name(
+            commutator=self.root_commutator,
+            name=ship_info.name
+        )
+        if remote_ship is None:
+            return
+        ship = Ship(remote=remote_ship,
+                    the_world=self.world,
+                    system_clock=self.system_clock)
+        assert ship.name not in self.player.ships
+        self.player.ships.update({ship.name: ship})
+
+        ship.start_self_monitoring()
+        ship.start_passive_scanning()
+        if RandomMining.can_use_ship(ship):
+            self.random_mining_task.add_ship(ship)
 
     async def run(self):
         # Initialize RandomMiner
@@ -126,7 +140,7 @@ class TacticalCore:
         warehouse = ships[0]
         self.log.info(f"Using '{warehouse.name}' as warehouse")
 
-        self.random_mining = RandomMining(
+        self.random_mining_task = RandomMining(
             "RandomMining", self, warehouse, self.system_clock
         )
         mining_ships = self.player.get_ships_by_equipment(
@@ -136,10 +150,13 @@ class TacticalCore:
         )
         for miner in mining_ships:
             self.log.info(f"Using '{miner.name}' as mining ship")
-            self.random_mining.add_ship(miner)
-        self.random_mining.run_async()
+            self.random_mining_task.add_ship(miner)
+        self.random_mining_task.run_async()
 
-        shipyard_task = asyncio.create_task(self.build_more_miners())
+        self.build_miners_task = asyncio.create_task(self.build_more_miners())
+        self.commutator_monitoring_task = asyncio.create_task(
+            self.monitor_commutator()
+        )
 
         """Main tactical core loop"""
         while True:

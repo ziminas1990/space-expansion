@@ -1,8 +1,9 @@
 import asyncio
 import random
-from typing import Dict, Optional, Set, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING
 from tasks.base_task import BaseTask
 from tasks.mining.simple_mining import SimpleMining
+import expansion.modules as modules
 
 if TYPE_CHECKING:
     from ship import Ship
@@ -24,6 +25,16 @@ class RandomMining(BaseTask):
 
         self._tasks: Dict["Ship", Optional[SimpleMining]] = {}
 
+    # Check if the specified 'candidate' ship is sufficiently equipped
+    # for mining task
+    @staticmethod
+    def can_use_ship(candidate: "Ship") -> bool:
+        print(f"GREPIT: check if ship {candidate.name} is suitable for mining")
+        return candidate.has_modules(
+            [modules.ModuleType.RESOURCE_CONTAINER,
+             modules.ModuleType.ASTEROID_MINER,
+             modules.ModuleType.ENGINE])
+
     def add_ship(self, miner: "Ship"):
         if miner not in self._tasks:
             self._tasks.update({miner: None})
@@ -37,7 +48,8 @@ class RandomMining(BaseTask):
                 asteroid = self._choose_random_asteroid()
                 if not asteroid:
                     break
-                self.add_journal_record(f"Asteroid {asteroid.object_id} is chosen for '{miner.name}'")
+                self.add_journal_record(f"Asteroid {asteroid.object_id} is "
+                                        f"chosen for '{miner.name}'")
                 task = SimpleMining(
                     name=f"{self.name}.{miner.name}.turn_{cycle}",
                     tactical_core=self.tactical_core,

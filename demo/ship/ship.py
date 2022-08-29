@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 import world
 from expansion import modules
@@ -20,10 +20,14 @@ class Ship:
         self.name = remote.name
 
         # Crew:
-        self.navigator: Navigator = Navigator(remote.name + ".navigator", remote, system_clock)
+        self.navigator: Navigator = Navigator(
+            name=remote.name + ".navigator",
+            ship=remote,
+            system_clock=system_clock)
 
         # Active tasks:
-        self.scanning_task = None
+        self.state_monitoring_task: Optional[asyncio.Task] = None
+        self.scanning_task: Optional[asyncio.Task] = None
 
         # Forwarding some functions:
         self.get_position = self.remote.get_position
@@ -52,3 +56,13 @@ class Ship:
 
         self.scanning_task = \
             asyncio.get_running_loop().create_task(scanning_procedure())
+
+    def start_self_monitoring(self):
+        async def impl():
+            async for _ in self.remote.monitoring():
+                # Once update is received, 'self.remote' object automatically
+                # updates its state, so no need to do anything  else
+                pass
+        if self.state_monitoring_task is not None:
+            self.state_monitoring_task.cancel()
+        self.state_monitoring_task = asyncio.create_task(impl())
