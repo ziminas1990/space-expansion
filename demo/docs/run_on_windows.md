@@ -1,4 +1,4 @@
-# Run demo client on windows
+# Run demo client on Windows 10
 
 ## Check your enviroment
 This guide assumes, that you already have:
@@ -24,18 +24,17 @@ py -m pip --version
 In your powershell configure some variables for further usage. Please, feel free to use another paths you want.
 ```powershell
 $PROJECTS_DIR="$HOME\Projects"
-$DEMO_SOURCE="$PROJECTS_DIR\demo-client"
+$MONOREPO="$PROJECTS_DIR\space-expansion"
 $DEMO_CLIENT_VENV="$PROJECTS_DIR\demo-client-venv"
 ```
 **Note**: make sure, that `$PROJECTS_DIR` contains NO cyrrilic symbols and/or spaces!
 
 ## Checkout demo-client repo
-To checkout demo-client repo just run the following command:
+To checkout space-expansion repo and switch to stable branch:
 ```powershell
-git clone https://github.com/ziminas1990/space-expansion.git $DEMO_SOURCE
-# Switch to a branch with the demo client
-cd $DEMO_SOURCE
-git checkout demo-2
+git clone https://github.com/ziminas1990/space-expansion.git $MONOREPO
+cd $MONOREPO
+git checkout stable
 ```
 
 ## Setup python virtual enviroment
@@ -66,9 +65,9 @@ pip install protobuf==3.9.1 pyqt5
 If you have just run a new PowerShell session, don't forget to [set variables](#configure-your-pathes) and activate python venv.
 ```powershell
 # Configure PYTHONPATH
-$env:PYTHONPATH="$DEMO_SOURCE\python-sdk"
+$env:PYTHONPATH="$MONOREPO\python-sdk"
 
 # Run the client
-cd $DEMO_SOURCE\demo
+cd $MONOREPO\demo
 py ./main.py
 ```

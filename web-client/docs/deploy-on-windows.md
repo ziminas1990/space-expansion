@@ -1,4 +1,4 @@
-# Deploy web-client on windows
+# Deploy web-client on Windows 10
 
 ## Check if everything ready to start
 This guide assumes, that you already have:
@@ -24,19 +24,21 @@ py -m pip --version
 In your powershell configure some variables for further usage. Please, feel free to use another paths you want.
 ```powershell
 $PROJECTS_DIR="$HOME\Projects"
-$SPEX_SOURCE="$PROJECTS_DIR\space-expansion"
-$SPEX_VENV="$PROJECTS_DIR\space-expansion-venv"
+$MONOREPO="$PROJECTS_DIR\space-expansion"
+$WEB_CLIENT_VENV="$PROJECTS_DIR\web-client-venv"
 ```
 
 ## Checkout space-expansion repo
-To checkout space-expansion repo just run the following command:
+To checkout space-expansion repo and switch to stable branch:
 ```powershell
-git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE
+git clone https://github.com/ziminas1990/space-expansion.git $MONOREPO
+cd $MONOREPO
+git checkout stable
 ```
 
 ## Setup python virtual enviroment
 ```powershell
-py -m venv create $SPEX_VENV
+py -m venv create $WEB_CLIENT_VENV
 ```
 Before you can activate virtual environment in your powershell session, run the followin command:
 ```powershell
@@ -44,14 +46,14 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
 ```
 Now activate your virtual enviroment:
 ```
-cd $SPEX_VENV
+cd $WEB_CLIENT_VENV
 Scripts\Activate
 ```
 **Selfcheck:** make sure that **pip** command calls a `pip.exe` from your virtual enviroment directory:
 ```
 gcm pip
 ```
-You should get a table with `pip.exe`, placed in you $SPEX_VENV subfolder.
+You should get a table with `pip.exe`, placed in you $WEB_CLIENT_VENV subfolder.
 
 Install the following required packages:
 ```
@@ -64,12 +66,12 @@ If you have just run a new PowerShell session, don't forget to [set variables](#
 
 ```powershell
 # Activate the enviroment, if it is not activated yet
-cd $SPEX_VENV
+cd $WEB_CLIENT_VENV
 Scripts\Activate
 # Configure PYTHONPATH
-$env:PYTHONPATH="$SPEX_SOURCE\python-sdk"
+$env:PYTHONPATH="$MONOREPO\python-sdk"
 
-cd $SPEX_SOURCE\web-client
+cd $MONOREPO\web-client
 $env:QUART_APP="space-assistant"
 ```
 
@@ -85,4 +87,4 @@ INFO:quart.serving:Running on http://0.0.0.0:5000 (CTRL + C to quit)
 
 It means that quart is receiving incomming HTTP reuest at 5000 port.
 
-TO connect to server open your browser and connect to [localhost:5000](http://localhost:5000).
+TO connect to the server open [localhost:5000](http://localhost:5000) in your browser.

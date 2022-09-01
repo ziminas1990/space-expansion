@@ -111,9 +111,11 @@ $SPEX_SOURCE_DIR="$HOME\Projects\space-expansion"
 $SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
 ```
 
-Clone the server's sources:
+Clone the server's sources and switch to stable branch
 ```powershell
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
+cd $SPEX_SOURCE_DIR
+git checkout stable
 ```
 
 Create build directory and move into it:
