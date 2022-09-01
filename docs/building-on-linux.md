@@ -75,11 +75,10 @@ This means, that a gcc9 compiler will be used to build dependencies in Release 6
 ## Building server
 Preparing to build:
 ```bash
-# Clone the sources
+# Clone the sources and swtich to stable branch
 git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
-# Checkout to branch with release 1.0 version; feel free to choose
-# another version you want
-git checkout release-1.0
+cd $SPEX_SOURCE_DIR
+git checkout stable
 # Create build directory and move into it
 mkdir $SPEX_BUILD_DIR
 cd $SPEX_BUILD_DIR
@@ -110,7 +109,7 @@ If you want to force 32-bit build, you should:
 ## Run integration tests
 It is highly recommended to use [python venv](https://docs.python.org/3/library/venv.html)! Let's create and activate a new virtual environment with all required dependencies:
 ```bash
-python3  -m venv $SPEX_VENV_DIR
+python3 -m venv $SPEX_VENV_DIR
 source $SPEX_VENV_DIR/bin/activate
 pip install protobuf pyaml
 ```

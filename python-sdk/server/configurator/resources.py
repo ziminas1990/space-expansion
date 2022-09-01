@@ -19,6 +19,14 @@ class ResourcesList:
             self.resources.update({resource_type: total})
         return self
 
+    def __mul__(self, k: float) -> "ResourcesList":
+        return ResourcesList(
+            resources={
+                resource_type: amount * k
+                for resource_type, amount in self.resources.items()
+            }
+        )
+
     def contains(self, other: "ResourcesList") -> bool:
         for resource_type, amount in other.resources.items():
             if resource_type == ResourceType.e_LABOR:

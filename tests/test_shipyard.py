@@ -220,3 +220,68 @@ class TestCase(BaseTestFixture):
 
         status, ship_name, slot_id = await task
         self.assertEqual(Shipyard.Status.SUCCESS, status)
+
+    @BaseTestFixture.run_as_sync
+    async def test_build_multiple_ships(self):
+        await self.system_clock_fast_forward(speed_multiplier=20)
+
+        commutator, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
+
+        station = Ship.get_ship_by_name(commutator, "SweetHome")
+        self.assertIsNotNone(station)
+
+        warehouse = ResourceContainer.get_by_name(station, "warehouse")
+        self.assertIsNotNone(warehouse)
+
+        shipyard_container = ResourceContainer.get_by_name(
+            station,
+            "shipyard-container")
+        self.assertIsNotNone(shipyard_container)
+
+        shipyard_large = Shipyard.find_by_name(station, "shipyard-large")
+        self.assertIsNotNone(shipyard_large)
+        self.assertEqual(Shipyard.Status.SUCCESS,
+                         await shipyard_large.bind_to_cargo(
+                             "shipyard-container"))
+
+        # Open port on shipyard's container
+        access_key = 1234
+        status, port = await shipyard_container.open_port(access_key)
+        self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+
+        # Move enough resources to build 11 probes
+        total_probes = 2
+        probe_blueprint = default_ships.ships_blueprints[ShipType.PROBE]
+        ship_expenses = self.configuration.blueprints.ship_expenses(
+            probe_blueprint
+        )
+
+        for resource, amount in ship_expenses.resources.items():
+            if resource == ResourceType.e_LABOR:
+                continue
+            status = await warehouse.transfer(
+                port,
+                access_key,
+                ResourceItem(resource, amount * (total_probes + 1)))
+            self.assertEqual(ResourceContainer.Status.SUCCESS, status)
+
+        # Check that we really have enough resources to build 10 probes
+        content = await warehouse.get_content()
+        self.assertIsNotNone(content)
+        self.assertTrue(
+            ResourcesList(content.resources).contains(ship_expenses * 10))
+
+        async def proceed():
+            await self.system_clock_proceed(450, 1, 50000)
+
+        # Build 10 probes
+        for i in range(total_probes):
+            build_tracker = ProgressTracker(proceed=proceed)
+            status, ship_name, slot_id = await shipyard_large.build_ship(
+                blueprint=str(probe_blueprint.id),
+                ship_name=f"probe_{i}",
+                progress_cb=build_tracker.on_progress)
+
+            self.assertEqual(Shipyard.Status.SUCCESS, status)

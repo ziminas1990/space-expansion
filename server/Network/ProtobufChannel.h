@@ -1,8 +1,13 @@
 #pragma once
 
 #include <memory>
-#include "Interfaces.h"
-#include "BufferedTerminal.h"
+
+#include <Utils/MessageUtil.h>
+#include <Network/Interfaces.h>
+#include <Network/BufferedTerminal.h>
+
+// This is useful for integration tests debugging
+#define PRINT_MESSAGES
 
 namespace network {
 
@@ -66,10 +71,14 @@ void ProtobufChannel<FrameType>::onMessageReceived(
 {
   FrameType pdu;
   if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength))) {
-    // if constexpr (std::is_same_v<FrameType, spex::Message>) {
+
+#ifdef PRINT_MESSAGES
+    // if (utils::isPlayerMessage(pdu) && !utils::isHeartbeat(pdu)) {
     //   std::cerr << "Received in #" << nSessionId << ":\n" << pdu.DebugString() 
     //   << std::endl;
     // }
+#endif
+
     m_pTerminal->onMessageReceived(nSessionId, std::move(pdu));
   }
 }
@@ -86,10 +95,14 @@ bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType&& message)
 {
   std::string buffer;
   message.SerializeToString(&buffer);
-  // if constexpr (std::is_same_v<FrameType, spex::Message>) {
+
+#ifdef PRINT_MESSAGES
+  // if (utils::isPlayerMessage(message) && !utils::isHeartbeat(message)) {
   //   std::cerr << "Sending in #" << nSessionId << ":\n" 
   //             << message.DebugString() << std::endl;
   // }
+#endif
+
   return m_pChannel
       && m_pChannel->send(nSessionId, BinaryMessage(buffer.data(), buffer.size()));
 }
