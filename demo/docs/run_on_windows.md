@@ -25,7 +25,7 @@ In your powershell configure some variables for further usage. Please, feel free
 ```powershell
 $PROJECTS_DIR="$HOME\Projects"
 $MONOREPO="$PROJECTS_DIR\space-expansion"
-$DEMO_CLIENT_VENV="$PROJECTS_DIR\demo-client-venv"
+$DEMO_CLIENT_VENV="$PROJECTS_DIR\python-venv\demo-client-venv"
 ```
 **Note**: make sure, that `$PROJECTS_DIR` contains NO cyrrilic symbols and/or spaces!
 

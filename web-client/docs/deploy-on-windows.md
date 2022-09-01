@@ -25,7 +25,7 @@ In your powershell configure some variables for further usage. Please, feel free
 ```powershell
 $PROJECTS_DIR="$HOME\Projects"
 $MONOREPO="$PROJECTS_DIR\space-expansion"
-$WEB_CLIENT_VENV="$PROJECTS_DIR\web-client-venv"
+$WEB_CLIENT_VENV="$PROJECTS_DIR\python-venv\web-client-venv"
 ```
 
 ## Checkout space-expansion repo
