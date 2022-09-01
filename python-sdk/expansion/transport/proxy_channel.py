@@ -54,8 +54,8 @@ class ProxyChannel(Channel, Terminal):
         self.downlevel = channel
 
     # Override from Terminal
-    def on_channel_detached(self):
-        super().on_channel_detached()  # For logging
+    def on_channel_closed(self):
+        super().on_channel_closed()  # For logging
         self.downlevel = None
 
     # Override from Terminal
