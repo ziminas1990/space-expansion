@@ -1,11 +1,16 @@
 
-class Connection {
-  constructor() {
-    this.token = null
-    this.socket = null
-  }
+type Token = {
+  user: string,
+  token: string
+}
 
-  open(host, established_cb) {
+type WebSocketEvent = keyof WebSocketEventMap;
+
+export class Connection {
+  private token?: Token = undefined
+  private socket?: WebSocket = undefined
+
+  open(host: string, established_cb: (this: WebSocket, ev: Event) => any) {
     this.token = this.retrieve_token()
     if (this.token == null) {
       return false
@@ -18,7 +23,7 @@ class Connection {
   }
 
   // Send an HTTP get request to "/token" to get a token
-  retrieve_token() {
+  retrieve_token(): Token | undefined {
     let request = new XMLHttpRequest();
     request.open('GET', '/token', false);  // `false` makes the request synchronous
     request.send(null);
@@ -26,12 +31,19 @@ class Connection {
     if (request.status == 200) {
       return JSON.parse(request.responseText)
     } else {
-      return null
+      return undefined
     }
   }
 
   // Just a wrapper over socket API
-  addEventListener(event, callback) {
-    this.socket.addEventListener(event, callback)
+  addEventListener<event extends keyof WebSocketEventMap>(
+    event: WebSocketEvent,
+    callback: (this: WebSocket, ev: WebSocketEventMap[event]) => any): boolean
+  {
+    if (this.socket !== undefined) {
+      this.socket.addEventListener(event, callback);
+      return true;
+    }
+    return false;
   }
 }
