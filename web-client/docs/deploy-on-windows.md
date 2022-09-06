@@ -3,7 +3,7 @@
 ## Check if everything ready to start
 This guide assumes, that you already have:
 1. a `space-expansion-server` is running and avaliable
-2. a [git](https://git-scm.com/) and a [python3](https://www.python.org/downloads/) installed on your PC and avaliable thorugh the powershell.
+2. [git](https://git-scm.com/), [python3](https://www.python.org/downloads/) and [Node.js](https://nodejs.org/en/) are installed on your PC and avaliable through the powershell.
 
 All commands in this manual should be run in **powershell**. To run powershell just press "WIN+R", type `powershell` and press *enter*.
 
@@ -18,6 +18,10 @@ py --version
 **Selfcheck:** check that **pip** is installed:
 ```powershell
 py -m pip --version
+```
+**Selfcheck:** check that **node.js** is installed:
+```powershell
+node --version
 ```
 
 ## Configure your pathes
@@ -34,6 +38,14 @@ To checkout space-expansion repo and switch to stable branch:
 git clone https://github.com/ziminas1990/space-expansion.git $MONOREPO
 cd $MONOREPO
 git checkout stable
+```
+
+## Build Web Application
+Web application is written on Typescript and uses some npm modules. So, it should be compiled and packed to a bundle, using webpack:
+```powershell
+cd $MONOREPO\web-client\webapp
+npm install
+npm run build_dev  # or 'npm run build' for production build
 ```
 
 ## Setup python virtual enviroment
@@ -87,4 +99,4 @@ INFO:quart.serving:Running on http://0.0.0.0:5000 (CTRL + C to quit)
 
 It means that quart is receiving incomming HTTP reuest at 5000 port.
 
-TO connect to the server open [localhost:5000](http://localhost:5000) in your browser.
+To connect to the server open [localhost:5000](http://localhost:5000) in your browser.
