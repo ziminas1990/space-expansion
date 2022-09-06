@@ -8,8 +8,9 @@
   },
   "scripts": {
     "compile": "tsc",
-    "build_dev": "npm run compile && webpack --mode development",
-    "build": "npm run compile &&  webpack --mode production"
+    "clean": "rm -rf ./src",
+    "build_dev": "npm run compile && webpack --mode development && npm run clean",
+    "build": "npm run compile &&  webpack --mode production && npm run clean"
   },
   "dependencies": {
     "konva": "^8.3.12"

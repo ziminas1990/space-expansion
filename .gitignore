@@ -1,8 +1,7 @@
 __pycache__/
 .idea
 CMakeLists.txt.user
-.gitignore
-/**/build/
 /web-client/webapp/node_modules/
+/web-client/static/*.js
+/**/build/
 /**/.vscode/
-/web-client/webapp/src/
