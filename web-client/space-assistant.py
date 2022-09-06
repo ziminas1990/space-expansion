@@ -72,10 +72,6 @@ def load_user(user_id: str):
 async def main():
     return await render_template(
         "index.html",
-        connection_js=url_for('static', filename='Connection.js'),
-        items_container_js=url_for('static', filename='ItemsContainer.js'),
-        stage_view_js=url_for('static', filename='StageView.js'),
-        scene_js=url_for('static', filename='Scene.js'),
         main_js=url_for('static', filename='main.js')
     )
 

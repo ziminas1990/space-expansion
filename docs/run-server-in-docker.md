@@ -6,7 +6,7 @@ Please, follow the [official guide](https://docs.docker.com/engine/install/ubunt
 A docker image with `space-expansion-server` is [published in dockerhub](https://hub.docker.com/repository/docker/ziminas1990/space-expansion-server).  
 To run `space-expansion-server` container just run:
 ```
-docker -ti --rm ziminas1990/space-expansion-server:latest
+docker run -ti --rm -p 6842:6842/udp -p25000-25200:25000-25200/udp ziminas1990/space-expansion-server:latest
 ```
 
 Once you are in the container, you may execute the following commands:
