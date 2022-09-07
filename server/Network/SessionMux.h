@@ -12,12 +12,17 @@ class SessionMux : public utils::GlobalObject<SessionMux>
 {
 private:
 
+  // Represent a single UDP connection. There may be a lot of sessions
+  // over a single UDP connection. The first session, opened in this connection,
+  // is marked as a 'root session'. If the root session is closed, UDP connection
+  // and the rest sessions will be closed as well.
   struct Connection {
     Connection() {
       m_sessions.reserve(1024);
     }
 
     bool                  m_lUp = false;
+    // First element in 'm_sessions' is always a root session
     std::vector<uint32_t> m_sessions;
     // When was the last valid message received from client?
     uint64_t m_nLastMessageReceivedAt = 0;
@@ -53,7 +58,7 @@ private:
 
     bool     isValid()   const { return m_pHandler != nullptr; }
     uint32_t sessionId() const { return (m_nIndex << 16) + m_nToken; }
-    
+
     void die();
     void revive(uint32_t           nRootSessionId,
                 IPlayerTerminalPtr pHandler);
@@ -89,7 +94,7 @@ private:
   };
 
 private:
-  std::mutex               m_mutex;
+  mutable std::mutex       m_mutex;
   std::vector<Connection>  m_connections;
   std::vector<Session>     m_sessions;
   std::vector<uint16_t>    m_indexesToReuse;
@@ -102,9 +107,10 @@ public:
   uint32_t addConnection(uint32_t nConnectionId, IPlayerTerminalPtr pHandler);
   bool closeConnection(uint32_t nConnectionId);
   void onConnectionClosed(uint32_t nConnectionId);
+  // Return root session of the connection, specified by 'nConnectionId'.
+  std::optional<uint32_t> getRootSession(uint32_t nConnectionId) const;
 
-  uint32_t createSession(uint32_t nParentSessionId, 
-                         IPlayerTerminalPtr pHandler);
+  uint32_t createSession(uint32_t nParentSessionId, IPlayerTerminalPtr pHandler);
   // Close session, specified by 'nSessionId'. If session is a root session
   // of some connection, close a connection and all sessions, related with it.
   bool closeSession(uint32_t nSessionId);

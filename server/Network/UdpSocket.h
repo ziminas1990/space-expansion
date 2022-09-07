@@ -26,13 +26,19 @@ public:
   UdpSocket(UdpSocket&& other)      = delete;
   ~UdpSocket() override;
 
+  udp::endpoint getLocalAddr() const {
+    return m_socket.local_endpoint();
+  }
+
   // Add the specified 'remote' and return a sessionId, associated with it.
   std::optional<uint32_t> createPersistentSession(udp::endpoint const& remote);
 
-  udp::endpoint getLocalAddr() const { 
-    return m_socket.local_endpoint(); 
-  }
-  
+  // Return sessionId, associated with the specified 'remote' or nullopt,
+  // if there is no such persistent session.
+  std::optional<uint32_t> getSessionId(udp::endpoint const& remote) const;
+
+  // Get remote address for the session, specified by 'nSessionId' or nullopt,
+  // if such session doesn't exist.
   std::optional<udp::endpoint> getRemoteAddr(uint32_t nSessionId) const;
 
   // overrides from IChannel

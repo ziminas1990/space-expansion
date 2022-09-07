@@ -18,7 +18,7 @@ bool AccessPanel::prephare(uint16_t, uint32_t, uint64_t)
 
 void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
-  std::optional<network::UdpEndPoint> clientAddr = 
+  std::optional<network::UdpEndPoint> clientAddr =
       m_pLoginSocket->getRemoteAddr(nSessionId);
 
   if (!clientAddr.has_value()) {
@@ -71,14 +71,24 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     pPlayer->attachToUdpSocket(pPlayerSocket);
   }
 
-  std::optional<uint32_t> nConnectionId = 
-      pPlayerSocket->createPersistentSession(*clientAddr);
-
+  std::optional<uint32_t> nConnectionId = pPlayerSocket->getSessionId(*clientAddr);
   if (nConnectionId.has_value()) {
-    const uint32_t nRootSessionId = pPlayer->onNewConnection(*nConnectionId);
-    sendLoginSuccess(nSessionId, nRootSessionId, pPlayerSocket->getLocalAddr());
+    // Connection is already opened. Just create one more session to root commutator
+    std::optional<uint32_t> nAdditionalSessionId = pPlayer->openAdditionalSession(*nConnectionId);
+    if (nAdditionalSessionId.has_value()) {
+      sendLoginSuccess(nSessionId, *nAdditionalSessionId, pPlayerSocket->getLocalAddr());
+    } else {
+      sendLoginFailed(nSessionId, "Can't open additional session");
+    }
   } else {
-    sendLoginFailed(nSessionId, "Connections limit reached");
+    // Connection is not opened yet. Creating it.
+    nConnectionId = pPlayerSocket->createPersistentSession(*clientAddr);
+    if (nConnectionId.has_value()) {
+      const uint32_t nRootSessionId = pPlayer->onNewConnection(*nConnectionId);
+      sendLoginSuccess(nSessionId, nRootSessionId, pPlayerSocket->getLocalAddr());
+    } else {
+      sendLoginFailed(nSessionId, "Connections limit reached");
+    }
   }
 }
 
@@ -100,7 +110,7 @@ bool AccessPanel::sendLoginSuccess(uint32_t nSessionId,
                                    network::UdpEndPoint const& localAddress)
 {
   spex::Message message;
-  spex::IAccessPanel::AccessGranted* pGranted = 
+  spex::IAccessPanel::AccessGranted* pGranted =
       message.mutable_accesspanel()->mutable_access_granted();
   pGranted->set_port(localAddress.port());
   pGranted->set_session_id(nRootSessionId);

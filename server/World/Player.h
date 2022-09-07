@@ -36,6 +36,10 @@ public:
   // Register a new connection and return a root sessionId
   uint32_t onNewConnection(uint32_t nConnectionId);
 
+  // Create one more session to the root commutator in existing connection,
+  // specified by 'nConnectionId'
+  std::optional<uint32_t> openAdditionalSession(uint32_t nConnectionId);
+
   std::string const& getLogin()    const { return m_sLogin; }
   std::string const& getPassword() const { return m_sPassword; }
 
@@ -56,7 +60,7 @@ private:
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
 
   blueprints::BlueprintsLibrary m_blueprints;
-    // Every player has it's own set of blueprint, that can be improoved during 
+    // Every player has it's own set of blueprint, that can be improoved during
     // the game. At the beginning, all players have the same blueprints library
 
   std::vector<modules::ShipPtr> m_ships;
