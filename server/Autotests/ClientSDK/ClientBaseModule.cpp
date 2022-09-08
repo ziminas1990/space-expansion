@@ -16,10 +16,10 @@ bool ClientBaseModule::disconnect()
   return send(std::move(request)) && waitCloseInd();
 }
 
-bool ClientBaseModule::waitCloseInd()
+bool ClientBaseModule::waitCloseInd(uint16_t nTimeoutMs)
 {
   spex::ISessionControl response;
-  return wait(response)
+  return wait(response, nTimeoutMs)
       && response.choice_case() == spex::ISessionControl::kClosedInd;
 }
 

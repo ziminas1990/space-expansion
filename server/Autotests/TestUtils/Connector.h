@@ -42,6 +42,13 @@ public:
     m_session2conection[nRootSessionId] = nConnectionId;
   }
 
+  void onAdditionalConnection(uint32_t nExistingConnectionId, uint32_t nSessionId) {
+    assert(m_connection2sessions.find(nExistingConnectionId) != m_connection2sessions.end());
+    assert(m_session2conection.find(nSessionId) == m_session2conection.end());
+    m_connection2sessions[nExistingConnectionId].insert(nSessionId);
+    m_session2conection[nSessionId] = nExistingConnectionId;
+  }
+
   // Overrides network::IChannel<FrameType>
   bool send(uint32_t nConnectionId, FrameType&& frame) override
   {
@@ -153,7 +160,7 @@ private:
     }
   }
 
-  void onSessionMessage(uint32_t nConnectionId, 
+  void onSessionMessage(uint32_t nConnectionId,
                         uint32_t nSessionId,
                         const spex::ISessionControl& message)
   {

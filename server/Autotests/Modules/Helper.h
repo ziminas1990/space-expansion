@@ -66,6 +66,11 @@ struct Helper {
   static Connection connect(ModulesTestFixture& env,
                             uint32_t            nConnectionId);
 
+  // Create additional session to root commutator inside existing connection.
+  static std::optional<Connection> openAdditionalSession(
+      ModulesTestFixture& env,
+      uint32_t            nExistingConnectionId);
+
   static ShipBinding spawnShip(ModulesTestFixture&   env,
                                const Connection&     connection,
                                world::PlayerPtr      pOwner,
@@ -80,7 +85,7 @@ struct Helper {
 
     modules::CommutatorPtr pCommutator = pOwner->getCommutator();
     const uint32_t         nSlotId     = pCommutator->attachModule(pShip);
-    
+
     // Create a ship on client side and connect it with server side
     client::ShipPtr pShipCtrl =
       std::make_shared<client::Ship>(env.m_pRouter);

@@ -40,7 +40,7 @@ public:
 
   bool disconnect();
 
-  bool waitCloseInd();
+  bool waitCloseInd(uint16_t nTimeoutMs = 500);
 
 private:
   PlayerPipePtr m_pSyncPipe;
