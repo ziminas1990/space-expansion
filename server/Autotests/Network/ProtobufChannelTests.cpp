@@ -66,7 +66,7 @@ void ProtobufChannelTests::createSomeMessages(std::vector<spex::Message> &out)
     spex::Message message;
     auto granted = message.mutable_accesspanel()->mutable_access_granted();
     granted->set_port(12345);
-    granted->set_session_id(3242);
+    granted->set_root_session_id(3242);
     out.push_back(std::move(message));
   }
 }

@@ -18,7 +18,7 @@ bool AccessPanel::prephare(uint16_t, uint32_t, uint64_t)
 
 void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
-  std::optional<network::UdpEndPoint> clientAddr = 
+  std::optional<network::UdpEndPoint> clientAddr =
       m_pLoginSocket->getRemoteAddr(nSessionId);
 
   if (!clientAddr.has_value()) {
@@ -71,7 +71,7 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     pPlayer->attachToUdpSocket(pPlayerSocket);
   }
 
-  std::optional<uint32_t> nConnectionId = 
+  std::optional<uint32_t> nConnectionId =
       pPlayerSocket->createPersistentSession(*clientAddr);
 
   if (nConnectionId.has_value()) {
@@ -100,10 +100,10 @@ bool AccessPanel::sendLoginSuccess(uint32_t nSessionId,
                                    network::UdpEndPoint const& localAddress)
 {
   spex::Message message;
-  spex::IAccessPanel::AccessGranted* pGranted = 
+  spex::IAccessPanel::AccessGranted* pGranted =
       message.mutable_accesspanel()->mutable_access_granted();
   pGranted->set_port(localAddress.port());
-  pGranted->set_session_id(nRootSessionId);
+  pGranted->set_root_session_id(nRootSessionId);
   return send(nSessionId, std::move(message));
 }
 

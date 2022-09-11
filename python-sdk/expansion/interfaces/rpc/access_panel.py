@@ -31,7 +31,7 @@ class AccessPanelI:
             response,
             ["accessPanel", "access_granted"])
         if access_granted:
-            return access_granted.port, access_granted.session_id, None
+            return access_granted.port, access_granted.root_session_id, None
 
         error: Optional[str] = get_message_field(
             response,

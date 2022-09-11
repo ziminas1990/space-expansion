@@ -3,7 +3,7 @@
 namespace autotests { namespace client {
 
 bool ClientAccessPanel::login(
-    std::string const& sLogin, 
+    std::string const& sLogin,
     std::string const& sPassword,
     uint16_t&          nRemotePort,
     uint32_t&          nSessionId)
@@ -33,7 +33,7 @@ bool ClientAccessPanel::waitLoginSuccess(uint16_t& nServerPort,
     return false;
   const spex::IAccessPanel::AccessGranted& granted = response.access_granted();
   nServerPort = static_cast<uint16_t>(granted.port());
-  nSessionId = static_cast<uint32_t>(granted.session_id());
+  nSessionId = static_cast<uint32_t>(granted.root_session_id());
   return true;
 }
 

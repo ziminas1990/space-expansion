@@ -27,17 +27,19 @@ message ISessionControl {
 message IAccessPanel {
 
   message LoginRequest {
-    string login    = 1;
-    string password = 2;
+    string login      = 1;
+    string password   = 2;
+    uint32 additional = 3;
   }
 
   message AccessGranted {
-    uint32 port       = 1;
-    uint32 session_id = 2;  
+    uint32          port                   = 1;
+    uint32          root_session_id        = 2;  
+    repeated uint32 additional_sessions_id = 3;
   }
   
   oneof choice {
-    LoginRequest login     = 1;
+    LoginRequest login = 1;
     
     AccessGranted access_granted  = 21;
     string        access_rejected = 22;
