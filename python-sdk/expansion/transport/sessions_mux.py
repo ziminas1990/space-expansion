@@ -9,6 +9,10 @@ class SessionsMux(Terminal):
         self.sessions: Dict[int, Session] = {}
         self.channel: Optional[Channel] = None
 
+    # Register a new session with the specified 'session_id'.
+    # Use the specified 'channel' to send messages with 'session_id'
+    # session tag. Return a session object, that can be attached to uplevel
+    # terminal.
     def on_session_opened(self, session_id: int,
                           channel: Channel = None) -> Channel:
         # Note: session object is not attached to the terminal yet, it should

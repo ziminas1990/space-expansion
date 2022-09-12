@@ -76,7 +76,15 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
 
   if (nConnectionId.has_value()) {
     const uint32_t nRootSessionId = pPlayer->onNewConnection(*nConnectionId);
-    sendLoginSuccess(nSessionId, nRootSessionId, pPlayerSocket->getLocalAddr());
+    std::vector<uint32_t> additionals;
+    if (loginRequest.additional() > 0) {
+      additionals.resize(loginRequest.additional());
+      for (size_t i = 0; i < loginRequest.additional(); ++i) {
+        additionals[i] = pPlayer->createAdditionalSession(*nConnectionId);
+      }
+    }
+
+    sendLoginSuccess(nSessionId, nRootSessionId, additionals, pPlayerSocket->getLocalAddr());
   } else {
     sendLoginFailed(nSessionId, "Connections limit reached");
   }
@@ -97,6 +105,7 @@ bool AccessPanel::checkLogin(std::string const& sLogin,
 
 bool AccessPanel::sendLoginSuccess(uint32_t nSessionId,
                                    uint32_t nRootSessionId,
+                                   const std::vector<uint32_t>& additionalSessions,
                                    network::UdpEndPoint const& localAddress)
 {
   spex::Message message;
@@ -104,6 +113,9 @@ bool AccessPanel::sendLoginSuccess(uint32_t nSessionId,
       message.mutable_accesspanel()->mutable_access_granted();
   pGranted->set_port(localAddress.port());
   pGranted->set_root_session_id(nRootSessionId);
+  for (const uint32_t nAdditionalSessionId: additionalSessions) {
+    pGranted->add_additional_sessions_id(nAdditionalSessionId);
+  }
   return send(nSessionId, std::move(message));
 }
 

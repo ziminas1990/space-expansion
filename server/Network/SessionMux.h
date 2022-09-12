@@ -53,7 +53,7 @@ private:
 
     bool     isValid()   const { return m_pHandler != nullptr; }
     uint32_t sessionId() const { return (m_nIndex << 16) + m_nToken; }
-    
+
     void die();
     void revive(uint32_t           nRootSessionId,
                 IPlayerTerminalPtr pHandler);
@@ -103,7 +103,13 @@ public:
   bool closeConnection(uint32_t nConnectionId);
   void onConnectionClosed(uint32_t nConnectionId);
 
-  uint32_t createSession(uint32_t nParentSessionId, 
+  // Open an additional session to the same handler, to which a connection,
+  // specified by 'nConnectoionId' was opened.
+  uint32_t createSession(uint32_t nConnectionId);
+  // Create a new session to the specified 'pHandler'. Use the specified
+  // 'nParentSessionId' to determine a connection, to which a new session
+  // should belong to.
+  uint32_t createSession(uint32_t nParentSessionId,
                          IPlayerTerminalPtr pHandler);
   // Close session, specified by 'nSessionId'. If session is a root session
   // of some connection, close a connection and all sessions, related with it.
@@ -121,6 +127,10 @@ public:
 
 private:
   uint16_t occupyIndex();
+  // If handler is null, create session to a root handler of the specified
+  // connection
+  uint32_t createSessionForConnection(uint32_t nConnectionId,
+                                      IPlayerTerminalPtr pHandler = nullptr);
 
   bool closeConnectionLocked(uint32_t nConnectionId);
 

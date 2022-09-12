@@ -31,7 +31,7 @@ PlayerPtr Player::load(
     std::string sLogin,
     blueprints::BlueprintsLibrary blueprints,
     YAML::Node const& state)
-{ 
+{
   // Can't use 'std::make_shared' here since Player's constructor is private
   PlayerPtr pPlayer =
       std::shared_ptr<Player>(
@@ -100,6 +100,11 @@ PlayerPtr Player::makeDummy(std::string sLogin)
 uint32_t Player::onNewConnection(uint32_t nConnectionId)
 {
   return m_pSesionMux->addConnection(nConnectionId, m_pEntryPoint);
+}
+
+uint32_t Player::createAdditionalSession(uint32_t nConnectionId)
+{
+  return m_pSesionMux->createSession(nConnectionId);
 }
 
 void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)

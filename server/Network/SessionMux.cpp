@@ -38,7 +38,7 @@ void SessionMux::Socket::closeConnection(uint32_t nConnectionId)
   }
 }
 
-void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId, 
+void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
                                            spex::Message const& message)
 {
   // No need to lock anything here
@@ -92,7 +92,7 @@ bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
     return session.isValid()
         && session.sessionId() == nSessionId
-        && m_pChannel 
+        && m_pChannel
         && m_pChannel->send(session.m_nConnectionId, std::move(message));
   }
   return false;
@@ -178,6 +178,12 @@ void SessionMux::onConnectionClosed(uint32_t nConnectionId)
   assert(!"Invalid connection id");
 }
 
+uint32_t SessionMux::createSession(uint32_t nConnectionId)
+{
+  std::lock_guard<std::mutex> guard(m_mutex);
+  return createSessionForConnection(nConnectionId);
+}
+
 uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
                                    IPlayerTerminalPtr pHandler)
 {
@@ -200,24 +206,7 @@ uint32_t SessionMux::createSession(uint32_t           nParentSessionId,
   }
   const uint32_t nConnectionId = parentSession.m_nConnectionId;
   assert(nConnectionId < m_connections.size());
-
-  // Add a new session
-  const uint16_t nSessionIndex = occupyIndex();
-  if (nSessionIndex) {
-    assert(nSessionIndex < m_sessions.size());
-
-    Session& session = m_sessions[nSessionIndex];
-    assert(session.m_nIndex == nSessionIndex);
-    session.revive(nConnectionId, pHandler);
-    const uint32_t nSessionId = session.sessionId();
-
-    Connection& connection = m_connections[nConnectionId];
-    assert(connection.isOpened());
-    connection.m_sessions.push_back(nSessionId);
-
-    return nSessionId;
-  }
-  return 0;
+  return createSessionForConnection(nConnectionId, pHandler);
 }
 
 bool SessionMux::closeSession(uint32_t nSessionId)
@@ -271,6 +260,45 @@ uint16_t SessionMux::occupyIndex()
     const uint16_t index = static_cast<uint16_t>(m_sessions.size());
     m_sessions.push_back(Session{index, 0, 0, nullptr});
     return m_sessions.size() - 1;
+  }
+  return 0;
+}
+
+uint32_t SessionMux::createSessionForConnection(uint32_t nConnectionId,
+                                                IPlayerTerminalPtr pHandler)
+{
+  if (pHandler == nullptr) {
+    // Find a root handler for the specified connection
+    if (nConnectionId < m_connections.size()) {  // [[likely]]
+      const Connection& connection = m_connections[nConnectionId];
+      if (!connection.isOpened() || connection.m_sessions.empty()) {
+        assert(!"Either connection is closed or it has no root session");
+        return 0;
+      }
+      const uint32_t nRootSessionId = connection.m_sessions.front();
+      const uint16_t nRootSessionIndex = nRootSessionId >> 16;
+      assert(nRootSessionIndex < m_sessions.size());
+      assert(m_sessions[nRootSessionIndex].isValid());
+      pHandler = m_sessions[nRootSessionIndex].m_pHandler;
+    } else {
+      assert(!"Invalid connection id");
+      return 0;
+    }
+  }
+
+  const uint16_t nSessionIndex = occupyIndex();
+  if (nSessionIndex) {
+    assert(nSessionIndex < m_sessions.size());
+
+    Session& session = m_sessions[nSessionIndex];
+    assert(session.m_nIndex == nSessionIndex);
+    session.revive(nConnectionId, pHandler);
+    const uint32_t nSessionId = session.sessionId();
+
+    Connection& connection = m_connections[nConnectionId];
+    assert(connection.isOpened());
+    connection.m_sessions.push_back(nSessionId);
+    return nSessionId;
   }
   return 0;
 }
@@ -342,7 +370,7 @@ bool SessionMux::isRootSession(const Session& session) const
   if (session.m_nConnectionId < m_connections.size()) {
     const Connection& connection = m_connections[session.m_nConnectionId];
     assert(connection.isOpened());
-    return connection.isOpened() 
+    return connection.isOpened()
         && connection.getRootSession() == session.sessionId();
   }
   assert(!"Invalid session id");
