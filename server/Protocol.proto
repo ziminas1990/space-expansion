@@ -24,6 +24,18 @@ message ISessionControl {
   }
 }
 
+message IRootSession {
+
+  oneof choice {
+    // Requests
+    // Spawn a new session, attached to root commutator
+    bool new_commutator_session = 1;
+    
+    // Responces
+    uint32 commutator_session  = 21;
+  }
+}
+
 message IAccessPanel {
 
   message LoginRequest {
@@ -32,11 +44,14 @@ message IAccessPanel {
   }
 
   message AccessGranted {
+    // UDP port, that serves allocated session
     uint32 port       = 1;
-    uint32 session_id = 2;  
+    // Session ID of a root session
+    uint32 session_id = 2;
   }
   
   oneof choice {
+    // Login and open a new root session
     LoginRequest login     = 1;
     
     AccessGranted access_granted  = 21;
@@ -432,6 +447,7 @@ message Message {
   oneof choice {
     // All possible interfaces are listed here
     ISessionControl    session            = 10;
+    IRootSession       root_session       = 11;
     IAccessPanel       accessPanel        = 13;
     ICommutator        commutator         = 14;
     IShip              ship               = 15;

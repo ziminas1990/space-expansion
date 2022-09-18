@@ -34,7 +34,9 @@ class TestLogin(BaseTestFixture):
                     login="spy007",
                     password="iamspy",
                     ships=[
-                        default_ships.make_probe(name="scout-1", position=world.Position(100, 200))
+                        default_ships.make_probe(
+                            name="scout-1",
+                            position=world.Position(100, 200))
                     ]
                 )
             }
@@ -45,23 +47,22 @@ class TestLogin(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_login(self):
-        commutator, error = \
-            await self.login("spy007", "127.0.0.1")
-        self.assertIsNone(error)
+        connection, error = await self.login('spy007', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
+        self.assertIsNone(error)
 
     @BaseTestFixture.run_as_sync
     async def test_simultaneous_login(self):
         for i in range(8):  # 8 is a hardcoded server's limit
             logging.info(f"Iteration {i}")
-            commutator, error = \
-                await self.login("spy007", "127.0.0.1")
-            self.assertIsNotNone(commutator, f"{error} at iteration {i}")
+            connection, error = await self.login('spy007', "127.0.0.1")
+            self.assertIsNotNone(connection, f"{error} at iteration {i}")
 
     @BaseTestFixture.run_as_sync
     async def test_multiple_logins(self):
         for i in range(100):
-            commutator, error = \
-                await self.login("spy007", "127.0.0.1")
-            self.assertIsNotNone(commutator, f"{error} at iteration {i}")
-            commutator.disconnect()
+            connection, error = await self.login('spy007', "127.0.0.1")
+            self.assertIsNotNone(connection, f"{error} at iteration {i}")
+            connection.close()

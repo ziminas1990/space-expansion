@@ -42,7 +42,9 @@ class TestCase(BaseTestFixture):
     @BaseTestFixture.run_as_sync
     async def test_monitoring(self):
         randomizer = Randomizer(4934)
-        commutator, error = await self.login("player", "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 

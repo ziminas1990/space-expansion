@@ -86,21 +86,22 @@ class BaseTestFixture(unittest.TestCase):
         BaseTestFixture.event_loop = None
 
     async def login(self, player: str, server_ip: str) \
-            -> (Optional[modules.Commutator], str):
+            -> (Optional[procedures.Connection], str):
         general_cfg = self.config.general
-        commutator, problem = await procedures.login(
+        connection, problem = await procedures.login(
             server_ip=server_ip,
             login_port=general_cfg.login_udp_port,
             login=self.config.players[player].login,
             password=self.config.players[player].password)
         if problem:
             return None, problem
-        if not await commutator.init():
-            # TODO: release commutators resources
+        if not await connection.commutator.init():
+            connection.close()
             return None, "Failed to init root commutator"
-        return commutator, None
+        return connection, None
 
-    async def _proceed_time(self, proceed_ms: int, timeout_s: float) -> (bool, Optional[int]):
+    async def _proceed_time(self, proceed_ms: int, timeout_s: float) \
+            -> (bool, Optional[int]):
         """
         Proceed the specified amount of 'proceed_ms' milliseconds. Each tick
         will be a 'granularity_us' microseconds long.

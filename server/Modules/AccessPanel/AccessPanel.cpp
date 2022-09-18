@@ -5,6 +5,7 @@
 #include <Network/UdpSocket.h>
 #include <Network/ProtobufChannel.h>
 #include <Network/BufferedProtobufTerminal.h>
+#include <Network/SessionMux.h>
 
 #include <sstream>
 
@@ -18,13 +19,8 @@ bool AccessPanel::prephare(uint16_t, uint32_t, uint64_t)
 
 void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
-  std::optional<network::UdpEndPoint> clientAddr = 
+  std::optional<network::UdpEndPoint> clientAddr =
       m_pLoginSocket->getRemoteAddr(nSessionId);
-
-  if (!clientAddr.has_value()) {
-    return;
-  }
-
   if (!clientAddr.has_value() ||
       message.choice_case() != spex::Message::kAccessPanel) {
     m_pLoginSocket->closeSession(nSessionId);
@@ -61,7 +57,6 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
   }
 
   network::UdpSocketPtr pPlayerSocket = pPlayer->getUdpSocket();
-
   if (!pPlayerSocket) {
     pPlayerSocket = m_pConnectionManager->createUdpSocket();
     if (!pPlayerSocket) {
@@ -71,11 +66,15 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
     pPlayer->attachToUdpSocket(pPlayerSocket);
   }
 
-  std::optional<uint32_t> nConnectionId = 
+  std::optional<uint32_t> nConnectionId =
       pPlayerSocket->createPersistentSession(*clientAddr);
 
   if (nConnectionId.has_value()) {
-    const uint32_t nRootSessionId = pPlayer->onNewConnection(*nConnectionId);
+    // Each UDP connection starts with a root session, that is attached to
+    // player instance.
+    const uint32_t nRootSessionId = pPlayer->getSessionMux()->addConnection(
+      *nConnectionId, pPlayer
+    );
     sendLoginSuccess(nSessionId, nRootSessionId, pPlayerSocket->getLocalAddr());
   } else {
     sendLoginFailed(nSessionId, "Connections limit reached");
@@ -100,7 +99,7 @@ bool AccessPanel::sendLoginSuccess(uint32_t nSessionId,
                                    network::UdpEndPoint const& localAddress)
 {
   spex::Message message;
-  spex::IAccessPanel::AccessGranted* pGranted = 
+  spex::IAccessPanel::AccessGranted* pGranted =
       message.mutable_accesspanel()->mutable_access_granted();
   pGranted->set_port(localAddress.port());
   pGranted->set_session_id(nRootSessionId);

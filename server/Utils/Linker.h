@@ -20,7 +20,7 @@ private:
     std::function<void()> m_fUnlinkCallback;
 
   public:
-    Link(std::function<void()>&& unlinker) 
+    Link(std::function<void()>&& unlinker)
     : m_fUnlinkCallback(std::move(unlinker))
     {}
     Link(Link&& other) noexcept = default;

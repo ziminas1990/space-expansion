@@ -111,7 +111,9 @@ class TestCase(BaseTestFixture):
     async def test_get_specification(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -141,7 +143,9 @@ class TestCase(BaseTestFixture):
 
         miner_blueprint = default_ships.ships_blueprints[ShipType.MINER]
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -225,7 +229,9 @@ class TestCase(BaseTestFixture):
     async def test_build_multiple_ships(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 

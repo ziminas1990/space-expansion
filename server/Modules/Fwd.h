@@ -6,7 +6,7 @@
   class ModuleCls; \
   using ModuleCls##Ptr = std::shared_ptr<ModuleCls>; \
   using ModuleCls##WeakPtr = std::weak_ptr<ModuleCls>; \
-  
+
 
 #define MODULE_MANAGER_FWD_DECLARATION(ModuleCls) \
   class ModuleCls##Manager; \

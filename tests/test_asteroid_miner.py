@@ -61,7 +61,8 @@ class TestCase(BaseTestFixture):
     async def test_get_specification(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -84,7 +85,9 @@ class TestCase(BaseTestFixture):
     async def test_binding_to_cargo(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNone(error)
         self.assertIsNotNone(commutator)
 
@@ -106,7 +109,9 @@ class TestCase(BaseTestFixture):
     async def test_start_mining(self):
         await self.system_clock_fast_forward(speed_multiplier=50)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -158,7 +163,9 @@ class TestCase(BaseTestFixture):
     async def test_mining(self):
         await self.system_clock_fast_forward(speed_multiplier=50)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -213,7 +220,9 @@ class TestCase(BaseTestFixture):
     async def test_stop_mining(self):
         await self.system_clock_fast_forward(speed_multiplier=50)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -272,7 +281,9 @@ class TestCase(BaseTestFixture):
     async def test_cargo_is_full(self):
         await self.system_clock_fast_forward(speed_multiplier=50)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 

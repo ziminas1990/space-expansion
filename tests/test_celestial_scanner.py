@@ -49,7 +49,9 @@ class TestCase(BaseTestFixture):
     async def test_get_specification(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -69,7 +71,9 @@ class TestCase(BaseTestFixture):
     async def test_scanning(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -106,7 +110,9 @@ class TestCase(BaseTestFixture):
     async def test_scanning_sync(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
-        commutator, error = await self.login('oreman', "127.0.0.1")
+        connection, error = await self.login('oreman', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 

@@ -204,7 +204,7 @@ bool SystemManager::configureComponents()
 
 bool SystemManager::linkComponents()
 {
-  if (m_pPrivilegedChannel && m_pAdministratorPanel) {    
+  if (m_pPrivilegedChannel && m_pAdministratorPanel) {
     m_pPrivilegedSocket = m_pUdpDispatcher->createUdpSocket(
           m_configuration.getAdministratorCfg().getPort(), true);
     m_linker.link(m_pPrivilegedSocket, m_pPrivilegedChannel);

@@ -38,7 +38,7 @@ void SessionMux::Socket::closeConnection(uint32_t nConnectionId)
   }
 }
 
-void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId, 
+void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
                                            spex::Message const& message)
 {
   // No need to lock anything here
@@ -92,7 +92,7 @@ bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
     return session.isValid()
         && session.sessionId() == nSessionId
-        && m_pChannel 
+        && m_pChannel
         && m_pChannel->send(session.m_nConnectionId, std::move(message));
   }
   return false;
@@ -342,7 +342,7 @@ bool SessionMux::isRootSession(const Session& session) const
   if (session.m_nConnectionId < m_connections.size()) {
     const Connection& connection = m_connections[session.m_nConnectionId];
     assert(connection.isOpened());
-    return connection.isOpened() 
+    return connection.isOpened()
         && connection.getRootSession() == session.sessionId();
   }
   assert(!"Invalid session id");
