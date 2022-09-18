@@ -17,15 +17,11 @@ namespace world
 class Player;
 using PlayerPtr = std::shared_ptr<Player>;
 
+class RootSession;
+using RootSessionPtr = std::shared_ptr<RootSession>;
+
 // Player aggregates all components, related to some specific player.
-//
-// Why is 'Player' a 'network::IPlayerTerminal'? Because it handles messages,
-// that come from root session (see 'IRootSession' messages). So, all root
-// sessions are connected to Player instance.
-// Note: player doesn't inherit BufferedPlayerTerminal, hence it handles
-// all incoming messages immediatelly. It means that accessing to player's
-// component while handling messages should be protected by mutex.
-class Player : public network::IPlayerTerminal
+class Player
 {
   Player(std::string&& sLogin,
          blueprints::BlueprintsLibrary&& blueprints);
@@ -54,25 +50,12 @@ public:
 
   modules::CommutatorPtr getCommutator() const { return m_pRootCommutator; }
 
-  // Overrides of IPlayerTerminal
-  bool openSession(uint32_t) override { return true; }
-  void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
-  void onSessionClosed(uint32_t) override {}
-  void attachToChannel(network::IPlayerChannelPtr) override {
-    assert(!"Operation makes no sense: player always uses SessionMux as a"
-           " channel");
-  }
-  void detachFromChannel() override {
-    assert(!"Operation makes no sense");
-  }
-
 private:
   // Handle 'openCommutatorSession' reqiest, received in session, specified
   // by 'nSessionId'.
   void open_commutator_session(uint32_t nSessionId);
 
 private:
-  utils::Mutex m_mutex;
   std::string  m_sLogin;
   std::string  m_sPassword;
 
@@ -82,6 +65,7 @@ private:
   modules::CommutatorPtr        m_pRootCommutator;
   modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
+  RootSessionPtr                m_pRootSession;
 
   blueprints::BlueprintsLibrary m_blueprints;
     // Every player has it's own set of blueprints, that can be improved during

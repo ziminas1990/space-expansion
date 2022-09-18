@@ -117,6 +117,7 @@ class ApplicationCfg : public IApplicationCfg
 {
 public:
   ApplicationCfg();
+  ApplicationCfg(const ApplicationCfg&) = default;
   ApplicationCfg(IApplicationCfg const& other);
 
   bool isValid(std::ostream& problem) const {

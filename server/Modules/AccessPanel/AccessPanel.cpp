@@ -70,11 +70,7 @@ void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& messag
       pPlayerSocket->createPersistentSession(*clientAddr);
 
   if (nConnectionId.has_value()) {
-    // Each UDP connection starts with a root session, that is attached to
-    // player instance.
-    const uint32_t nRootSessionId = pPlayer->getSessionMux()->addConnection(
-      *nConnectionId, pPlayer
-    );
+    const uint32_t nRootSessionId = pPlayer->onNewConnection(*nConnectionId);
     sendLoginSuccess(nSessionId, nRootSessionId, pPlayerSocket->getLocalAddr());
   } else {
     sendLoginFailed(nSessionId, "Connections limit reached");

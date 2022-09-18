@@ -58,9 +58,11 @@ TEST_F(ShipTests, Monitoring)
         Scenarios::Login()
         .sendLoginRequest("test", "test")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Experimental", *pShip));
 
   client::ShipState state;
   ASSERT_TRUE(pShip->monitor(500, state));
@@ -92,9 +94,11 @@ TEST_F(ShipTests, MultipleSubscriptions)
         Scenarios::Login()
         .sendLoginRequest("test", "test")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Experimental", *pShip));
 
   using Subscription = std::pair<client::ShipPtr, uint32_t>;
 
@@ -108,7 +112,7 @@ TEST_F(ShipTests, MultipleSubscriptions)
   client::ShipState state;
   for (Subscription& subscription: subscriptions) {
     ASSERT_TRUE(client::attachToShip(
-                  m_pRootCommutator, "Experimental", *subscription.first));
+                  pCommutator, "Experimental", *subscription.first));
     ASSERT_TRUE(subscription.first->monitor(subscription.second, state));
   }
 

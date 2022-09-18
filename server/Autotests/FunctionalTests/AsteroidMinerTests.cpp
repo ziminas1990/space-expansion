@@ -1,3 +1,4 @@
+#include "Autotests/ClientSDK/Modules/ClientCommutator.h"
 #include "FunctionalTestFixture.h"
 
 #include "Scenarios.h"
@@ -84,9 +85,11 @@ TEST_F(AsteroidMinerTests, GetSpecification)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
@@ -107,8 +110,11 @@ TEST_F(AsteroidMinerTests, BindingToCargo)
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
 
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
+
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
@@ -140,9 +146,11 @@ TEST_F(AsteroidMinerTests, StartMiningAndWaitReports)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
@@ -179,9 +187,11 @@ TEST_F(AsteroidMinerTests, StopMining)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
@@ -212,9 +222,11 @@ TEST_F(AsteroidMinerTests, StartMiningFails)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));
@@ -233,9 +245,11 @@ TEST_F(AsteroidMinerTests, NoAvaliableSpace)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", ship));
 
   client::AsteroidMiner miner;
   ASSERT_TRUE(client::FindAsteroidMiner(ship, miner, "miner"));

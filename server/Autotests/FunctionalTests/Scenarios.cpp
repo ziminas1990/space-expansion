@@ -41,7 +41,7 @@ void Scenarios::LoginScenario::execute()
     ASSERT_NE(0, nPort) << "Port is 0";
     m_pEnv->m_serverAddress.port(nPort);
     m_pEnv->m_pSocket->setServerAddress(m_pEnv->m_serverAddress);
-    m_pEnv->m_pRootCommutator->attachToChannel(
+    m_pEnv->m_pRootSession->attachToChannel(
       m_pEnv->m_pRouter->openSession(nSessionId));
   } else {
     ASSERT_TRUE(m_pEnv->m_pAccessPanel->waitLoginFailed())

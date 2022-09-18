@@ -87,9 +87,11 @@ TEST_F(AsteroidScannerTests, GetSpecification)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", ship));
 
   client::AsteroidScanner scanner;
   ASSERT_TRUE(client::FindAsteroidScanner(ship, scanner));
@@ -106,9 +108,11 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", *pShip));
 
   client::CelestialScanner celestialScanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, celestialScanner));
@@ -169,9 +173,11 @@ TEST_F(AsteroidScannerTests, FailedToScanTest)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Miner One", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Miner One", *pShip));
 
   client::CelestialScanner celestialScanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, celestialScanner));

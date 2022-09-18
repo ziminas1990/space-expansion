@@ -61,7 +61,7 @@ public:
     if constexpr (std::is_same_v<FrameType, spex::Message>) {
       // In case heartbeat is received, it should be sent back
       if (message.choice_case() == spex::Message::kSession) {
-        if (message.session().choice_case() == 
+        if (message.session().choice_case() ==
             spex::ISessionControl::kHeartbeat) {
           send(std::move(message));
           return;

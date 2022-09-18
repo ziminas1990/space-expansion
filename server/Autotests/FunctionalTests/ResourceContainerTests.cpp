@@ -88,9 +88,11 @@ TEST_F(ResourceContainerTests, GetContent)
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
   ASSERT_TRUE(client::FindResourceContainer(ship, container));
@@ -112,9 +114,11 @@ TEST_F(ResourceContainerTests, OpenPort)
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
   ASSERT_TRUE(client::FindResourceContainer(ship, container));
@@ -137,9 +141,11 @@ TEST_F(ResourceContainerTests, ClosePort)
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Freighter One", ship));
 
   client::ResourceContainer container;
   ASSERT_TRUE(client::FindResourceContainer(ship, container));
@@ -165,12 +171,14 @@ TEST_F(ResourceContainerTests, TransferSuccessCase)
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship freighter(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Freighter One", freighter));
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Earth Hub", station));
 
   client::ResourceContainer          stationsContainer;
   client::ResourceContainer::Content stationContent;
@@ -234,12 +242,14 @@ TEST_F(ResourceContainerTests, TransferNonMaterialResource)
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship freighter(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Freighter One", freighter));
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Earth Hub", station));
 
   client::ResourceContainer stationsContainer;
   ASSERT_TRUE(client::FindResourceContainer(station, stationsContainer, "cargo"));
@@ -265,12 +275,14 @@ TEST_F(ResourceContainerTests, MonitoringWhileTransfer)
         Scenarios::Login()
         .sendLoginRequest("merchant", "money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship freighter(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Freighter One", freighter));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Freighter One", freighter));
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Earth Hub", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Earth Hub", station));
 
   struct ContainerSessions {
     client::ResourceContainer m_control;

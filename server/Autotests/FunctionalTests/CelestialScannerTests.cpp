@@ -89,9 +89,11 @@ TEST_F(CelestialScannerTests, GetSpecification)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -108,9 +110,11 @@ TEST_F(CelestialScannerTests, ScanAllAsteroids)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -127,9 +131,11 @@ TEST_F(CelestialScannerTests, ScanAsteroidsNearby)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -158,9 +164,11 @@ TEST_F(CelestialScannerTests, FilteredByAsteroidRadius)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Zorkiy Glaz", ship));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(ship, scanner));
@@ -187,9 +195,11 @@ TEST_F(CelestialScannerTests, ScanningCloudes)
         Scenarios::Login()
         .sendLoginRequest("mega_miner", "unabtainable")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Zorkiy Glaz", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Zorkiy Glaz", *pShip));
 
   client::CelestialScanner scanner;
   ASSERT_TRUE(client::FindBestCelestialScanner(*pShip, scanner));

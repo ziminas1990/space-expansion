@@ -73,9 +73,11 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsCount)
         Scenarios::Login()
         .sendLoginRequest("admin", "admin")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ModulesList shipsInfo;
-  ASSERT_TRUE(client::GetAllModules(*m_pRootCommutator, "Ship", shipsInfo));
+  ASSERT_TRUE(client::GetAllModules(*pCommutator, "Ship", shipsInfo));
 
   EXPECT_EQ(5, shipsInfo.size());
 }
@@ -86,11 +88,13 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsTypes)
         Scenarios::Login()
         .sendLoginRequest("admin", "admin")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   // with cycle it's even more harder
   for(size_t i = 0; i < 200; ++i) {
     ASSERT_TRUE(
-          Scenarios::CheckAttachedModules(m_pRootCommutator)
+          Scenarios::CheckAttachedModules(pCommutator)
           .hasModule("Ship/CommandCenter", "Head")
           .hasModule("Ship/Miner",  "Bogatstvo Narodov")
           .hasModule("Ship/Zond",   "Sokol")
