@@ -17,6 +17,8 @@ public:
 
   bool openCommutatorSession(uint32_t& nSessionId);
 
+  bool close();
+  bool waitCloseInd();
 };
 
 using RootSessionPtr = std::shared_ptr<RootSession>;

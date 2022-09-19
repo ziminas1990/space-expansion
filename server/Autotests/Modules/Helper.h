@@ -10,6 +10,7 @@
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
+#include <Autotests/ClientSDK/RootSession.h>
 #include <Utils/Linker.h>
 
 #define DECLARE_ATTRIBUTE(Container, AttrType, AttrName, DefaultValue) \
@@ -24,15 +25,6 @@
 
 
 namespace autotests {
-
-struct Connection {
-  uint32_t                    m_nRootSessionId = 0;
-  client::ClientCommutatorPtr m_pCommutatorCtrl;
-
-  client::ClientCommutatorPtr operator->() const {
-    return m_pCommutatorCtrl;
-  }
-};
 
 template<typename ServerModule, typename ClientModule>
 struct ModuleBind {
@@ -63,16 +55,21 @@ struct Helper {
     DECLARE_ATTRIBUTE(EngineParams, uint32_t,    maxThrust, 100000);
   };
 
-  static Connection connect(ModulesTestFixture& env,
-                            uint32_t            nConnectionId);
+  static client::RootSessionPtr connect(ModulesTestFixture& env,
+                                        uint32_t            nConnectionId);
 
-  static ShipBinding spawnShip(ModulesTestFixture&   env,
-                               const Connection&     connection,
-                               world::PlayerPtr      pOwner,
-                               const geometry::Point position,
-                               const ShipParams& params)
+  static client::ClientCommutatorPtr
+  openCommutatorSession(ModulesTestFixture& env,
+                        client::RootSessionPtr pRootSession);
+
+  static ShipBinding spawnShip(
+      ModulesTestFixture&         env,
+      client::ClientCommutatorPtr pClientCommutator,
+      world::PlayerPtr            pOwner,
+      const geometry::Point       position,
+      const ShipParams&           params)
   {
-    // Spawn a ship and attach it to commutator:
+    // Spawn a ship on server side and attach it to player's commutator:
     modules::ShipPtr pShip = std::make_shared<modules::Ship>(
       params.shipType(), params.shipName(), pOwner, params.weight(),
       params.radius());
@@ -80,12 +77,12 @@ struct Helper {
 
     modules::CommutatorPtr pCommutator = pOwner->getCommutator();
     const uint32_t         nSlotId     = pCommutator->attachModule(pShip);
-    
+
     // Create a ship on client side and connect it with server side
     client::ShipPtr pShipCtrl =
       std::make_shared<client::Ship>(env.m_pRouter);
 
-    pShipCtrl->attachToChannel(connection->openSession(nSlotId));
+    pShipCtrl->attachToChannel(pClientCommutator->openSession(nSlotId));
     return {pShip, pCommutator, nSlotId, pShipCtrl};
   }
 

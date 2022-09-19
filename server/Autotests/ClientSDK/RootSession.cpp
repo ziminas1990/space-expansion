@@ -26,5 +26,19 @@ bool RootSession::openCommutatorSession(uint32_t& nSessionId)
   return true;
 }
 
+bool RootSession::close()
+{
+  spex::Message request;
+  request.mutable_session()->set_close(true);
+  return m_pChannel->send(std::move(request)) && waitCloseInd();
+}
+
+bool RootSession::waitCloseInd()
+{
+  spex::ISessionControl response;
+  return m_pChannel->wait(response)
+      && response.choice_case() == spex::ISessionControl::kClosedInd;
+}
+
 } // namespace autotests::client
 
