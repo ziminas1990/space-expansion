@@ -147,12 +147,18 @@ void PassiveScannerTests::SetUp()
 
   m_pRootSession = Helper::connect(*this, 5);
   ASSERT_TRUE(m_pRootSession);
-  m_pRootCommutator = Helper::openCommutatorSession(*this, m_pRootSession);
-  ASSERT_TRUE(m_pRootCommutator);
 }
 
 client::ClientCommutatorPtr PassiveScannerTests::shipCommutator()
 {
+  if (!m_pRootCommutator) {
+    m_pRootCommutator = Helper::openCommutatorSession(*this, m_pRootSession);
+    EXPECT_TRUE(m_pRootCommutator);
+    if (!m_pRootCommutator) {
+      return nullptr;
+    }
+  }
+
   client::Router::SessionPtr pTunnel =
       m_pRootCommutator->openSession(m_nShipSlot);
   if (!pTunnel) {
