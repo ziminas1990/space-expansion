@@ -122,9 +122,10 @@ protected:
   uint32_t    m_nShipSlot;
   uint32_t    m_nPassiveScannerSlot;
 
-  Connection                 m_connection;
-  modules::ShipPtr           m_pShip;
-  modules::PassiveScannerPtr m_pPassiveScanner;
+  client::RootSessionPtr      m_pRootSession;
+  client::ClientCommutatorPtr m_pRootCommutator;
+  modules::ShipPtr            m_pShip;
+  modules::PassiveScannerPtr  m_pPassiveScanner;
 };
 
 void PassiveScannerTests::SetUp()
@@ -144,13 +145,22 @@ void PassiveScannerTests::SetUp()
   m_nPassiveScannerSlot = m_pShip->installModule(m_pPassiveScanner);
   ASSERT_NE(modules::Commutator::invalidSlot(), m_nPassiveScannerSlot);
 
-  m_connection = Helper::connect(*this, 5);
+  m_pRootSession = Helper::connect(*this, 5);
+  ASSERT_TRUE(m_pRootSession);
 }
 
 client::ClientCommutatorPtr PassiveScannerTests::shipCommutator()
 {
+  if (!m_pRootCommutator) {
+    m_pRootCommutator = Helper::openCommutatorSession(*this, m_pRootSession);
+    EXPECT_TRUE(m_pRootCommutator);
+    if (!m_pRootCommutator) {
+      return nullptr;
+    }
+  }
+
   client::Router::SessionPtr pTunnel =
-      m_connection->openSession(m_nShipSlot);
+      m_pRootCommutator->openSession(m_nShipSlot);
   if (!pTunnel) {
     return client::ClientCommutatorPtr();
   }

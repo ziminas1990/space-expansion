@@ -150,9 +150,11 @@ TEST_F(BlueprintStorageTests, GetAllModules)
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   std::set<client::BlueprintName> expected = {
     client::BlueprintName("CelestialScanner/tiny-scanner"),
@@ -191,9 +193,11 @@ TEST_F(BlueprintStorageTests, GetSomeModules)
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   std::set<client::BlueprintName> expected = {
     client::BlueprintName("AsteroidScanner/tiny-scanner"),
@@ -219,9 +223,11 @@ TEST_F(BlueprintStorageTests, GetNonExistingModuleBlueprint)
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   client::Blueprint blueprint;
   ASSERT_EQ(client::BlueprintsStorage::eBlueprintNotFound,
@@ -238,9 +244,11 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   {
     client::Blueprint blueprint;
@@ -297,9 +305,11 @@ TEST_F(BlueprintStorageTests, GetShipBlueprints)
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   {
     client::Blueprint blueprint;
@@ -333,9 +343,11 @@ TEST_F(BlueprintStorageTests, GetAllModulesBlueprints)
         Scenarios::Login()
         .sendLoginRequest("James", "Bond")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   std::vector<client::BlueprintName> modulesBlueprintsNames;
   ASSERT_TRUE(storage.getModulesBlueprintsNames("", modulesBlueprintsNames));

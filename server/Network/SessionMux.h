@@ -8,6 +8,14 @@
 
 namespace network {
 
+
+// SessionMux provides a way to forward incoming messages to appropriate
+// handler. Each player has it's own instance of SessionMux. It is shared
+// by all UDP player's UDP connections.
+// Each UDP connection is represented by SessionMux.Connection instance.
+// Each connection may have a number of sessions. First session, created
+// when connection is opened, called "root session". If root session is closed,
+// all other sessions will be closed as well and connection will be closed.
 class SessionMux : public utils::GlobalObject<SessionMux>
 {
 private:
@@ -53,7 +61,7 @@ private:
 
     bool     isValid()   const { return m_pHandler != nullptr; }
     uint32_t sessionId() const { return (m_nIndex << 16) + m_nToken; }
-    
+
     void die();
     void revive(uint32_t           nRootSessionId,
                 IPlayerTerminalPtr pHandler);
@@ -103,7 +111,7 @@ public:
   bool closeConnection(uint32_t nConnectionId);
   void onConnectionClosed(uint32_t nConnectionId);
 
-  uint32_t createSession(uint32_t nParentSessionId, 
+  uint32_t createSession(uint32_t nParentSessionId,
                          IPlayerTerminalPtr pHandler);
   // Close session, specified by 'nSessionId'. If session is a root session
   // of some connection, close a connection and all sessions, related with it.

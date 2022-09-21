@@ -38,8 +38,9 @@ class TestSystemClock(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_breath(self):
-        commutator, error = await self.login(player='player',
-                                             server_ip="127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNone(error)
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
@@ -92,8 +93,9 @@ class TestSystemClock(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_multiple_sessions(self):
-        commutator, error = await self.login(player='player',
-                                             server_ip="127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNone(error)
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
@@ -143,8 +145,9 @@ class TestSystemClock(BaseTestFixture):
     async def test_monitoring(self):
         await self.system_clock_fast_forward(10)
 
-        commutator, error = await self.login(player='player',
-                                             server_ip="127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNone(error)
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)

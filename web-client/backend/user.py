@@ -10,7 +10,7 @@ class User:
 
     def __init__(self, user_id: str):
         self.user_id: str = user_id
-        self.commutator: Optional[modules.Commutator] = None
+        self.connection: Optional[procedures.Connection] = None
         self.system_clock: Optional[modules.SystemClock] = None
         self.ships: List[modules.Ship] = []
         self.asteroids: Dict[int, types.PhysicalObject] = {}
@@ -21,7 +21,7 @@ class User:
         self.now: int = 0
 
     def connected(self) -> bool:
-        return self.commutator is not None
+        return self.connection is not None
 
     def is_authenticated(self) -> bool:
         return self.connected()
@@ -36,18 +36,21 @@ class User:
         return self.user_id
 
     async def login(self, ip: str, login: str, password: str) -> Optional[str]:
-        self.commutator, problem = await procedures.login(
+        self.connection, problem = await procedures.login(
             server_ip=ip,
             login_port=6842,
             login=login,
             password=password)
         if problem:
             return problem
-        success = await self.commutator.init()
+        success = await self.connection.commutator.init()
+        if not success:
+            self.connection.close()
+            self.connection = None
         return None if success else "Failed to initialize commutator"
 
     async def initialize(self) -> Optional[str]:
-        self.system_clock = modules.SystemClock.find(self.commutator)
+        self.system_clock = modules.SystemClock.find(self.connection.commutator)
         if self.system_clock is None:
             return "Failed to instantiate system clock"
         self._async_tasks.append(
@@ -56,7 +59,7 @@ class User:
             asyncio.create_task(self._monitor_commutator()))
 
         # Export all ships and start monitoring for them
-        for ship in modules.Ship.get_all_ships(self.commutator):
+        for ship in modules.Ship.get_all_ships(self.connection.commutator):
             await self.on_new_ship(ship)
         return None
 
@@ -88,14 +91,14 @@ class User:
 
     async def _monitor_commutator(self):
         while True:
-            async for update in self.commutator.monitoring():
+            async for update in self.connection.commutator.monitoring():
                 if update is None:
                     continue
                 assert isinstance(update, rpc.CommutatorUpdate)
                 if update.module_attached:
                     if update.module_attached.type.startswith("Ship/"):
                         ship = modules.Ship.get_ship_by_name(
-                            commutator=self.commutator,
+                            commutator=self.connection.commutator,
                             name=update.module_attached.name
                         )
                         if ship:

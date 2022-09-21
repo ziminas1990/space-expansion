@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Protocol.pb.h"
 #include <type_traits>
 
 #include <Network/Interfaces.h>
@@ -47,11 +48,15 @@ public:
   {
     checkPair(nConnectionId, frame.tunnelid());
     if (m_pClientSide) {
-      // Handle 'open_tunnel_report' or 'close_ind' messages:
+      // Handle 'open_tunnel_report', 'close_ind' or other messages
+      // that relate to sessions lifecycle.
       if constexpr (std::is_same_v<FrameType, spex::Message>) {
         switch (frame.choice_case()) {
           case spex::Message::kCommutator:
             onCommutatorMessage(nConnectionId, frame.commutator());
+            break;
+          case spex::Message::kRootSession:
+            onRootSessionMessage(nConnectionId, frame.root_session());
             break;
           case spex::Message::kSession:
             onSessionMessage(nConnectionId,
@@ -153,7 +158,17 @@ private:
     }
   }
 
-  void onSessionMessage(uint32_t nConnectionId, 
+  void onRootSessionMessage(uint32_t nConnectionId,
+                            const spex::IRootSession& message)
+  {
+    if (message.choice_case() == spex::IRootSession::kCommutatorSession) {
+      // A new session to the root commutator has been opened
+      const uint32_t nSessionId = message.commutator_session();
+      onNewSession(nSessionId, nConnectionId);
+    }
+  }
+
+  void onSessionMessage(uint32_t nConnectionId,
                         uint32_t nSessionId,
                         const spex::ISessionControl& message)
   {

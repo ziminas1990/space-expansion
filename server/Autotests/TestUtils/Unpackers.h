@@ -18,6 +18,17 @@ struct Unpacker<spex::ISessionControl> {
 };
 
 template<>
+struct Unpacker<spex::IRootSession> {
+  inline static
+  spex::Message::ChoiceCase choice() { return spex::Message::kRootSession; }
+
+  inline static
+  const spex::IRootSession& unpack(const spex::Message& message) {
+    return message.root_session();
+  }
+};
+
+template<>
 struct Unpacker<spex::IAccessPanel> {
   inline static
   spex::Message::ChoiceCase choice() { return spex::Message::kAccessPanel; }

@@ -8,6 +8,7 @@
 #include <Autotests/ClientSDK/Socket.h>
 #include <Autotests/ClientSDK/SyncPipe.h>
 #include <Autotests/ClientSDK/Router.h>
+#include <Autotests/ClientSDK/RootSession.h>
 #include <Autotests/ClientSDK/Modules/ClientAccessPanel.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/ClientSDK/Modules/ClientAdministratorPanel.h>
@@ -33,6 +34,8 @@ public:
 protected:
   virtual config::ApplicationCfg prephareConfiguration();
   virtual bool initialWorldState(YAML::Node& /*state*/) { return false; }
+
+  client::ClientCommutatorPtr openCommutatorSession();
 
   void pauseTime();
   void resumeTime();
@@ -83,7 +86,7 @@ protected:
   client::PlayerSocketPtr      m_pSocket;
   client::RouterPtr            m_pRouter;
   client::ClientAccessPanelPtr m_pAccessPanel;
-  client::ClientCommutatorPtr  m_pRootCommutator;
+  client::RootSessionPtr       m_pRootSession;
 
   // Components to communicate with access panel
   client::PrivilegedSocketPtr   m_pPrivilegedSocket;

@@ -118,15 +118,17 @@ TEST_F(CollectingResourcesArbitratorTests, BreathTest)
         Scenarios::Login()
         .sendLoginRequest("Buffet", "Money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship freighter(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Mule", freighter));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Mule", freighter));
 
   client::Ship hub_1(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Hub#1", hub_1));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Hub#1", hub_1));
 
   client::Ship hub_2(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Hub#2", hub_2));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Hub#2", hub_2));
 }
 
 TEST_F(CollectingResourcesArbitratorTests, DISABLED_SuccessCase)
@@ -137,42 +139,44 @@ TEST_F(CollectingResourcesArbitratorTests, DISABLED_SuccessCase)
         Scenarios::Login()
         .sendLoginRequest("Buffet", "Money")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship freighter(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Mule", freighter));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Mule", freighter));
 
   client::Ship hub_1(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Hub#1", hub_1));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Hub#1", hub_1));
 
   client::Ship hub_2(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Hub#2", hub_2));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Hub#2", hub_2));
 
   spex::IGame::GameOver report;
-  ASSERT_FALSE(m_pRootCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
 
   // Moving mettals to hub_1
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_1, "cargo",
                 world::ResourcesArray().metals(500)));
-  ASSERT_FALSE(m_pRootCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
 
   // Moving silicates to hub_2
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_2, "cargo",
                 world::ResourcesArray().silicates(500)));
-  ASSERT_FALSE(m_pRootCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
 
   // Splitting ice between to hub_1 and hub_2
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_1, "cargo",
                 world::ResourcesArray().ice(250)));
-  ASSERT_FALSE(m_pRootCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_2, "cargo",
                 world::ResourcesArray().ice(250)));
 
   // Expecting to get game_over
-  ASSERT_TRUE(m_pRootCommutator->waitGameOverReport(report));
+  ASSERT_TRUE(pCommutator->waitGameOverReport(report));
   ASSERT_EQ(3, report.leaders().size());
 
   EXPECT_EQ("Buffet", report.leaders(0).player());

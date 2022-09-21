@@ -10,10 +10,14 @@ class EngineTests : public ModulesTestFixture
 
 TEST_F(EngineTests, GetSpecification)
 {
-  Connection connection = Helper::connect(*this, 5);
+  client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
+  ASSERT_TRUE(pRootSession);
+  client::ClientCommutatorPtr pCommutator =
+      Helper::openCommutatorSession(*this, pRootSession);
+  ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -26,10 +30,14 @@ TEST_F(EngineTests, GetSpecification)
 
 TEST_F(EngineTests, SetAndGetThrust)
 {
-  Connection connection = Helper::connect(*this, 5);
+  client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
+  ASSERT_TRUE(pRootSession);
+  client::ClientCommutatorPtr pCommutator =
+      Helper::openCommutatorSession(*this, pRootSession);
+  ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -46,10 +54,14 @@ TEST_F(EngineTests, SetAndGetThrust)
 
 TEST_F(EngineTests, SetThrustExceedsMaxThrust)
 {
-  Connection connection = Helper::connect(*this, 5);
+  client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
+  ASSERT_TRUE(pRootSession);
+  client::ClientCommutatorPtr pCommutator =
+      Helper::openCommutatorSession(*this, pRootSession);
+  ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -68,10 +80,14 @@ TEST_F(EngineTests, SetThrustExceedsMaxThrust)
 
 TEST_F(EngineTests, MovingWithEngine)
 {
-  Connection connection = Helper::connect(*this, 5);
+  client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
+  ASSERT_TRUE(pRootSession);
+  client::ClientCommutatorPtr pCommutator =
+      Helper::openCommutatorSession(*this, pRootSession);
+  ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, connection, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 10000;
   EngineBinding engine = Helper::spawnEngine(
@@ -95,7 +111,7 @@ TEST_F(EngineTests, MovingWithEngine)
     const geometry::Point  currentPosition  = ship.m_pRemote->getPosition();
     const geometry::Vector currentVelocity  = ship.m_pRemote->getVelocity();
     const geometry::Vector dv               = expectedAcc * nBurnTimeSec;
-    const geometry::Point  expectedPosition = 
+    const geometry::Point  expectedPosition =
                                         startPosition + dv * nBurnTimeSec * 0.5;
 
     EXPECT_TRUE(currentPosition.almostEqual(expectedPosition, 0.01));
@@ -112,7 +128,7 @@ TEST_F(EngineTests, MovingWithEngine)
     const double           nTimePassedSec   = timePassedUs / 1000000.0;
     const geometry::Point  currentPosition  = ship.m_pRemote->getPosition();
     const geometry::Vector currentVelocity  = ship.m_pRemote->getVelocity();
-    const geometry::Point  expectedPosition = 
+    const geometry::Point  expectedPosition =
                                      endPosition + endVelocity * nTimePassedSec;
     EXPECT_TRUE(currentPosition.almostEqual(expectedPosition, 0.01));
     EXPECT_TRUE(currentVelocity.almostEqual(endVelocity, 0.01));

@@ -31,7 +31,7 @@ public:
 
   Router::SessionPtr openSession(uint32_t nSlotId);
   bool closeTunnel(Router::SessionPtr pSession);
-  
+
   bool monitoring();
   bool waitMonitoringStatus(spex::ICommutator::Status expected);
   bool waitUpdate(spex::ICommutator::Update& update);

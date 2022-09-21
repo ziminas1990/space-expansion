@@ -116,9 +116,11 @@ TEST_F(ShipyardTests, BreathTest)
         Scenarios::Login()
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", ship));
 
   client::Shipyard shipyard;
   ASSERT_TRUE(client::FindShipyard(ship, shipyard, "shipyard"));
@@ -132,9 +134,11 @@ TEST_F(ShipyardTests, GetSpecification)
         Scenarios::Login()
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship ship(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", ship));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", ship));
 
   client::Shipyard shipyard;
   ASSERT_TRUE(client::FindShipyard(ship, shipyard, "shipyard"));
@@ -154,9 +158,11 @@ TEST_F(ShipyardTests, BindToCargo)
         Scenarios::Login()
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
   ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
@@ -175,9 +181,11 @@ TEST_F(ShipyardTests, BlueprintNotFound)
         Scenarios::Login()
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
   ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
@@ -197,9 +205,11 @@ TEST_F(ShipyardTests, NotBoundToCargo)
         Scenarios::Login()
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
   ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
@@ -217,9 +227,11 @@ TEST_F(ShipyardTests, BuildSuccessCase)
         Scenarios::Login()
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
   ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
@@ -228,7 +240,7 @@ TEST_F(ShipyardTests, BuildSuccessCase)
 
   // Moving to shipyard's cargo all requiered resources:
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   client::Blueprint blueprint;
   ASSERT_EQ(client::BlueprintsStorage::eSuccess,
@@ -254,7 +266,7 @@ TEST_F(ShipyardTests, BuildSuccessCase)
   // Connecting to ship, that has been built
   client::Ship drone(m_pRouter);
   {
-    client::Router::SessionPtr pTunnel = m_pRootCommutator->openSession(nSlotId);
+    client::Router::SessionPtr pTunnel = pCommutator->openSession(nSlotId);
     ASSERT_TRUE(pTunnel != nullptr);
     drone.attachToChannel(pTunnel);
   }
@@ -289,9 +301,11 @@ TEST_F(ShipyardTests, BuildFrozen)
         Scenarios::Login()
         .sendLoginRequest("Jack", "Black")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::Ship station(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Sweet Home", station));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
 
   client::Shipyard shipyard;
   ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
@@ -301,7 +315,7 @@ TEST_F(ShipyardTests, BuildFrozen)
   // Moving to shipyard's cargo 40% of total requiered resources (it will be not enough
   // to finish building procedure)
   client::BlueprintsStorage storage;
-  ASSERT_TRUE(client::FindBlueprintStorage(*m_pRootCommutator, storage));
+  ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   client::Blueprint blueprint;
   ASSERT_EQ(client::BlueprintsStorage::eSuccess,

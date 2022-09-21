@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "Network/Fwd.h"
 #include <Utils/YamlReader.h>
 #include <Utils/StringUtils.h>
 #include <yaml-cpp/yaml.h>
@@ -17,21 +18,84 @@
 namespace world
 {
 
+class RootSession : public network::IPlayerTerminal  {
+private:
+  network::SessionMuxWeakPtr m_pSessionMuxWeakPtr;
+  modules::CommutatorWeakPtr m_pRootCommutatorWeakPtr;
+
+  // Why do we need mutex here? If two messages are sent in different UDP
+  // connections, they can be handled in different threads. Since
+  // RootSession handles messages immediatelly (it doesn't have any buffers),
+  // races are possible here.
+  utils::Mutex               m_mutex;
+
+public:
+  RootSession(network::SessionMuxPtr pSessionMux,
+              modules::CommutatorPtr pRootCommutator)
+    : m_pSessionMuxWeakPtr(pSessionMux)
+    , m_pRootCommutatorWeakPtr(pRootCommutator)
+  {}
+
+  // Overrides of IPlayerTerminal
+  bool openSession(uint32_t) override { return true; }
+
+  void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override {
+    if (message.choice_case() == spex::Message::kRootSession) {
+      switch(message.root_session().choice_case()) {
+        case spex::IRootSession::kNewCommutatorSession: {
+          open_commutator_session(nSessionId);
+          return;
+        }
+        default: {
+          return;
+        }
+      }
+    }
+  }
+
+  void onSessionClosed(uint32_t) override {}
+  void attachToChannel(network::IPlayerChannelPtr) override {
+    assert(!"Operation makes no sense: RootSession always uses SessionMux as"
+           " a channel");
+  }
+  void detachFromChannel() override {
+    assert(!"Operation makes no sense");
+  }
+
+private:
+  void open_commutator_session(uint32_t nSessionId)
+  {
+    std::lock_guard<utils::Mutex> guard(m_mutex);
+    network::SessionMuxPtr pSessionMux = m_pSessionMuxWeakPtr.lock();
+    modules::CommutatorPtr pCommutator = m_pRootCommutatorWeakPtr.lock();
+
+    uint32_t nChildSessionId = pSessionMux->createSession(nSessionId,
+                                                          pCommutator);
+
+    spex::Message message;
+    spex::IRootSession* pBody = message.mutable_root_session();
+    pBody->set_commutator_session(nChildSessionId);
+    pSessionMux->asChannel()->send(nSessionId, std::move(message));
+  }
+};
+
+
 Player::Player(std::string&& sLogin,
                blueprints::BlueprintsLibrary&& blueprints)
   : m_sLogin(std::move(sLogin)),
-    m_pSesionMux(std::make_shared<network::SessionMux>()),
-    m_pEntryPoint(std::make_shared<modules::Commutator>(m_pSesionMux)),
+    m_pSessionMux(std::make_shared<network::SessionMux>()),
+    m_pRootCommutator(std::make_shared<modules::Commutator>(m_pSessionMux)),
+    m_pRootSession(std::make_shared<RootSession>(m_pSessionMux, m_pRootCommutator)),
     m_blueprints(std::move(blueprints))
 {
-  m_linker.link(m_pSesionMux, m_pEntryPoint);
+  m_linker.link(m_pSessionMux, m_pRootCommutator);
 }
 
 PlayerPtr Player::load(
     std::string sLogin,
     blueprints::BlueprintsLibrary blueprints,
     YAML::Node const& state)
-{ 
+{
   // Can't use 'std::make_shared' here since Player's constructor is private
   PlayerPtr pPlayer =
       std::shared_ptr<Player>(
@@ -48,9 +112,9 @@ PlayerPtr Player::load(
       std::make_shared<modules::BlueprintsStorage>(pPlayer);
 
   pPlayer->m_linker.attachModule(
-    pPlayer->m_pEntryPoint, pPlayer->m_pSystemClock);
+    pPlayer->m_pRootCommutator, pPlayer->m_pSystemClock);
   pPlayer->m_linker.attachModule(
-    pPlayer->m_pEntryPoint, pPlayer->m_pBlueprintsExplorer);
+    pPlayer->m_pRootCommutator, pPlayer->m_pBlueprintsExplorer);
 
   YAML::Node const& shipsState = state["ships"];
   if (!shipsState.IsDefined()) {
@@ -84,7 +148,7 @@ PlayerPtr Player::load(
       assert("Failed to load ship" == nullptr);
       return PlayerPtr();
     }
-    pPlayer->m_pEntryPoint->attachModule(std::move(pShip));
+    pPlayer->m_pRootCommutator->attachModule(std::move(pShip));
   }
 
   return pPlayer;
@@ -99,7 +163,9 @@ PlayerPtr Player::makeDummy(std::string sLogin)
 
 uint32_t Player::onNewConnection(uint32_t nConnectionId)
 {
-  return m_pSesionMux->addConnection(nConnectionId, m_pEntryPoint);
+  // Each UDP connection starts with a root session, that is attached to
+  // 'RootSession' handler.
+  return m_pSessionMux->addConnection(nConnectionId, m_pRootSession);
 }
 
 void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)
@@ -107,7 +173,7 @@ void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)
   m_pUdpChannel = pSocket;
   if (!m_pProtobufChannel) {
     m_pProtobufChannel = std::make_shared<network::PlayerChannel>();
-    m_linker.link(m_pProtobufChannel, m_pSesionMux->asTerminal());
+    m_linker.link(m_pProtobufChannel, m_pSessionMux->asTerminal());
   }
   m_linker.link(m_pUdpChannel, m_pProtobufChannel);
 }

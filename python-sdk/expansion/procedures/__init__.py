@@ -1,4 +1,4 @@
-from expansion.procedures.login import login
+from expansion.procedures.login import login, Connection
 from expansion.procedures.navigation import (
     FlightPlan,
     prepare_flight_plan,

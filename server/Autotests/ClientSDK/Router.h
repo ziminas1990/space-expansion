@@ -14,7 +14,7 @@ public:
   class Session : public PlayerPipe
   {
   public:
-    Session(uint32_t nSessionId) 
+    Session(uint32_t nSessionId)
       : PlayerPipe()
       , m_nSessionId(nSessionId)
     {}

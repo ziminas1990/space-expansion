@@ -74,7 +74,7 @@ void ProtobufChannel<FrameType>::onMessageReceived(
 
 #ifdef PRINT_MESSAGES
     // if (utils::isPlayerMessage(pdu) && !utils::isHeartbeat(pdu)) {
-    //   std::cerr << "Received in #" << nSessionId << ":\n" << pdu.DebugString() 
+    //   std::cerr << "Received in #" << nSessionId << ":\n" << pdu.DebugString()
     //   << std::endl;
     // }
 #endif
@@ -98,7 +98,7 @@ bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType&& message)
 
 #ifdef PRINT_MESSAGES
   // if (utils::isPlayerMessage(message) && !utils::isHeartbeat(message)) {
-  //   std::cerr << "Sending in #" << nSessionId << ":\n" 
+  //   std::cerr << "Sending in #" << nSessionId << ":\n"
   //             << message.DebugString() << std::endl;
   // }
 #endif

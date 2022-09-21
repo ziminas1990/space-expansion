@@ -68,9 +68,11 @@ TEST_F(NavigationTests, SimpleTest)
         Scenarios::Login()
         .sendLoginRequest("test", "test")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Experimental", *pShip));
 
   client::Navigation navigation(pShip);
   ASSERT_TRUE(navigation.initialize());
@@ -89,9 +91,11 @@ TEST_F(NavigationTests, SeveralPoints)
         Scenarios::Login()
         .sendLoginRequest("test", "test")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Experimental", *pShip));
 
   client::Navigation navigation(pShip);
   ASSERT_TRUE(navigation.initialize());
@@ -118,9 +122,11 @@ TEST_F(NavigationTests, OnMoving)
         Scenarios::Login()
         .sendLoginRequest("test", "test")
         .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
 
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
-  ASSERT_TRUE(client::attachToShip(m_pRootCommutator, "Experimental", *pShip));
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Experimental", *pShip));
 
   client::Engine engine;
   engine.attachToChannel(pShip->openSession(0));

@@ -7,8 +7,9 @@ class SessionsMux(Terminal):
     def __init__(self, trace_mode=False, *args, **kwargs):
         super().__init__("Router", trace_mode, *args, **kwargs)
         self.sessions: Dict[int, Session] = {}
-        self.channel: Optional[Channel] = None
 
+    # Create a new Session instance for a session, specified by 'session_id'.
+    # Session should use the specified 'channel' to send messages
     def on_session_opened(self, session_id: int,
                           channel: Channel = None) -> Channel:
         # Note: session object is not attached to the terminal yet, it should
@@ -42,7 +43,7 @@ class SessionsMux(Terminal):
                     self.on_session_opened(
                         session_id=message.commutator.open_tunnel_report,
                         channel=session.channel)
-            if message.WhichOneof("choice") == "session":
+            elif message.WhichOneof("choice") == "session":
                 if message.session.WhichOneof("choice") == "closed_ind":
                     session.on_channel_closed()
                     self.sessions.pop(session.session_id)

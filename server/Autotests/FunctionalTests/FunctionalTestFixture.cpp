@@ -1,4 +1,5 @@
 #include "FunctionalTestFixture.h"
+#include "Autotests/ClientSDK/Modules/ClientCommutator.h"
 #include "Scenarios.h"
 
 #include <yaml-cpp/yaml.h>
@@ -40,7 +41,7 @@ void FunctionalTestFixture::SetUp()
   m_pSocket         = std::make_shared<client::PlayerSocket>(m_IoService, m_clientAddress);
   m_pRouter         = std::make_shared<client::Router>();
   m_pAccessPanel    = std::make_shared<client::ClientAccessPanel>();
-  m_pRootCommutator = std::make_shared<client::ClientCommutator>(m_pRouter);
+  m_pRootSession    = std::make_shared<client::RootSession>();
 
   m_pPrivilegedSocket = std::make_shared<client::PrivilegedSocket>(m_IoService,
                                                                    m_adminAddress);
@@ -90,7 +91,7 @@ void FunctionalTestFixture::TearDown()
 
   m_pRouter->detachDownlevel();
   m_pAccessPanel->detachChannel();
-  m_pRootCommutator->detachChannel();
+  m_pRootSession->detachChannel();
   m_pPrivilegedPipe->detachDownlevel();
   m_pAdminPanel->detachChannel();
 
@@ -120,6 +121,28 @@ config::ApplicationCfg FunctionalTestFixture::prephareConfiguration()
         .setPort(4372)
         .setLogin("god")
         .setPassord("god"));
+}
+
+client::ClientCommutatorPtr FunctionalTestFixture::openCommutatorSession()
+{
+  if (!m_pRootSession) {
+    return nullptr;
+  }
+
+  uint32_t nSessionId;
+  if (!m_pRootSession->openCommutatorSession(nSessionId)) {
+    return nullptr;
+  }
+
+  client::Router::SessionPtr pChannel = m_pRouter->openSession(nSessionId);
+  if (!pChannel) {
+    return nullptr;
+  }
+
+  client::ClientCommutatorPtr pCommutator =
+    std::make_shared<client::ClientCommutator>(m_pRouter);
+  pCommutator->attachToChannel(pChannel);
+  return pCommutator;
 }
 
 void FunctionalTestFixture::pauseTime()

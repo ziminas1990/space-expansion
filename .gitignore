@@ -5,3 +5,4 @@ CMakeLists.txt.user
 /web-client/static/*.js
 /**/build/
 /**/.vscode/
+/server/.cache/

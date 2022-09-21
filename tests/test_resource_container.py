@@ -72,7 +72,9 @@ class TestCase(BaseTestFixture):
     async def test_get_content(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -91,7 +93,9 @@ class TestCase(BaseTestFixture):
     async def test_open_close_port(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -136,7 +140,9 @@ class TestCase(BaseTestFixture):
     async def test_transfer_success_case(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -185,7 +191,9 @@ class TestCase(BaseTestFixture):
     async def test_transfer_fails_cases(self):
         await self.system_clock_fast_forward(speed_multiplier=25)
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
@@ -219,7 +227,9 @@ class TestCase(BaseTestFixture):
     async def test_transfer_monitoring(self):
         await self.system_clock_fast_forward(speed_multiplier=10)
 
-        commutator, error = await self.login('player', "127.0.0.1")
+        connection, error = await self.login('player', "127.0.0.1")
+        self.assertIsNotNone(connection)
+        commutator = connection.commutator
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
