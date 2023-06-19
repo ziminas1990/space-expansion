@@ -121,3 +121,4 @@ export PATH=$PATH:$SPEX_BUILD_DIR/bin
 export PYTHONPATH=$SPEX_SOURCE_DIR/python-sdk
 cd $SPEX_SOURCE_DIR/tests
 python -m unittest discover
+```

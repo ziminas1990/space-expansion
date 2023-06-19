@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <array>
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
 #include <Utils/YamlForwardDeclarations.h>
