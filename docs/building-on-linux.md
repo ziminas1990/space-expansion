@@ -76,7 +76,7 @@ This means, that a gcc9 compiler will be used to build dependencies in Release 6
 Preparing to build:
 ```bash
 # Clone the sources and swtich to stable branch
-git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
+git clone git@github.com:ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
 cd $SPEX_SOURCE_DIR
 git checkout stable
 # Create build directory and move into it

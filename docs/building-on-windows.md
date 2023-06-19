@@ -80,7 +80,7 @@ $SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
 
 Clone the server's sources and run Conan to install all required dependencies:
 ```powershell
-git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
+git clone git@github.com:ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
 mkdir $SPEX_BUILD_DIR
 conan install $SPEX_SOURCE_DIR/server/conanfile.txt --output-folder=$SPEX_BUILD_DIR --build=missing
 ```
