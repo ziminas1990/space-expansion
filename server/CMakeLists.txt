@@ -18,33 +18,21 @@ if (build-debug)
   set(CMAKE_BUILD_TYPE Debug)
 endif ()
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
+find_package(ZLIB REQUIRED)
+find_package(protobuf REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(GTest REQUIRED)
+find_package(Boost REQUIRED)
 
-#=========================================================================================
-# Generating protobuf sources:
-# Have no idea how to run protobuf compiler in a proper way. So, here is a hack: just
-# get path to compiler and run the compiler manually.
-set(PROTOBUF_COMPILER ${CONAN_BIN_DIRS_PROTOBUF}/protoc)
-
-set(PROTOBUF_FILES   "CommonTypes.proto" "Protocol.proto" "Privileged.proto")
-set(PROTOBUF_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/CommonTypes.pb.cc"
-                    "${CMAKE_CURRENT_BINARY_DIR}/CommonTypes.pb.h"
-                    "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.cc"
-                    "${CMAKE_CURRENT_BINARY_DIR}/Protocol.pb.h"
-                    "${CMAKE_CURRENT_BINARY_DIR}/Privileged.pb.cc"
-                    "${CMAKE_CURRENT_BINARY_DIR}/Privileged.pb.h")
-add_custom_command(
-  OUTPUT ${PROTOBUF_OUTPUT}
-  COMMAND ${PROTOBUF_COMPILER} ${PROTOBUF_FILES} --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  VERBATIM USES_TERMINAL)
-add_custom_target(protobuf-generated DEPENDS ${PROTOBUF_OUTPUT})
+set(ALL_DEPENDENCIES ZLIB::ZLIB boost::boost protobuf::protobuf yaml-cpp gtest::gtest)
 
 #=========================================================================================
 # Creating Protocol libarary target:
-add_library(Protocol ${PROTOBUF_OUTPUT})
-add_dependencies(Protocol protobuf-generated)
+
+set(PROTOBUF_FILES "CommonTypes.proto" "Protocol.proto" "Privileged.proto")
+protobuf_generate_cpp(PROTOBUF_CPP_FILES PROTOBUF_H_FILES ${PROTOBUF_FILES})
+
+add_library(Protocol ${PROTOBUF_CPP_FILES} ${PROTOBUF_H_FILES})
 target_include_directories(Protocol PUBLIC
   ${CMAKE_CURRENT_BINARY_DIR}
 )
@@ -58,7 +46,7 @@ if (build-32bit)
   set_property(TARGET Protocol APPEND_STRING PROPERTY COMPILE_FLAGS " -m32")
 endif (build-32bit)
 
-target_link_libraries(Protocol CONAN_PKG::protobuf)
+target_link_libraries(Protocol protobuf::protobuf)
 
 #=========================================================================================
 # Creating main target:
@@ -89,6 +77,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
 )
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
@@ -99,8 +88,9 @@ if (UNIX)
     COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra;-Werror=return-type"
   )
 elseif (WIN32)
+  #NOTE: 'WIN32_LEAN_AND_MEAN' is required, otherwise boost.asio will conflict with windows.h
   set_target_properties(${PROJECT_NAME} PROPERTIES
-    COMPILE_OPTIONS "-D_USE_MATH_DEFINES;-D_WIN32_WINNT=0x0601;-DNOMINMAX"
+    COMPILE_OPTIONS "-D_USE_MATH_DEFINES;-D_WIN32_WINNT=0x0601;-DNOMINMAX;-DWIN32_LEAN_AND_MEAN"
   )
 endif ()
 
@@ -127,7 +117,7 @@ if (spinlocks-only)
   target_compile_definitions(${PROJECT_NAME} PRIVATE SPINLOCKS_ONLY_MODE)
 endif()
 
-target_link_libraries(${PROJECT_NAME} Protocol ${CONAN_TARGETS})
+target_link_libraries(${PROJECT_NAME} Protocol ${ALL_DEPENDENCIES})
 
 #=========================================================================================
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

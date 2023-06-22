@@ -2,13 +2,14 @@
 Windows is not a target platform for this project, but it is possible to build space-expansion on windows. This guide describes how to build space-expansion server on windows 10. Probably, you may use it to build server on windows 7 or 8 too.
 
 ## Installing required tools
-1. Install **Build Tools for Visual Studio 2019** from [this page](https://visualstudio.microsoft.com/ru/downloads/) or use this [direct link](https://visualstudio.microsoft.com/ru/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16); 
-2. Install [CMake](https://cmake.org/download/);
-   It will be better, if you select the "Add CMake to system path" option during the installation process;
-3. Install [Python](https://www.python.org/downloads/);
-   It would be better if you select the "Add Python3.8 to PATH" option during the installation process.
-4. install [Git](https://git-scm.com/)
-5. install Conan packet manager (see below)
+1. Install **Build Tools for Visual Studio 2022** from [this page](https://visualstudio.microsoft.com/ru/downloads/)
+2. ~~Install **LLVM** for windows from this page: [LLVM Download](https://releases.llvm.org/download.html)~~
+3. Install [CMake](https://cmake.org/download/)
+   It will be better, if you select the "Add CMake to system path" option during the installation process
+4. Install [Python](https://www.python.org/downloads/)
+   It would be better if you select the "Add Python3.8 to PATH" option during the installation process
+5. install [Git](https://git-scm.com/)
+6. install Conan packet manager (see below)
 
 After all this packages are installed, make sure that you can run them from the command line interface (CLI). To start CLI press **"WIN + R"** and type the **"powershell"** command.
 
@@ -50,54 +51,20 @@ Conan version 1.23.0
 ```
 
 ## Prepharing conan
-Set up additinal remotes:
-```
-conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan
-```
-
-Open your `conan.conf` file:
-```
-notepad.exe $HOME/.conan/conan.conf
-```
-and add `revisions_enabled=1` in the `[general]` section (see ["How to activate the revisions"](https://docs.conan.io/en/latest/versioning/revisions.html#how-to-activate-the-revisions)). It is required by `bincrafters` remote.
-
-### Optional
-This step can be skipped, but it can be usefull if you encountered some error and trying to figure out what was wrong.
-Conan profile specifies, which compiler, bitness, options and other significant parameters will be used to build dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
-
 If you have already run conan, you may want to remove the conan cache first. It can be done with the following command:
-```
+```powershell
 Remove-Item –path $HOME/.conan –recurse
 ```
+
 Now, let's create default profile:
-```
-conan profile new default --detect
+```powershell
+conan profile detect
 
-Found Visual Studio 16
-Profile created with detected settings: C:\Users\zimin\.conan\profiles\default
+Found msvc 17
 ```
-In this case, conan detect only Visual Studio 16 compiler. If you have installed other compilers, conan may find them too. Now let's take a look at profile:
-```
-notepad.exe $HOME/.conan/profiles/default
-```
+This will create a `default` conan profile at `$HOME/.conan/profiles/default`. As you may see, by default Conan is going to use MSVC.
 
-You may see the following lines:
-```
-[settings]
-os=Windows
-os_build=Windows
-arch=x86_64
-arch_build=x86_64
-compiler=Visual Studio
-compiler.version=16
-build_type=Release
-[options]
-[build_requires]
-[env]
-```
-This means, that Visual Studio compiler will be used (version 16) to build dependencies in Release 64-bit mode. That is what we need. Server should also be built with the same compiler, bitness and build type (Release).
-
-**In general**, if you have some error and suspect that it is because something wrong with conan, you can clear conan cache, check conan profiile and rebuild all dependencies again
+**In general**, if you have some error and suspect that it is because something wrong with conan, you can clear conan cache, check conan profile and rebuild all dependencies again.
 
 ## Building server
 Let's assume, that you have the following powershell variables:
@@ -111,29 +78,17 @@ $SPEX_SOURCE_DIR="$HOME\Projects\space-expansion"
 $SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
 ```
 
-Clone the server's sources and switch to stable branch
+Clone the server's sources and run Conan to install all required dependencies:
 ```powershell
-git clone https://github.com/ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
-cd $SPEX_SOURCE_DIR
-git checkout stable
-```
-
-Create build directory and move into it:
-```
+git clone git@github.com:ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
 mkdir $SPEX_BUILD_DIR
-cd $SPEX_BUILD_DIR
+conan install $SPEX_SOURCE_DIR/server/conanfile.txt --output-folder=$SPEX_BUILD_DIR --build=missing
 ```
-
-Run conan to build all required dependencies:
-```powershell
-conan install $SPEX_SOURCE_DIR/server/conanfile.txt --build=missing
-```
-**Hint:** after you have run conan, you may want to check if it used proper compiler and build configuration. Please, refer to "Conan profile" for details.
 
 Start building with cmake:
-```
-cmake $SPEX_SOURCE_DIR/server
-cmake --build . --config Release
+```powershell
+cmake -S $SPEX_SOURCE_DIR/server -B $SPEX_BUILD_DIR --preset conan-default
+cmake --build $SPEX_BUILD_DIR --config Release
 ```
 
 # Troubleshooting
@@ -169,15 +124,15 @@ Scripts\Activate
 
 Install required dependencies:
 ```
-pip install pyyaml protobuf==3.9.1
+pip install pyyaml protobuf==3.20.0
 ```
-**NOTE:** please, make sure that protobuf package version matches the protobuf version, specified in `conanfile.txt` ($SPEX_SOURCE_DIR/server/conanfile.txt)!
+**NOTE:** please, make sure that protobuf package version matches (or close to) the protobuf version, specified in `conanfile.txt` ($SPEX_SOURCE_DIR/server/conanfile.txt)!
 
 # Run integration tests
 Set up environment:
 ```
 $env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk"
-$env:SPEX_SERVER_BINARY="$SPEX_BUILD_DIR\bin\space-expansion-server.exe"
+$env:SPEX_SERVER_BINARY="$SPEX_BUILD_DIR\Release\space-expansion-server.exe"
 ```
 **Note:** please, make sure that `$env:SPEX_SERVER_BINARY` contains real binary path.
 
