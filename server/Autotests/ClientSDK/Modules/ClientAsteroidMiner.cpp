@@ -25,6 +25,7 @@ static AsteroidMiner::Status convert(spex::IAsteroidMiner::Status eStatus) {
       return AsteroidMiner::eInterruptedByUser;
     default:
       assert(nullptr == "Unexpected status");
+      return AsteroidMiner::eServerError;
   }
 }
 

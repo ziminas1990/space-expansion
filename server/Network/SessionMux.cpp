@@ -346,6 +346,7 @@ bool SessionMux::isRootSession(const Session& session) const
         && connection.getRootSession() == session.sessionId();
   }
   assert(!"Invalid session id");
+  return false;
 }
 
 bool SessionMuxManager::prephare(uint16_t, uint32_t, uint64_t now)

@@ -19,10 +19,10 @@ if (build-debug)
 endif ()
 
 find_package(ZLIB REQUIRED)
-find_package(BOOST REQUIRED)
 find_package(protobuf REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(gtest REQUIRED)
+find_package(GTest REQUIRED)
+find_package(Boost REQUIRED)
 
 set(ALL_DEPENDENCIES ZLIB::ZLIB boost::boost protobuf::protobuf yaml-cpp gtest::gtest)
 
