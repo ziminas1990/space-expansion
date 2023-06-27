@@ -58,7 +58,7 @@ You should get a table with `pip.exe`, placed in you $DEMO_CLIENT_VENV subfolder
 
 Install the following required packages:
 ```
-pip install protobuf==3.9.1 pyqt5
+pip install protobuf==3.20.3 pyqt5
 ```
 
 ## Run the client

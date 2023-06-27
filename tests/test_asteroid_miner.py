@@ -203,7 +203,7 @@ class TestCase(BaseTestFixture):
             return collected_resources[ResourceType.e_METALS] < 1000
 
         # Mining an asteroid
-        await self.system_clock_fast_forward(speed_multiplier=500)
+        await self.system_clock_fast_forward(speed_multiplier=1000, granularity_us=10000)
         status = await miner.start_mining(asteroid_id=asteroid.object_id,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.SUCCESS, status)
@@ -316,7 +316,7 @@ class TestCase(BaseTestFixture):
             return True
 
         # This will take a long time
-        await self.system_clock_fast_forward(1000)
+        await self.system_clock_fast_forward(speed_multiplier=1000, granularity_us=10000)
         status = await miner.start_mining(asteroid_id=asteroid.object_id,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.NO_SPACE_AVAILABLE, status)

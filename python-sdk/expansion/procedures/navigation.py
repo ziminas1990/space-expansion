@@ -626,5 +626,5 @@ async def follow_flight_plan(
 
     # Waiting last maneuver to finish
     if plan.maneuvers:
-        await system_clock.wait_until(time=plan.ends_at(), timeout=0)
+        await system_clock.wait_until(time=plan.ends_at())
     return True

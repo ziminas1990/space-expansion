@@ -36,6 +36,13 @@ public:
   uint64_t now() const { return m_inGameTimeUs; }
     // Return ingame time (not real time!)
 
+  // Real time (microsecnds) elapsed since game has started
+  uint64_t running_time() const {
+    const auto now = std::chrono::high_resolution_clock::now();
+    return static_cast<uint64_t>(
+      std::chrono::duration_cast<std::chrono::microseconds>(now - m_startedAt).count());
+  }
+
   uint32_t getNextInterval();
     // Return interval to proceed game logic
 
@@ -93,6 +100,11 @@ public:
 
   static uint64_t now() {
     return g_pGlobalClock ? g_pGlobalClock->now() : 0;
+  }
+
+  // Real time (microsecnds) elapsed since game has started
+  static uint64_t running_time() {
+    return g_pGlobalClock ? g_pGlobalClock->running_time() : 0;
   }
 };
 

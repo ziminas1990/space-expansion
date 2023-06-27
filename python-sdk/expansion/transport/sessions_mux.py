@@ -16,7 +16,7 @@ class SessionsMux(Terminal):
         # be done by client, who has just opened a session.
         assert(session_id not in self.sessions)
         session = Session(session_id=session_id,
-                          name=self.get_name(),
+                          name=f"session_{session_id}",
                           trace_mode=self.trace_mode())
         session.attach_channel(channel)
         self.sessions.update({

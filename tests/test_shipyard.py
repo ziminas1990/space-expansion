@@ -196,7 +196,7 @@ class TestCase(BaseTestFixture):
         delta = 0.001
         for i in range(1, 11):
             # Move to shipyard's container 10% of all required resources
-            await self.system_clock_fast_forward(100, 10000)
+            await self.system_clock_fast_forward(speed_multiplier=50, granularity_us=10000)
             for resource, amount in ship_expenses.resources.items():
                 if resource == ResourceType.e_LABOR:
                     continue

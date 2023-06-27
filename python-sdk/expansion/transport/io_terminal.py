@@ -38,7 +38,7 @@ class IOTerminal(Channel, Terminal):
         when the message was sent."""
         try:
             message, timestamp = \
-                await asyncio.wait_for(self.queue.get(), timeout=timeout)
+                await asyncio.wait_for(self.queue.get(), timeout=timeout if timeout > 0 else None)
             if get_message_field(message, ["session", "closed_ind"]):
                 raise ChannelClosed()
             return message, timestamp

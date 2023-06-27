@@ -29,7 +29,6 @@ class RandomMining(BaseTask):
     # for mining task
     @staticmethod
     def can_use_ship(candidate: "Ship") -> bool:
-        print(f"GREPIT: check if ship {candidate.name} is suitable for mining")
         return candidate.has_modules(
             [modules.ModuleType.RESOURCE_CONTAINER,
              modules.ModuleType.ASTEROID_MINER,
