@@ -43,7 +43,7 @@ export class Scene {
 
   update(items_container: ItemsContainer, now: number) {
     for (let item of items_container.items_stream()) {
-      let item_key = item.strkey()
+      let item_key = item.strkey
       let shape = this.shapes.get(item_key)
       if (shape == undefined) {
         const shape = this.spawn_shape(item)

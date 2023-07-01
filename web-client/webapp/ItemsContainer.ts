@@ -32,6 +32,7 @@ class Position {
 export class Item {
   public item_type: protocol.ItemType
   public id: number
+  public strkey: string
   public position: Position
   public radius: number
   public timestamp: number
@@ -40,6 +41,7 @@ export class Item {
   constructor(item: protocol.Item) {
     this.item_type = item.type;
     this.id        = item.id;
+    this.strkey    = this.item_type + "." + this.id;
     this.position  = Position.makeFrom(item.pos)
     this.radius    = item.radius !== undefined ? item.radius : 10;
     this.timestamp = item.ts;
@@ -49,15 +51,15 @@ export class Item {
     if (item.radius !== undefined) {
       this.radius = item.radius
     }
+    const dt_sec = (item.ts - this.timestamp) / 10**6
     this.position.x = item.pos[0];
     this.position.y = item.pos[1];
-    this.position.ax = (item.pos[2] - this.position.vx)/(item.ts - this.timestamp);
-    this.position.ay = (item.pos[3] - this.position.vy)/(item.ts - this.timestamp);
+    this.position.ax = (item.pos[2] - this.position.vx) / dt_sec;
+    this.position.ay = (item.pos[3] - this.position.vy) / dt_sec;
+    console.log(JSON.stringify(this.position))
+    this.position.vx = item.pos[2];
+    this.position.vy = item.pos[3];
     this.timestamp = item.ts;
-  }
-
-  strkey() {
-    return this.item_type + "." + this.id;
   }
 
   predict_xy_position(at: number): {x: number, y: number} {

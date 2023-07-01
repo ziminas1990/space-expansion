@@ -73,22 +73,22 @@ pip install quart protobuf==3.20.3 flask-login
 ```
 
 ## Run the server
-### Prepare your powershell session
-If you have just run a new PowerShell session, don't forget to [set variables](#configure-your-pathes).
 
 ```powershell
+# Configure paths
+$PROJECTS_DIR="$HOME\Projects"
+$MONOREPO="$PROJECTS_DIR\space-expansion"
+$WEB_CLIENT_VENV="$PROJECTS_DIR\python-venv\web-client-venv"
+
 # Activate the enviroment, if it is not activated yet
 cd $WEB_CLIENT_VENV
 Scripts\Activate
 # Configure PYTHONPATH
 $env:PYTHONPATH="$MONOREPO\python-sdk"
 
+# Run the quart app
 cd $MONOREPO\web-client
 $env:QUART_APP="space-assistant"
-```
-
-### Run the quart
-```powershell
 quart run --host 0.0.0.0
 ```
 
@@ -100,3 +100,28 @@ INFO:quart.serving:Running on http://0.0.0.0:5000 (CTRL + C to quit)
 It means that quart is receiving incoming HTTP requests at 5000 port.
 
 To connect to the server open [localhost:5000](http://localhost:5000) in your browser.
+
+
+## Rebuild and run as single script
+```
+# Configure paths
+$PROJECTS_DIR="$HOME\Projects"
+$MONOREPO="$PROJECTS_DIR\space-expansion"
+$WEB_CLIENT_VENV="$PROJECTS_DIR\python-venv\web-client-venv"
+
+# Activate the enviroment, if it is not activated yet
+cd $WEB_CLIENT_VENV
+Scripts\Activate
+# Configure PYTHONPATH
+$env:PYTHONPATH="$MONOREPO\python-sdk"
+
+# Rebuild app
+cd $MONOREPO\web-client\webapp
+npm install
+npm run build_dev  # or 'npm run build' for production build
+
+# Run the quart app
+cd $MONOREPO\web-client
+$env:QUART_APP="space-assistant"
+quart run --host 0.0.0.0
+```
