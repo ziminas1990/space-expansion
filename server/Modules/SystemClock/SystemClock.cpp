@@ -19,7 +19,7 @@ void SystemClock::proceed(uint32_t)
     if (!m_rings.back().isValid()) {
       m_rings.pop_back();
     } else if (m_rings.back().nWhen <= now) {
-      sendRing(m_rings.back().nSessionId, now);
+      sendRing(m_rings.back().nSessionId, utils::GlobalClock::running_time());
       m_rings.pop_back();
     } else {
       break;
@@ -92,7 +92,8 @@ void SystemClock::sendTime(uint32_t nSessionId)
 {
   spex::Message message;
   spex::ISystemClock* body = message.mutable_system_clock();
-  body->set_time(utils::GlobalClock::now());
+  body->set_time(utils::GlobalClock::running_time());
+  // NOTE: ingame-time will be set into message timestamp (by SessionMux::send())
   sendToClient(nSessionId, std::move(message));
 }
 

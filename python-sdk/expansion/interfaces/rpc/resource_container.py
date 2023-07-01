@@ -186,6 +186,8 @@ class ResourceContainerI(IOTerminal):
         # Status is success. Waiting for reports
         while True:
             response, _ = await self.wait_message(timeout=2)
+            if not response:
+                return ResourceContainerI.Status.RESPONSE_TIMEOUT
             report = api.get_message_field(response, ["resource_container", "transfer_report"])
             if not report:
                 # May be complete status is received:

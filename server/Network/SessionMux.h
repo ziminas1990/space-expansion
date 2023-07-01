@@ -27,9 +27,9 @@ private:
 
     bool                  m_lUp = false;
     std::vector<uint32_t> m_sessions;
-    // When was the last valid message received from client?
+    // When was the last valid message received from client (real time)?
     uint64_t m_nLastMessageReceivedAt = 0;
-    // WHen was the last heartbeat sent?
+    // When was the last heartbeat sent (real time)?
     uint64_t m_nLastHeartbeatSentAt   = 0;
 
     bool isOpened() const { return m_lUp; }
@@ -46,10 +46,10 @@ private:
       m_nLastHeartbeatSentAt = 0;
     }
 
-    bool isTimeToSendHeartbeat(uint64_t now) const {
+    bool isTimeToSendHeartbeat(uint64_t real_now) const {
       constexpr uint64_t heartbeatTimeoutUs  = 400000; // 400ms
-      return heartbeatTimeoutUs <= (now - m_nLastMessageReceivedAt)
-          && heartbeatTimeoutUs <= (now - m_nLastHeartbeatSentAt);
+      return heartbeatTimeoutUs <= (real_now - m_nLastMessageReceivedAt)
+          && heartbeatTimeoutUs <= (real_now - m_nLastHeartbeatSentAt);
     }
   };
 

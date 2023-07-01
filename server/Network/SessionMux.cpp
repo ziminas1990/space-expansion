@@ -44,6 +44,8 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
   // No need to lock anything here
   const uint32_t nSessionId = message.tunnelid();
 
+  //std::cerr << "Received in " << nSessionId << ": " << message.DebugString() << std::endl;
+
   if (message.choice_case() != spex::Message::kSession) {  // [[likely]]
     const uint32_t nSessionIndex = nSessionId >> 16;
     if (nSessionId && nSessionIndex < m_pOwner->m_sessions.size()) {
@@ -62,7 +64,7 @@ void SessionMux::Socket::onMessageReceived(uint32_t nConnectionId,
   }
 
   Connection& connection = m_pOwner->m_connections[nConnectionId];
-  connection.m_nLastMessageReceivedAt = utils::GlobalClock::now();
+  connection.m_nLastMessageReceivedAt = utils::GlobalClock::running_time();
 }
 
 void SessionMux::Socket::onSessionClosed(uint32_t nConnectionId)
@@ -88,6 +90,8 @@ bool SessionMux::Socket::send(uint32_t nSessionId, spex::Message&& message)
   const uint16_t nSessionIdx = nSessionId >> 16;
   message.set_tunnelid(nSessionId);
   message.set_timestamp(utils::GlobalClock::now());
+  //std::cerr << "Sending in " << nSessionId << ": " << message.DebugString() << std::endl;
+
   if (nSessionIdx < m_pOwner->m_sessions.size()) {
     const Session& session = m_pOwner->m_sessions[nSessionIdx];
     return session.isValid()
@@ -150,8 +154,8 @@ uint32_t SessionMux::addConnection(uint32_t           nConnectionId,
     const uint32_t nSessionId = m_sessions.back().sessionId();
     connection.m_sessions.push_back(nSessionId);
     connection.m_lUp = true;
-    connection.m_nLastMessageReceivedAt = utils::GlobalClock::now();
-    connection.m_nLastHeartbeatSentAt   = utils::GlobalClock::now();
+    connection.m_nLastMessageReceivedAt = utils::GlobalClock::running_time();
+    connection.m_nLastHeartbeatSentAt   = utils::GlobalClock::running_time();
     return nSessionId;
   }
   assert(!"Invalid connection id");
@@ -236,9 +240,10 @@ bool SessionMux::closeSession(uint32_t nSessionId)
   }
 }
 
-void SessionMux::checkConnectionsActivity(uint64_t now)
+void SessionMux::checkConnectionsActivity(uint64_t real_now)
 {
-  constexpr uint64_t disconnectTimeoutUs = 400000 * 3.5; // ~1400 ms
+   // ~1400 ms
+  constexpr uint64_t disconnectTimeoutUs = static_cast<uint64_t>(400000 * 3.5);
 
   const size_t nTotal = m_connections.size();
   for (size_t nConnectionId = 0; nConnectionId < nTotal; ++ nConnectionId) {
@@ -246,16 +251,16 @@ void SessionMux::checkConnectionsActivity(uint64_t now)
     if (!connection.isOpened()) {
       continue;
     }
-    if (connection.isTimeToSendHeartbeat(now)) {
-      const uint64_t nSilencePeriod = now - connection.m_nLastMessageReceivedAt;
+    if (connection.isTimeToSendHeartbeat(real_now)) {
+      const uint64_t nSilencePeriod = real_now - connection.m_nLastMessageReceivedAt;
       if (nSilencePeriod < disconnectTimeoutUs) {  // [[likely]]
         spex::Message heartbeat;
         heartbeat.mutable_session()->set_heartbeat(true);
         m_pSocket->send(connection.getRootSession(), std::move(heartbeat));
-        connection.m_nLastHeartbeatSentAt = now;
+        connection.m_nLastHeartbeatSentAt = real_now;
       } else {
         closeConnection(nConnectionId);
-        // Note: 'connection' reference is invalidated now
+        // Note: 'connection' reference is invalidated real_now
       }
     }
   }
@@ -349,12 +354,18 @@ bool SessionMux::isRootSession(const Session& session) const
   return false;
 }
 
-bool SessionMuxManager::prephare(uint16_t, uint32_t, uint64_t now)
+bool SessionMuxManager::prephare(uint16_t, uint32_t, uint64_t)
 {
   using SessionMuxContainer = utils::GlobalContainer<SessionMux>;
+
+  // NOTE: can't use ingame time for connectivity check, because it may cause problems
+  // in case GlobalClock is in Debug mode and accelerated hundreds of times. In this case
+  // network latency may break connectivity check
+  const uint64_t real_now = utils::GlobalClock::running_time();
+
   for (SessionMux* pSessionMux : SessionMuxContainer::AllInstancies()) {
     if (pSessionMux) {
-      pSessionMux->checkConnectionsActivity(now);
+      pSessionMux->checkConnectionsActivity(real_now);
     }
   }
   return false;  // No need to proceed stage, everything is already done

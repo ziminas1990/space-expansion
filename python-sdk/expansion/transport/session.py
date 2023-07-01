@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any, Optional
 from enum import Enum
+import logging
 
 from expansion.transport import Channel, Terminal
 import expansion.api as api
@@ -18,12 +19,14 @@ class Session(Channel, Terminal):
                  trace_mode: bool = False,
                  *args, **kwargs):
         super().__init__(name, trace_mode, *args, **kwargs)
+        self.session_logger = logging.getLogger(name)
         self.state = Session.State.ACTIVE
         self.session_id = session_id
 
     # Override from Channel
     def send(self, message: Any) -> bool:
         # Just add a tunnel_id
+        #self.session_logger.debug(f"Send: \n{message}")
         message.tunnelId = self.session_id
         return self.channel and self.channel.send(message)
 
@@ -34,6 +37,7 @@ class Session(Channel, Terminal):
                 assert False, f"WARNING: Drop message (no terminal attached):" \
                               f"\n{message}"
             assert self.terminal is not None
+            #self.session_logger.debug(f"Received: \n{message}")
             self.terminal.on_receive(message, timestamp)
 
     def on_channel_closed(self):

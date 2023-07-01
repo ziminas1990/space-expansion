@@ -39,6 +39,8 @@ class TacticalCore:
         if self.system_clock is None:
             self.log.error("SystemClock not found!")
             return False
+        # Should be done on startup
+        await self.system_clock.initial_sync()
 
         self.time_monitoring_task = asyncio.create_task(self.monitor_time())
 

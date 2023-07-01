@@ -53,6 +53,7 @@ class User:
         self.system_clock = modules.SystemClock.find(self.connection.commutator)
         if self.system_clock is None:
             return "Failed to instantiate system clock"
+        await self.system_clock.initial_sync()
         self._async_tasks.append(
             asyncio.create_task(self._monitor_time()))
         self._async_tasks.append(

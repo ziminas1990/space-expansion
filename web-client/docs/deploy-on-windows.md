@@ -48,7 +48,7 @@ npm install
 npm run build_dev  # or 'npm run build' for production build
 ```
 
-## Setup python virtual enviroment
+## Setup python virtual environment
 ```powershell
 py -m venv create $WEB_CLIENT_VENV
 ```
@@ -69,7 +69,7 @@ You should get a table with `pip.exe`, placed in you $WEB_CLIENT_VENV subfolder.
 
 Install the following required packages:
 ```
-pip install quart protobuf==3.9.1 flask-login
+pip install quart protobuf==3.20.3 flask-login
 ```
 
 ## Run the server
@@ -97,6 +97,6 @@ If everything is right, you will see the following line:
 INFO:quart.serving:Running on http://0.0.0.0:5000 (CTRL + C to quit)
 ```
 
-It means that quart is receiving incomming HTTP reuest at 5000 port.
+It means that quart is receiving incoming HTTP requests at 5000 port.
 
 To connect to the server open [localhost:5000](http://localhost:5000) in your browser.
