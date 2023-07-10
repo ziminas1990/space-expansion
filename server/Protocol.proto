@@ -440,6 +440,58 @@ message ISystemClock {
 
 }
 
+message IMessanger {
+
+  message Request {
+    string service    = 1;
+    uint32 seq        = 2;
+    uint32 timeout_ms = 3;
+    string body       = 4;
+  }
+
+  message Response {
+    uint32 seq  = 1;
+    string body = 2;
+  }
+
+  enum Status {
+    SUCCESS          = 0;
+    SERVICE_EXISTS   = 1;
+    NO_SUCH_SERVICE  = 2;
+    TOO_MANY_SERVCES = 3;
+    SESSION_BUSY     = 4;
+    WRONG_SEQ        = 5;
+    CLOSED           = 6;
+  }
+
+  message OpenService {
+    string service_name = 1;
+    bool   force        = 2;
+  }
+
+  message SessionStatus {
+    uint32 seq    = 2;
+    Status status = 1;
+  }
+
+  message ServicesList {
+    repeated string services = 1;
+    uint32          left     = 2;
+  }
+
+  oneof choice {
+    OpenService open_service      = 1;
+    bool        services_list_req = 2;
+    Request     request           = 3;
+
+    Status         open_service_status = 21;
+    ServicesList   services_list       = 22;
+    SessionStatus  session_status     = 23;
+    Response       response            = 24;
+  }
+
+}
+
 message Message {
   uint32 tunnelId  = 1;
   uint64 timestamp = 2;
@@ -462,5 +514,6 @@ message Message {
     IShipyard          shipyard           = 24;
     IGame              game               = 25;
     ISystemClock       system_clock       = 26;
+    IMessanger         messanger          = 27;
   }
 }
