@@ -106,6 +106,7 @@ protected:
   virtual void handleBlueprintsStorageMessage(uint32_t, spex::IBlueprintsLibrary const&) {}
   virtual void handleShipyardMessage(uint32_t, spex::IShipyard const&) {}
   virtual void handleSystemClockMessage(uint32_t, spex::ISystemClock const&) {}
+  virtual void handleMessangerMessage(uint32_t, spex::IMessanger const&) {}
 
   // Will be called once, when module is installed on some ship
   virtual void onInstalled(modules::Ship* /*pPlatform*/) {}
