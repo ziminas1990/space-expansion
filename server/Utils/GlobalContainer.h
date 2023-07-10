@@ -4,7 +4,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "SimplePool.h"
+#include "SimpleIdPool.h"
 #include "Mutex.h"
 #include <World/ObjectTypes.h>
 
@@ -13,7 +13,7 @@
 #define DECLARE_GLOBAL_CONTAINER_CPP(Inheriter) \
   namespace utils { \
   template<> \
-  ThreadSafePool<uint32_t> GlobalContainer<Inheriter>::gIdPool = ThreadSafePool<uint32_t>(); \
+  ThreadSafeIdPool<uint32_t> GlobalContainer<Inheriter>::gIdPool = ThreadSafeIdPool<uint32_t>(); \
   template<> \
   Mutex GlobalContainer<Inheriter>::gMutex = Mutex(); \
   template<> \
@@ -91,7 +91,7 @@ public:
   }
 
 private:
-  static ThreadSafePool<uint32_t> gIdPool;
+  static ThreadSafeIdPool<uint32_t> gIdPool;
     // ObjectIds, that can be reused to new objects
   static Mutex                    gMutex;
   static size_t                   gRegisteredObjectsCounter;

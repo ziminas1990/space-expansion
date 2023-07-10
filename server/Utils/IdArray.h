@@ -6,7 +6,7 @@
 #include <shared_mutex>
 #include <atomic>
 #include <stdint.h>
-#include "SimplePool.h"
+#include "SimpleIdPool.h"
 
 namespace utils
 {
@@ -99,9 +99,9 @@ public:
   }
 
 private:
-  std::vector<IdType>       m_ids;
-  std::atomic_size_t        m_nTotalIds;
-  std::atomic_size_t        m_nNextIndex;
+  std::vector<IdType> m_ids;
+  std::atomic_size_t  m_nTotalIds;
+  std::atomic_size_t  m_nNextIndex;
 };
 
 } // namespace utils

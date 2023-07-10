@@ -4,7 +4,7 @@
 
 #include <atomic>
 #include <Conveyor/IAbstractLogic.h>
-#include <Utils/SimplePool.h>
+#include <Utils/SimpleIdPool.h>
 #include <Utils/Mutex.h>
 #include <Network/Fwd.h>
 
@@ -33,7 +33,7 @@ public:
 private:
   boost::asio::io_service& m_IOContext;
 
-  utils::SimplePool<uint16_t, 0> m_portsPool;
+  utils::SimpleIdPool<uint16_t, 0> m_portsPool;
 
   utils::Mutex       m_Mutex;
 };

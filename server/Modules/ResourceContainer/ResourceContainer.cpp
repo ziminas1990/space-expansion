@@ -15,7 +15,7 @@ namespace modules {
 //==============================================================================
 
 std::mutex                           ResourceContainer::m_portsMutex;
-utils::SimplePool<uint32_t, 0>       ResourceContainer::m_freePortsIds;
+utils::SimpleIdPool<uint32_t, 0>       ResourceContainer::m_freePortsIds;
 std::vector<ResourceContainer::Port> ResourceContainer::m_allPorts =
     std::vector<ResourceContainer::Port>(1024);
 uint32_t                             ResourceContainer::m_nNextSecretKey = 1;

@@ -10,7 +10,7 @@
 #include <Utils/UnorderedVector.h>
 #include <Protocol.pb.h>
 #include <World/Resources.h>
-#include <Utils/SimplePool.h>
+#include <Utils/SimpleIdPool.h>
 
 namespace modules {
 
@@ -130,7 +130,7 @@ private:
 
   // All opened ports
   static std::mutex                     m_portsMutex; // shared_mutex?
-  static utils::SimplePool<uint32_t, 0> m_freePortsIds;
+  static utils::SimpleIdPool<uint32_t, 0> m_freePortsIds;
   static uint32_t                       m_nNextSecretKey;
   static std::vector<Port>              m_allPorts;
 };
