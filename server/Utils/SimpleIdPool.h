@@ -1,8 +1,9 @@
 #pragma once
 
+#include <assert.h>
 #include <mutex>
 #include <stdlib.h>
-#include <set>
+#include <vector>
 
 #include <Utils/Mutex.h>
 
@@ -10,10 +11,10 @@ namespace utils
 {
 
 template<typename IntType, IntType nInvalidValue = IntType(-1)>
-class SimplePool
+class SimpleIdPool
 {
 public:
-  SimplePool(IntType nFirst = IntType(nInvalidValue + 1),
+  SimpleIdPool(IntType nFirst = IntType(nInvalidValue + 1),
              IntType nLast = IntType(nInvalidValue - 1))
     : m_nFirst(nFirst), m_nLast(nLast), m_nNext(nFirst)
   {}
@@ -22,9 +23,9 @@ public:
 
   IntType getNext()
   {
-    if (!m_Avaliable.empty()) {
-      IntType nElement = *m_Avaliable.begin();
-      m_Avaliable.erase(m_Avaliable.begin());
+    if (!m_avaliable.empty()) {
+      const IntType nElement = m_avaliable.back();
+      m_avaliable.pop_back();
       return nElement;
     } else if (m_nNext <= m_nLast) {
       return m_nNext++;
@@ -34,16 +35,11 @@ public:
 
   void release(IntType element)
   {
-    if (element + 1 == m_nNext) {
-      --m_nNext;
-      auto I = m_Avaliable.find(m_nNext - 1);
-      while (I != m_Avaliable.end()) {
-        m_Avaliable.erase(I);
-        --m_nNext;
-        I = m_Avaliable.find(m_nNext - 1);
-      }
+    if (element + 1 < m_nNext) {
+      m_avaliable.push_back(element);
+      drawLastElement();
     } else {
-      m_Avaliable.insert(element);
+      --m_nNext;
     }
   }
 
@@ -51,18 +47,35 @@ public:
   IntType getInvalidValue()   const { return nInvalidValue; }
 
 private:
+  // Move last element of 'm_available' to it's proper position to keep vector
+  // sorted
+  // TODO: replace multiple std::swap calls with a single memmove() call
+  void drawLastElement() {
+    if (m_avaliable.size() >= 2) {
+      for (size_t i = m_avaliable.size() - 1; i > 0; --i) {
+        assert(m_avaliable[i] != m_avaliable[i-1] && "Duplicated id");
+        if (m_avaliable[i - 1] < m_avaliable[i]) {
+          std::swap(m_avaliable[i - 1], m_avaliable[i]);
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+private:
   IntType m_nFirst;
   IntType m_nLast;
   IntType m_nNext;
-  std::set<IntType> m_Avaliable;
+  std::vector<IntType> m_avaliable;
 };
 
 
 template<typename IntType, IntType nInvalidValue = IntType(-1)>
-class ThreadSafePool
+class ThreadSafeIdPool
 {
 public:
-  ThreadSafePool(IntType nFirst = 0, IntType nLast = IntType(nInvalidValue - 1))
+  ThreadSafeIdPool(IntType nFirst = 0, IntType nLast = IntType(nInvalidValue - 1))
     : m_pool(nFirst, nLast)
   {}
 
@@ -84,7 +97,7 @@ public:
 
 private:
   utils::Mutex m_mutex;
-  SimplePool<IntType, nInvalidValue> m_pool;
+  SimpleIdPool<IntType, nInvalidValue> m_pool;
 };
 
 

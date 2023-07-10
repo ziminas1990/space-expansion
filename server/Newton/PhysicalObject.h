@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <vector>
 
-#include <Utils/SimplePool.h>
+#include <Utils/SimpleIdPool.h>
 #include <Utils/Spinlock.h>
 #include <Utils/GlobalContainer.h>
 #include <Geometry/Point.h>
