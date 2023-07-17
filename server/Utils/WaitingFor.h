@@ -10,6 +10,7 @@ namespace utils {
 // If predicate becomes true, function also returns true immediatelly.
 // After nTimeoutMs ms of waiting function will return false.
 // This function will be used only in autotests.
+[[maybe_unused]]
 static bool waitFor(std::function<bool()> predicate,
                     std::function<void()> proceeder,
                     uint16_t nTimeoutMs = 100)
