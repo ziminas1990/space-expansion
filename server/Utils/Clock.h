@@ -33,8 +33,8 @@ class Clock
 public:
   void start(bool lDebugMode = false);
 
+  // Return ingame time (not real time!)
   uint64_t now() const { return m_inGameTimeUs; }
-    // Return ingame time (not real time!)
 
   // Real time (microsecnds) elapsed since game has started
   uint64_t running_time() const {

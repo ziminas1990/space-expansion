@@ -24,7 +24,7 @@ void AdministratorPanel::attachToSystemManager(SystemManager* pSystemManager)
 }
 
 bool AdministratorPanel::prephare(
-    uint16_t nStageId, uint32_t nIntervalUs, uint64_t)
+    [[maybe_unused]]uint16_t nStageId, uint32_t nIntervalUs, uint64_t)
 {
   assert(nStageId == 0);
   handleBufferedMessages();
@@ -77,7 +77,7 @@ void AdministratorPanel::onLoginRequest(
   std::optional<network::UdpEndPoint> clientAddr =
       m_pAdminSocket->getRemoteAddr(nSessionId);
 
-  if (!clientAddr.has_value() 
+  if (!clientAddr.has_value()
       || message.login()    != m_cfg.getLogin()
       || message.password() != m_cfg.getPassword()) {
     sendLoginFailed(nSessionId);
@@ -86,7 +86,7 @@ void AdministratorPanel::onLoginRequest(
   }
 
   const uint64_t nToken = m_tokenGenerator.yield();
-  std::optional<uint32_t> nPersistantSessionId = 
+  std::optional<uint32_t> nPersistantSessionId =
       m_pAdminSocket->createPersistentSession(*clientAddr);
   if (nPersistantSessionId.has_value()) {
     m_tokens[*nPersistantSessionId] = nToken;

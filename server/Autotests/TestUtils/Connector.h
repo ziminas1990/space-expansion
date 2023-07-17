@@ -126,12 +126,12 @@ private:
   void checkPair(uint32_t nConnectionId, uint32_t nSessionId)
   {
     {
-      auto it = m_session2conection.find(nSessionId);
+      [[maybe_unused]] auto it = m_session2conection.find(nSessionId);
       assert(it != m_session2conection.end());
       assert(it->second == nConnectionId);
     }
     {
-      auto it = m_connection2sessions.find(nConnectionId);
+      [[maybe_unused]] auto it = m_connection2sessions.find(nConnectionId);
       assert(it != m_connection2sessions.end());
       assert(it->second.find(nSessionId) != it->second.end());
     }
