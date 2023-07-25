@@ -12,3 +12,4 @@
 #include <Modules/Ship/Ship.h>
 #include <Modules/Shipyard/Shipyard.h>
 #include <Modules/SystemClock/SystemClock.h>
+#include <Modules/Messanger/Messanger.h>

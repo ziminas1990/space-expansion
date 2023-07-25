@@ -10,8 +10,9 @@
 namespace network {
 
 // When subclassing this class, you MUST override:
-// 1. IBinaryTerminal::openSession(sessionId)
-// 2. IBinaryTerminal::onSessionClosed(sessionId)
+// 1. IBinaryTerminal::canOpenSession()
+// 2. IBinaryTerminal::openSession(sessionId)
+// 3. IBinaryTerminal::onSessionClosed(sessionId)
 class BufferedTerminal : public IBinaryTerminal
 {
 public:

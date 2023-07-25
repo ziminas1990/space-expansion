@@ -81,7 +81,11 @@ private:
     bool sendHeartbeat(uint32_t nConnectionId);
 
     // Overrides from IPlayerTerminal
-    bool openSession(uint32_t) override { return true; }
+    // NOTE: SessionMux::Socket is used as 'IPlayerTerminal' by UDP Socket, where
+    // 'sessionId' in an equivalent to SessionMux's 'connectionId'. That is why
+    // we treat it as 'nConnectionId', not 'nSessionId'.
+    bool canOpenSession() const override { return true; }
+    void openSession(uint32_t) override { }
     void onMessageReceived(uint32_t nConnectionId,
                            spex::Message const& message) override;
     void onSessionClosed(uint32_t nConnectionId) override;
@@ -106,13 +110,16 @@ private:
 public:
   SessionMux(uint8_t nConnectionsLimit = 16);
 
+  ~SessionMux();
+
   // Create a new connection and return it's root session id
   uint32_t addConnection(uint32_t nConnectionId, IPlayerTerminalPtr pHandler);
   bool closeConnection(uint32_t nConnectionId);
-  void onConnectionClosed(uint32_t nConnectionId);
+  void markAllConnectionsAsClosed();
 
   uint32_t createSession(uint32_t nParentSessionId,
                          IPlayerTerminalPtr pHandler);
+
   // Close session, specified by 'nSessionId'. If session is a root session
   // of some connection, close a connection and all sessions, related with it.
   bool closeSession(uint32_t nSessionId);
@@ -128,12 +135,20 @@ public:
   virtual size_t getCooldownTimeUs() const { return 100 * 1000; }
 
 private:
+
+  // Session is closed by client (using ISession API)
+  void onSessionClosed(uint32_t nSessionId);
+  void onSessionClosedLocked(uint32_t nSessionId);
+
+  // Connection is closed by client
+  void onConnectionClosed(uint32_t nConnectionId);
+  void onConnectionClosedLocked(uint32_t nConnectionId);
+
   uint16_t occupyIndex();
 
   bool closeConnectionLocked(uint32_t nConnectionId);
 
   bool closeSessionLocked(uint32_t nSessionId);
-  void onSessionClosedLocked(uint32_t nSessionId);
 
   bool isRootSession(const Session& session) const;
 };

@@ -17,7 +17,7 @@ TEST_F(EngineTests, GetSpecification)
   ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -37,7 +37,7 @@ TEST_F(EngineTests, SetAndGetThrust)
   ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -61,7 +61,7 @@ TEST_F(EngineTests, SetThrustExceedsMaxThrust)
   ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -87,7 +87,7 @@ TEST_F(EngineTests, MovingWithEngine)
   ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 10000;
   EngineBinding engine = Helper::spawnEngine(

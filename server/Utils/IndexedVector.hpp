@@ -65,8 +65,6 @@ public:
         return const_cast<typename std::remove_const<decltype(this)>::type>(this)->get(index);
     }
 
-
-
     bool pop(const IndexKey& index, Item& dest) {
         auto it = m_index.find(index);
         if (it != m_index.end()) {
@@ -97,16 +95,24 @@ public:
         return nRemovedCounter;
     }
 
+    bool remove(const IndexKey& key) {
+        auto I = m_index.find(key);
+        if (I != m_index.end()) { // [[likely]]
+            removeItem(I->second);
+            m_index.erase(I);
+            return true;
+        }
+        return false;
+    }
+
 private:
     void removeItem(size_t id) {
         if (id < m_items.size() - 1) {
             std::swap(m_items[id], m_items.back());
-            m_items.pop_back();
             const IndexKey index = m_fHash(m_items[id]);
             m_index[index] = id;
-        } else {
-            m_items.pop_back();
         }
+        m_items.pop_back();
     }
 
 };

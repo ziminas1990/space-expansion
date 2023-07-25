@@ -97,9 +97,9 @@ public:
 
   // Overrides client::IChannel<FrameType>
   bool send(FrameType&& message) override {
-    auto it = m_session2conection.find(message.tunnelid());
-    assert(it != m_session2conection.end());
     if (m_pServiceSide) {
+      auto it = m_session2conection.find(message.tunnelid());
+      assert(it != m_session2conection.end());
       m_pServiceSide->onMessageReceived(it->second, message);
       return true;
     }

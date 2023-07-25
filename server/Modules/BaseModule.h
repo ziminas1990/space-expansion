@@ -21,8 +21,6 @@ class Ship;
 // Each module should inherite BaseModule class
 class BaseModule : public network::BufferedPlayerTerminal
 {
-  static constexpr size_t gSessionsLimit = 64;
-
 private:
   enum class Status {
     eOffline,
@@ -40,15 +38,7 @@ private:
 public:
   BaseModule(std::string sModuleType,
              std::string moduleName,
-             world::PlayerWeakPtr pOwner)
-    : m_sModuleType(std::move(sModuleType)),
-      m_sModuleName(std::move(moduleName)),
-      m_pOwner(std::move(pOwner)),
-      m_eStatus(Status::eOnline),
-      m_eState(State::eIdle)
-  {
-    m_activeSessons.reserve(gSessionsLimit);
-  }
+             world::PlayerWeakPtr pOwner);
 
   virtual bool loadState(YAML::Node const& /*source*/) { return true; }
   virtual void proceed(uint32_t /*nIntervalUs*/) { switchToIdleState(); }
@@ -83,8 +73,11 @@ public:
   // from IProtobufTerminal:
   // By default, there is no reason to reject new session opening and there is
   // nothing to do, when some session has been closed
-  bool openSession(uint32_t nSessionId) override;
+  bool canOpenSession() const override;
+  void openSession(uint32_t nSessionId) override;
   void onSessionClosed(uint32_t nSessionId) override;
+
+  void closeActiveSessions();
   bool hasOpenedSessions() const { return !m_activeSessons.empty(); }
   const std::vector<uint32_t> getOpenedSession() const {
     return m_activeSessons;
@@ -135,7 +128,7 @@ private:
   };
 
 private:
-  utils::Mutex          m_mutex;
+  mutable utils::Mutex  m_mutex;
   std::string           m_sModuleType;
   std::string           m_sModuleName;
   world::PlayerWeakPtr  m_pOwner;

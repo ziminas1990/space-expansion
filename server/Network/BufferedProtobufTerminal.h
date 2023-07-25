@@ -9,9 +9,10 @@
 namespace network {
 
 // When subclassing this class, you MUST override:
-// 1. IProtobufTerminal::openSession(sessionId)
-// 2. IProtobufTerminal::onSessionClosed(sessionId)
-// 3. handleMessage(nSessionId, message)
+// 1. IProtobufTerminal::canOpenSession()
+// 2. IProtobufTerminal::openSession(sessionId)
+// 3. IProtobufTerminal::onSessionClosed(sessionId)
+// 4. handleMessage(nSessionId, message)
 //
 // The `FrameType` parameter specifies type of protobuf message, like
 // `spex::Message` or `admin::Message`
@@ -39,8 +40,9 @@ protected:
   }
 
   void closeSession(uint32_t nSessionId) {
-    if (m_pChannel)
+    if (m_pChannel) {
       m_pChannel->closeSession(nSessionId);
+    }
   }
 
   ChannelPtr getChannel() const { return m_pChannel; }

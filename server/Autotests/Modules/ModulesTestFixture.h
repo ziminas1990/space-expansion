@@ -42,8 +42,6 @@ public:
 
 protected:
 
-  client::ClientCommutatorPtr openNewConnection();
-
   void proceedEnviroment() {
     m_conveyor.proceed(m_clock.getNextInterval());
   }
@@ -67,6 +65,7 @@ protected:
   modules::CommutatorManagerPtr     m_pCommutatorManager;
   modules::EngineManagerPtr         m_pEngineManager;
   modules::PassiveScannerManagerPtr m_pPassiveScannerManager;
+  modules::MessangerManagerPtr      m_pMessangerManager;
 
   std::function<void()>             m_fConveyorProceeder;
 
@@ -78,6 +77,8 @@ protected:
   // Connects client and server side
   PlayerConnectorPtr m_pConnector;
 
+  // Linke MUST be a last member in this class because it should be destroyed before
+  // any other members
   utils::Linker m_linker;
 };
 

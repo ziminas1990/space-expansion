@@ -24,7 +24,8 @@ public:
   // from IBinaryTerminal interface:
   void attachToChannel(IBinaryChannelPtr pChannel) override;
   void detachFromChannel() override;
-  bool openSession(uint32_t nSessionId) override;
+  bool canOpenSession() const override;
+  void openSession(uint32_t nSessionId) override;
   void onMessageReceived(uint32_t nSessionId, BinaryMessage const& message) override;
   void onSessionClosed(uint32_t nSessionId) override;
 
@@ -60,9 +61,19 @@ void ProtobufChannel<FrameType>::detachFromChannel()
 }
 
 template<typename FrameType>
-bool ProtobufChannel<FrameType>::openSession(uint32_t nSessionId)
+bool ProtobufChannel<FrameType>::canOpenSession() const
 {
-  return m_pTerminal && m_pTerminal->openSession(nSessionId);
+  return m_pTerminal && m_pTerminal->canOpenSession();
+}
+
+template<typename FrameType>
+void ProtobufChannel<FrameType>::openSession(uint32_t nSessionId)
+{
+  if (m_pTerminal) {
+    m_pTerminal->openSession(nSessionId);
+  } else {
+    assert(!"No terminal attached");
+  }
 }
 
 template<typename FrameType>

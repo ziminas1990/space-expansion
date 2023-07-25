@@ -21,7 +21,7 @@ TEST_F(CommutatorTests, Breath)
   ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(
@@ -50,7 +50,7 @@ TEST_F(CommutatorTests, Monitoring)
   }
 
   ShipBinding ship = Helper::spawnShip(
-    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   for (client::ClientCommutatorPtr& pSession: monitoringSessions) {
     spex::ICommutator::ModuleInfo info;
@@ -80,7 +80,7 @@ TEST_F(CommutatorTests, CloseSession)
   ASSERT_TRUE(pCommutator);
 
   ShipBinding ship = Helper::spawnShip(
-    *this, pCommutator, m_pPlayer, geometry::Point(0, 0), Helper::ShipParams());
+    *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
   EngineBinding engine = Helper::spawnEngine(

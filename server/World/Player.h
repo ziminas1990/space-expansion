@@ -48,7 +48,9 @@ public:
   blueprints::BlueprintsLibrary&       getBlueprints()       { return m_blueprints; }
   blueprints::BlueprintsLibrary const& getBlueprints() const { return m_blueprints; }
 
-  modules::CommutatorPtr getCommutator() const { return m_pRootCommutator; }
+  const modules::CommutatorPtr getCommutator() const { return m_pRootCommutator; }
+
+  uint32_t onNewShip(modules::ShipPtr);
 
 private:
   // Handle 'openCommutatorSession' reqiest, received in session, specified
@@ -65,16 +67,32 @@ private:
   modules::CommutatorPtr        m_pRootCommutator;
   modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
+  modules::MessangerPtr         m_pMessanger;
   RootSessionPtr                m_pRootSession;
 
   blueprints::BlueprintsLibrary m_blueprints;
     // Every player has it's own set of blueprints, that can be improved during
     // the game. At the beginning, all players have the same blueprints library
 
-  std::vector<modules::ShipPtr> m_ships;
-
   // Linker is placed to the end to be destroyed first (and destroy all links)
   utils::Linker m_linker;
+
+private:
+
+  // Accessor to simplify unit tests development
+  struct TestAccessor {
+    Player& player;
+
+    bool hasMessanger() const {
+      return !!player.m_pMessanger;
+    }
+
+    uint32_t setMessanger(modules::MessangerPtr pMessanger) const;
+  };
+
+public:
+  TestAccessor testAccess() { return TestAccessor{*this}; }
+
 };
 
 } // namespace world

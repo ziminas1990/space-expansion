@@ -31,7 +31,8 @@ public:
   }
 
   // from BufferedPrivilegedTerminal->IBinaryTerminal interface:
-  bool openSession(uint32_t /*nSessionId*/) override { return true; }
+  bool canOpenSession() const override { return true; }
+  void openSession(uint32_t /*nSessionId*/) override {}
   void onSessionClosed(uint32_t /*nSessionId*/) override {}
 
   // from IAbstractLogic interface

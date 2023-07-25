@@ -30,11 +30,11 @@ public:
     // Detach the specified 'pModule', attached to the specified 'nSlotId'.
 
   BaseModulePtr findModuleByName(std::string const& sName) const;
-    // Return module with the specified 'sName'. If module doesn't exist, 
+    // Return module with the specified 'sName'. If module doesn't exist,
     // return null. Note that call has O(n) complicity
 
   BaseModulePtr findModuleByType(std::string const& sType) const;
-    // Return module with the specified 'sType'. If module doesn't exist, 
+    // Return module with the specified 'sType'. If module doesn't exist,
     // return null. Note that call has O(n) complicity
 
   void checkSlots();
@@ -66,8 +66,6 @@ private:
   void onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot);
   void onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId);
   void onMonitoringRequest(uint32_t nSessionId);
-
-  void onModuleHasBeenDetached(uint32_t nSlotId);
 
   void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
   void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);

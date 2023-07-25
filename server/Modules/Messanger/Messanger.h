@@ -65,7 +65,8 @@ private:
     void onResponse(
         uint32_t           nSessionId,
         uint32_t           nServiceSeq,
-        const std::string& sBody);
+        const std::string& sBody,
+        bool               lFinal);
 
     void sendOpenServiceStatus(uint32_t nSessionId, spex::IMessanger::Status status);
     void sendServicesList(uint32_t nSessionId) const;
@@ -76,5 +77,7 @@ private:
     void forwardResponse(const Transaction& transaction, const std::string& sBody);
 
 };
+
+using MessangerPtr = std::shared_ptr<Messanger>;
 
 } // namespace modules

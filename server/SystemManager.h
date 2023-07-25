@@ -87,6 +87,7 @@ private:
   modules::BlueprintsStorageManagerPtr m_pBlueprintsStorageManager;
   modules::ShipyardManagerPtr          m_pShipyardManager;
   modules::SystemClockManagerPtr       m_pSystemClockManager;
+  modules::MessangerManagerPtr         m_pMessangerManager;
 
   utils::Linker m_linker;
 

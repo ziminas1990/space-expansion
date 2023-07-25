@@ -27,12 +27,12 @@ uint32_t Commutator::attachModule(BaseModulePtr pModule)
   assert(pSessionMux);
 
   pModule->attachToChannel(pSessionMux->asChannel());
-  
+
   for (uint32_t nSlotId = 0; nSlotId < m_modules.size(); ++nSlotId)
   {
     if (m_modules[nSlotId]->isDestroyed())
     {
-      onModuleHasBeenDetached(nSlotId);
+      detachModule(nSlotId, m_modules[nSlotId]);
       m_modules[nSlotId] = pModule;
       sendModuleAttachedUpdate(nSlotId);
       return nSlotId;
@@ -56,14 +56,9 @@ bool Commutator::detachModule(uint32_t nSlotId, const BaseModulePtr& pModule)
     assert(!"Unexpected module");
     return false;
   }
+  pModule->closeActiveSessions();
   pModule->detachFromChannel();
 
-  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
-  if (pSessionMux) {
-    for (const uint32_t nSessionId : pModule->getOpenedSession()) {
-      pSessionMux->closeSession(nSessionId);
-    }
-  }
   m_modules[nSlotId].reset();
   sendModuleDetachedUpdate(nSlotId);
   return true;
@@ -104,10 +99,6 @@ void Commutator::checkSlots()
       // Module is offline or destroyed AND has opened sessions. Sessions
       // should be closed now.
       // Note: have to make a copy of opened sessions vector
-      const std::vector<uint32_t> openedSessions = pModule->getOpenedSession();
-      for (uint32_t nSessionId : openedSessions) {
-        pSessionMux->closeSession(nSessionId);
-      }
       if (pModule->isDestroyed()) {
         detachModule(nSlotId, pModule);
         // NOTE: 'pModule' reference is invalidated here
@@ -215,14 +206,13 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
     return;
   }
 
-  const uint32_t nChildSessionId = 
-      pSessionMux->createSession(nSessionId, pModule);
-
-  if (!pModule->openSession(nChildSessionId)) {
-    pSessionMux->closeSession(nChildSessionId);
+  if (!pModule->canOpenSession()) {
     sendOpenTunnelFailed(nSessionId, spex::ICommutator::REJECTED_BY_MODULE);
     return;
   }
+
+  const uint32_t nChildSessionId = pSessionMux->createSession(nSessionId, pModule);
+  pModule->openSession(nChildSessionId);
 
   spex::Message message;
   message.mutable_commutator()->set_open_tunnel_report(nChildSessionId);
@@ -237,7 +227,7 @@ void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
     return;
   }
 
-  if (!pSessionMux->closeSession(nTunnelId) && nTunnelId == nSessionId) {
+  if (!pSessionMux->closeSession(nTunnelId)) {  //&& nTunnelId == nSessionId) {
     sendCloseTunnelStatus(nSessionId, spex::ICommutator::INVALID_TUNNEL);
     return;
   }
@@ -253,27 +243,6 @@ void Commutator::onMonitoringRequest(uint32_t nSessionId)
   }
   m_monitoringSessions.push_back(nSessionId);
   sendMonitorStatus(nSessionId, spex::ICommutator::SUCCESS);
-}
-
-void Commutator::onModuleHasBeenDetached(uint32_t nSlotId)
-{
-  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
-  assert(pSessionMux);
-
-  if (nSlotId >= m_modules.size()) {
-    assert(!"Inconsistent state!");
-    return;
-  }
-
-  BaseModulePtr& pModule = m_modules[nSlotId];
-  if (pModule->hasOpenedSessions()) {
-    // Have to make a copy of opened sessions vector
-    std::vector<uint32_t> openedSessions = pModule->getOpenedSession();
-    for (const uint32_t nSessionId : openedSessions) {
-      pSessionMux->closeSession(nSessionId);
-    }
-  }
-  pModule.reset();
 }
 
 void Commutator::sendOpenTunnelFailed(uint32_t nSessionId,

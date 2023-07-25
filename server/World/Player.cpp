@@ -6,6 +6,7 @@
 
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
 #include <Modules/Commutator/Commutator.h>
+#include <Modules/Messanger/Messanger.h>
 #include <Modules/Ship/Ship.h>
 #include <Network/ProtobufChannel.h>
 #include <Network/UdpSocket.h>
@@ -37,7 +38,8 @@ public:
   {}
 
   // Overrides of IPlayerTerminal
-  bool openSession(uint32_t) override { return true; }
+  bool canOpenSession() const override { return true; }
+  void openSession(uint32_t) override {}
 
   void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override {
     if (message.choice_case() == spex::Message::kRootSession) {
@@ -69,8 +71,8 @@ private:
     network::SessionMuxPtr pSessionMux = m_pSessionMuxWeakPtr.lock();
     modules::CommutatorPtr pCommutator = m_pRootCommutatorWeakPtr.lock();
 
-    uint32_t nChildSessionId = pSessionMux->createSession(nSessionId,
-                                                          pCommutator);
+    const uint32_t nChildSessionId =
+      pSessionMux->createSession(nSessionId, pCommutator);
 
     spex::Message message;
     spex::IRootSession* pBody = message.mutable_root_session();
@@ -108,13 +110,13 @@ PlayerPtr Player::load(
 
   pPlayer->m_pSystemClock =
       std::make_shared<modules::SystemClock>("SystemClock", pPlayer);
-  pPlayer->m_pBlueprintsExplorer =
-      std::make_shared<modules::BlueprintsStorage>(pPlayer);
+  pPlayer->m_pBlueprintsExplorer = std::make_shared<modules::BlueprintsStorage>(pPlayer);
+  pPlayer->m_pMessanger = std::make_shared<modules::Messanger>("Messanger", pPlayer);
 
-  pPlayer->m_linker.attachModule(
-    pPlayer->m_pRootCommutator, pPlayer->m_pSystemClock);
-  pPlayer->m_linker.attachModule(
-    pPlayer->m_pRootCommutator, pPlayer->m_pBlueprintsExplorer);
+  pPlayer->m_linker.attachModule(pPlayer->m_pRootCommutator, pPlayer->m_pSystemClock);
+  pPlayer->m_linker.attachModule(pPlayer->m_pRootCommutator,
+                                 pPlayer->m_pBlueprintsExplorer);
+  pPlayer->m_linker.attachModule(pPlayer->m_pRootCommutator, pPlayer->m_pMessanger);
 
   YAML::Node const& shipsState = state["ships"];
   if (!shipsState.IsDefined()) {
@@ -145,10 +147,11 @@ PlayerPtr Player::load(
     }
 
     if (!pShip->loadState(kv.second)) {
-      assert("Failed to load ship" == nullptr);
+      assert(!"Failed to load ship");
       return PlayerPtr();
     }
-    pPlayer->m_pRootCommutator->attachModule(std::move(pShip));
+
+    pPlayer->onNewShip(std::move(pShip));
   }
 
   return pPlayer;
@@ -168,6 +171,11 @@ uint32_t Player::onNewConnection(uint32_t nConnectionId)
   return m_pSessionMux->addConnection(nConnectionId, m_pRootSession);
 }
 
+uint32_t Player::onNewShip(modules::ShipPtr pShip)
+{
+  return m_linker.attachModule(m_pRootCommutator, pShip);
+}
+
 void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)
 {
   m_pUdpChannel = pSocket;
@@ -176,6 +184,17 @@ void Player::attachToUdpSocket(network::UdpSocketPtr pSocket)
     m_linker.link(m_pProtobufChannel, m_pSessionMux->asTerminal());
   }
   m_linker.link(m_pUdpChannel, m_pProtobufChannel);
+  // Add a custom unlinker logic, that closes all active connections, otherwise
+  // SessionMux will raise an assert error in it's descructor
+  m_linker.addCustomUnlinker([this]() {
+    m_pSessionMux->markAllConnectionsAsClosed();
+  });
+}
+
+uint32_t Player::TestAccessor::setMessanger(modules::MessangerPtr pMessanger) const {
+  assert(!hasMessanger());
+  player.m_pMessanger = pMessanger;
+  return player.m_linker.attachModule(player.m_pRootCommutator, pMessanger);
 }
 
 } // namespace world

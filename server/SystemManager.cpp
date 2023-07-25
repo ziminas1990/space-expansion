@@ -171,14 +171,14 @@ bool SystemManager::createAllComponents()
   m_pBlueprintsStorageManager = std::make_shared<modules::BlueprintsStorageManager>();
   m_pShipyardManager          = std::make_shared<modules::ShipyardManager>();
   m_pSystemClockManager       = std::make_shared<modules::SystemClockManager>();
+  m_pMessangerManager         = std::make_shared<modules::MessangerManager>();
 
-  m_pUdpDispatcher  =
-      std::make_shared<network::UdpDispatcher>(
+  m_pUdpDispatcher = std::make_shared<network::UdpDispatcher>(
         m_IoService,
         m_configuration.getPortsPoolcfg().begin(),
         m_configuration.getPortsPoolcfg().end());
-  m_pLoginChannel       = std::make_shared<network::PlayerChannel>();
-  m_pAccessPanel        = std::make_shared<modules::AccessPanel>();
+  m_pLoginChannel = std::make_shared<network::PlayerChannel>();
+  m_pAccessPanel  = std::make_shared<modules::AccessPanel>();
 
   std::stringstream problem;
   if (m_configuration.getAdministratorCfg().isValid(problem)) {
@@ -193,7 +193,7 @@ bool SystemManager::createAllComponents()
         m_configuration.getGlobalGridCfg().cellWidthKm() * 1000);
   world::Grid::setGlobal(&m_globalGrid);
 
-  m_pPlayersStorage     = std::make_shared<world::PlayersStorage>();
+  m_pPlayersStorage = std::make_shared<world::PlayersStorage>();
   return true;
 }
 
