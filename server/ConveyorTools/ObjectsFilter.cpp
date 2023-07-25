@@ -7,7 +7,8 @@ void ObjectsFilteringManager::registerFilter(BaseObjectFilterPtr const& pFilter)
   m_filters.push_back(pFilter);
 }
 
-bool ObjectsFilteringManager::prephare(uint16_t nStageId, uint32_t, uint64_t now)
+bool ObjectsFilteringManager::prephare(
+                               [[maybe_unused]] uint16_t nStageId, uint32_t, uint64_t now)
 {
   assert(nStageId == 0);
 

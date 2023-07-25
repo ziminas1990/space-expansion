@@ -26,14 +26,15 @@ UdpSocket::~UdpSocket()
   m_socket.close();
 }
 
-std::optional<uint32_t> 
+std::optional<uint32_t>
 UdpSocket::createPersistentSession(udp::endpoint const& remote)
 {
   // Looking for free sessionId
   for(uint32_t i = 0; i < nPersistentSessionsLimit; ++i) {
     if (m_sessions[i] == udp::endpoint() &&
-        m_pTerminal->openSession(i))
+        m_pTerminal->canOpenSession())
     {
+      m_pTerminal->openSession(i);
       m_sessions[i] = remote;
       std::cout << "Persistant session #" << i << " created" << std::endl;
       return i;
@@ -110,7 +111,7 @@ void UdpSocket::onDataReceived(boost::system::error_code const& error,
                                std::size_t nTotalBytes)
 {
   if (!error)
-  { 
+  {
     std::optional<uint32_t> nSessionId;
 
     // Linear complicity in searching for sessionId is OK, because in general

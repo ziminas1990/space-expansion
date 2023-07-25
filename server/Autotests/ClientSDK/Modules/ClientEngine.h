@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Autotests/ClientSDK/Interfaces.h>
 #include <Autotests/ClientSDK/ClientBaseModule.h>
 #include <Geometry/Vector.h>
 #include <stdint.h>

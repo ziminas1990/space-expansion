@@ -17,7 +17,7 @@ message ISessionControl {
 
     // Requests
     bool close = 16;
-    
+
     // Indications
     bool closed_ind = 64;
 
@@ -30,7 +30,7 @@ message IRootSession {
     // Requests
     // Spawn a new session, attached to root commutator
     bool new_commutator_session = 1;
-    
+
     // Responces
     uint32 commutator_session  = 21;
   }
@@ -49,11 +49,11 @@ message IAccessPanel {
     // Session ID of a root session
     uint32 session_id = 2;
   }
-  
+
   oneof choice {
     // Login and open a new root session
     LoginRequest login     = 1;
-    
+
     AccessGranted access_granted  = 21;
     string        access_rejected = 22;
   }
@@ -106,10 +106,10 @@ message IShip {
 
 
 message INavigation {
-  
+
   oneof choice {
     bool position_req = 1;
-    
+
     Position position = 21;
   }
 }
@@ -149,7 +149,7 @@ message ICelestialScanner {
   oneof choice {
     bool specification_req = 1;
     Scan scan              = 2;
-    
+
     Specification specification   = 21;
     ScanResults   scanning_report = 22;
     Status        scanning_failed = 23;
@@ -190,7 +190,7 @@ message IAsteroidScanner {
     uint32 max_distance     = 1;
     uint32 scanning_time_ms = 2;
   }
-  
+
   message ScanResult {
     uint32 asteroid_id       = 1;
     double weight            = 2;
@@ -202,7 +202,7 @@ message IAsteroidScanner {
   oneof choice {
     bool   specification_req = 1;
     uint32 scan_asteroid     = 2;
-    
+
     Specification specification     = 21;
     Status        scanning_status   = 22;
     ScanResult    scanning_finished = 23;
@@ -225,7 +225,7 @@ message IResourceContainer {
     TRANSFER_IN_PROGRESS  = 9;
     NOT_ENOUGH_RESOURCES  = 10;
   }
-  
+
   message Content {
     uint32 volume = 1;
     double used   = 2;
@@ -237,7 +237,7 @@ message IResourceContainer {
     uint32 access_key     = 2;
     ResourceItem resource = 3;
   }
-  
+
   oneof choice {
     // Requests and command from Client
     bool           content_req       = 1;
@@ -245,7 +245,7 @@ message IResourceContainer {
     bool           close_port        = 3;
     Transfer       transfer          = 4;
     bool           monitor           = 5;
-    
+
     Content        content            = 21;
     uint32         port_opened        = 22;
     Status         open_port_failed   = 23;
@@ -300,11 +300,11 @@ message IBlueprintsLibrary {
     INTERNAL_ERROR      = 1;
     BLUEPRINT_NOT_FOUND = 2;
   }
-  
+
   oneof choice {
     string    blueprints_list_req = 1;
     string    blueprint_req       = 2;
-    
+
     NamesList blueprints_list     = 20;
     Blueprint blueprint           = 21;
     Status    blueprint_fail      = 22;
@@ -333,7 +333,7 @@ message IShipyard {
   message Specification {
     double labor_per_sec = 1;
   }
-  
+
   message StartBuild {
     string blueprint_name = 1;
     string ship_name      = 2;
@@ -355,7 +355,7 @@ message IShipyard {
     StartBuild start_build       = 4;
     bool       cancel_build      = 5;
 
-    
+
     Specification  specification        = 20;
     Status         bind_to_cargo_status = 21;
     BuildingReport building_report      = 22;
@@ -376,7 +376,7 @@ message ICommutator {
     COMMUTATOR_OFFLINE = 5;
     TOO_MANY_SESSIONS  = 6;
   }
-  
+
   message ModuleInfo {
     uint32 slot_id     = 1;
     string module_type = 2;
@@ -389,7 +389,7 @@ message ICommutator {
       uint32     module_detached = 2;
     }
   }
-  
+
   oneof choice {
     // Requests and command from Client
     bool       total_slots_req      = 1;
@@ -442,18 +442,6 @@ message ISystemClock {
 
 message IMessanger {
 
-  message Request {
-    string service    = 1;
-    uint32 seq        = 2;
-    uint32 timeout_ms = 3;
-    string body       = 4;
-  }
-
-  message Response {
-    uint32 seq  = 1;
-    string body = 2;
-  }
-
   enum Status {
     SUCCESS          = 0;
     SERVICE_EXISTS   = 1;
@@ -462,6 +450,22 @@ message IMessanger {
     SESSION_BUSY     = 4;
     WRONG_SEQ        = 5;
     CLOSED           = 6;
+    UNKNOWN_ERROR    = 7;
+    REQUEST_TIMEOUT_TOO_LONG = 8;
+    SESSIONS_LIMIT_REACHED   = 9;
+  }
+
+  message Request {
+    string service    = 1;
+    uint32 seq        = 2;
+    uint32 timeout_ms = 3;
+    string body       = 4;
+  }
+
+  message Response {
+    uint32 seq   = 1;
+    string body  = 2;
+    bool   final = 3;
   }
 
   message OpenService {
@@ -486,7 +490,7 @@ message IMessanger {
 
     Status         open_service_status = 21;
     ServicesList   services_list       = 22;
-    SessionStatus  session_status     = 23;
+    SessionStatus  session_status      = 23;
     Response       response            = 24;
   }
 

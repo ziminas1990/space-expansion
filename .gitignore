@@ -1,6 +1,7 @@
 __pycache__/
 .idea
 CMakeLists.txt.user
+CMakeUserPresets.json
 /web-client/webapp/node_modules/
 /web-client/static/*.js
 /**/build/

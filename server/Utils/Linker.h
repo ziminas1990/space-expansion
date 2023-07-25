@@ -55,8 +55,12 @@ public:
             network::IPlayerTerminalPtr pServerSide,
             autotests::client::IPlayerTerminalPtr  pClientSide);
 
+
+
   uint32_t attachModule(const modules::CommutatorPtr& pCommutator,
                         const modules::BaseModulePtr& pModule);
+
+  void addCustomUnlinker(std::function<void()>&& unlinker);
 
 };
 

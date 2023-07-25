@@ -2,8 +2,22 @@
 
 #include <random>
 #include <SystemManager.h>
+#include <Modules/Constants.h>
 
 namespace modules {
+
+BaseModule::BaseModule(
+  std::string sModuleType,
+  std::string moduleName,
+  world::PlayerWeakPtr pOwner)
+  : m_sModuleType(std::move(sModuleType)),
+  m_sModuleName(std::move(moduleName)),
+  m_pOwner(std::move(pOwner)),
+  m_eStatus(Status::eOnline),
+  m_eState(State::eIdle)
+{
+  m_activeSessons.reserve(constants::nSessionsPerModuleLimit);
+}
 
 void BaseModule::installOn(modules::Ship* pShip)
 {
@@ -12,14 +26,20 @@ void BaseModule::installOn(modules::Ship* pShip)
     onInstalled(pShip);
 }
 
-bool BaseModule::openSession(uint32_t nSessionId)
+bool BaseModule::canOpenSession() const
 {
   std::lock_guard<utils::Mutex> guard(m_mutex);
-  if (m_activeSessons.size() < gSessionsLimit) {  // [[likely]]
+  return m_activeSessons.size() < constants::nSessionsPerModuleLimit;
+}
+
+void BaseModule::openSession(uint32_t nSessionId)
+{
+  std::lock_guard<utils::Mutex> guard(m_mutex);
+  if (m_activeSessons.size() < constants::nSessionsPerModuleLimit) {  // [[likely]]
     m_activeSessons.push_back(nSessionId);
-    return true;
+  } else {
+    assert(!"Sessions limit reached");
   }
-  return false;
 }
 
 void BaseModule::onSessionClosed(uint32_t nSessionId)
@@ -31,6 +51,18 @@ void BaseModule::onSessionClosed(uint32_t nSessionId)
       m_activeSessons[i] = m_activeSessons.back();
       m_activeSessons.pop_back();
     }
+  }
+}
+
+void BaseModule::closeActiveSessions()
+{
+  // A copy of m_activeSessions must be done here, because 'onSessionClosed" will
+  // be called after "closeSession()" is called
+  static thread_local decltype(m_activeSessons) sessions;
+  sessions = m_activeSessons;
+
+  for (const uint32_t nSessionId : sessions) {
+    closeSession(nSessionId);
   }
 }
 

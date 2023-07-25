@@ -132,10 +132,13 @@ void PassiveScannerTests::SetUp()
 {
   ModulesTestFixture::SetUp();
 
+  // To speed up tests:
+  m_clock.setDebugTickUs(50000);
+
   // Create a ship with a passive scanner on it
   m_pShip = std::make_shared<modules::Ship>(
         "Scout", "scout-1", m_pPlayer, 1000, 10);
-  m_nShipSlot = m_pPlayer->getCommutator()->attachModule(m_pShip);
+  m_nShipSlot = m_pPlayer->onNewShip(m_pShip);
 
   m_pPassiveScanner = std::make_shared<modules::PassiveScanner>(
         std::string(m_sScannerName),

@@ -30,6 +30,7 @@ bool GlobalContainerUtils::checkAllContainersAreEmpty(std::ostream& problem)
   CHECK_CONTAINER_EMPTY(modules::Ship, problem);
   CHECK_CONTAINER_EMPTY(modules::Shipyard, problem);
   CHECK_CONTAINER_EMPTY(modules::SystemClock, problem);
+  CHECK_CONTAINER_EMPTY(modules::Messanger, problem);
   CHECK_CONTAINER_EMPTY(newton::PhysicalObject, problem);
   CHECK_CONTAINER_EMPTY(world::Asteroid, problem);
   return true;

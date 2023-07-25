@@ -43,7 +43,7 @@ void SpawnLogic::spawnShip(uint32_t                nSessionId,
   blueprints::BaseBlueprintPtr pBlueprint =
     pPlayer->getBlueprints().getBlueprint(
       blueprints::BlueprintName::make(sBlueprintName));
-  
+
   if (!pBlueprint) {
     sendProblem(nSessionId, admin::Spawn::BLUEPRINT_DOESNT_EXIST);
     return;
@@ -64,7 +64,7 @@ void SpawnLogic::spawnShip(uint32_t                nSessionId,
   }
   pNewShip->moveTo(position);
   pNewShip->setVelocity(velocity);
-  pPlayer->getCommutator()->attachModule(pNewShip);
+  pPlayer->onNewShip(pNewShip);
   sendShipId(nSessionId, pNewShip->getShipId());
 }
 

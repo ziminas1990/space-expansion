@@ -28,7 +28,6 @@ public:
   {}
 
   void SetUp() override;
-  void TearDown() override;
 
 private:
   void proceedEnviroment();
@@ -70,7 +69,7 @@ void OldCommutatorTests::SetUp()
   //      +----------------+                      +---------------+
   //      |    Router      |                      |   SessionMux  |
   //      +----------------+                      +---------------+
-  //              |             +-------------+            | 
+  //              |             +-------------+            |
   //              +-------------| pConnection |------------+
   //                            +-------------+
 
@@ -89,26 +88,20 @@ void OldCommutatorTests::SetUp()
 
   // Create a connection and a root session on server side
   const uint32_t nConnectionId = 3;
-  const uint32_t nRootSession = 
+  const uint32_t nRootSession =
     m_pSessionMux->addConnection(nConnectionId, m_pCommutatator);
   m_linker.link(m_pSessionMux, m_pCommutatator);
 
   // Create a component, that will be used to exchange messages
   // between client and server sides
   m_pConnection = std::make_shared<PlayerConnector>();
-  m_linker.link(m_pConnection, m_pSessionMux->asTerminal());
-  m_pConnection->attachToTerminal(m_pRouter);
-  m_pRouter->attachToDownlevel(m_pConnection);
+  m_linker.link(m_pConnection, m_pSessionMux->asTerminal(), m_pRouter);
+  m_linker.addCustomUnlinker([this]() { m_pSessionMux->markAllConnectionsAsClosed(); });
+
   m_pConnection->onNewConnection(nConnectionId, nRootSession);
 
   // Connect client commutator to server commutator
   m_pClient->attachToChannel(m_pRouter->openSession(nRootSession));
-}
-
-void OldCommutatorTests::TearDown()
-{
-  m_pRouter->detachDownlevel();
-  m_pClient->detachChannel();
 }
 
 void OldCommutatorTests::proceedEnviroment()

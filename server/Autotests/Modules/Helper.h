@@ -10,6 +10,7 @@
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
+#include <Autotests/ClientSDK/Modules/ClientMessanger.h>
 #include <Autotests/ClientSDK/RootSession.h>
 #include <Utils/Linker.h>
 
@@ -29,7 +30,6 @@ namespace autotests {
 template<typename ServerModule, typename ClientModule>
 struct ModuleBind {
   std::shared_ptr<ServerModule> m_pRemote;
-  modules::CommutatorPtr        m_pCommutator;
   uint32_t                      m_nSlotId;
   std::shared_ptr<ClientModule> m_pClient;
 
@@ -65,25 +65,26 @@ struct Helper {
   static ShipBinding spawnShip(
       ModulesTestFixture&         env,
       client::ClientCommutatorPtr pClientCommutator,
-      world::PlayerPtr            pOwner,
       const geometry::Point       position,
-      const ShipParams&           params)
+      const ShipParams&           params,
+      world::PlayerPtr            pOwner = nullptr)
   {
+    pOwner = pOwner ? pOwner : env.m_pPlayer;
+
     // Spawn a ship on server side and attach it to player's commutator:
     modules::ShipPtr pShip = std::make_shared<modules::Ship>(
       params.shipType(), params.shipName(), pOwner, params.weight(),
       params.radius());
     pShip->moveTo(position);
 
-    modules::CommutatorPtr pCommutator = pOwner->getCommutator();
-    const uint32_t         nSlotId     = pCommutator->attachModule(pShip);
+    const uint32_t nSlotId = pOwner->onNewShip(pShip);
 
     // Create a ship on client side and connect it with server side
     client::ShipPtr pShipCtrl =
       std::make_shared<client::Ship>(env.m_pRouter);
 
     pShipCtrl->attachToChannel(pClientCommutator->openSession(nSlotId));
-    return {pShip, pCommutator, nSlotId, pShipCtrl};
+    return { pShip, nSlotId, pShipCtrl };
   }
 
   static EngineBinding spawnEngine(ShipBinding ship, const EngineParams& params)
@@ -99,7 +100,53 @@ struct Helper {
     client::EnginePtr      pEngineCtrl = std::make_shared<client::Engine>();
     pEngineCtrl->attachToChannel(ship->openSession(nSlotId));
 
-    return {pEngine, pCommutator, nSlotId, pEngineCtrl};
+    return {pEngine, nSlotId, pEngineCtrl};
+  }
+
+  static void createMessangerModule(
+    ModulesTestFixture& env,
+    world::PlayerPtr    pOwner = nullptr)
+  {
+    pOwner = pOwner ? pOwner : env.m_pPlayer;
+
+    // Messanger should be created on "server" side and attached to player's
+    // commutator
+    modules::MessangerPtr pMessanger = std::make_shared<modules::Messanger>(
+      "Messanger", pOwner
+    );
+
+    env.m_pPlayer->testAccess().setMessanger(pMessanger);
+    // Now messanger can be reached using client commutator
+    // (use Helper::getMessanger() call)
+  }
+
+  static client::MessangerPtr getMessanger(client::ClientCommutatorPtr pCommutator)
+  {
+    client::Router::SessionPtr pSession = Helper::openSession(pCommutator, "Messanger");
+
+    if (pSession) {
+      client::MessangerPtr pMessanger = std::make_shared<client::Messanger>();
+      pMessanger->attachToChannel(pSession);
+      return pMessanger;
+    }
+
+    return client::MessangerPtr();
+  }
+
+  static client::Router::SessionPtr openSession(
+    client::ClientCommutatorPtr pCommutator, std::string_view sModuleName)
+  {
+    client::ModulesList modules;
+
+    if (pCommutator->getAttachedModulesList(modules)) {
+      for (const client::ModuleInfo& attachedModule : modules) {
+        if (attachedModule.sModuleName == sModuleName) {
+          return pCommutator->openSession(attachedModule.nSlotId);
+        }
+      }
+    }
+
+    return client::Router::SessionPtr();
   }
 
 };

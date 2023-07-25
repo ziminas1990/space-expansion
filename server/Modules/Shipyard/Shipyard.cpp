@@ -107,7 +107,8 @@ void Shipyard::finishBuildingProcedure()
 
   pNewShip->moveTo(getPlatform()->getPosition());
   pNewShip->setVelocity(getPlatform()->getVelocity());
-  uint32_t nSlotId = pOwner->getCommutator()->attachModule(pNewShip);
+
+  const uint32_t nSlotId = pOwner->onNewShip(pNewShip);
   sendBuildingReport(spex::IShipyard::BUILD_COMPLETE, 1.0);
   sendBuildComplete(std::move(m_building.sShipName), nSlotId);
 

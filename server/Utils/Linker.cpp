@@ -125,4 +125,9 @@ uint32_t Linker::attachModule(const modules::CommutatorPtr& pCommutator,
   return nSlotId;
 }
 
+void Linker::addCustomUnlinker(std::function<void()>&& unlinker)
+{
+  m_links.emplace_back(std::move(unlinker));
+}
+
 }  // namespace utils
