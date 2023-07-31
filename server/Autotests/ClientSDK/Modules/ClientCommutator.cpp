@@ -57,7 +57,7 @@ bool ClientCommutator::closeTunnel(Router::SessionPtr pSession)
   }
 
   return status == spex::ICommutator::SUCCESS
-      && m_pRouter->closeSession(pSession->sessionId());
+      && !m_pRouter->hasSession(pSession->sessionId());
 }
 
 bool ClientCommutator::monitoring()
@@ -89,7 +89,7 @@ bool ClientCommutator::waitUpdate(spex::ICommutator::Update& update)
 bool ClientCommutator::waitModuleAttached(spex::ICommutator::ModuleInfo& info)
 {
   spex::ICommutator::Update update;
-  if (!waitUpdate(update) || 
+  if (!waitUpdate(update) ||
       update.choice_case() != spex::ICommutator::Update::kModuleAttached) {
     return false;
   }
@@ -100,7 +100,7 @@ bool ClientCommutator::waitModuleAttached(spex::ICommutator::ModuleInfo& info)
 bool ClientCommutator::waitModuleDetached(uint32_t& nSlotId)
 {
   spex::ICommutator::Update update;
-  if (!waitUpdate(update) || 
+  if (!waitUpdate(update) ||
       update.choice_case() != spex::ICommutator::Update::kModuleDetached) {
     return false;
   }

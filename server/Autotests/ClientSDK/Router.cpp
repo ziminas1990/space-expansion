@@ -13,14 +13,9 @@ Router::SessionPtr Router::openSession(uint32_t nSessionId)
   return pSession;
 }
 
-bool Router::closeSession(uint32_t nSessionId)
+bool Router::hasSession(uint32_t nSessionId) const
 {
-  auto I = m_sessions.find(nSessionId);
-  if (I != m_sessions.end()) {
-    m_sessions.erase(I);
-    return true;
-  }
-  return false;
+  return m_sessions.find(nSessionId) != m_sessions.end();
 }
 
 void Router::onMessageReceived(spex::Message&& message)
@@ -30,6 +25,11 @@ void Router::onMessageReceived(spex::Message&& message)
   //             ":\n" << message.DebugString() << std::endl;
   if (I != m_sessions.end()) {
     SessionPtr pSession = I->second;
+    if (message.choice_case() == spex::Message::kSession) {
+      if (message.session().choice_case() == spex::ISessionControl::kClosedInd) {
+        m_sessions.erase(I);
+      }
+    }
     pSession->onMessageReceived(std::move(message));
   } else {
     assert(!"Session not found");

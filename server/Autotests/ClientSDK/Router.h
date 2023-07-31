@@ -53,7 +53,7 @@ public:
   }
 
   SessionPtr openSession(uint32_t nSessionId);
-  bool closeSession(uint32_t nSessionId);
+  bool hasSession(uint32_t nSessionId) const;
 
   void onMessageReceived(spex::Message&& message) override;
 
