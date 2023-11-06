@@ -31,7 +31,7 @@ class ShipyardI(IOTerminal):
         CANCELED = "operation canceled"
 
         @staticmethod
-        def from_protobuf(status: api.IResourceContainer.Status) -> "ShipyardI.Status":
+        def from_protobuf(status: api.IShipyard.Status) -> "ShipyardI.Status":
             ProtobufStatus = api.IShipyard.Status
             ModuleStatus = ShipyardI.Status
             return {

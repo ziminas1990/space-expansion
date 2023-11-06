@@ -15,7 +15,8 @@ from Protocol_pb2 import (
     IPassiveScanner,
     IAsteroidScanner,
     IBlueprintsLibrary,
-    IResourceContainer
+    IResourceContainer,
+    IMessanger
 )
 
 import Privileged_pb2 as admin

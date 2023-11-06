@@ -1,10 +1,14 @@
 import asyncio
-from typing import List, Optional, Any, Callable, Awaitable, Tuple, Type, Dict, Set, TYPE_CHECKING
+from collections import abc
+from typing import List, Optional, Any, TypeVar, Callable, Awaitable, Tuple
+from typing import Type, Dict, Set, cast, TYPE_CHECKING
+from typing_extensions import ParamSpec
 import logging
 from enum import Enum
 import time
 
 import expansion.api as api
+from expansion.transport import Channel, IOTerminal
 
 if TYPE_CHECKING:
     from decorator import decorator
@@ -13,11 +17,12 @@ else:
     def decorator(func):
         return func
 
-from expansion.transport import Channel, IOTerminal
+P = ParamSpec('P')
+T = TypeVar('T')
+F = TypeVar('F', bound=Callable[..., Any])
 
 TunnelOrError = Tuple[Optional[Channel], Optional[str]]
 TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
-
 
 class ModuleType(Enum):
     SHIP = "Ship/"
@@ -29,6 +34,7 @@ class ModuleType(Enum):
     ASTEROID_MINER = "AsteroidMiner"
     SHIPYARD = "Shipyard"
     BLUEPRINTS_LIBRARY = "BlueprintsLibrary"
+    MESSANGER = "Messanger"
 
 
 class BaseModule:
@@ -139,7 +145,7 @@ class BaseModule:
             return_on_unreachable: Any,
             retries: int = 3,
             return_on_cancel: Optional[Any] = None,
-            close_after_use: bool = False):
+            close_after_use: bool = False) -> Callable[P, Callable[P, T]]:
         """Get an available session with the specified
         'terminal_type' from a sessions pool and pass it to the
         underlying function. If there are no available session
@@ -148,27 +154,25 @@ class BaseModule:
         value.
         If 'close_after_use' flag is NOT set to True, then
         session should be returned to a sessions pool for
-        further reuse. If 'exclusive' flag is True, OR any
-        exception occurs during underlying call, then session
-        should be closed and never reused.
+        further reuse.
         If CancelError exception arises and 'return_on_cancel' is
-        not None, the return 'return_on_cancel' value. Otherwise,
+        not None, return 'return_on_cancel' value. Otherwise,
         re-raise the exception.
-        If any other exception occurs, it should be re raised as
+        If any other exception occurs, it should be re-raised as
         well.
         If 'session' argument is passed to wrapped call by user,
         then just pass it to underlying call and do nothing more.
         """
 
-        def _decorator(func):
+        def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @decorator
-            async def _wrapper(*args, **kwargs):
+            async def _wrapper(*args: P.args, **kwargs: P.kwargs):
                 if "session" in kwargs:
                     # Session is already provided by user, so just pass it
                     # to wrapped call
                     return await func(*args, **kwargs)
 
-                self: BaseModule = args[0]
+                self: BaseModule = cast(BaseModule, args[0])
                 session: Optional[IOTerminal] = None
                 for attempt in range(retries):
                     try:
@@ -219,7 +223,7 @@ class BaseModule:
             terminal_type: Type,
             return_on_unreachable: Any,
             stop_on_cancel: bool = True,
-            retries: int = 3):
+            retries: int = 3) -> Callable[P, abc.AsyncGenerator[P, T]]:
         """This is an equivalent for 'use_session()' but for generators.
         Make up to 'retires' attempts to open a new session
         with the specified 'terminal_type' pass it to the
@@ -234,12 +238,12 @@ class BaseModule:
         well.
         """
 
-        def _decorator(generator):
+        def _decorator(generator: abc.AsyncGenerator[P, T]) -> abc.AsyncGenerator[P, T]:
             @decorator
-            async def _wrapper(*args, **kwargs):
+            async def _wrapper(*args: P.args, **kwargs: P.kwargs):
                 assert "session" not in kwargs
 
-                self: BaseModule = args[0]
+                self: BaseModule = cast(BaseModule, args[0])
                 session: Optional[IOTerminal] = None
                 for attempt in range(retries):
                     session = await self.open_session(terminal_type)

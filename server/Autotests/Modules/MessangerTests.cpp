@@ -136,9 +136,15 @@ public:
 
         // Send request
         {
-            MaybeError error = pMessagner->sendRequest(service.sName, nSeq, request);
+            client::Messanger::SessionStatus eSendStatus;
+            MaybeError error = pMessagner->sendRequest(
+                                     service.sName, nSeq, request, eSendStatus);
             if (error) {
                 return String::concat("Can't send request: ", *error);
+            }
+            if (!eSendStatus.is_ok()) {
+                return String::concat("Got unexpected send status: ",
+                                      eSendStatus.eStatus);
             }
         }
 
@@ -356,6 +362,15 @@ TEST_F(MessangerTests, ServicesList)
         Helper::openCommutatorSession(*this, pRootSession);
     ASSERT_TRUE(pCommutator);
 
+    client::MessangerPtr pMessanger = Helper::getMessanger(pCommutator);
+    ASSERT_TRUE(pMessanger);
+
+    // Check empty services list
+    {
+        MaybeError error = checkServiceList(pMessanger, std::vector<Service>());
+        ASSERT_FALSE(error) << *error;
+    }
+
     // Will always contain currently opened services (can be used as expected
     // list of services)
     std::vector<Service> services;
@@ -370,9 +385,6 @@ TEST_F(MessangerTests, ServicesList)
         ASSERT_TRUE(service) << "Can't spawn service: " << service.problem();
         services.emplace_back(std::move(service));
     }
-
-    client::MessangerPtr pMessanger = Helper::getMessanger(pCommutator);
-    ASSERT_TRUE(pMessanger);
 
     // Check services list
     auto rng = std::default_random_engine{};
@@ -464,16 +476,12 @@ TEST_F(MessangerTests, SendRequestToWrongService)
 
     constexpr uint32_t nSomeSeq = 12345;
 
+    client::Messanger::SessionStatus eSendStatus;
     MaybeError error = pMessanger->sendRequest(
-        "NonExistingService", nSomeSeq, "Ping");
-    ASSERT_FALSE(error) << "Can't sent request: " << *error;
-
-    client::Messanger::SessionStatus status;
-    error = pMessanger->waitSessionStatus(status);
-    ASSERT_FALSE(error) << "Can't get session status: " << *error;
-
-    ASSERT_EQ(nSomeSeq, status.nSeq);
-    ASSERT_EQ(spex::IMessanger::NO_SUCH_SERVICE, status.eStatus);
+        "NonExistingService", nSomeSeq, "Ping", eSendStatus);
+    ASSERT_FALSE(error) << "Can't send request: " << *error;
+    ASSERT_EQ(nSomeSeq, eSendStatus.nSeq);
+    ASSERT_EQ(spex::IMessanger::NO_SUCH_SERVICE, eSendStatus.eStatus);
 }
 
 TEST_F(MessangerTests, SendRequestWithWrongTimeout)
@@ -494,17 +502,13 @@ TEST_F(MessangerTests, SendRequestWithWrongTimeout)
 
     constexpr uint32_t nSomeSeq = 12345;
 
+    client::Messanger::SessionStatus eSendStatus;
     MaybeError error = pMessanger->sendRequest(
-        sServiceName, nSomeSeq, "Ping",
+        sServiceName, nSomeSeq, "Ping", eSendStatus,
         modules::constants::messanger::nMaxRequestTimeoutMs + 1);
     ASSERT_FALSE(error) << "Can't sent request: " << *error;
-
-    client::Messanger::SessionStatus status;
-    error = pMessanger->waitSessionStatus(status);
-    ASSERT_FALSE(error) << "Can't get session status: " << *error;
-
-    ASSERT_EQ(nSomeSeq, status.nSeq);
-    ASSERT_EQ(spex::IMessanger::REQUEST_TIMEOUT_TOO_LONG, status.eStatus);
+    ASSERT_EQ(nSomeSeq, eSendStatus.nSeq);
+    ASSERT_EQ(spex::IMessanger::REQUEST_TIMEOUT_TOO_LONG, eSendStatus.eStatus);
 }
 
 TEST_F(MessangerTests, TooManySessions)
@@ -527,25 +531,24 @@ TEST_F(MessangerTests, TooManySessions)
 
     // Fill the sessions limit:
     for (size_t seq = 0; seq < nSessionsLimit; ++seq) {
+        client::Messanger::SessionStatus eSendStatus;
         MaybeError error = pMessanger->sendRequest(
-            sServiceName, seq, "Ping",
+            sServiceName, seq, "Ping", eSendStatus,
             modules::constants::messanger::nMaxRequestTimeoutMs);
         ASSERT_FALSE(error) << "Can't sent request: " << *error;
+        ASSERT_TRUE(eSendStatus.is_ok())
+                     << "status " << eSendStatus.eStatus << " on seq = " << seq;
     }
 
     // Send one more request (sessions limit will be exceeded)
     const size_t nLastSeq = nSessionsLimit;
+    client::Messanger::SessionStatus eSendStatus;
     MaybeError error = pMessanger->sendRequest(
-        sServiceName, nLastSeq, "Ping",
+        sServiceName, nLastSeq, "Ping", eSendStatus,
         modules::constants::messanger::nMaxRequestTimeoutMs);
     ASSERT_FALSE(error) << "Can't sent request: " << *error;
-
-    client::Messanger::SessionStatus status;
-    error = pMessanger->waitSessionStatus(status);
-    ASSERT_FALSE(error) << "Can't get session status: " << *error;
-
-    ASSERT_EQ(nLastSeq, status.nSeq);
-    ASSERT_EQ(spex::IMessanger::SESSIONS_LIMIT_REACHED, status.eStatus);
+    ASSERT_EQ(nLastSeq, eSendStatus.nSeq);
+    ASSERT_EQ(spex::IMessanger::SESSIONS_LIMIT_REACHED, eSendStatus.eStatus);
 }
 
 TEST_F(MessangerTests, TwoSessionsUsesTheSameSeq)
@@ -570,10 +573,13 @@ TEST_F(MessangerTests, TwoSessionsUsesTheSameSeq)
 
     // Two clients send request with the same 'seq' to the same service
     MaybeError error;
-    error = pClientA->sendRequest(sServiceName, nSomeSeq, "AAA");
+    client::Messanger::SessionStatus eSendStatus;
+    error = pClientA->sendRequest(sServiceName, nSomeSeq, "AAA", eSendStatus);
     ASSERT_FALSE(error) << "Can't sent request: " << *error;
-    error = pClientB->sendRequest(sServiceName, nSomeSeq, "BBB");
+    ASSERT_TRUE(eSendStatus.is_routed());
+    error = pClientB->sendRequest(sServiceName, nSomeSeq, "BBB", eSendStatus);
     ASSERT_FALSE(error) << "Can't sent request: " << *error;
+    ASSERT_TRUE(eSendStatus.is_routed());
 
     error = echoAllRequests(service, 2);
     ASSERT_FALSE(error) << *error;
@@ -597,7 +603,7 @@ TEST_F(MessangerTests, TwoSessionsUsesTheSameSeq)
     }
 }
 
-TEST_F(MessangerTests, SendTwoFinalResponses)
+TEST_F(MessangerTests, SendTwoResponsesWithTheSameSeq)
 {
     Helper::createMessangerModule(*this);
 
@@ -615,9 +621,11 @@ TEST_F(MessangerTests, SendTwoFinalResponses)
 
     constexpr uint32_t nSomeSeq = 3324;
 
-    MaybeError error;
-    error = pClient->sendRequest(sServiceName, nSomeSeq, "AAA");
+    client::Messanger::SessionStatus eSendStatus;
+    MaybeError error = pClient->sendRequest(
+        sServiceName, nSomeSeq, "AAA", eSendStatus);
     ASSERT_FALSE(error) << "Can't sent request: " << *error;
+    ASSERT_TRUE(eSendStatus.is_routed());
 
     client::Messanger::Request request;
     error = service.pSession->waitRequest(request);
@@ -653,9 +661,11 @@ TEST_F(MessangerTests, SendResponseWithWrongSeq)
 
     constexpr uint32_t nSomeSeq = 3324;
 
-    MaybeError error;
-    error = pClient->sendRequest(sServiceName, nSomeSeq, "PING REQ");
+    client::Messanger::SessionStatus eSendStatus;
+    MaybeError error = pClient->sendRequest(
+        sServiceName, nSomeSeq, "PING REQ", eSendStatus);
     ASSERT_FALSE(error) << "Can't sent request: " << *error;
+    ASSERT_TRUE(eSendStatus.is_routed());
 
     client::Messanger::Request request;
     error = service.pSession->waitRequest(request);
@@ -670,54 +680,6 @@ TEST_F(MessangerTests, SendResponseWithWrongSeq)
     ASSERT_FALSE(error) << "Can't get session status: " << *error;
     ASSERT_EQ(nWrongSeq, status.nSeq);
     ASSERT_EQ(spex::IMessanger::WRONG_SEQ, status.eStatus);
-}
-
-TEST_F(MessangerTests, LongSession)
-{
-    // Check that session will be active while non-final responses are being
-    // sent to client
-
-    Helper::createMessangerModule(*this);
-
-    client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
-    ASSERT_TRUE(pRootSession);
-    client::ClientCommutatorPtr pCommutator =
-        Helper::openCommutatorSession(*this, pRootSession);
-    ASSERT_TRUE(pCommutator);
-
-    client::MessangerPtr pClient = Helper::getMessanger(pCommutator);
-    ASSERT_TRUE(pClient);
-
-    const char*    sServiceName = "SomeBadService";
-    const uint32_t nSomeSeq     = 32837;
-    Service service = spawnService(pCommutator, sServiceName);
-
-    for (uint32_t nTimeout : {100, 200, 400, 800, 1600, 3200, 4999}) {
-        MaybeError error = pClient->sendRequest(
-            sServiceName, nSomeSeq, "PING REQ", nTimeout);
-        ASSERT_FALSE(error) << "Can't send request: " << *error;
-
-        // Receive request on service side
-        client::Messanger::Request request;
-        error = service.pSession->waitRequest(request);
-        ASSERT_FALSE(error) << "Can't get request: " << *error;
-
-        // Send N responses (only last one is final)
-        for (size_t i = 1; i <= 32; ++i) {
-            justWait(0.9 * nTimeout);
-            const bool isFinal = i == 32;
-            const std::string body = String::concat("PING RESP #", i);
-            error = service.pSession->sendResponse(request.nSeq, body, isFinal);
-            ASSERT_FALSE(error) << "Can't send response #" << i << ": " << *error;
-
-            uint32_t    nResponseSeq;
-            std::string nResponseBody;
-            error = pClient->waitResponse(nResponseSeq, nResponseBody);
-            ASSERT_FALSE(error) << "Can't get response #" << i << ": " << *error;
-            ASSERT_EQ(nResponseSeq, nResponseSeq);
-            ASSERT_EQ(body, nResponseBody);
-        }
-    }
 }
 
 TEST_F(MessangerTests, SessionTimeout)
@@ -738,9 +700,11 @@ TEST_F(MessangerTests, SessionTimeout)
     Service service = spawnService(pCommutator, sServiceName);
 
     for (uint32_t nTimeout : {100, 200, 400, 800, 1600, 3200, 4999}) {
+        client::Messanger::SessionStatus eSendStatus;
         MaybeError error = pClient->sendRequest(
-            sServiceName, nSomeSeq, "PING REQ", nTimeout);
+            sServiceName, nSomeSeq, "PING REQ", eSendStatus, nTimeout);
         ASSERT_FALSE(error) << "Can't send request: " << *error;
+        ASSERT_TRUE(eSendStatus.is_routed());
 
         // Receive request on service side
         client::Messanger::Request request;

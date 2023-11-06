@@ -28,7 +28,7 @@ class Connection(NamedTuple):
 async def login(server_ip: str,
                 login_port: int,
                 login: str,
-                password: str) -> (Optional[Connection], Optional[str]):
+                password: str) -> Tuple[Optional[Connection], Optional[str]]:
 
     session_mux = SessionsMux()
 

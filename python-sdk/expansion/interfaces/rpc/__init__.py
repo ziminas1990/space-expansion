@@ -14,4 +14,5 @@ from expansion.interfaces.rpc.blueprints_library import (
 from expansion.interfaces.rpc.passive_scanner import (
     PassiveScannerI, Specification as PassiveScanerSpec
 )
+from expansion.interfaces.rpc.messanger import MessangerI, MessangerStatus
 from expansion.interfaces.rpc.root_session import RootSession

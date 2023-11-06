@@ -79,6 +79,7 @@ MaybeError Messanger::sendRequest(
     std::string_view target,
     uint32_t         nSeq,
     std::string_view body,
+    SessionStatus&   eSendStatus,
     uint32_t         nTimeoutMs)
 {
     spex::Message message;
@@ -91,6 +92,13 @@ MaybeError Messanger::sendRequest(
     if (!send(std::move(message))) {
         return "Failed to send request";
     }
+
+    MaybeError error = waitSessionStatus(eSendStatus);
+    if (error) {
+        return String::concat("No status response: ", *error);
+    }
+    // Even if status is not 'ROUTED', sendRequest() call should be treated
+    // as succesfull
     return std::nullopt;
 }
 
@@ -111,14 +119,13 @@ MaybeError Messanger::waitRequest(Request& request, uint32_t nTimeoutMs)
 }
 
 MaybeError
-Messanger::sendResponse(uint32_t nSeq, std::string_view body, bool final)
+Messanger::sendResponse(uint32_t nSeq, std::string_view body)
 {
     spex::Message message;
     spex::IMessanger::Response* resp =
         message.mutable_messanger()->mutable_response();
     resp->set_seq(nSeq);
     resp->set_body(std::string(body));
-    resp->set_final(final);
     if (!send(std::move(message))) {
         return "Failed to send response";
     }

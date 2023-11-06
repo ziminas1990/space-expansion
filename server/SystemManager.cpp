@@ -242,6 +242,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pAsteroidMinerManager);
   m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
   m_pConveyor->addLogicToChain(m_pShipyardManager);
+  m_pConveyor->addLogicToChain(m_pMessangerManager);
   return true;
 }
 
