@@ -13,6 +13,7 @@ from .passive_scanner import PassiveScanner
 from .asteroid_miner import AsteroidMiner
 from .shipyard import Shipyard
 from .blueprints_library import BlueprintsLibrary
+from .messanger import Messanger
 
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
 TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
@@ -73,5 +74,10 @@ def module_factory(module_type: str,
         return BlueprintsLibrary(
             tunnel_factory=tunnel_factory,
             name=module_name), None
+    elif module_type == ModuleType.MESSANGER.value:
+        return Messanger(
+            tunnel_factory=tunnel_factory,
+            name=module_name
+        ), None
     else:
         return None, f"module {module_type} is not supported yet"

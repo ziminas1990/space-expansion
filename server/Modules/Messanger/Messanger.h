@@ -62,18 +62,16 @@ private:
         uint32_t           nTimeoutMs,
         const std::string& sBody);
 
-    void onResponse(
-        uint32_t           nSessionId,
-        uint32_t           nServiceSeq,
-        const std::string& sBody,
-        bool               lFinal);
+    void onResponse(uint32_t           nSessionId,
+                    uint32_t           nServiceSeq,
+                    const std::string& sBody);
 
     void sendOpenServiceStatus(uint32_t nSessionId, spex::IMessanger::Status status);
     void sendServicesList(uint32_t nSessionId) const;
     void sendServiceInfo(uint32_t nSessionId, const Service& service, size_t left) const;
     void sendSessionStatus(
         uint32_t nSessionId, uint32_t nSeq, spex::IMessanger::Status status);
-    void forwardRequest(const Transaction& transaction, const std::string& sBody);
+    bool forwardRequest(const Transaction& transaction, const std::string& sBody);
     void forwardResponse(const Transaction& transaction, const std::string& sBody);
 
 };

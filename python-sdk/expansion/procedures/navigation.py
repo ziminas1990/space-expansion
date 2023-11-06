@@ -1,12 +1,10 @@
 import copy
-import random
-from typing import Callable, Awaitable, NamedTuple, List, Tuple, Optional, Iterator
+from typing import Callable, NamedTuple, List, Tuple, Optional, Iterator
 import math
-import asyncio
 
 from expansion.types import Position, Vector, TimePoint
 from expansion.modules.ship import Ship
-from expansion.modules.engine import Engine, EngineSpec
+from expansion.modules.engine import Engine
 import expansion.interfaces.rpc as rpc
 import expansion.modules as modules
 

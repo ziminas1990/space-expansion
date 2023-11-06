@@ -20,8 +20,17 @@ public:
     };
 
     struct SessionStatus {
-        uint32_t                 nSeq;
-        spex::IMessanger::Status eStatus;
+        uint32_t                 nSeq = 0;
+        spex::IMessanger::Status eStatus = spex::IMessanger::UNKNOWN_ERROR;
+
+        bool is_ok() const {
+            return eStatus == spex::IMessanger::SUCCESS
+                || eStatus == spex::IMessanger::ROUTED;
+        }
+
+        bool is_routed() const {
+            return eStatus == spex::IMessanger::ROUTED;
+        }
     };
 
 public:
@@ -37,11 +46,11 @@ public:
         std::string_view target,
         uint32_t nSeq,
         std::string_view body,
+        SessionStatus& eSendStatus,
         uint32_t nTimeoutMs = 1000);
     MaybeError waitRequest(Request& request, uint32_t nTimeoutMs = 100);
 
-    MaybeError sendResponse(
-        uint32_t nSeq, std::string_view body, bool final = true);
+    MaybeError sendResponse(uint32_t nSeq, std::string_view body);
     MaybeError waitResponse(
         uint32_t& nSeq, std::string& body, uint32_t nTimeoutMs = 100);
 

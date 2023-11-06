@@ -64,6 +64,9 @@ This means, that bt default a gcc 12 compiler will be used to build dependencies
 ## Building server
 Preparing to build:
 ```bash
+# Don't forget to activae python environment
+source $SPEX_VENV_DIR/bin/activate
+
 # Clone the sources and swtich to stable branch
 git clone git@github.com:ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
 cd $SPEX_SOURCE_DIR
@@ -90,6 +93,11 @@ cmake -S $SPEX_SOURCE_DIR/server -B $SPEX_BUILD_DIR -Dautotests-mode=ON -Dbuild-
 cmake --build $SPEX_BUILD_DIR --config Debug -- -j6
 ```
 
+To run unit tests:
+```bash
+$SPEX_BUILD_DIR/space-expansion-server
+```
+
 If you want to force 32-bit build, you should:
 1. add `-s arch=x86` to the `conan install` command, to build all dependencies in 32-bit mode;
 2. add `-Dbuild-32bit=ON` to the first cmake command, to configure 32-bit build.
@@ -98,13 +106,13 @@ If you want to force 32-bit build, you should:
 Install additional dependencies to your python venv:
 ```bash
 source $SPEX_VENV_DIR/bin/activate
-pip install protobuf pyaml
+pip install protobuf pyaml typing-extensions
 ```
 
 To run tests execute the following script:
 ```bash
 # Directory with the server's executable
-export PATH=$PATH:$SPEX_BUILD_DIR/bin
+export SPEX_SERVER_BINARY=$SPEX_BUILD_DIR/space-expansion-server
 export PYTHONPATH=$SPEX_SOURCE_DIR/python-sdk
 cd $SPEX_SOURCE_DIR/tests
 python -m unittest discover

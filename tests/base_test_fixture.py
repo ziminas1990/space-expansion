@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING
 import unittest
 import asyncio
 import abc
@@ -86,7 +86,7 @@ class BaseTestFixture(unittest.TestCase):
         BaseTestFixture.event_loop = None
 
     async def login(self, player: str, server_ip: str) \
-            -> (Optional[procedures.Connection], str):
+            -> Tuple[Optional[procedures.Connection], str]:
         general_cfg = self.config.general
         connection, problem = await procedures.login(
             server_ip=server_ip,
@@ -101,7 +101,7 @@ class BaseTestFixture(unittest.TestCase):
         return connection, None
 
     async def _proceed_time(self, proceed_ms: int, timeout_s: float) \
-            -> (bool, Optional[int]):
+            -> Tuple[bool, Optional[int]]:
         """
         Proceed the specified amount of 'proceed_ms' milliseconds. Each tick
         will be a 'granularity_us' microseconds long.
@@ -140,12 +140,11 @@ class BaseTestFixture(unittest.TestCase):
             success, ingame_now_us = await self._proceed_time(
                 proceed_ms=proceed_interval_ms,
                 timeout_s=2 * proceed_interval_ms)
-            assert success
             if not success:
                 return False
         return True
 
-    async def system_clock_stop(self) -> (bool, Optional[int]):
+    async def system_clock_stop(self) -> Tuple[bool, Optional[int]]:
         """Switch system clock to the FREEZE state.
         Return True and current in-game time on success, and False on error"""
         if self.time_manual_control_flag is True:
@@ -177,7 +176,7 @@ class BaseTestFixture(unittest.TestCase):
     async def system_clock_proceed(self,
                                    proceed_ms: int,
                                    timeout_s: float,
-                                   granularity_us: int = 1000) -> (bool, int):
+                                   granularity_us: int = 1000) -> Tuple[bool, int]:
         """
         Proceed the specified amount of 'proceed_ms' milliseconds. Each tick
         will be a 'granularity_us' microseconds long.

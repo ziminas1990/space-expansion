@@ -7,7 +7,7 @@
 #include <Network/BufferedTerminal.h>
 
 // This is useful for integration tests debugging
-#define PRINT_MESSAGES
+// #define PRINT_MESSAGES
 
 namespace network {
 
@@ -84,10 +84,10 @@ void ProtobufChannel<FrameType>::onMessageReceived(
   if (pdu.ParseFromArray(message.m_pBody, static_cast<int>(message.m_nLength))) {
 
 #ifdef PRINT_MESSAGES
-    // if (utils::isPlayerMessage(pdu) && !utils::isHeartbeat(pdu)) {
-    //   std::cerr << "Received in #" << nSessionId << ":\n" << pdu.DebugString()
-    //   << std::endl;
-    // }
+    if (utils::isPlayerMessage(pdu) && !utils::isHeartbeat(pdu)) {
+      std::cerr << "Received in #" << nSessionId << ":\n" << pdu.DebugString()
+      << std::endl;
+    }
 #endif
 
     m_pTerminal->onMessageReceived(nSessionId, std::move(pdu));
@@ -108,10 +108,10 @@ bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType&& message)
   message.SerializeToString(&buffer);
 
 #ifdef PRINT_MESSAGES
-  // if (utils::isPlayerMessage(message) && !utils::isHeartbeat(message)) {
-  //   std::cerr << "Sending in #" << nSessionId << ":\n"
-  //             << message.DebugString() << std::endl;
-  // }
+  if (utils::isPlayerMessage(message) && !utils::isHeartbeat(message)) {
+    std::cerr << "Sending in #" << nSessionId << ":\n"
+              << message.DebugString() << std::endl;
+  }
 #endif
 
   return m_pChannel

@@ -109,5 +109,8 @@ class Position(NamedTuple):
     def no_timestamp(self) -> "Position":
         return Position(self.x, self.y, self.velocity, None)
 
+    def no_velocity(seld) -> "Position":
+        return Position(x=self.x, y=self.y, velocity=Vector(0, 0), timestamp=self.timestamp)
+
     def with_timestamp(self, timestamp: int) -> "Position":
         return Position(self.x, self.y, self.velocity, timestamp=TimePoint(timestamp, static=True))

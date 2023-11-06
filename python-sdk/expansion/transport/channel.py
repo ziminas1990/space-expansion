@@ -1,6 +1,8 @@
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional, TypeVar, Callable, TYPE_CHECKING
+from typing_extensions import ParamSpec
 import abc
 import logging
+import asyncio
 
 from expansion import utils
 
@@ -12,6 +14,9 @@ else:
     def decorator(func):
         return func
 
+
+P = ParamSpec('P')
+T = TypeVar('T')
 
 class ChannelClosed(Exception):
     pass
@@ -81,12 +86,26 @@ class Channel(abc.ABC):
     def return_on_close(*return_on_close):
         """This decorator  adds handling of 'ChannelClosed' exception.
         If exception arises, wrapped function returns 'return_on_close'"""
-        def _decorator(func):
+        def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @decorator
-            async def _wrapper(*args, **kwargs):
+            async def _wrapper(*args: P.args, **kwargs: P.kwargs):
                 try:
                     return await func(*args, **kwargs)
                 except ChannelClosed:
                     return return_on_close
+            return _wrapper
+        return _decorator
+
+    @staticmethod
+    def return_on_cancel(*return_on_cancel):
+        """This decorator  adds handling of 'ChannelClosed' exception.
+        If exception arises, wrapped function returns 'return_on_close'"""
+        def _decorator(func: Callable[P, T]) -> Callable[P, T]:
+            @decorator
+            async def _wrapper(*args: P.args, **kwargs: P.kwargs):
+                try:
+                    return await func(*args, **kwargs)
+                except asyncio.CancelledError:
+                    return return_on_cancel
             return _wrapper
         return _decorator

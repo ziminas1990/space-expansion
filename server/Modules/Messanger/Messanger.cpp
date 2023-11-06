@@ -49,7 +49,7 @@ void Messanger::handleMessangerMessage(
     } break;
     case spex::IMessanger::kResponse: {
         const spex::IMessanger::Response& resp = message.response();
-        onResponse(nSessionId, resp.seq(), resp.body(), resp.final());
+        onResponse(nSessionId, resp.seq(), resp.body());
     } break;
     default:
         break;
@@ -134,33 +134,27 @@ void Messanger::onRequest(
         utils::GlobalClock::now() + (nTimeoutMs * 1000)
     };
 
-    m_transactions.push(transaction);
-    forwardRequest(transaction, sBody);
+    if (forwardRequest(transaction, sBody)) {
+        m_transactions.push(transaction);
+        sendSessionStatus(
+            nSessionId, nClientSeq, spex::IMessanger::ROUTED);
+    } else {
+        sendSessionStatus(
+            nSessionId, nClientSeq, spex::IMessanger::UNKNOWN_ERROR);
+    }
 }
 
-void Messanger::onResponse(
-    uint32_t           nSessionId,
-    uint32_t           nServiceSeq,
-    const std::string& sBody,
-    bool               lFinal)
+void Messanger::onResponse(uint32_t           nSessionId,
+                           uint32_t           nServiceSeq,
+                           const std::string& sBody)
 {
     Transaction* pTransaction = m_transactions.get(nServiceSeq);
-    if (!pTransaction) {
-        sendSessionStatus(nSessionId, nServiceSeq, spex::IMessanger::WRONG_SEQ);
-        return;
-    }
-
-    forwardResponse(*pTransaction, sBody);
-
-    if (lFinal) {
+    if (pTransaction) {
+        forwardResponse(*pTransaction, sBody);
         m_transactions.remove(pTransaction->nServiceSeq);
     } else {
-        // Non-final response reset session timeout
-        pTransaction->nDeadline =
-            utils::GlobalClock::now() + (pTransaction->nTimeoutMs * 1000);
+        sendSessionStatus(nSessionId, nServiceSeq, spex::IMessanger::WRONG_SEQ);
     }
-
-    // NOTE: 'pTransaction' may be invalid here
 }
 
 void
@@ -175,6 +169,14 @@ Messanger::sendOpenServiceStatus(
 void Messanger::sendServicesList(uint32_t nSessionId) const
 {
     size_t left = m_services.items().size();
+    if (left == 0) {
+        spex::Message message;
+        spex::IMessanger::ServicesList* list =
+            message.mutable_messanger()->mutable_services_list();
+        list->set_left(0);
+        sendToClient(nSessionId, std::move(message));
+        return;
+    }
     for (const Service& service : m_services.items()) {
         --left;
         sendServiceInfo(nSessionId, service, left);
@@ -208,7 +210,7 @@ void Messanger::sendSessionStatus(
     sendToClient(nSessionId, std::move(message));
 }
 
-void Messanger::forwardRequest(
+bool Messanger::forwardRequest(
     const Transaction& transaction, const std::string& sBody)
 {
     spex::Message message;
@@ -217,7 +219,7 @@ void Messanger::forwardRequest(
 
     request->set_seq(transaction.nServiceSeq);
     *request->mutable_body() = sBody;
-    sendToClient(transaction.nServiceSessionId, std::move(message));
+    return sendToClient(transaction.nServiceSessionId, std::move(message));
 }
 
 void Messanger::forwardResponse(

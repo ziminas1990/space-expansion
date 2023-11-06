@@ -10,6 +10,7 @@ from .passive_scanner import PassiveScanner
 from .asteroid_miner import AsteroidMiner, AsteroidMinerSpec
 from .shipyard import Shipyard, ShipyardSpec
 from .blueprints_library import BlueprintsLibrary
+from .messanger import Messanger, MessangerStatus
 
 from .util import (
     get_system_clock,

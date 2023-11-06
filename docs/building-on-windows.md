@@ -124,7 +124,7 @@ Scripts\Activate
 
 Install required dependencies:
 ```
-pip install pyyaml protobuf==3.20.0
+pip install pyyaml protobuf==3.20.0 typing-extensions
 ```
 **NOTE:** please, make sure that protobuf package version matches (or close to) the protobuf version, specified in `conanfile.txt` ($SPEX_SOURCE_DIR/server/conanfile.txt)!
 

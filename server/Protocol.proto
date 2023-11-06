@@ -444,15 +444,16 @@ message IMessanger {
 
   enum Status {
     SUCCESS          = 0;
-    SERVICE_EXISTS   = 1;
-    NO_SUCH_SERVICE  = 2;
-    TOO_MANY_SERVCES = 3;
-    SESSION_BUSY     = 4;
-    WRONG_SEQ        = 5;
-    CLOSED           = 6;
-    UNKNOWN_ERROR    = 7;
-    REQUEST_TIMEOUT_TOO_LONG = 8;
-    SESSIONS_LIMIT_REACHED   = 9;
+    ROUTED           = 1;
+    SERVICE_EXISTS   = 2;
+    NO_SUCH_SERVICE  = 3;
+    TOO_MANY_SERVCES = 4;
+    SESSION_BUSY     = 5;
+    WRONG_SEQ        = 6;
+    CLOSED           = 7;
+    UNKNOWN_ERROR    = 8;
+    REQUEST_TIMEOUT_TOO_LONG = 9;
+    SESSIONS_LIMIT_REACHED   = 10;
   }
 
   message Request {
@@ -465,7 +466,6 @@ message IMessanger {
   message Response {
     uint32 seq   = 1;
     string body  = 2;
-    bool   final = 3;
   }
 
   message OpenService {
