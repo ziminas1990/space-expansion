@@ -82,10 +82,11 @@ class MessangerI(IOTerminal):
 
     @Channel.return_on_cancel(types.Status.cancelled(), None)
     @Channel.return_on_close(types.Status.channel_is_closed(), None)
-    async def wait_request(self) -> Tuple[types.Status, Optional[Request]]:
-        message, _ = await self.wait_message(timeout=0)
+    async def wait_request(self, timeout: float = 0) -> Tuple[types.Status, Optional[Request]]:
+        message, _ = await self.wait_message(timeout=timeout)
         if not message:
-            return types.Status.fail("got empty message"), None
+            # Just timeout has expired
+            return types.Status.timeout(), None
         request = api.get_message_field(message, ["messanger", "request"])
         if request is None:
             return types.Status.unexpected_message(message), None
@@ -107,7 +108,7 @@ class MessangerI(IOTerminal):
         while not finished:
             response, _ = await self.wait_message(timeout=timeout)
             if not response:
-                return types.Status.response_timeout(), services
+                return types.Status.timeout(), services
             body = api.get_message_field(response, ["messanger", "services_list"])
             if body is None:
                 return types.Status.unexpected_message(response), services
@@ -144,7 +145,7 @@ class MessangerI(IOTerminal):
     async def wait_session_status(self, timeout: float = 0.5) -> Tuple[types.Status, Optional[int]]:
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
-            return types.Status.response_timeout(), None
+            return types.Status.timeout(), None
         body = api.get_message_field(response, ["messanger", "session_status"])
         if body is None:
             return types.Status.unexpected_message(response), None
@@ -155,7 +156,7 @@ class MessangerI(IOTerminal):
         -> Tuple[types.Status, Optional[int], Optional[str]]:
         message, _ = await self.wait_message(timeout=timeout)
         if not message:
-            return types.Status.response_timeout(), None, None
+            return types.Status.timeout(), None, None
         response = api.get_message_field(message, ["messanger", "response"])
         if response is None:
             session_status = api.get_message_field(message, ["messanger", "session_status"])

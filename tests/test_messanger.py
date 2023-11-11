@@ -8,7 +8,6 @@ import server.configurator.world as world
 
 from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
-from server.configurator.resources import ResourcesList
 
 from expansion.modules import Messanger, MessangerStatus
 from expansion.procedures import Connection
@@ -76,7 +75,7 @@ class TestCase(BaseTestFixture):
 
 
     @BaseTestFixture.run_as_sync
-    async def _test_open_service(self):
+    async def test_open_service(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
         status, session = await self.open_new_session("player")
@@ -87,7 +86,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(service)
 
     @BaseTestFixture.run_as_sync
-    async def _test_open_service_fails(self):
+    async def test_open_service_fails(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
         status, session = await self.open_new_session("player")
@@ -97,7 +96,7 @@ class TestCase(BaseTestFixture):
         status, service = await session.messanger.open_service("awesomesvc")
         self.assertTrue(status.is_ok(), str(status))
         status, _ = await session.messanger.open_service("awesomesvc")
-        self.assertEqual(str(status), "can't open sevice: service exists")
+        self.assertEqual(status, MessangerStatus.SERVICE_EXISTS)
         await service.close();
 
         # Try to esceed servers limit
@@ -106,11 +105,11 @@ class TestCase(BaseTestFixture):
             status, _ = await session.messanger.open_service(f"svc_${i}")
             self.assertTrue(status.is_ok())
         status, service = await session.messanger.open_service(f"yet_another_service")
-        self.assertEqual(str(status), "can't open sevice: too many services")
+        self.assertEqual(status, MessangerStatus.TOO_MANY_SERVCES)
         self.assertIsNone(service)
 
     @BaseTestFixture.run_as_sync
-    async def _test_services_list(self):
+    async def test_services_list(self):
         await self.system_clock_fast_forward(speed_multiplier=20)
 
         status, session = await self.open_new_session("player")
@@ -155,7 +154,7 @@ class TestCase(BaseTestFixture):
             )
 
     @BaseTestFixture.run_as_sync
-    async def _test_send_message_fails(self):
+    async def test_send_message_fails(self):
         max_request_timeout = 5
         sessions_limit = 256
 
