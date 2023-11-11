@@ -3,7 +3,10 @@ from typing import TypeVar, Optional, List, Union, Any
 T = TypeVar('T')
 
 
-class WellKnownId:
+
+class Status:
+
+    # Well knonwn status IDs
     SUCCESS = "Status.SUCCESS"
     UNKNOWN = "Status.UNKNOWN"
     CANCELLED = "Status.CANCELLED"
@@ -14,14 +17,12 @@ class WellKnownId:
     UNEXPECTED_MESSAGE = "Status.UNEXPECTED_MESSAGE"
 
 
-class Status:
-
     @staticmethod
-    def fail(what: str, status_id: str = WellKnownId.UNKNOWN):
+    def fail(what: str, status_id: str = UNKNOWN):
         return Status(is_fail=True, details=what, status_id=status_id)
 
     @staticmethod
-    def ok(details: Optional[str] = None, status_id: str = WellKnownId.SUCCESS):
+    def ok(details: Optional[str] = None, status_id: str = SUCCESS):
         return Status(is_fail=False, details=details, status_id=status_id)
 
     def __init__(self, *,
@@ -42,13 +43,13 @@ class Status:
 
     def __str__(self) -> str:
         if len(self.details) > 0:
-            return ": ".join(reversed(self.details.reverse)) + f" (${self.status_id})"
-        return "ok" if self.is_ok() else "unknown error" + f" (${self.status_id})"
+            return ": ".join(reversed(self.details)) + f" ({self.status_id})"
+        return "ok" if self.is_ok() else "unknown error" + f" ({self.status_id})"
 
     def __eq__(self, other: Union["Status", str]) -> bool:
         if isinstance(other, Status):
             return self.status_id == other.status_id and \
-                   self.status_id != WellKnownId.UNKNOWN
+                   self.status_id != Status.UNKNOWN
         elif isinstance(other, str):
             return self.status_id == other
         else:
@@ -62,34 +63,34 @@ class Status:
     # Well known statuses
     @staticmethod
     def channel_is_closed() -> "Status":
-        return Status.fail("channel is closed", WellKnownId.CHANNEL_IS_CLOSED)
+        return Status.fail("channel is closed", Status.CHANNEL_IS_CLOSED)
 
     @staticmethod
-    def response_timeout() -> "Status":
-        return Status.fail("response timeout", WellKnownId.TIMEOUT)
+    def timeout() -> "Status":
+        return Status.fail("timeout", Status.TIMEOUT)
 
     @staticmethod
     def unexpected_message(message: Optional[Any] = None) -> "Status":
         return Status.fail(
                 f"unexpected message: {message}" if message
                 else "unexpected message",
-                WellKnownId.UNEXPECTED_MESSAGE)
+                Status.UNEXPECTED_MESSAGE)
 
     @staticmethod
     def failed_to_send(message: Optional[Any] = None) -> "Status":
         return Status.fail(
             f"failed to send message: {message}" if message
             else "failed to send message",
-            WellKnownId.FAILED_TO_SEND_MSG)
+            Status.FAILED_TO_SEND_MSG)
 
     @staticmethod
     def unreachable() -> "Status":
-        return Status.fail("destination is unreachable", WellKnownId.UNREACHABLE)
+        return Status.fail("destination is unreachable", Status.UNREACHABLE)
 
     @staticmethod
     def cancelled() -> "Status":
-        return Status.fail("operation cancelled", WellKnownId.CANCELLED)
+        return Status.fail("operation cancelled", Status.CANCELLED)
 
     @staticmethod
     def unknown() -> "Status":
-        return Status.fail("unknown error", WellKnownId.UNKNOWN)
+        return Status.fail("unknown error", Status.UNKNOWN)

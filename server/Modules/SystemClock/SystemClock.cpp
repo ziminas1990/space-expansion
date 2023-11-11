@@ -19,6 +19,7 @@ void SystemClock::proceed(uint32_t)
     if (!m_rings.back().isValid()) {
       m_rings.pop_back();
     } else if (m_rings.back().nWhen <= now) {
+      // NOTE: ingame-time will be set into message timestamp (by SessionMux::send())
       sendRing(m_rings.back().nSessionId, utils::GlobalClock::running_time());
       m_rings.pop_back();
     } else {

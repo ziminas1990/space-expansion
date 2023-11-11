@@ -18,8 +18,8 @@ class Messanger(BaseModule):
             self.name = name
             self.session = session
 
-        async def wait_request(self):
-            return await self.session.wait_request()
+        async def wait_request(self, timeout: float = 0):
+            return await self.session.wait_request(timeout=timeout)
 
         async def send_response(self, request: MessangerI.Request, response: str):
             return await self.session.send_response(request=request, body=response)

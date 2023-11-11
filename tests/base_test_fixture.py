@@ -87,6 +87,7 @@ class BaseTestFixture(unittest.TestCase):
 
     async def login(self, player: str, server_ip: str) \
             -> Tuple[Optional[procedures.Connection], str]:
+        assert(self.config is not None)
         general_cfg = self.config.general
         connection, problem = await procedures.login(
             server_ip=server_ip,

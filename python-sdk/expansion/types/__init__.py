@@ -10,4 +10,4 @@ from expansion.types.position import Position
 from expansion.types.object_types import ObjectType
 from expansion.types.physical_object import PhysicalObject
 from expansion.types.blueprint import Blueprint, Property
-from expansion.types.common import Status, WellKnownId
+from expansion.types.common import Status
