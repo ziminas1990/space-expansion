@@ -128,7 +128,7 @@ class TestCase(BaseTestFixture):
             services.append(service)
 
             # Check that service is in services list
-            status, opened_services = await session.messanger.serivces_list()
+            status, opened_services, _ = await session.messanger.serivces_list()
             self.assertTrue(status.is_ok(), str(status))
 
             self.assertEqual(
@@ -143,7 +143,7 @@ class TestCase(BaseTestFixture):
             await service.close()
 
             # Check services list
-            status, opened_services = await session.messanger.serivces_list()
+            status, opened_services, _ = await session.messanger.serivces_list()
             self.assertTrue(status.is_ok(), str(status))
 
             # a = sorted(opened_services)

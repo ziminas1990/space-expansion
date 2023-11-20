@@ -62,7 +62,7 @@ void Messanger::onSessionClosed(uint32_t nSessionId)
 
     m_services.remove([nSessionId](const Service& service) {
         return service.nSessionId == nSessionId;
-        });
+    });
 }
 
 void Messanger::openService(

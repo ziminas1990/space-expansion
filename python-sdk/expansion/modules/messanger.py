@@ -57,12 +57,12 @@ class Messanger(BaseModule):
 
     @BaseModule.use_session(
         terminal_type=MessangerI,
-        return_on_unreachable=([], types.Status.unreachable()),
-        return_on_cancel=([], types.Status.cancelled()))
+        return_on_unreachable=(types.Status.unreachable(), []),
+        return_on_cancel=(types.Status.cancelled(), []))
     async def serivces_list(
             self,
             timeout: float = 0.5,
-            session: Optional[MessangerI] = None) -> Tuple[types.Status, List[str]]:
+            session: Optional[MessangerI] = None) -> Tuple[types.Status, List[str], int]:
         assert session is not None
         return await session.services_list(timeout)
 
