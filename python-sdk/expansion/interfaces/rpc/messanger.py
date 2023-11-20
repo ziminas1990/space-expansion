@@ -97,25 +97,25 @@ class MessangerI(IOTerminal):
             body=request.body),
 
     @Channel.return_on_close(types.Status.channel_is_closed(), [])
-    async def services_list(self, timeout: float = 0.5) -> Tuple[types.Status, List[str]]:
+    async def services_list(self, timeout: float = 0.5) -> Tuple[types.Status, List[str], int]:
         request = api.Message()
         request.messanger.services_list_req = True
         if not self.send(message=request):
-            return types.Status.failed_to_send(request), []
+            return types.Status.failed_to_send(request), [], 0
 
         services: List[str] = []
         finished = False
         while not finished:
-            response, _ = await self.wait_message(timeout=timeout)
+            response, timestamp = await self.wait_message(timeout=timeout)
             if not response:
-                return types.Status.timeout(), services
+                return types.Status.timeout(), services, timestamp
             body = api.get_message_field(response, ["messanger", "services_list"])
             if body is None:
-                return types.Status.unexpected_message(response), services
+                return types.Status.unexpected_message(response), services, timestamp
             services.extend(body.services)
             finished = body.left == 0
 
-        return types.Status.ok(), services
+        return types.Status.ok(), services, timestamp
 
     @Channel.return_on_close(types.Status.channel_is_closed())
     async def send_request(self, service: str, seq: int, body: str, timeout: float = 1) \
