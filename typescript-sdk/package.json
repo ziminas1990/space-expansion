@@ -1,5 +1,10 @@
 {
+    "name": "space",
+    "version": "0.0.1",
     "type": "module",
+    "main": "dist/index.js",
+    "files": ["/dist"],
+
     "dependencies": {
         "@bufbuild/protobuf": "^1.9.0",
         "@bufbuild/protoc-gen-es": "^1.9.0"
@@ -10,8 +15,6 @@
     },
     "scripts": {
         "regenerate": "npx protoc -I . --plugin ./node_modules/.bin/protoc-gen-es --es_out . --es_opt target=ts --proto_path=../server/ ../server/*.proto",
-        "compile": "npm run regenerate && tsc",
-        "main": "node dist/space.js",
-        "test": "node dist/test.js"
+        "build": "npm run regenerate && tsc"
     }
 }
