@@ -4,12 +4,13 @@
       "ESNext",
       "dom"
     ],
-    "outDir": "dist",
-    "removeComments": false,  // Better for debugging
+    "module": "es6",
     "target": "es6",
+    "outDir": "dist",
+    "declaration": true,
+    "removeComments": false,  // Better for debugging
 
     // Module resolution
-    "module": "es6",
     "baseUrl": "./",
     "esModuleInterop": true,
     "moduleResolution": "Node",
