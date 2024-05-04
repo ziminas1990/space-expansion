@@ -2,8 +2,10 @@ __pycache__/
 .idea
 CMakeLists.txt.user
 CMakeUserPresets.json
-/web-client/webapp/node_modules/
 /web-client/static/*.js
+/**/node_modules/
 /**/build/
+/**/dist/
 /**/.vscode/
 /server/.cache/
+/typescript-sdk/*_pb.ts
