@@ -6,10 +6,10 @@
     ],
     "outDir": "dist",
     "removeComments": false,  // Better for debugging
-    "target": "es6",
+    "target": "ESNext",
 
     // Module resolution
-    "module": "es6",
+    "module": "ESNext",
     "baseUrl": "./",
     "esModuleInterop": true,
     "moduleResolution": "Node",
