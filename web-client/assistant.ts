@@ -1,5 +1,6 @@
 import * as space from "space";
 import express from 'express';
+import session from 'express-session';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,6 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log(__filename);
+
+const secret_key = "kfjdflwk45i3lrkgw3l4kgsl";
 
 // Create a new express application instance
 const app: express.Application = express();
@@ -16,9 +19,28 @@ app.use(express.json());
 // Middleware to parse URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", async (_, res) => {
-    //Rerout to login page
-    res.redirect("/login");
+app.use(session({
+    secret: secret_key,
+    resave: false,
+    saveUninitialized: true,
+}));
+
+class UserSession {
+    constructor(public port: number, public root_session_id: number) {}
+};
+
+type CustomSession = session.Session & { user?: UserSession };
+
+
+app.get("/", async (req, res) => {
+    const session = req.session as CustomSession;
+    if (!session.id || !session.user) {
+        res.redirect("/login");
+        return;
+    }
+
+    const user = session.user;
+    res.send(`Session #${user.root_session_id} on port: ${user.port}`);
 });
 
 app.get("/login", async (_, res) => {
@@ -29,10 +51,13 @@ app.post("/login", async (req, res) => {
     const { login, password, ip } = req.body;
     const [status, access] = await login_to_server(ip, login, password);
     if (status.isOk()) {
-        res.send(`Access granted: ${JSON.stringify(access)}`);
-        console.log();
+        (req.session as CustomSession).user = new UserSession(
+            access?.port ?? 0,
+            access?.session_id ?? 0
+        );
+        res.redirect("/");
     } else {
-        res.send(`Access denied: ${status.what()}`);
+        res.redirect("/login");
     }
 });
 

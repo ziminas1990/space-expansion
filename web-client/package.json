@@ -2,12 +2,14 @@
     "type": "module",
     "dependencies": {
         "space": "file:../typescript-sdk",
-        "express": "^4.19.2"
+        "express": "^4.19.2",
+        "express-session": "^1.18.0"
     },
     "devDependencies": {
         "typescript": "^5.4.5",
         "@types/node": "^20.12.8",
-        "@types/express": "^4.17.21"
+        "@types/express": "^4.17.21",
+        "@types/express-session": "^1.18.0"
     },
     "scripts": {
         "compile": "tsc",
