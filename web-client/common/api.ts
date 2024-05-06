@@ -1,3 +1,5 @@
+// File describes the API between the web client and the server
+// It is used to exhange data over websocket.
 
 export enum ItemType {
   ASTEROID = "asteroid",

@@ -4,12 +4,12 @@ import session from 'express-session';
 import crypto from 'crypto';
 import http from 'http';
 import { WebSocketServer } from "ws";
-
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import * as api from "../common/api.js";
 console.log(__filename);
 
 const secret_key = "kfjdflwk45i3lrkgw3l4kgsl";
@@ -25,8 +25,18 @@ wss.on('connection', function connection(ws) {
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
     });
-
-    ws.send('something');
+    ws.send(JSON.stringify({
+        ts: Date.now(),
+        items: [
+            {
+                type: api.ItemType.ASTEROID,
+                id: 1,
+                ts: Date.now(),
+                pos: [0, 0, 0, 0],
+                radius: 10
+            }
+        ]
+    }));
 });
 
 // Server setup

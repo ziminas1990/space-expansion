@@ -27,7 +27,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["*.ts", "../typescript-sdk/dist/**/*"],
+  "include": ["./**/*.ts"],
   "exclude": [
     "node_modules/**/*"
   ]

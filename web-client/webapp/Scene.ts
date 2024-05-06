@@ -1,7 +1,7 @@
 import Konva from 'konva';
 
-import { StageView, StageViewBinder } from "./StageView"
-import { Item, ItemsContainer } from "./ItemsContainer"
+import { StageView, StageViewBinder } from "./StageView.js"
+import { Item, ItemsContainer } from "./ItemsContainer.js"
 
 type Layers =  {
   asteroids: Konva.Layer

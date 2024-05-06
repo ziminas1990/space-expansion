@@ -5,10 +5,15 @@
         "express": "^4.19.2",
         "express-session": "^1.18.0",
         "mustache": "^4.2.0",
-        "ws": "^8.17.0"
+        "ws": "^8.17.0",
+        "konva": "^8.3.12"
     },
     "devDependencies": {
         "typescript": "^5.4.5",
+        "ts-loader": "^9.3.1",
+        "webpack": "^5.74.0",
+        "webpack-cli": "^4.10.0",
+        "rimraf": "^3.0.2",
         "@types/node": "^20.12.8",
         "@types/express": "^4.17.21",
         "@types/express-session": "^1.18.0",
@@ -16,7 +21,13 @@
         "@types/ws": "^8.5.10"
     },
     "scripts": {
-        "compile": "tsc",
-        "assistant": "node dist/assistant.js"
+        "compile":     "tsc",
+        "clean":       "rimraf ./dist",
+        "webpack":     "webpack --mode production",
+        "webpack_dev": "webpack --mode development",
+        "resources":   "cp -r ./server/static ./dist/server/static && cp -r ./server/templates ./dist/server/templates",
+        "build":       "npm run clean && npm run compile && npm run webpack && npm run resources",
+        "build_dev":   "npm run clean && npm run compile && npm run webpack_dev && npm run resources",
+        "assistant":   "cd dist/server/ && node assistant.js"
     }
 }
