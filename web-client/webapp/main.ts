@@ -1,9 +1,9 @@
 import Konva from 'konva';
 
-import { Connection } from "./Connection"
-import { ItemsContainer } from "./ItemsContainer"
-import { Scene } from "./Scene"
-import * as protocol from "./Protocol"
+import { Connection } from "./Connection.js"
+import { ItemsContainer } from "./ItemsContainer.js"
+import { Scene } from "./Scene.js"
+import * as protocol from "../common/api.js"
 
 function set_status(status: string) {
   const label: HTMLElement | null = document.getElementById("status")

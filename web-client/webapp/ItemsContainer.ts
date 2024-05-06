@@ -1,4 +1,4 @@
-import * as protocol from "./Protocol"
+import * as protocol from "../common/api.js"
 
 class Position {
   public x: number;
