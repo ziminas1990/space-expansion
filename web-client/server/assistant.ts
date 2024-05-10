@@ -60,20 +60,27 @@ app.use(session({
 }));
 
 class UserSession {
+    private static all: Map<string, UserSession> = new Map();
+    public static get(token: string): UserSession | undefined {
+        return UserSession.all.get(token);
+    }
+
     public token: string = crypto.randomBytes(16).toString("hex");
 
     constructor(
         public login: string,
-        public port: number,
-        public root_session_id: number) {}
+        public root_session: space.lowlevel.RootSession)
+    {
+        UserSession.all.set(this.token, this);
+    }
 };
 
-type CustomSession = session.Session & { user?: UserSession };
+type CustomSession = session.Session & { token?: string };
 
 
 app.get("/", async (req, res) => {
     const session = req.session as CustomSession;
-    if (!session.id || !session.user) {
+    if (!session.id || !session.token) {
         res.redirect("/login");
         return;
     }
@@ -86,15 +93,21 @@ app.get("/login", async (_, res) => {
     res.sendFile(__dirname + "/templates/login.html");
 });
 
+const mirror = {
+    sent: (message: space.msg.Message) => {
+        console.log("Sent: ", message.toJsonString());
+    },
+    received: (message: space.msg.Message) => {
+        console.log("Received: ", message.toJsonString());
+    }
+};
+
 app.post("/login", async (req, res) => {
     const { login, password, ip } = req.body;
-    const [status, access] = await login_to_server(ip, login, password);
-    if (status.isOk()) {
-        (req.session as CustomSession).user = new UserSession(
-            login,
-            access?.port ?? 0,
-            access?.session_id ?? 0
-        );
+    const [status, root] = await space.lowlevel.login(ip, login, password, mirror);
+    if (status.isOk() && root) {
+        const user = new UserSession(login, root);
+        (req.session as CustomSession).token = user.token;
         res.redirect("/");
     } else {
         res.redirect("/login");
@@ -103,25 +116,21 @@ app.post("/login", async (req, res) => {
 
 app.get("/token", async (req, res) => {
     const session = req.session as CustomSession;
-    if (!session.id || !session.user) {
+    if (!session.id || !session.token) {
         res.redirect("/login");
         return;
     }
 
-    console.log("Token: ", session.user.token);
+    const user_session = UserSession.get(session.token);
+    if (!user_session) {
+        console.error("No user session found for token: ", session.token);
+        res.redirect("/login");
+        return;
+    }
+
+    console.log("Token: ", session.token);
     res.send(JSON.stringify({
-        "user": session.user.login,
-        "token": session.user.token
+        "user": user_session.login,
+        "token": user_session.token
     }))
 });
-
-async function login_to_server(ip: string, user: string, password: string) {
-    const socket = new space.transport.UdpSocket();
-    socket.connect(ip, 6842);
-
-    const channel = new space.transport.MessagesChannel();
-    channel.bind(socket);
-
-    const panel = new space.lowlevel.AccessPanel(channel);
-    return await panel.login(user, password);
-}
