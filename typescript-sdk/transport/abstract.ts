@@ -1,9 +1,18 @@
 import { Status } from "../types/status.js";
 
-export abstract class ISocket {
+// Something that receives and handle incoming meesages of type T
+export abstract class ITerminal<T> {
+    abstract on_message(message: T): Promise<void>;
+    abstract on_closed(): Promise<void>;
+}
 
-    abstract send(data: Uint8Array): Promise<Status>;
+// Something that can be used to send messages of type T
+export abstract class IChannel<T> {
+    abstract send(message: T): Promise<Status>;
+    abstract close(): Promise<Status>;
+}
 
-    abstract receive(timeout: number): Promise<[Status, Uint8Array]>;
-
+export abstract class IProxy<T> extends ITerminal<T> implements IChannel<T> {
+    abstract send(message: T): Promise<Status>;
+    abstract close(): Promise<Status>;
 }

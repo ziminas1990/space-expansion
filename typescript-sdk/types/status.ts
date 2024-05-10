@@ -39,8 +39,10 @@ export class Status {
 
     public wrap(error: string): Status {
         const fail = Status.fail(error);
-        fail.nested = this;
-        fail.status_id = this.status_id;
+        if (!this.isOk()) {
+            fail.nested = this;
+            fail.status_id = this.status_id;
+        }
         return fail;
     }
 
