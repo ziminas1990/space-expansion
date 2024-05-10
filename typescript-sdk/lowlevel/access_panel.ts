@@ -1,15 +1,15 @@
-import { MessagesChannel } from "../transport/channels.js";
-import { Status } from "../types/status.js";
 import * as msg from "../Protocol_pb.js"
+import * as transport from "../transport/index.js"
+import { Status } from "../types/status.js";
 
 export type AccessGranted = {
     port: number,
     session_id: number
 }
 
-export class AccessPanel {
-    constructor(private channel: MessagesChannel) {
-        this.channel = channel;
+export class AccessPanel extends transport.Endpoint<msg.Message> {
+    constructor(private channel: transport.MessagesChannel) {
+        super();
     }
 
     async login(login: string, password: string):
@@ -22,7 +22,7 @@ export class AccessPanel {
         message.choice.value.password = password;
 
         {
-            const status = await this.send(message);
+            const status = await this.send_request(message);
             if (!status.isOk()) {
                 return [status.wrap("failed to send login request"), undefined];
             }
@@ -47,7 +47,7 @@ export class AccessPanel {
 
 
     private async wait_response(timeout: number = 1000): Promise<[Status, msg.IAccessPanel]> {
-        const [status, response] = await this.channel.receive(timeout);
+        const [status, response] = await this.wait(timeout);
         if (!status.isOk() || !response) {
             return [status.wrap("no response"), new msg.IAccessPanel()];
         }
@@ -57,7 +57,7 @@ export class AccessPanel {
         return [Status.ok(), response.choice.value];
     }
 
-    private async send(request: msg.IAccessPanel): Promise<Status> {
+    private async send_request(request: msg.IAccessPanel): Promise<Status> {
         const message = new msg.Message();
         message.choice.case = "accessPanel";
         message.choice.value = request;

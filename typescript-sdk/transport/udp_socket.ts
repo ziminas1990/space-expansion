@@ -1,51 +1,50 @@
 import dgram from "node:dgram"
 import { Status } from "../types/status.js";
-import { ISocket } from "./abstract.js";
+import { IChannel, ITerminal } from "./abstract.js";
 
 
-export class UdpSocket extends ISocket {
+export class UdpSocket extends IChannel<Uint8Array> {
     private socket: dgram.Socket;
     private remote? : { address: string, port: number };
-
-    private receive_queue: Uint8Array[] = [];
-    private readers: ((status: Status, msg: Uint8Array | undefined) => void)[] = [];
+    private uplevel?: ITerminal<Uint8Array>;
 
     constructor() {
         super();
         this.socket = dgram.createSocket("udp4");
         this.socket.unref();
 
-        this.socket.on("message", (msg, rinfo) => {
+        this.socket.on("message", async (msg, rinfo) => {
             if (rinfo.address != this.remote?.address ||
                 rinfo.port != this.remote?.port) {
                 return;
             }
-            const reader = this.readers.shift();
-            if (reader) {
-                reader(Status.ok(), new Uint8Array(msg));
-            } else {
-                this.receive_queue.push(new Uint8Array(msg));
+            if (this.uplevel) {
+                await this.uplevel.on_message(msg);
             }
         });
 
         this.socket.on("error", (err) => {
-            this.readers.forEach((reader) => {
-                reader(Status.fail(err.message), undefined);
-            });
-            this.readers = []
+            console.error("Socket error", err);
         });
 
-        this.socket.on("close", () => {
-            this.readers.forEach((reader) => {
-                reader(Status.closed(), undefined);
-            });
-            this.readers = []
+        this.socket.on("close", async () => {
+            if (this.uplevel) {
+                await this.uplevel.on_closed();
+            }
         });
     }
 
     connect(address: string, port: number): Status {
         this.remote = { address, port };
         return Status.ok();
+    }
+
+    attach(terminal: ITerminal<Uint8Array>) {
+        this.uplevel = terminal;
+    }
+
+    detach() {
+        this.uplevel = undefined;
     }
 
     async send(data: Uint8Array): Promise<Status> {
@@ -66,26 +65,8 @@ export class UdpSocket extends ISocket {
         });
     }
 
-    async receive(timeout: number): Promise<[Status, Uint8Array]> {
-        if (this.receive_queue.length > 0) {
-            return [Status.ok(), this.receive_queue.shift()!];
-        }
-
-        return new Promise<[Status, Uint8Array]>((resolve) => {
-            const resolve_wrapper = (status: Status, msg: Uint8Array) => {
-                clearTimeout(timer);
-                resolve([status, msg!]);
-            }
-
-            this.readers.push(resolve_wrapper);
-
-            const timer = setTimeout(() => {
-                const index = this.readers.indexOf(resolve_wrapper);
-                if (index != -1) {
-                    this.readers.splice(index, 1);
-                }
-                resolve([Status.timeout(), new Uint8Array(0)]);
-            }, timeout);
-        });
+    async close(): Promise<Status> {
+        this.socket.close();
+        return Status.ok();
     }
 }
