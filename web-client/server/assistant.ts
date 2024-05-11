@@ -32,8 +32,8 @@ wss.on('connection', function connection(ws) {
                 type: api.ItemType.ASTEROID,
                 id: 1,
                 ts: Date.now(),
-                pos: [0, 0, 0, 0],
-                radius: 10
+                pos: [100, 100, 0, 0],
+                radius: 20
             }
         ]
     }));
@@ -69,7 +69,7 @@ class UserSession {
 
     constructor(
         public login: string,
-        public root_session: space.lowlevel.RootSession)
+        public root: space.Commutator)
     {
         UserSession.all.set(this.token, this);
     }
@@ -95,17 +95,29 @@ app.get("/login", async (_, res) => {
 
 const mirror = {
     sent: (message: space.msg.Message) => {
+        if (message.choice.case == "session") {
+            if (message.choice.value.choice.case == "heartbeat") {
+                // do not print hearbeat messages
+                return;
+            }
+        }
         console.log("Sent: ", message.toJsonString());
     },
     received: (message: space.msg.Message) => {
         console.log("Received: ", message.toJsonString());
+        if (message.choice.case == "session") {
+            if (message.choice.value.choice.case == "heartbeat") {
+                // do not print hearbeat messages
+                return;
+            }
+        }
     }
 };
 
 app.post("/login", async (req, res) => {
     const { login, password, ip } = req.body;
-    const [status, root] = await space.lowlevel.login(ip, login, password, mirror);
-    if (status.isOk() && root) {
+    const [status, root] = await space.login(ip, login, password, mirror);
+    if (status.is_ok() && root) {
         const user = new UserSession(login, root);
         (req.session as CustomSession).token = user.token;
         res.redirect("/");
