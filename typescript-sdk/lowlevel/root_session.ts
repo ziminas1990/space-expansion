@@ -13,25 +13,28 @@ export class RootSession extends Session {
         super(channel, session_id);
     }
 
-    async connect_to_root_commutator(): Promise<[Status, Commutator | undefined]> {
+    async open_session(): Promise<[Status, Session | undefined]> {
         const send_status = await this.send_new_commutator_session_request();
-        if (!send_status.isOk()) {
+        if (!send_status.is_ok()) {
             return [send_status.wrap("failed to send request"), undefined];
         }
 
         const [wait_status, session_id] = await this.wait_commutator_session();
-        if (!wait_status.isOk()) {
+        if (!wait_status.is_ok()) {
             return [wait_status.wrap("no response"), undefined];
         }
         if (session_id == 0) {
             return [Status.fail("got invalid session_id"), undefined];
         }
 
-        const [register_status, session] = await this.register_new_session(session_id);
-        if (!register_status.isOk() || !session) {
+        return await this.register_new_session(session_id);
+    }
+
+    async connect_to_root_commutator(): Promise<[Status, Commutator | undefined]> {
+        const [register_status, session] = await this.open_session();
+        if (!register_status.is_ok() || !session) {
             return [register_status.wrap("failed to register new session"), undefined];
         }
-
         return [Status.ok(), new Commutator(session, this)];
     }
 
@@ -80,7 +83,7 @@ export class RootSession extends Session {
 
     private async wait_commutator_session(timeout: number = 500): Promise<[Status, number]> {
         const [status, message] = await this.wait(timeout);
-        if (!status.isOk() || !message) {
+        if (!status.is_ok() || !message) {
             return [status.wrap("no response"), 0];
         }
         if (message.choice.case != "rootSession") {

@@ -18,7 +18,7 @@ export class Endpoint<T> implements ITerminal<T> {
 
     async on_closed(): Promise<void> {
         this.readers.forEach(reader => {
-            reader(Status.closed("Channel is closed"), undefined);
+            reader(Status.closed("channel is closed"), undefined);
         });
         this.readers = [];
     }

@@ -7,7 +7,7 @@ export { Decoder } from "./decoder.js";
 export { IChannel, ITerminal, IProxy } from "./abstract.js";
 export { Endpoint } from "./endpoint.js";
 
-type Mirroring = {
+export type Mirroring = {
     sent: (message: msg.Message) => void,
     received: (message: msg.Message) => void
 };

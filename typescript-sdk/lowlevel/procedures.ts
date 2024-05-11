@@ -1,21 +1,14 @@
-import * as msg from "../Protocol_pb.js";
 import * as transport from "../transport/index.js"
 import { Status } from "../types/status.js";
 import { AccessPanel } from "./access_panel.js"
 import { RootSession } from "./root_session.js";
 
-type Mirroring = {
-    sent: (message: msg.Message) => void,
-    received: (message: msg.Message) => void
-};
-
 export async function login(
     ip: string,
     user: string,
     password: string,
-    mirroring: Mirroring | undefined = undefined
-):
-    Promise<[Status,  RootSession | undefined]>
+    mirroring: transport.Mirroring | undefined = undefined
+): Promise<[Status,  RootSession | undefined]>
 {
     const socket = new transport.UdpSocket();
     socket.connect(ip, 6842);
@@ -28,7 +21,7 @@ export async function login(
     decoder.attach_uplevel(panel);
 
     const [status, access] = await panel.login(user, password);
-    if (!status.isOk() || !access) {
+    if (!status.is_ok() || !access) {
         return [status.wrap("login failed"), undefined];
     }
     decoder.detach_uplevel();
