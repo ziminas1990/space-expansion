@@ -23,13 +23,13 @@ export class AccessPanel extends transport.Endpoint<msg.Message> {
 
         {
             const status = await this.send_request(message);
-            if (!status.isOk()) {
+            if (!status.is_ok()) {
                 return [status.wrap("failed to send login request"), undefined];
             }
         }
 
         const [status, response] = await this.wait_response(1000);
-        if (!status.isOk() || !response) {
+        if (!status.is_ok() || !response) {
             return [status.wrap("failed to receive login response"), undefined];
         }
 
@@ -48,7 +48,7 @@ export class AccessPanel extends transport.Endpoint<msg.Message> {
 
     private async wait_response(timeout: number = 1000): Promise<[Status, msg.IAccessPanel]> {
         const [status, response] = await this.wait(timeout);
-        if (!status.isOk() || !response) {
+        if (!status.is_ok() || !response) {
             return [status.wrap("no response"), new msg.IAccessPanel()];
         }
         if (response.choice.case != "accessPanel") {

@@ -4,9 +4,15 @@ import { Status } from "../types/status.js";
 
 
 export class Session extends transport.Endpoint<msg.Message> {
+    private closed: boolean = false;
+
     constructor(protected channel: transport.IChannel<msg.Message>,
                 private session_id: number) {
         super();
+    }
+
+    is_active(): boolean {
+        return !this.closed;
     }
 
     async send(message: msg.Message): Promise<Status> {
@@ -34,16 +40,9 @@ export class Session extends transport.Endpoint<msg.Message> {
         }
     }
 
-    // Send 'hearbeat' message and wait for response.
-    // NOTE: make sure that this channel is not being used for any other
-    // interaction and no any responses are expected at this moment. Otherwise
-    // the check may sporadically fail.
-    async ping(): Promise<Status> {
-        const send_status = await this.send_hearbeat();
-        if (!send_status.isOk()) {
-            return send_status.wrap("failed to send heartbeat");
-        }
-        return await this.wait_hearbeat();
+    async on_closed(): Promise<void> {
+        this.closed = true;
+        super.on_closed();
     }
 
     async close(): Promise<Status> {
@@ -53,6 +52,7 @@ export class Session extends transport.Endpoint<msg.Message> {
         const message = new msg.Message();
         message.choice.case = "session";
         message.choice.value = close_req;
+        this.closed = true;
         return await this.send(message);
     }
 
@@ -68,7 +68,7 @@ export class Session extends transport.Endpoint<msg.Message> {
 
     async wait_hearbeat(timeout: number = 200): Promise<Status> {
         const [status, message] = await this.wait(timeout);
-        if (!status.isOk() || !message) {
+        if (!status.is_ok() || !message) {
             return status.wrap("no response");
         }
         if (message.choice.case != "session") {

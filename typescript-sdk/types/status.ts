@@ -39,7 +39,7 @@ export class Status {
 
     public wrap(error: string): Status {
         const fail = Status.fail(error);
-        if (!this.isOk()) {
+        if (!this.is_ok()) {
             fail.nested = this;
             fail.status_id = this.status_id;
         }
@@ -47,7 +47,7 @@ export class Status {
     }
 
     public what(): string {
-        if (this.isOk()) {
+        if (this.is_ok()) {
             return "ok";
         }
         return [
@@ -60,14 +60,14 @@ export class Status {
         ].filter(e => e).join(": ");
     }
 
-    public isOk(): boolean { return this.status_id == WellKnownStatus.ok; }
-    public isTimeout(): boolean {
+    public is_ok(): boolean { return this.status_id == WellKnownStatus.ok; }
+    public is_timeout(): boolean {
         return this.status_id == WellKnownStatus.timeout;
     }
-    public isNotConnected(): boolean {
+    public is_not_connected(): boolean {
         return this.status_id == WellKnownStatus.not_connected;
     }
-    public isClosed(): boolean {
+    public is_closed(): boolean {
         return this.status_id == WellKnownStatus.closed;
     }
 }
