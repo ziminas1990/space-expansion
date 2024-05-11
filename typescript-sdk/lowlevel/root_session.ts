@@ -35,10 +35,10 @@ export class RootSession extends Session {
         if (!register_status.is_ok() || !session) {
             return [register_status.wrap("failed to register new session"), undefined];
         }
-        return [Status.ok(), new Commutator(session, this)];
+        return [Status.ok(), new Commutator(session)];
     }
 
-    async register_new_session(session_id: number): Promise<[Status, Session | undefined]> {
+    register_new_session(session_id: number): [Status, Session | undefined] {
         if (!this.channel) {
             return [Status.notConnected(), undefined];
         }
