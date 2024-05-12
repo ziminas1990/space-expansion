@@ -1,4 +1,6 @@
 import * as space from "space";
+import * as api from "../common/api.js";
+
 import express from 'express';
 import session from 'express-session';
 import crypto from 'crypto';
@@ -9,7 +11,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-import * as api from "../common/api.js";
 console.log(__filename);
 
 const secret_key = "kfjdflwk45i3lrkgw3l4kgsl";
@@ -32,9 +33,9 @@ wss.on('connection', function connection(ws) {
                 type: api.ItemType.ASTEROID,
                 id: 1,
                 ts: Date.now(),
-                pos: [100, 100, 0, 0],
+                pos: [100, 100, 10, 10],
                 radius: 20
-            }
+            } as api.Item
         ]
     }));
 });
@@ -69,7 +70,7 @@ class UserSession {
 
     constructor(
         public login: string,
-        public root: space.Commutator)
+        public player: space.Player)
     {
         UserSession.all.set(this.token, this);
     }
@@ -104,13 +105,13 @@ const mirror = {
         console.log("Sent: ", message.toJsonString());
     },
     received: (message: space.msg.Message) => {
-        console.log("Received: ", message.toJsonString());
         if (message.choice.case == "session") {
             if (message.choice.value.choice.case == "heartbeat") {
                 // do not print hearbeat messages
                 return;
             }
         }
+        console.log("Received: ", message.toJsonString());
     }
 };
 
@@ -119,6 +120,7 @@ app.post("/login", async (req, res) => {
     const [status, root] = await space.login(ip, login, password, mirror);
     if (status.is_ok() && root) {
         const user = new UserSession(login, root);
+        await user.player.root_commutator.init();
         (req.session as CustomSession).token = user.token;
         res.redirect("/");
     } else {
