@@ -1,3 +1,3 @@
 
 export { login } from "./procedures.js";
-export { Commutator } from "./commutator.js";
+export { Commutator, CommutatorUpdate, ModuleInfo } from "./commutator.js";
