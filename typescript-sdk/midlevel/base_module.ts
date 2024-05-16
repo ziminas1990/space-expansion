@@ -8,10 +8,19 @@ export type UserLogicCallback<I, T> = (session: I) => Promise<[Status, T]>;
 export class BaseModule<I> {
     // Sessions that can be reused for communication
     private sessions: lowlevel.Session[] = [];
+    private active: boolean = true;
 
     constructor(private open_session: OpenSessionCallback,
                 private create_lowlevel_interface: CreateLowlevelInterface<I>
     ) {}
+
+    async terminate() {
+        for (const session of this.sessions) {
+            await session.close();
+        }
+        this.sessions = [];
+        this.active = false;
+    }
 
     // Run the specified callback in a session. If 'close_session' is true,
     // session will be closed after the callback is executed, otherwise it
@@ -31,7 +40,7 @@ export class BaseModule<I> {
         }
 
         const [user_status, result] = await callback(iface);
-        if (user_status.is_ok() && !close_session) {
+        if (user_status.is_ok() && !close_session && this.active) {
             this.sessions.push(session);
         } else {
             await session.close();
@@ -39,10 +48,21 @@ export class BaseModule<I> {
         return [user_status, result];
     }
 
+    // The same as "run", but the callback doesn't return anything, hence
+    // the result is just a status.
+    async run_no_return(callback: (session: I) => Promise<Status>,
+                        close_session: boolean = false): Promise<Status>
+    {
+        const [status, _] = await this.run(async (session) => {
+            return [await callback(session), undefined];
+        }, close_session);
+        return status;
+    }
+
     private async get_session(): Promise<[Status, lowlevel.Session | undefined]> {
         while (this.sessions.length > 0) {
             const candidate = this.sessions.pop()!;
-            if (!candidate.is_active()) {
+            if (candidate.is_active()) {
                 return [Status.ok(), candidate];
             }
         }
