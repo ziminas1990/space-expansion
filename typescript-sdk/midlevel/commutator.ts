@@ -2,10 +2,19 @@ import * as lowlevel from "../lowlevel/index.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
 import { Status } from "../types/status.js";
 
-export type ModuleInfo = lowlevel.ModuleInfo;
-export type CommutatorUpdate = lowlevel.CommutatorUpdate;
+export type ModuleInfo = lowlevel.ModuleInfo & {
+    open_session_cb: OpenSessionCallback;
+}
+
+export type Update = {
+    module_attached?: ModuleInfo;
+    module_detached?: number;
+}
+
 export type MonitoringCallback =
-    (status: Status, update: CommutatorUpdate | undefined) => Promise<boolean>;
+    (status: Status, update: Update | undefined) => Promise<boolean>;
+
+export type Session = lowlevel.Session;
 
 export class Commutator extends BaseModule<lowlevel.Commutator> {
     constructor(open_session_callback: OpenSessionCallback,
@@ -35,8 +44,8 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
         return await this.run(async (session) => this._open_session(session, slot_id));
     }
 
-    async close_tunnel(session_id: number): Promise<[Status, unknown]> {
-        return await this.run(async (session) => this._close_session(session, session_id));
+    async close_tunnel(session_id: number): Promise<Status> {
+        return await this.run_no_return(async (session) => this._close_session(session, session_id));
     }
 
     async monitoring(callback: MonitoringCallback)
@@ -64,7 +73,14 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
         if (!send_status.is_ok()) {
             return [send_status, undefined];
         }
-        return await session.wait_module_info_response(slot_id);
+        const [status, info] = await session.wait_module_info_response(slot_id);
+        if (!status.is_ok() || !info) {
+            return [status.wrap(`can't get info for slot ${slot_id}`), undefined];
+        }
+        return [Status.ok(), {
+            ...info,
+            open_session_cb: async () => this.open_tunnel(slot_id)
+        }];
     }
 
     private async _get_all_modules_info(
@@ -87,7 +103,10 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
                 return [info_status.wrap(`can't get info for module ${i}`), modules_info];
             }
             if (info) {
-                modules_info.push(info);
+                modules_info.push({
+                    ...info,
+                    open_session_cb: async () => this.open_tunnel(i)
+                });
             }
         }
         return [Status.ok(), modules_info];
@@ -116,13 +135,13 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
     }
 
     private async _close_session(session: lowlevel.Commutator, session_id: number)
-        : Promise<[Status, unknown]>
+        : Promise<Status>
     {
         const send_status = await session.send_close_tunnel_request(session_id);
         if (!send_status.is_ok()) {
-            return [send_status, undefined];
+            return send_status;
         }
-        return [await session.wait_close_tunnel_status(), undefined];
+        return await session.wait_close_tunnel_status();
     }
 
     private async _monitoring(
@@ -148,7 +167,13 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
                 callback(stop_status, undefined);
                 return [stop_status, undefined];
             } else if (update) {
-                const resume = await callback(Status.ok(), update);
+                const resume = await callback(Status.ok(), {
+                    module_attached: update.module_attached ? {
+                        ...update.module_attached,
+                        open_session_cb: async () => this.open_tunnel(update.module_attached!.slot_id)
+                    } : undefined,
+                    module_detached: update.module_detached
+                });
                 if (!resume) {
                     return [Status.ok(), undefined];
                 }

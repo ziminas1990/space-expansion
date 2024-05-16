@@ -5,9 +5,9 @@ export type ModuleInfo = midlevel.ModuleInfo;
 export type CommutatorUpdate = midlevel.CommutatorUpdate;
 
 export type Events = {
-    reset: ((module: ModuleInfo[]) => void);
-    attached: ((module: ModuleInfo) => void);
-    detached: ((module: ModuleInfo) => void);
+    reset: ((module: ModuleInfo[]) => Promise<void>);
+    attached: ((module: ModuleInfo) => Promise<void>);
+    detached: ((module: ModuleInfo) => Promise<void>);
 }
 
 export class Commutator {
@@ -24,7 +24,7 @@ export class Commutator {
     constructor(private rpc: midlevel.Commutator) {}
 
     on<K extends keyof Events>(event: K, listener: Events[K]): Status {
-        if (this.listeners[event]) {
+        if (this.listeners[event] != undefined) {
             this.listeners[event]!.push(listener);
             return Status.ok();
         }
@@ -65,33 +65,46 @@ export class Commutator {
         return Status.ok();
     }
 
+    async open_session(slot_id: number): Promise<[Status, midlevel.Session | undefined]> {
+        return await this.rpc.open_tunnel(slot_id);
+    }
+
+    async close_session(session_id: number): Promise<Status> {
+        return await this.rpc.close_tunnel(session_id);
+    }
+
     private async fetch_all_modules_info(): Promise<Status> {
         const [status, modules] = await this.rpc.get_all_modules_info();
         if (!status.is_ok()) {
             return status.wrap("failed to get all modules info");
         }
         this.modules = modules || [];
-        this.emit("reset", this.modules);
+        await this.emit("reset", this.modules);
+        this.modules.forEach(async (module) => {
+            await this.emit("attached", module);
+        })
         return Status.ok();
     }
 
-    private handle_update(update: CommutatorUpdate): void {
+    private async handle_update(update: CommutatorUpdate): Promise<void> {
         if (update.module_attached) {
             this.modules.push(update.module_attached);
-            this.emit("attached", update.module_attached);
+            await this.emit("attached", update.module_attached);
         }
         if (update.module_detached) {
             const index = this.modules.findIndex((m) => m.slot_id == update.module_detached);
             if (index >= 0) {
                 const [module] = this.modules.splice(index, 1);
-                this.emit("detached", module!);
+                await this.emit("detached", module!);
             }
         }
     }
 
-    private emit<K extends keyof Events>(event: K, ...params: Parameters<Events[K]>): void {
-        this.listeners[event].forEach((listener) => {
-            (listener as (...args: Parameters<Events[K]>) => any)(...params)
+    private async emit<K extends keyof Events>(event: K, ...params: Parameters<Events[K]>):
+    Promise<void>
+    {
+        this.listeners[event].forEach(async (listener) => {
+            await (listener as (...args: Parameters<Events[K]>) => any)(...params)
         });
     }
 

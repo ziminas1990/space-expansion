@@ -28,7 +28,7 @@ export class Session extends transport.Endpoint<msg.Message> {
             const session = message.choice.value;
             if (session.choice.case == "heartbeat") {
                 // Send heartbeat back, do not forward to the upper level.
-                await this.send_hearbeat();
+                await this.send_heartbeat();
                 return;
             } else if (session.choice.case == "closedInd") {
                 // Close session, do not forward to the upper level.
@@ -56,7 +56,7 @@ export class Session extends transport.Endpoint<msg.Message> {
         return await this.send(message);
     }
 
-    async send_hearbeat() {
+    async send_heartbeat() {
         const heartbeat = new msg.ISessionControl();
         heartbeat.choice.case = "heartbeat";
         heartbeat.choice.value = true;
@@ -65,16 +65,4 @@ export class Session extends transport.Endpoint<msg.Message> {
         message.choice.value = heartbeat;
         return await this.send(message);
     }
-
-    async wait_hearbeat(timeout: number = 200): Promise<Status> {
-        const [status, message] = await this.wait(timeout);
-        if (!status.is_ok() || !message) {
-            return status.wrap("no response");
-        }
-        if (message.choice.case != "session") {
-            return Status.fail(`unexpected response type ${message.choice.case}`);
-        }
-        return Status.ok();
-    }
-
 }
