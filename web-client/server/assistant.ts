@@ -120,7 +120,7 @@ app.post("/login", async (req, res) => {
     const [status, root] = await space.login(ip, login, password, mirror);
     if (status.is_ok() && root) {
         const user = new UserSession(login, root);
-        await user.player.root_commutator.init();
+        await user.player.init();
         (req.session as CustomSession).token = user.token;
         res.redirect("/");
     } else {
