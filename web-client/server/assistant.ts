@@ -5,7 +5,7 @@ import express from 'express';
 import session from 'express-session';
 import crypto from 'crypto';
 import http from 'http';
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
@@ -22,23 +22,7 @@ const app: express.Application = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-wss.on('connection', function connection(ws) {
-    ws.on('message', function incoming(message) {
-        console.log('received: %s', message);
-    });
-    ws.send(JSON.stringify({
-        ts: Date.now(),
-        items: [
-            {
-                type: api.ItemType.ASTEROID,
-                id: 1,
-                ts: Date.now(),
-                pos: [100, 100, 10, 10],
-                radius: 20
-            } as api.Item
-        ]
-    }));
-});
+wss.on('connection', on_websocket_commection);
 
 // Server setup
 server.listen(http_port, () => {
@@ -78,22 +62,6 @@ class UserSession {
 
 type CustomSession = session.Session & { token?: string };
 
-
-app.get("/", async (req, res) => {
-    const session = req.session as CustomSession;
-    if (!session.id || !session.token) {
-        res.redirect("/login");
-        return;
-    }
-
-    //const user = session.user;
-    res.sendFile(__dirname + "/templates/index.html");
-});
-
-app.get("/login", async (_, res) => {
-    res.sendFile(__dirname + "/templates/login.html");
-});
-
 const mirror = {
     sent: (message: space.msg.Message) => {
         if (message.choice.case == "session") {
@@ -114,6 +82,58 @@ const mirror = {
         console.log("Received: ", message.toJsonString());
     }
 };
+
+function on_websocket_commection(ws: WebSocket, request: http.IncomingMessage) {
+    ws.on('message', function incoming(message) {
+        console.log('received: %s', message);
+    });
+
+    if (request.url == undefined) {
+        ws.close();
+        return;
+    }
+
+    const [what, username, token] = request.url.split("/").filter((x) => x.length > 0);
+
+    if (what != "ws" || username == undefined || token == undefined) {
+        ws.close();
+        return;
+    }
+
+    const user = UserSession.get(token);
+    if (user == undefined || user.token != token || user.login != username) {
+        ws.close();
+        return;
+    }
+
+    ws.send(JSON.stringify({
+        ts: Date.now(),
+        items: [
+            {
+                type: api.ItemType.ASTEROID,
+                id: 1,
+                ts: Date.now(),
+                pos: [100, 100, 10, 10],
+                radius: 20
+            } as api.Item
+        ]
+    }));
+}
+
+app.get("/", async (req, res) => {
+    const session = req.session as CustomSession;
+    if (!session.id || !session.token) {
+        res.redirect("/login");
+        return;
+    }
+
+    //const user = session.user;
+    res.sendFile(__dirname + "/templates/index.html");
+});
+
+app.get("/login", async (_, res) => {
+    res.sendFile(__dirname + "/templates/login.html");
+});
 
 app.post("/login", async (req, res) => {
     const { login, password, ip } = req.body;
@@ -142,7 +162,6 @@ app.get("/token", async (req, res) => {
         return;
     }
 
-    console.log("Token: ", session.token);
     res.send(JSON.stringify({
         "user": user_session.login,
         "token": user_session.token

@@ -13,7 +13,6 @@ export class Ship {
     {}
 
     async init(): Promise<Status> {
-        console.log("GREPIT: initializing ship ", this.name);
         // Start monitoring of commutator's state
         this.stop_monitoring = false;
         this.monitor = new Promise(async (resolve) => {
