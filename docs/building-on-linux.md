@@ -1,48 +1,62 @@
 
 # Building on Linux
+
 This manual describes building on Ubuntu 23.04.
 
 ## Preparing system
+
 In this article let's assume that you have the following environment variables:
+
 ```bash
 SPEX_SOURCE_DIR=$HOME/dev/space-expansion
 SPEX_BUILD_DIR=$HOME/dev/space-expansion-build
 SPEX_VENV_DIR=$HOME/dev/space-expansion-venv
 ```
-Feel free to specify another paths.
+
+Feel free to specify other paths.
 
 Install the following packages:
+
 ```bash
-sudo apt install cmake git python3 python3-pip python3-venv
+sudo apt install cmake git python3 python3-pip python3-venv pipx
+pipx ensurepath
 ```
 
-Create python virtual environment and install Conan:
+Create a Python virtual environment and install Conan:
+
 ```bash
-python3 -m venv $SPEX_VENV_DIR
-source $SPEX_VENV_DIR/bin/activate
-pip3 install conan
+pipx install conan
 ```
 
 **Selfcheck:** make sure Conan can be run:
+
 ```bash
 $ conan --version
 Conan version 2.0.6
 ```
 
 ## Preparing Conan
+
 This step may be skipped, but it is highly recommended to do it attentively.
 
-Conan profile specifies which compiler, bitness, options and other significant parameters will be used to build the dependencies. For more details see the official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
+A Conan profile specifies which compiler, bitness, options and other significant
+parameters will be used to build the dependencies. For more details see the
+official ["Conan profiles"](https://docs.conan.io/en/latest/reference/profiles.html) page.
 
 If you have already run Conan, you may want to remove the Conan cache first. It can be done with the following command:
+
 ```bash
 rm -rf $HOME/.conan
 ```
+
 Now, let's create a default profile:
+
 ```bash
 conan profile detect
 ```
-It will print detected environment and you should get something similar to:
+
+It will print the detected environment and you should get something similar to:
+
 ```
 Found gcc 12
 gcc>=5, using the major as version
@@ -57,16 +71,18 @@ compiler.libcxx=libstdc++11
 compiler.version=12
 os=Linux
 ```
-This means, that bt default a gcc 12 compiler will be used to build dependencies in Release 64-bit mode.
+This means that by default a gcc 12 compiler will be used to build dependencies
+in Release 64-bit mode.
 
-**In general**, if you have some error and suspect that it is because something wrong with Conan, you can clear Conan cache, check Conan profile and rebuild all dependencies again
+**In general**, if you have an error and suspect that it is because something is
+wrong with Conan, you can clear the Conan cache, check the Conan profile and
+rebuild all dependencies again.
 
 ## Building server
-Preparing to build:
-```bash
-# Don't forget to activae python environment
-source $SPEX_VENV_DIR/bin/activate
 
+Preparing to build:
+
+```bash
 # Clone the sources and swtich to stable branch
 git clone git@github.com:ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
 cd $SPEX_SOURCE_DIR
@@ -75,41 +91,75 @@ cd $SPEX_SOURCE_DIR
 mkdir $SPEX_BUILD_DIR
 ```
 
-Now, to build release build run the following commands:
+## Release build
+
+To make a release build, run the following commands:
+
 ```bash
 # Building dependencies
 conan install $SPEX_SOURCE_DIR/server/conanfile.txt --output-folder=$SPEX_BUILD_DIR --build=missing
 # Building server
 cmake -S $SPEX_SOURCE_DIR/server -B $SPEX_BUILD_DIR --preset conan-release
-cmake --build $SPEX_BUILD_DIR --config Release -- -j6
+cmake --build $SPEX_BUILD_DIR --config Release -- -j$(nproc)
 ```
 
-If you want to build development build with autotests, run the following commands:
+## Development build
+
+A development build is not just a build with debug symbols and autotests. Its
+configuration also provides important artifacts for the IDE, such as a
+`compile_commands.json` file for Clangd.
+
+To configure a development build, run the following commands:
+
 ```bash
 # Building dependencies
 conan install $SPEX_SOURCE_DIR/server/conanfile.txt --output-folder=$SPEX_BUILD_DIR --build=missing -s build_type=Debug
-# Building server
-cmake -S $SPEX_SOURCE_DIR/server -B $SPEX_BUILD_DIR -Dautotests-mode=ON -Dbuild-debug=ON --preset conan-debug
-cmake --build $SPEX_BUILD_DIR --config Debug -- -j6
+
+cmake -S $SPEX_SOURCE_DIR/server -B $SPEX_BUILD_DIR -Dbuild-debug=ON -Dwith-autotests=ON --preset conan-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+# compile_commands.json must be placed in source directory for Clangd to work
+ln -s $SPEX_BUILD_DIR/compile_commands.json $SPEX_SOURCE_DIR/compile_commands.json
 ```
 
-To run unit tests:
+To build the server, run:
+
+```bash
+# Building server
+cmake --build $SPEX_BUILD_DIR --config Debug -- -j$(nproc --ignore=1)
+```
+
+If you want to force a 32-bit build, you should:
+
+1. add `-s arch=x86` to the `conan install` command, to build all dependencies
+   in 32-bit mode;
+2. add `-Dbuild-32bit=ON` to the first cmake command, to configure a 32-bit build.
+
+To run autotests:
+
+```bash
+$SPEX_BUILD_DIR/autotests
+```
+
+To run the server, make sure that the `space-expansion.cfg` file exists in the working
+directory, then run:
+
 ```bash
 $SPEX_BUILD_DIR/space-expansion-server
 ```
 
-If you want to force 32-bit build, you should:
-1. add `-s arch=x86` to the `conan install` command, to build all dependencies in 32-bit mode;
-2. add `-Dbuild-32bit=ON` to the first cmake command, to configure 32-bit build.
-
 ## Run integration tests
-Install additional dependencies to your python venv:
+
+Create and activate a Python virtual environment, then install the dependencies
+required by the Python SDK:
+
 ```bash
-source $SPEX_VENV_DIR/bin/activate
-pip install protobuf pyaml typing-extensions
+python3 -m venv "$SPEX_VENV_DIR"
+source "$SPEX_VENV_DIR/bin/activate"
+python -m pip install pyyaml protobuf typing-extensions
 ```
 
-To run tests execute the following script:
+To run the tests, execute the following script:
+
 ```bash
 # Directory with the server's executable
 export SPEX_SERVER_BINARY=$SPEX_BUILD_DIR/space-expansion-server

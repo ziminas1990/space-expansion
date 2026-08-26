@@ -5,7 +5,7 @@
 
 namespace network {
 
-UdpDispatcher::UdpDispatcher(boost::asio::io_service& ioContext,
+UdpDispatcher::UdpDispatcher(boost::asio::io_context& ioContext,
                              uint16_t nPoolBegin, uint16_t nPoolEnd)
   : m_IOContext(ioContext),
     m_portsPool(nPoolBegin, nPoolEnd)

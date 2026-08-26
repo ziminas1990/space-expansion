@@ -1,8 +1,8 @@
 [requires]
-boost/1.82.0
-protobuf/3.21.9
-yaml-cpp/0.7.0
-gtest/1.10.0
+boost/1.91.0
+protobuf/7.35.0
+yaml-cpp/0.9.0
+gtest/1.18.0
 
 [generators]
 CMakeToolchain

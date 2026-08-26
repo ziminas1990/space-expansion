@@ -14,7 +14,7 @@ class Socket
 public:
   using udp = boost::asio::ip::udp;
 
-  Socket(boost::asio::io_service& io_context, udp::endpoint localAddress);
+  Socket(boost::asio::io_context& io_context, udp::endpoint localAddress);
   Socket(Socket const& other) = delete;
   Socket(Socket&& other)      = delete;
   virtual ~Socket();
@@ -47,7 +47,7 @@ class ProtobufSocket : public Socket,
                        public IChannel<FrameT>
 {
 public:
-  ProtobufSocket(boost::asio::io_service& io_context, udp::endpoint localAddress)
+  ProtobufSocket(boost::asio::io_context& io_context, udp::endpoint localAddress)
     : Socket(io_context, std::move(localAddress))
   {}
 

@@ -82,7 +82,7 @@ protected:
   //                                  +-------------------------------> Server
   //
 
-  boost::asio::io_service      m_IoService;
+  boost::asio::io_context      m_IoService;
   client::PlayerSocketPtr      m_pSocket;
   client::RouterPtr            m_pRouter;
   client::ClientAccessPanelPtr m_pAccessPanel;

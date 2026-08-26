@@ -26,7 +26,7 @@ void FunctionalTestFixture::SetUp()
 
   m_cfg = prephareConfiguration();
 
-  auto localHost = boost::asio::ip::address::from_string("127.0.0.1");
+  auto localHost = boost::asio::ip::make_address("127.0.0.1");
 
   m_clientAddress = boost::asio::ip::udp::endpoint(localHost, 4455);
   m_adminAddress  = boost::asio::ip::udp::endpoint(localHost, 4460);

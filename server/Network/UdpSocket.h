@@ -19,7 +19,7 @@ class UdpSocket : public IBinaryChannel
 {
   using udp = boost::asio::ip::udp;
 public:
-  UdpSocket(boost::asio::io_service& io_context,
+  UdpSocket(boost::asio::io_context& io_context,
             uint16_t                 nLocalPort,
             bool                     lPromiscMode);
   UdpSocket(UdpSocket const& other) = delete;
@@ -29,10 +29,10 @@ public:
   // Add the specified 'remote' and return a sessionId, associated with it.
   std::optional<uint32_t> createPersistentSession(udp::endpoint const& remote);
 
-  udp::endpoint getLocalAddr() const { 
-    return m_socket.local_endpoint(); 
+  udp::endpoint getLocalAddr() const {
+    return m_socket.local_endpoint();
   }
-  
+
   std::optional<udp::endpoint> getRemoteAddr(uint32_t nSessionId) const;
 
   // overrides from IChannel

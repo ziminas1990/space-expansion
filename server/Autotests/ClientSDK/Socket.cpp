@@ -2,7 +2,7 @@
 
 namespace autotests { namespace client {
 
-Socket::Socket(boost::asio::io_service &io_context, udp::endpoint localAddress)
+Socket::Socket(boost::asio::io_context &io_context, udp::endpoint localAddress)
   : m_socket(io_context, localAddress),
     m_nReceiveBufferSize(8196),
     m_pReceiveBuffer(new uint8_t[m_nReceiveBufferSize])

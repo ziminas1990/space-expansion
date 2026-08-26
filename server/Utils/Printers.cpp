@@ -1,5 +1,4 @@
 #include "Printers.h"
-
 #include <sstream>
 
 namespace utils {

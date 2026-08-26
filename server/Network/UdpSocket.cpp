@@ -8,7 +8,7 @@ constexpr size_t nPersistentSessionsLimit = 16;
 constexpr size_t nSessionsLimit           = 512;
 constexpr size_t nReceiveBufferSize       = 8196;
 
-UdpSocket::UdpSocket(boost::asio::io_service &io_context,
+UdpSocket::UdpSocket(boost::asio::io_context &io_context,
                      uint16_t                 nLocalPort,
                      bool                     lPromiscMode)
   : m_socket(io_context, udp::endpoint(udp::v4(), nLocalPort)),

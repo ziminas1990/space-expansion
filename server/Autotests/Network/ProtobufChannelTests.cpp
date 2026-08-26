@@ -23,7 +23,7 @@ public:
   }
 
 protected:
-  void sendMessage(spex::Message const& message);
+  bool sendMessage(spex::Message const& message);
   bool expect(spex::Message const& expected);
 
   void createSomeMessages(std::vector<spex::Message>& out);
@@ -33,11 +33,14 @@ protected:
   MockedBaseModulePtr       m_pMockedTerminal;
 };
 
-void ProtobufChannelTests::sendMessage(spex::Message const& message)
+bool ProtobufChannelTests::sendMessage(spex::Message const& message)
 {
   std::string data;
-  message.SerializeToString(&data);
+  if (!message.SerializeToString(&data)) {
+    return false;
+  }
   m_pChannel->onMessageReceived(0, network::BinaryMessage(data.data(), data.size()));
+  return true;
 }
 
 bool ProtobufChannelTests::expect(const spex::Message &expected)
@@ -78,7 +81,7 @@ TEST_F(ProtobufChannelTests, SingleMessage)
   {
     spex::Message message;
     message.mutable_accesspanel()->set_access_rejected(sReason);
-    sendMessage(message);
+    ASSERT_TRUE(sendMessage(message));
   }
   {
     spex::IAccessPanel message;
@@ -96,7 +99,7 @@ TEST_F(ProtobufChannelTests, LotsOfMessage)
 
   for (size_t i = 0; i < 5; ++i) {
     spex::Message const& message = messages[i % messages.size()];
-    sendMessage(message);
+    ASSERT_TRUE(sendMessage(message));
     ASSERT_TRUE(expect(message));
   }
 }
@@ -109,7 +112,7 @@ TEST_F(ProtobufChannelTests, LotsOfMessageSimultaneously)
 
   for (size_t i = 0; i < 5; ++i) {
     spex::Message const& message = messages[i % messages.size()];
-    sendMessage(message);
+    ASSERT_TRUE(sendMessage(message));
   }
 
   for (size_t i = 0; i < 5; ++i) {

@@ -1,5 +1,3 @@
-#ifndef AUTOTESTS_MODE
-
 #include <thread>
 #include "ConfigDI/Containers.h"
 #include "ConfigDI/Readers.h"
@@ -47,14 +45,3 @@ int main(int argc, char* argv[])
   app.run(applicationCfg.isClockFreezed());
   return 0;
 }
-
-#else
-
-#include <gtest/gtest.h>
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
-
-#endif

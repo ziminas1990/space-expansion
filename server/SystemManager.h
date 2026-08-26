@@ -57,7 +57,7 @@ private:
 private:
   config::ApplicationCfg              m_configuration;
   utils::Clock                        m_clock;
-  boost::asio::io_service             m_IoService;
+  boost::asio::io_context             m_IoService;
   std::unique_ptr<conveyor::Conveyor> m_pConveyor;
   std::vector<std::thread*>           m_slaves;
   utils::RandomSequence               m_randomizer;

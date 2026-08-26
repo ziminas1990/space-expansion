@@ -105,7 +105,9 @@ template<typename FrameType>
 bool ProtobufChannel<FrameType>::send(uint32_t nSessionId, FrameType&& message)
 {
   std::string buffer;
-  message.SerializeToString(&buffer);
+  if (!message.SerializeToString(&buffer)) {
+    return false;
+  }
 
 #ifdef PRINT_MESSAGES
   if (utils::isPlayerMessage(message) && !utils::isHeartbeat(message)) {

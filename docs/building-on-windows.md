@@ -1,143 +1,152 @@
-# Building on Windows 10
-Windows is not a target platform for this project, but it is possible to build space-expansion on windows. This guide describes how to build space-expansion server on windows 10. Probably, you may use it to build server on windows 7 or 8 too.
+# Building on Windows
 
-## Installing required tools
-1. Install **Build Tools for Visual Studio 2022** from [this page](https://visualstudio.microsoft.com/ru/downloads/)
-2. ~~Install **LLVM** for windows from this page: [LLVM Download](https://releases.llvm.org/download.html)~~
-3. Install [CMake](https://cmake.org/download/)
-   It will be better, if you select the "Add CMake to system path" option during the installation process
-4. Install [Python](https://www.python.org/downloads/)
-   It would be better if you select the "Add Python3.8 to PATH" option during the installation process
-5. install [Git](https://git-scm.com/)
-6. install Conan packet manager (see below)
+Windows is not a primary target platform for this project, but the server can
+be built on Windows 10 or 11 with MSVC.
 
-After all this packages are installed, make sure that you can run them from the command line interface (CLI). To start CLI press **"WIN + R"** and type the **"powershell"** command.
+## Preparing system
 
-To check that tools are accessable from the CLI, run the following commands to see the similar output:
-```powershell
-cmake --version
+Install the following tools:
 
-cmake version 3.17.0
-CMake suite maintained and supported by Kitware (kitware.com/cmake).
-```
-```powershell
-git --version
+1. [Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)
+   with the **Desktop development with C++** workload;
+2. [CMake](https://cmake.org/download/) and add it to `PATH`;
+3. [Python](https://www.python.org/downloads/) and add it to `PATH`;
+4. [Git](https://git-scm.com/);
+5. [Ninja](https://ninja-build.org/) and add it to `PATH` if you intend to
+   make a development build.
 
-git version 2.25.1.windows.1
-```
-```powershell
-python --version
+Install Conan:
 
-Python 3.8.2
-```
-```powershell
-pip3 --version
-
-pip 19.2.3 from c:\users\zimin\appdata\local\programs\python\python38-32\lib\site-packages\pip (python 3.8)
-```
-
-If some of this command can't be found by windows you should add path to the corresponding application to the PATH environment variable (it also can be optionally done during installiation process).
-
-If everything work as expected, you may want to install **Conan** packet manager - a powerfull tool for building dependencies for C++ projects. To install conan run:
 ```powershell
 pip install conan
 ```
 
-And finally, let's check that conan has been installed:
+Make sure that the tools are available:
+
 ```powershell
+cmake --version
+git --version
+python --version
 conan --version
-
-Conan version 1.23.0
 ```
 
-## Prepharing conan
-If you have already run conan, you may want to remove the conan cache first. It can be done with the following command:
-```powershell
-Remove-Item –path $HOME/.conan –recurse
-```
+## Preparing Conan
 
-Now, let's create default profile:
+Create a default Conan profile:
+
 ```powershell
 conan profile detect
-
-Found msvc 17
 ```
-This will create a `default` conan profile at `$HOME/.conan/profiles/default`. As you may see, by default Conan is going to use MSVC.
 
-**In general**, if you have some error and suspect that it is because something wrong with conan, you can clear conan cache, check conan profile and rebuild all dependencies again.
+The detected profile should use MSVC, for example:
+
+```text
+compiler=msvc
+compiler.version=194
+```
+
+Make sure that CMake and Conan use compatible compilers.
 
 ## Building server
-Let's assume, that you have the following powershell variables:
-1. **SPEX_SOURCE_DIR** - path to the directory, where you have cloned the latest [server sources](https://github.com/ziminas1990/space-expansion);
-2. **SPEX_BUILD_DIR** - path to the directory, where you are going to build server.
-Note that the *SPEX_SOURCE_DIR* and *SPEX_BUILD_DIR* shouldn't be the same directories!
 
-For example, you can initialize them as follow:
+The commands below use the following PowerShell variables:
+
 ```powershell
 $SPEX_SOURCE_DIR="$HOME\Projects\space-expansion"
 $SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
+$SPEX_VENV_DIR="$HOME\Projects\space-expansion-venv"
 ```
 
-Clone the server's sources and run Conan to install all required dependencies:
+The source and build directories must be different. Clone the project and
+create the build directory:
+
 ```powershell
 git clone git@github.com:ziminas1990/space-expansion.git $SPEX_SOURCE_DIR
-mkdir $SPEX_BUILD_DIR
-conan install $SPEX_SOURCE_DIR/server/conanfile.txt --output-folder=$SPEX_BUILD_DIR --build=missing
+New-Item -ItemType Directory -Force $SPEX_BUILD_DIR
 ```
 
-Start building with cmake:
+## Release build
+
+The default Visual Studio generator is sufficient for a release build:
+
 ```powershell
-cmake -S $SPEX_SOURCE_DIR/server -B $SPEX_BUILD_DIR --preset conan-default
-cmake --build $SPEX_BUILD_DIR --config Release
+# Building dependencies
+conan install "$SPEX_SOURCE_DIR\server\conanfile.txt" --output-folder=$SPEX_BUILD_DIR --build=missing
+
+# Building server
+cmake -S "$SPEX_SOURCE_DIR\server" -B $SPEX_BUILD_DIR --preset conan-default
+cmake --build $SPEX_BUILD_DIR --config Release --parallel
 ```
 
-# Troubleshooting
-## CMake
-When you run cmake configuration for the first time, it should also the similar log:
+The executable will be placed at:
+
 ```powershell
--- Building for: Visual Studio 16 2019
--- Selecting Windows SDK version 10.0.18362.0 to target Windows 10.0.18363.
--- The C compiler identification is MSVC 19.25.28610.4
--- The CXX compiler identification is MSVC 19.25.28610.4
-```
-**Make sure** that both cmake and conan are using the same compiler!
-
-# Prepare python SDK
-This step is required in case you are going to use Python SDK or run integration tests.
-
-Create python virtual environment for space-expansion:
-```
-$SPEX_VENV_DIR="$HOME\Projects\space-expansion-venv"
-python -m venv create $SPEX_VENV_DIR
+& "$SPEX_BUILD_DIR\Release\space-expansion-server.exe"
 ```
 
-In order to run `activate.ps1` you might need to set up execution policy for the current user:
-```
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+## Development build
+
+A development build includes debug symbols, autotests and a
+`compile_commands.json` file for Clangd.
+
+CMake's Visual Studio generator does not support
+`CMAKE_EXPORT_COMPILE_COMMANDS`. Therefore, the development build uses the
+Ninja generator with the MSVC compiler. Run these commands from
+**Developer PowerShell for VS 2022**, so that `cl.exe` is available.
+
+Use an empty build directory if it was previously configured with the Visual
+Studio generator.
+
+```powershell
+# Building dependencies and generating a Ninja-based Conan preset
+conan install "$SPEX_SOURCE_DIR\server\conanfile.txt" --output-folder=$SPEX_BUILD_DIR --build=missing -s build_type=Debug -c tools.cmake.cmaketoolchain:generator=Ninja
+
+# Configuring and building server and autotests
+cmake -S "$SPEX_SOURCE_DIR\server" -B $SPEX_BUILD_DIR -Dbuild-debug=ON -Dwith-autotests=ON --preset conan-debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build $SPEX_BUILD_DIR --parallel
 ```
 
-Activating virtual environment:
-```
-cd $SPEX_VENV_DIR
-Scripts\Activate
+Clangd must be pointed to the generated compilation database. One option is to
+create a symbolic link in the source directory:
+
+```powershell
+New-Item -ItemType SymbolicLink `
+  -Path "$SPEX_SOURCE_DIR\compile_commands.json" `
+  -Target "$SPEX_BUILD_DIR\compile_commands.json"
 ```
 
-Install required dependencies:
-```
-pip install pyyaml protobuf==3.20.0 typing-extensions
-```
-**NOTE:** please, make sure that protobuf package version matches (or close to) the protobuf version, specified in `conanfile.txt` ($SPEX_SOURCE_DIR/server/conanfile.txt)!
+Creating symbolic links requires either Windows Developer Mode or an elevated
+PowerShell session.
 
-# Run integration tests
-Set up environment:
+To run autotests:
+
+```powershell
+& "$SPEX_BUILD_DIR\autotests.exe"
 ```
+
+To run the server, make sure that `space-expansion.cfg` exists in the working
+directory, then run:
+
+```powershell
+& "$SPEX_BUILD_DIR\space-expansion-server.exe"
+```
+
+## Run integration tests
+
+Create and activate a Python virtual environment:
+
+```powershell
+python -m venv $SPEX_VENV_DIR
+& "$SPEX_VENV_DIR\Scripts\Activate.ps1"
+pip install pyyaml protobuf typing-extensions
+```
+
+Set up the environment and run the tests. The path below assumes a release
+build made with the Visual Studio generator:
+
+```powershell
 $env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk"
 $env:SPEX_SERVER_BINARY="$SPEX_BUILD_DIR\Release\space-expansion-server.exe"
-```
-**Note:** please, make sure that `$env:SPEX_SERVER_BINARY` contains real binary path.
-
-Finally, run the tests:
-```
-cd $SPEX_SOURCE_DIR\tests
-python -m unittest
+Set-Location "$SPEX_SOURCE_DIR\tests"
+python -m unittest discover
 ```

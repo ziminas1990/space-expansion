@@ -15,12 +15,12 @@ using UdpEndPoint = boost::asio::ip::udp::endpoint;
 using TcpEndPoint = boost::asio::ip::tcp::endpoint;
 
 class UdpDispatcher : public conveyor::IAbstractLogic
-{ 
+{
 public:
-  UdpDispatcher(boost::asio::io_service& ioContext,
+  UdpDispatcher(boost::asio::io_context& ioContext,
                 uint16_t nPoolBegin, uint16_t nPoolEnd);
 
-  UdpSocketPtr createUdpSocket(uint16_t nLocalPort = 0, 
+  UdpSocketPtr createUdpSocket(uint16_t nLocalPort = 0,
                                bool lPromiscMode = false);
 
   // overrides from IAbstractLogic interface
@@ -31,7 +31,7 @@ public:
   size_t   getCooldownTimeUs() const override { return 0; }
 
 private:
-  boost::asio::io_service& m_IOContext;
+  boost::asio::io_context& m_IOContext;
 
   utils::SimpleIdPool<uint16_t, 0> m_portsPool;
 
