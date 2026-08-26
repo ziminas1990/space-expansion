@@ -9,3 +9,4 @@ CMakeUserPresets.json
 /**/.vscode/
 /server/.cache/
 /typescript-sdk/*_pb.ts
+/compile_commands.json

@@ -1,4 +1,5 @@
 import * as space from "space";
+import { toJsonString } from "@bufbuild/protobuf";
 import * as api from "../common/api.js";
 
 import express from 'express';
@@ -70,7 +71,7 @@ const mirror = {
                 return;
             }
         }
-        console.log("Sent: ", message.toJsonString());
+        console.log("Sent: ", toJsonString(space.msg.MessageSchema, message));
     },
     received: (message: space.msg.Message) => {
         if (message.choice.case == "session") {
@@ -79,7 +80,7 @@ const mirror = {
                 return;
             }
         }
-        console.log("Received: ", message.toJsonString());
+        console.log("Received: ", toJsonString(space.msg.MessageSchema, message));
     }
 };
 

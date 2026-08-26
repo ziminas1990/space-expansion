@@ -1,3 +1,4 @@
+import { create } from "@bufbuild/protobuf";
 import * as msg from "../Protocol_pb.js";
 import { Status } from "../types/status.js";
 import { Session } from "./session.js";
@@ -19,44 +20,44 @@ export class Commutator {
     constructor(private session: Session) {}
 
     async send_total_slots_request(): Promise<Status> {
-        const request = new msg.ICommutator();
-        request.choice.case = "totalSlotsReq";
-        request.choice.value = true;
+        const request = create(msg.ICommutatorSchema, {
+            choice: { case: "totalSlotsReq", value: true },
+        });
         return await this.send(request);
     }
 
     async send_module_info_request(slot_id: number): Promise<Status> {
-        const request = new msg.ICommutator();
-        request.choice.case = "moduleInfoReq";
-        request.choice.value = slot_id;
+        const request = create(msg.ICommutatorSchema, {
+            choice: { case: "moduleInfoReq", value: slot_id },
+        });
         return await this.send(request);
     }
 
     async send_all_modules_info_request(): Promise<Status> {
-        const request = new msg.ICommutator();
-        request.choice.case = "allModulesInfoReq";
-        request.choice.value = true;
+        const request = create(msg.ICommutatorSchema, {
+            choice: { case: "allModulesInfoReq", value: true },
+        });
         return await this.send(request);
     }
 
     async send_open_tunnel_request(slot_id: number): Promise<Status> {
-        const request = new msg.ICommutator();
-        request.choice.case = "openTunnel";
-        request.choice.value = slot_id;
+        const request = create(msg.ICommutatorSchema, {
+            choice: { case: "openTunnel", value: slot_id },
+        });
         return await this.send(request);
     }
 
     async send_close_tunnel_request(slot_id: number): Promise<Status> {
-        const request = new msg.ICommutator();
-        request.choice.case = "closeTunnel";
-        request.choice.value = slot_id;
+        const request = create(msg.ICommutatorSchema, {
+            choice: { case: "closeTunnel", value: slot_id },
+        });
         return await this.send(request);
     }
 
     async send_start_monitoring_request(): Promise<Status> {
-        const request = new msg.ICommutator();
-        request.choice.case = "monitor";
-        request.choice.value = true;
+        const request = create(msg.ICommutatorSchema, {
+            choice: { case: "monitor", value: true },
+        });
         return await this.send(request);
     }
 
@@ -163,9 +164,9 @@ export class Commutator {
     }
 
     private async send(body: msg.ICommutator) {
-        const message = new msg.Message();
-        message.choice.case = "commutator";
-        message.choice.value = body;
+        const message = create(msg.MessageSchema, {
+            choice: { case: "commutator", value: body },
+        });
         return await this.session.send(message);
     }
 

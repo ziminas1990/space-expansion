@@ -1,3 +1,4 @@
+import { fromBinary, toBinary } from "@bufbuild/protobuf";
 import * as msg from "../Protocol_pb.js";
 import { IChannel, ITerminal } from "./abstract.js";
 import { Decoder } from "./decoder.js";
@@ -17,19 +18,19 @@ export class MessagesDecoder extends Decoder<msg.Message, Uint8Array> {
     {
         if (!mirroring) {
             super(
-                msg.Message.fromBinary,
-                (message: msg.Message) => message.toBinary()
+                (data: Uint8Array) => fromBinary(msg.MessageSchema, data),
+                (message: msg.Message) => toBinary(msg.MessageSchema, message)
             );
         } else {
             super(
                 (data: Uint8Array) => {
-                    const encoded = msg.Message.fromBinary(data);
+                    const encoded = fromBinary(msg.MessageSchema, data);
                     mirroring.received(encoded);
                     return encoded;
                 },
                 (message: msg.Message) => {
                     mirroring.sent(message);
-                    return message.toBinary()
+                    return toBinary(msg.MessageSchema, message)
                 }
             );
         }

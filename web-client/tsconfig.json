@@ -10,9 +10,9 @@
 
     // Module resolution
     "module": "ESNext",
-    "baseUrl": "./",
+    "moduleResolution": "bundler",
+    "types": ["node"],
     "esModuleInterop": true,
-    "moduleResolution": "Node",
     "paths": {},
 
     // Strict Checks

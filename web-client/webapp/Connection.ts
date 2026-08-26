@@ -4,8 +4,6 @@ type Token = {
   token: string
 }
 
-type WebSocketEvent = keyof WebSocketEventMap;
-
 export class Connection {
   private token?: Token = undefined
   private socket?: WebSocket = undefined
@@ -36,9 +34,9 @@ export class Connection {
   }
 
   // Just a wrapper over socket API
-  addEventListener<event extends keyof WebSocketEventMap>(
-    event: WebSocketEvent,
-    callback: (this: WebSocket, ev: WebSocketEventMap[event]) => any): boolean
+  addEventListener<Event extends keyof WebSocketEventMap>(
+    event: Event,
+    callback: (this: WebSocket, ev: WebSocketEventMap[Event]) => any): boolean
   {
     if (this.socket !== undefined) {
       this.socket.addEventListener(event, callback);
