@@ -11,10 +11,11 @@
     },
     "devDependencies": {
         "typescript": "^7.0.2",
-        "@types/node": "^22.13.10"
+        "@types/node": "^22.13.10",
+        "protoc": "^36.0.0"
     },
     "scripts": {
-        "regenerate": "npx protoc -I . --plugin ./node_modules/.bin/protoc-gen-es --es_out . --es_opt target=ts --es_opt import_extension=js --proto_path=../server/ ../server/*.proto",
+        "regenerate": "protoc -I . --plugin ./node_modules/.bin/protoc-gen-es --es_out . --es_opt target=ts --es_opt import_extension=js --proto_path=../server/ ../server/*.proto",
         "build": "npm run regenerate && tsc"
     }
 }
