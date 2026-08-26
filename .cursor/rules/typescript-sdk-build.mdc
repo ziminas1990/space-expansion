@@ -1,0 +1,10 @@
+---
+description: TypeScript SDK build and agent sandbox — use local protoc, never npx protoc
+alwaysApply: true
+---
+
+# TypeScript SDK build
+
+- The npm package lives in `typescript-sdk/`. The repo root has no `package.json`. Always `cd` there (or set that working directory) before `npm` commands.
+- `protoc` is a **local** `devDependency`. `npm run regenerate` / `npm run build` use `node_modules/.bin/protoc`. Never `npx protoc` — that hits `~/.npm/_npx` outside the workspace and hangs in the agent sandbox.
+- If a shell command hangs with no output after `npx` or `npm run regenerate`, kill it. Rerun `npm run build` with `required_permissions: ["all"]` only if the local binary is missing; first try a normal `npm run build` after `npm install`.
