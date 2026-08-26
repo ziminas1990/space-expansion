@@ -1,3 +1,4 @@
+import { create } from "@bufbuild/protobuf";
 import * as msg from "../Protocol_pb.js"
 import * as transport from "../transport/index.js"
 import { Status } from "../types/status.js";
@@ -15,11 +16,15 @@ export class AccessPanel extends transport.Endpoint<msg.Message> {
     async login(login: string, password: string):
         Promise<[Status, AccessGranted | undefined]>
     {
-        const message = new msg.IAccessPanel();
-        message.choice.case = "login";
-        message.choice.value = new msg.IAccessPanel_LoginRequest();
-        message.choice.value.login = login;
-        message.choice.value.password = password;
+        const message = create(msg.IAccessPanelSchema, {
+            choice: {
+                case: "login",
+                value: create(msg.IAccessPanel_LoginRequestSchema, {
+                    login,
+                    password,
+                }),
+            },
+        });
 
         {
             const status = await this.send_request(message);
@@ -49,18 +54,21 @@ export class AccessPanel extends transport.Endpoint<msg.Message> {
     private async wait_response(timeout: number = 1000): Promise<[Status, msg.IAccessPanel]> {
         const [status, response] = await this.wait(timeout);
         if (!status.is_ok() || !response) {
-            return [status.wrap("no response"), new msg.IAccessPanel()];
+            return [status.wrap("no response"), create(msg.IAccessPanelSchema)];
         }
         if (response.choice.case != "accessPanel") {
-            return [Status.fail(`unexpected response type ${response.choice.case}`), new msg.IAccessPanel()];
+            return [Status.fail(`unexpected response type ${response.choice.case}`), create(msg.IAccessPanelSchema)];
         }
         return [Status.ok(), response.choice.value];
     }
 
     private async send_request(request: msg.IAccessPanel): Promise<Status> {
-        const message = new msg.Message();
-        message.choice.case = "accessPanel";
-        message.choice.value = request;
+        const message = create(msg.MessageSchema, {
+            choice: {
+                case: "accessPanel",
+                value: request,
+            },
+        });
         return await this.channel.send(message);
     }
 }

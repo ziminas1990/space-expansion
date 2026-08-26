@@ -1,3 +1,4 @@
+import { create } from "@bufbuild/protobuf";
 import * as msg from "../Protocol_pb.js";
 import * as types from "../types/index.js";
 import { Session } from "./session.js";
@@ -14,16 +15,16 @@ export class Ship {
     constructor(private session: Session) {}
 
     async send_state_request(): Promise<types.Status> {
-        const request = new msg.IShip();
-        request.choice.case = "stateReq";
-        request.choice.value = true;
+        const request = create(msg.IShipSchema, {
+            choice: { case: "stateReq", value: true },
+        });
         return this.send_request(request);
     }
 
     async send_monitor_request(period_ms: number): Promise<types.Status> {
-        const request = new msg.IShip();
-        request.choice.case = "monitor";
-        request.choice.value = period_ms;
+        const request = create(msg.IShipSchema, {
+            choice: { case: "monitor", value: period_ms },
+        });
         return this.send_request(request);
     }
 
@@ -43,14 +44,14 @@ export class Ship {
                 point: [state.position?.x ?? 0, state.position?.y ?? 0],
                 velocity: [state.position?.vx ?? 0, state.position?.vy ?? 0],
             },
-            weight: state.weight ? Number(state.weight) : undefined,
+            weight: state.weight ? Number(state.weight.value) : undefined,
         }];
     }
 
     async send_request(request: msg.IShip): Promise<types.Status> {
-        const message = new msg.Message();
-        message.choice.case = "ship";
-        message.choice.value = request;
+        const message = create(msg.MessageSchema, {
+            choice: { case: "ship", value: request },
+        });
         return this.session.send(message);
     }
 

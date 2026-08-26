@@ -1,3 +1,4 @@
+import { create } from "@bufbuild/protobuf";
 import * as msg from "../Protocol_pb.js"
 import * as transport from "../transport/index.js"
 import { Session } from "./session.js";
@@ -72,12 +73,12 @@ export class RootSession extends Session {
     }
 
     private async send_new_commutator_session_request() {
-        const request = new msg.IRootSession();
-        request.choice.case = "newCommutatorSession";
-        request.choice.value = true;
-        const message = new msg.Message();
-        message.choice.case = "rootSession";
-        message.choice.value = request;
+        const request = create(msg.IRootSessionSchema, {
+            choice: { case: "newCommutatorSession", value: true },
+        });
+        const message = create(msg.MessageSchema, {
+            choice: { case: "rootSession", value: request },
+        });
         return await this.send(message);
     }
 

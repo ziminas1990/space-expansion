@@ -35,11 +35,11 @@ export class Player {
         }
     }
 
-    private module_detached(module: ModuleInfo) {
+    private async module_detached(module: ModuleInfo) {
         if (module.module_type == "ship") {
             const ship = this.ships.get(module.module_name);
             if (ship) {
-                ship.release();
+                await ship.release();
                 this.ships.delete(module.module_name);
             }
         }

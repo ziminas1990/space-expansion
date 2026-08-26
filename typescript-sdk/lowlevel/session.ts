@@ -1,3 +1,4 @@
+import { create } from "@bufbuild/protobuf";
 import * as msg from "../Protocol_pb.js"
 import * as transport from "../transport/index.js"
 import { Status } from "../types/status.js";
@@ -46,23 +47,23 @@ export class Session extends transport.Endpoint<msg.Message> {
     }
 
     async close(): Promise<Status> {
-        const close_req = new msg.ISessionControl();
-        close_req.choice.case = "close";
-        close_req.choice.value = true;
-        const message = new msg.Message();
-        message.choice.case = "session";
-        message.choice.value = close_req;
+        const close_req = create(msg.ISessionControlSchema, {
+            choice: { case: "close", value: true },
+        });
+        const message = create(msg.MessageSchema, {
+            choice: { case: "session", value: close_req },
+        });
         this.closed = true;
         return await this.send(message);
     }
 
     async send_heartbeat() {
-        const heartbeat = new msg.ISessionControl();
-        heartbeat.choice.case = "heartbeat";
-        heartbeat.choice.value = true;
-        const message = new msg.Message();
-        message.choice.case = "session";
-        message.choice.value = heartbeat;
+        const heartbeat = create(msg.ISessionControlSchema, {
+            choice: { case: "heartbeat", value: true },
+        });
+        const message = create(msg.MessageSchema, {
+            choice: { case: "session", value: heartbeat },
+        });
         return await this.send(message);
     }
 }

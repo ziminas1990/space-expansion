@@ -11,9 +11,9 @@
     "removeComments": false,  // Better for debugging
 
     // Module resolution
-    "baseUrl": "./",
     "esModuleInterop": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
+    "types": ["node"],
     "paths": {},
 
     // Strict Checks
