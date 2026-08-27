@@ -1,7 +1,6 @@
 import { Status } from "../types/status.js";
 import { Commutator, ModuleInfo } from "./commutator.js";
 import { Ship } from "./ship.js";
-import * as midlevel  from "../midlevel/index.js";
 import assert from "assert";
 
 
@@ -36,7 +35,7 @@ export class Player {
     }
 
     private async module_detached(module: ModuleInfo) {
-        if (module.module_type == "ship") {
+        if (module.module_type.startsWith("Ship/")) {
             const ship = this.ships.get(module.module_name);
             if (ship) {
                 await ship.release();
@@ -51,11 +50,9 @@ export class Player {
         if (this.ships.has(module.module_name)) {
             const ship = this.ships.get(module.module_name);
             assert(ship);
-            return ship.reinit(new midlevel.Ship(module.open_session_cb));
+            return ship.reinit(module.open_session_cb);
         }
-        const ship = new Ship(
-            new midlevel.Ship(module.open_session_cb),
-            module.module_name);
+        const ship = new Ship(module.open_session_cb, module.module_name);
         const status = await ship.init();
         if (!status.is_ok()) {
             console.error(`Failed to init ship ${module.module_name}: ${status}`);

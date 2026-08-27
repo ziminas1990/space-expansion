@@ -33,7 +33,7 @@ export class Commutator {
 
     async init(): Promise<Status> {
         // Start monitoring of commutator's state
-        this.stop_monitoring = true;
+        this.stop_monitoring = false;
         this.monitor = new Promise(async (resolve) => {
             while (true) {
                 // Get all modules info

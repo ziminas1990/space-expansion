@@ -3,13 +3,21 @@ import * as msg from "../Protocol_pb.js"
 import * as transport from "../transport/index.js"
 import { Status } from "../types/status.js";
 
+export type RegisterSessionCallback =
+    (session_id: number) => [Status, Session | undefined];
 
 export class Session extends transport.Endpoint<msg.Message> {
     private closed: boolean = false;
 
     constructor(protected channel: transport.IChannel<msg.Message>,
-                private session_id: number) {
+                private session_id: number,
+                private readonly register_session_cb: RegisterSessionCallback)
+    {
         super();
+    }
+
+    register_session(session_id: number): [Status, Session | undefined] {
+        return this.register_session_cb(session_id);
     }
 
     is_active(): boolean {
@@ -54,7 +62,9 @@ export class Session extends transport.Endpoint<msg.Message> {
             choice: { case: "session", value: close_req },
         });
         this.closed = true;
-        return await this.send(message);
+        const status = await this.send(message);
+        await this.on_closed();
+        return status;
     }
 
     async send_heartbeat() {
