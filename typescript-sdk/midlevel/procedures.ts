@@ -15,8 +15,6 @@ export async function login(
         return [status.wrap("failed to create root session"), undefined];
     }
 
-    const commutator = new Commutator(
-        () => root_session.open_session(),
-        root_session);
+    const commutator = new Commutator(() => root_session.open_session());
     return [Status.ok(), commutator];
 }

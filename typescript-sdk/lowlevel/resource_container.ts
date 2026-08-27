@@ -92,6 +92,7 @@ export class ResourceContainer {
             return [types.Status.fail(`got unexpected message ${response.choice.case}`),
                     undefined];
         }
+
         return [types.Status.ok(), {
             case: "port_opened",
             port_id: response.choice.value,

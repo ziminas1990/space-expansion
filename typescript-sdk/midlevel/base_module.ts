@@ -8,6 +8,8 @@ export type UserLogicCallback<I, T> = (session: I) => Promise<[Status, T]>;
 export class BaseModule<I> {
     // Sessions that can be reused for communication
     private sessions: lowlevel.Session[] = [];
+    // Sessions currently used by run() (including dedicated long-running ones)
+    private in_use: Set<lowlevel.Session> = new Set();
     private active: boolean = true;
 
     constructor(private open_session: OpenSessionCallback,
@@ -15,11 +17,14 @@ export class BaseModule<I> {
     ) {}
 
     async terminate() {
-        for (const session of this.sessions) {
+        this.active = false;
+        const pooled = this.sessions;
+        this.sessions = [];
+        const busy = Array.from(this.in_use);
+        this.in_use.clear();
+        for (const session of [...pooled, ...busy]) {
             await session.close();
         }
-        this.sessions = [];
-        this.active = false;
     }
 
     // Run the specified callback in a session. If 'close_session' is true,
@@ -39,7 +44,9 @@ export class BaseModule<I> {
             return [if_status.wrap("failed to create lowlevel interface"), undefined];
         }
 
+        this.in_use.add(session);
         const [user_status, result] = await callback(iface);
+        this.in_use.delete(session);
         if (user_status.is_ok() && !close_session && this.active) {
             this.sessions.push(session);
         } else {
