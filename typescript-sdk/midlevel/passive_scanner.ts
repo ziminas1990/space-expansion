@@ -2,12 +2,14 @@ import * as lowlevel from "../lowlevel/index.js";
 import { PhysicalObject } from "../types/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type PassiveScannerSpecification = lowlevel.PassiveScannerSpecification;
 export type MonitoringCallback =
     (objects: PhysicalObject[]) => Promise<boolean>;
 
 export class PassiveScanner extends BaseModule<lowlevel.PassiveScanner> {
+    readonly type = ModuleType.PASSIVE_SCANNER;
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,
@@ -58,14 +60,11 @@ export class PassiveScanner extends BaseModule<lowlevel.PassiveScanner> {
         }
 
         while (true) {
-            const [status, objects] = await session.wait_update();
+            const [status, objects] = await session.wait_update(200);
             if (!status.is_ok()) {
                 return status.wrap("monitoring stopped");
             }
-            if (objects === undefined) {
-                continue;
-            }
-            const resume = await callback(objects);
+            const resume = await callback(objects ?? []);
             if (!resume) {
                 return Status.ok();
             }

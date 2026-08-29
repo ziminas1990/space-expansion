@@ -1,12 +1,14 @@
 import * as lowlevel from "../lowlevel/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type AsteroidScannerStatus = lowlevel.AsteroidScannerStatus;
 export type AsteroidScannerSpecification = lowlevel.AsteroidScannerSpecification;
 export type AsteroidScanResult = lowlevel.AsteroidScanResult;
 
 export class AsteroidScanner extends BaseModule<lowlevel.AsteroidScanner> {
+    readonly type = ModuleType.ASTEROID_SCANNER;
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,

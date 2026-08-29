@@ -12,8 +12,9 @@ export class BaseModule<I> {
     private in_use: Set<lowlevel.Session> = new Set();
     private active: boolean = true;
 
-    constructor(private open_session: OpenSessionCallback,
-                private create_lowlevel_interface: CreateLowlevelInterface<I>
+    constructor(
+        protected readonly open_session_cb: OpenSessionCallback,
+        private create_lowlevel_interface: CreateLowlevelInterface<I>
     ) {}
 
     async terminate() {
@@ -33,6 +34,9 @@ export class BaseModule<I> {
     async run<T>(callback: UserLogicCallback<I, T>,
                  close_session: boolean = false): Promise<[Status, T | undefined]>
     {
+        if (!this.active) {
+            return [Status.closed("terminated"), undefined];
+        }
         const [status, session] = await this.get_session();
         if (!status.is_ok() || !session) {
             return [status.wrap("no available session"), undefined];
@@ -67,6 +71,9 @@ export class BaseModule<I> {
     }
 
     private async get_session(): Promise<[Status, lowlevel.Session | undefined]> {
+        if (!this.active) {
+            return [Status.closed("terminated"), undefined];
+        }
         while (this.sessions.length > 0) {
             const candidate = this.sessions.pop()!;
             if (candidate.is_active()) {
@@ -75,7 +82,10 @@ export class BaseModule<I> {
         }
         let last_status = Status.ok();
         for (let attempt = 0; attempt < 3; attempt++) {
-            const [status, session] = await this.open_session();
+            if (!this.active) {
+                return [Status.closed("terminated"), undefined];
+            }
+            const [status, session] = await this.open_session_cb();
             if (status.is_ok() && session) {
                 return [Status.ok(), session];
             }

@@ -1,6 +1,7 @@
 import * as lowlevel from "../lowlevel/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type MessangerStatus = lowlevel.MessangerStatus;
 export type MessangerRequest = lowlevel.MessangerRequest;
@@ -52,6 +53,8 @@ export class MessangerService {
 }
 
 export class Messanger extends BaseModule<lowlevel.Messanger> {
+    readonly type = ModuleType.MESSANGER;
+
     private next_seq = 1;
     private readonly open_session_callback: OpenSessionCallback;
     private readonly hosted_sessions = new Set<lowlevel.Session>();

@@ -2,12 +2,14 @@ import * as lowlevel from "../lowlevel/index.js";
 import { ServerTimestamp } from "../types/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type { ServerTimestamp };
 export type MonitoringCallback =
     (timestamp: ServerTimestamp) => Promise<boolean>;
 
 export class SystemClock extends BaseModule<lowlevel.SystemClock> {
+    readonly type = ModuleType.SYSTEM_CLOCK;
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,

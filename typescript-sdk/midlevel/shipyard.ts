@@ -1,6 +1,7 @@
 import * as lowlevel from "../lowlevel/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type ShipyardStatus = lowlevel.ShipyardStatus;
 export type ShipyardSpecification = lowlevel.ShipyardSpecification;
@@ -9,6 +10,7 @@ export type BuildingCallback =
     (status: ShipyardStatus, progress: number) => Promise<void>;
 
 export class Shipyard extends BaseModule<lowlevel.Shipyard> {
+    readonly type = ModuleType.SHIPYARD;
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,

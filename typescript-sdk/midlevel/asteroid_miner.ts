@@ -2,6 +2,7 @@ import * as lowlevel from "../lowlevel/index.js";
 import { ResourceItem } from "../types/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type AsteroidMinerStatus = lowlevel.AsteroidMinerStatus;
 export type AsteroidMinerSpecification = lowlevel.AsteroidMinerSpecification;
@@ -9,6 +10,7 @@ export type MiningCallback =
     (resources: ResourceItem[]) => Promise<boolean>;
 
 export class AsteroidMiner extends BaseModule<lowlevel.AsteroidMiner> {
+    readonly type = ModuleType.ASTEROID_MINER;
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,

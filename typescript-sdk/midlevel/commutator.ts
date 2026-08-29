@@ -1,7 +1,5 @@
 import * as lowlevel from "../lowlevel/index.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
-import { create_module } from "./factory.js";
-import { MidlevelModule } from "./module_types.js";
 import { Status } from "../types/status.js";
 
 export type ModuleInfo = lowlevel.ModuleInfo & {
@@ -18,19 +16,12 @@ export type MonitoringCallback =
 
 export type Session = lowlevel.Session;
 
-export type RegisteredSlot = {
-    module_type: string;
-    module_name: string;
-    module: MidlevelModule;
-}
-
 export class Commutator extends BaseModule<lowlevel.Commutator> {
-    // slot_id -> solt info
-    public readonly slots: Map<number, RegisteredSlot> = new Map();
-    // type -> name -> module
-    public readonly modules: Map<string, Map<string, MidlevelModule>> = new Map();
 
-    constructor(open_session_callback: OpenSessionCallback)
+    constructor(
+        open_session_callback: OpenSessionCallback,
+        private readonly terminate_root?: () => Promise<unknown>,
+    )
     {
         super(open_session_callback,
               async (session) => [Status.ok(), new lowlevel.Commutator(session)]);
@@ -45,12 +36,8 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
     }
 
     async get_all_modules_info(): Promise<[Status, ModuleInfo[] | undefined]> {
-        const [status, modules] = await this.run(
+        return await this.run(
             async (session) => this._get_all_modules_info(session));
-        if (status.is_ok() && modules) {
-            await this.synchronize_modules(modules);
-        }
-        return [status, modules];
     }
 
     async open_tunnel(slot_id: number): Promise<[Status, lowlevel.Session | undefined]> {
@@ -68,11 +55,17 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
     }
 
     override async terminate(): Promise<void> {
-        const slot_ids = Array.from(this.slots.keys());
-        for (const slot_id of slot_ids) {
-            await this.detach_module(slot_id);
-        }
         await super.terminate();
+        // It is expected that only RootCommutator has a terminate_root
+        // callback. It closes the connection to the server.
+        await this.terminate_root?.();
+    }
+
+    private bind_info(info: lowlevel.ModuleInfo): ModuleInfo {
+        return {
+            ...info,
+            open_session_cb: async () => this.open_tunnel(info.slot_id)
+        };
     }
 
     private async _total_slots(
@@ -98,10 +91,7 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
         if (!status.is_ok() || !info) {
             return [status.wrap(`can't get info for slot ${slot_id}`), undefined];
         }
-        return [Status.ok(), {
-            ...info,
-            open_session_cb: async () => this.open_tunnel(slot_id)
-        }];
+        return [Status.ok(), this.bind_info(info)];
     }
 
     private async _get_all_modules_info(
@@ -124,10 +114,7 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
                 return [info_status.wrap(`can't get info for module ${i}`), modules_info];
             }
             if (info) {
-                modules_info.push({
-                    ...info,
-                    open_session_cb: async () => this.open_tunnel(info.slot_id)
-                });
+                modules_info.push(this.bind_info(info));
             }
         }
         return [Status.ok(), modules_info];
@@ -173,7 +160,7 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
 
     private async _monitoring(
         session: lowlevel.Commutator, callback: MonitoringCallback)
-    :Promise<[Status, unknown]>
+    : Promise<[Status, unknown]>
     {
         const send_status = await session.send_start_monitoring_request();
         if (!send_status.is_ok()) {
@@ -196,14 +183,11 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
             }
             if (update) {
                 const public_update: Update = {
-                    module_attached: update.module_attached ? {
-                        ...update.module_attached,
-                        open_session_cb: async () => this.open_tunnel(
-                            update.module_attached!.slot_id)
-                    } : undefined,
+                    module_attached: update.module_attached
+                        ? this.bind_info(update.module_attached)
+                        : undefined,
                     module_detached: update.module_detached
                 };
-                await this.apply_update(public_update);
                 const resume = await callback(Status.ok(), public_update);
                 if (!resume) {
                     return [Status.ok(), undefined];
@@ -215,83 +199,5 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
                 }
             }
         }
-    }
-
-    private async synchronize_modules(modules: ModuleInfo[]): Promise<void> {
-        const current_slots = new Map(
-            modules.map((module) => [module.slot_id, module]));
-
-        for (const [slot_id, registered] of this.slots) {
-            const current = current_slots.get(slot_id);
-            if (!current
-                || current.module_type != registered.module_type
-                || current.module_name != registered.module_name)
-            {
-                await this.detach_module(slot_id);
-            }
-        }
-
-        for (const module of modules) {
-            const registered = this.slots.get(module.slot_id);
-            if (!registered) {
-                await this.attach_module(module);
-            }
-        }
-    }
-
-    private async apply_update(update: Update): Promise<void> {
-        if (update.module_attached) {
-            await this.attach_module(update.module_attached);
-        }
-        if (update.module_detached !== undefined) {
-            await this.detach_module(update.module_detached);
-        }
-    }
-
-    private async attach_module(info: ModuleInfo): Promise<void> {
-        const registered = this.slots.get(info.slot_id);
-        if (registered
-            && registered.module_type == info.module_type
-            && registered.module_name == info.module_name)
-        {
-            return;
-        }
-        if (registered) {
-            await this.detach_module(info.slot_id);
-        }
-
-        const module = create_module(info.module_type, info.open_session_cb);
-        if (!module) {
-            return;
-        }
-
-        this.slots.set(info.slot_id, {
-            module_type: info.module_type,
-            module_name: info.module_name,
-            module,
-        });
-        let modules_by_name = this.modules.get(info.module_type);
-        if (!modules_by_name) {
-            modules_by_name = new Map();
-            this.modules.set(info.module_type, modules_by_name);
-        }
-        modules_by_name.set(info.module_name, module);
-    }
-
-    private async detach_module(slot_id: number): Promise<void> {
-        const registered = this.slots.get(slot_id);
-        if (!registered) {
-            return;
-        }
-
-        this.slots.delete(slot_id);
-        const modules_by_name = this.modules.get(registered.module_type);
-        if (modules_by_name?.get(registered.module_name) == registered.module) {
-            modules_by_name.delete(registered.module_name);
-            if (modules_by_name.size == 0) {
-                this.modules.delete(registered.module_type);
-            }
-        }
-        await registered.module.terminate();
     }
 }

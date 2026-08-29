@@ -9,6 +9,7 @@ export {
     positionFromProtobuf,
     positionToProtobuf,
 } from "./common.js";
+export { TimePoint } from "./time_point.js";
 export {
     ObjectType,
     PhysicalObject,

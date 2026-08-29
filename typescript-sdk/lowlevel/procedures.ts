@@ -7,11 +7,12 @@ export async function login(
     ip: string,
     user: string,
     password: string,
-    mirroring: transport.Mirroring | undefined = undefined
+    mirroring: transport.Mirroring | undefined = undefined,
+    port: number = 6842,
 ): Promise<[Status,  RootSession | undefined]>
 {
     const socket = new transport.UdpSocket();
-    socket.connect(ip, 6842);
+    socket.connect(ip, port);
 
     const decoder = new transport.MessagesDecoder(mirroring);
     decoder.attach_downloevel(socket);

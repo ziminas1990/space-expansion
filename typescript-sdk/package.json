@@ -16,6 +16,8 @@
     },
     "scripts": {
         "regenerate": "protoc -I . --plugin ./node_modules/.bin/protoc-gen-es --es_out . --es_opt target=ts --es_opt import_extension=js --proto_path=../server/ ../server/*.proto",
-        "build": "npm run regenerate && tsc"
+        "compile": "tsc",
+        "build": "npm run regenerate && npm run compile",
+        "test": "npm run build && node --test --test-concurrency=1 dist/tests/*.test.js"
     }
 }

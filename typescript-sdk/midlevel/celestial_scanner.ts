@@ -2,6 +2,7 @@ import * as lowlevel from "../lowlevel/index.js";
 import { PhysicalObject } from "../types/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type CelestialScannerStatus = lowlevel.CelestialScannerStatus;
 export type CelestialScannerSpecification = lowlevel.CelestialScannerSpecification;
@@ -9,6 +10,7 @@ export type ScanningCallback =
     (asteroids: PhysicalObject[]) => Promise<boolean>;
 
 export class CelestialScanner extends BaseModule<lowlevel.CelestialScanner> {
+    readonly type = ModuleType.CELESTIAL_SCANNER;
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,
