@@ -42,15 +42,15 @@ class Terminal(abc.ABC):
     def attach_channel(self, channel: 'Channel'):
         """Attach terminal to the specified 'channel'. This channel will be
         used to send messages"""
-        self.terminal_logger.info(f"Attached to channel {channel.channel_name}")
+        #self.terminal_logger.info(f"Attached to channel {channel.channel_name}")
         self.channel = channel
 
     def detach_channel(self):
-        self.terminal_logger.info(f"Channel has been detached")
+        #self.terminal_logger.info(f"Channel has been detached")
         self.channel = None
 
     def on_channel_closed(self):
         """Detach terminal from channel. After it is done, terminal won't
         be able to send messages anymore"""
-        self.terminal_logger.info(f"Channel was closed")
+        #self.terminal_logger.info(f"Channel was closed")
         self.channel = None

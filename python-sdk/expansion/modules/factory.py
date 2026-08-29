@@ -8,7 +8,6 @@ from .ship import Ship
 from .system_clock import SystemClock
 from .engine import Engine
 from .resource_container import ResourceContainer
-from .celestial_scanner import CelestialScanner
 from .passive_scanner import PassiveScanner
 from .asteroid_miner import AsteroidMiner
 from .shipyard import Shipyard
@@ -44,11 +43,6 @@ def module_factory(module_type: str,
             tunnel_factory=tunnel_factory), None
     elif module_type == ModuleType.RESOURCE_CONTAINER.value:
         return ResourceContainer(
-            name=module_name,
-            tunnel_factory=tunnel_factory
-        ), None
-    elif module_type == ModuleType.CELESTIAL_SCANNER.value:
-        return CelestialScanner(
             name=module_name,
             tunnel_factory=tunnel_factory
         ), None

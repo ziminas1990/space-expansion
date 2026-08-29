@@ -2,7 +2,6 @@ import { OpenSessionCallback } from "./base_module.js";
 import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import { BlueprintsLibrary } from "./blueprints_library.js";
-import { CelestialScanner } from "./celestial_scanner.js";
 import { Engine } from "./engine.js";
 import { Messanger } from "./messanger.js";
 import { MidlevelModule, ModuleType } from "./module_types.js";
@@ -18,7 +17,6 @@ const module_constructors: Record<string, ModuleConstructor> = {
     [ModuleType.SYSTEM_CLOCK]: SystemClock,
     [ModuleType.ENGINE]: Engine,
     [ModuleType.RESOURCE_CONTAINER]: ResourceContainer,
-    [ModuleType.CELESTIAL_SCANNER]: CelestialScanner,
     [ModuleType.PASSIVE_SCANNER]: PassiveScanner,
     [ModuleType.ASTEROID_SCANNER]: AsteroidScanner,
     [ModuleType.ASTEROID_MINER]: AsteroidMiner,

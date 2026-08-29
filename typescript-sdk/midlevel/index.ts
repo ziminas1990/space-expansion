@@ -24,12 +24,6 @@ export {
     MonitoringCallback as PassiveScannerMonitoringCallback,
 } from "./passive_scanner.js";
 export {
-    CelestialScanner,
-    CelestialScannerStatus,
-    CelestialScannerSpecification,
-    ScanningCallback as CelestialScanningCallback,
-} from "./celestial_scanner.js";
-export {
     Shipyard,
     ShipyardStatus,
     ShipyardSpecification,

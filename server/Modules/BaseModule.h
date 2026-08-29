@@ -91,7 +91,6 @@ protected:
   virtual void handleShipMessage(uint32_t, spex::IShip const&) {}
   virtual void handleNavigationMessage(uint32_t, spex::INavigation const&) {}
   virtual void handleEngineMessage(uint32_t, spex::IEngine const&) {}
-  virtual void handleCelestialScannerMessage(uint32_t, spex::ICelestialScanner const&) {}
   virtual void handlePassiveScannerMessage(uint32_t, spex::IPassiveScanner const&) {}
   virtual void handleAsteroidScannerMessage(uint32_t, spex::IAsteroidScanner const&) {}
   virtual void handleResourceContainerMessage(uint32_t, spex::IResourceContainer const&) {}

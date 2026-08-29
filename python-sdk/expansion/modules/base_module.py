@@ -29,7 +29,6 @@ class ModuleType(Enum):
     SYSTEM_CLOCK = "SystemClock"
     ENGINE = "Engine"
     RESOURCE_CONTAINER = "ResourceContainer"
-    CELESTIAL_SCANNER = "CelestialScanner"
     PASSIVE_SCANNER = "PassiveScanner"
     ASTEROID_MINER = "AsteroidMiner"
     SHIPYARD = "Shipyard"

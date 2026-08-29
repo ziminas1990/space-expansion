@@ -8,7 +8,6 @@ from .resource_container import ResourceContainerState
 from .default_resource_containers import resource_containers_blueprints
 from .ship import ShipBlueprint, Ship
 from .default_engines import engine_blueprints, EngineType, EngineSize
-from .default_celestial_scanners import celestial_scanners_blueprints
 from .default_passive_scanners import passive_scanners_blueprints
 from .default_asteroid_miners import asteroid_miner_blueprints
 from .default_shipyards import shipyard_blueprints
@@ -44,7 +43,6 @@ ships_blueprints: Dict[ShipType, ShipBlueprint] = {
         modules={
             'main_engine': engine_blueprints[EngineType.NUCLEAR][EngineSize.REGULAR].id,
             'additional_engine': engine_blueprints[EngineType.ION][EngineSize.REGULAR].id,
-            'scanner': celestial_scanners_blueprints["basic"].id,
             'perceiver': passive_scanners_blueprints["basic"].id,
             'cargo': resource_containers_blueprints["small"].id,
             'tiny_cargo': resource_containers_blueprints["tiny"].id,
@@ -63,7 +61,6 @@ ships_blueprints: Dict[ShipType, ShipBlueprint] = {
             weight=20000000,
             modules={
                 'engine': engine_blueprints[EngineType.NUCLEAR][EngineSize.REGULAR].id,
-                'scanner': celestial_scanners_blueprints["station"].id,
                 'perceiver': passive_scanners_blueprints["station"].id,
                 'warehouse': resource_containers_blueprints["station"].id,
                 'shipyard-container': resource_containers_blueprints["station"].id,

@@ -6,7 +6,6 @@ from .ship import Ship
 from .engine import Engine, EngineSpec
 from .system_clock import SystemClock
 from .resource_container import ResourceContainer
-from .celestial_scanner import CelestialScanner
 from .asteroid_miner import AsteroidMiner
 
 
@@ -69,26 +68,6 @@ def get_cargo(commutator: Commutator, name: str) -> Optional[ResourceContainer]:
         cargo = commutator.modules[ModuleType.RESOURCE_CONTAINER.value][name]
         assert isinstance(cargo, ResourceContainer)
         return cargo
-    except KeyError:
-        return None
-
-
-def get_celestial_scanner(commutator: Commutator, name: str) -> Optional[CelestialScanner]:
-    try:
-        device = commutator.modules[ModuleType.CELESTIAL_SCANNER.value][name]
-        assert isinstance(device, CelestialScanner)
-        return device
-    except KeyError:
-        return None
-
-
-def get_any_celestial_scanner(commutator: Commutator) -> Optional[CelestialScanner]:
-    try:
-        scanners = commutator.modules[ModuleType.CELESTIAL_SCANNER.value]
-        for scanner in scanners.values():
-            assert isinstance(scanner, CelestialScanner)
-            return scanner
-        return None
     except KeyError:
         return None
 

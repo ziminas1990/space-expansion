@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional, Tuple
 import asyncio
 
 from base_test_fixture import BaseTestFixture
@@ -9,7 +9,7 @@ from server.configurator.modules import default_ships, asteroid_miner_blueprints
 from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
 
-from expansion import modules
+from expansion import modules, types
 from expansion.interfaces.rpc import AsteroidMinerI
 from expansion.types import ResourceType, ResourceItem, ResourcesDict
 
@@ -56,6 +56,46 @@ class TestCase(BaseTestFixture):
 
     def get_configuration(self) -> Configuration:
         return self.configuration
+
+    async def find_asteroids(
+            self,
+            miner_ship,
+            commutator) -> Tuple[Optional[types.PhysicalObject],
+                                 Optional[types.PhysicalObject]]:
+        """Locate nearby (~141 m) and distant (~7 km) asteroids via PassiveScanner."""
+        scanner = modules.PassiveScanner.get_by_name(miner_ship, "perceiver")
+        self.assertIsNotNone(scanner)
+        clock = modules.get_system_clock(commutator)
+        self.assertIsNotNone(clock)
+        ship_position = await miner_ship.get_position()
+        self.assertIsNotNone(ship_position)
+
+        start_at_usec = await clock.time()
+        deadline_usec = start_at_usec + 10_000 * 1000
+        scanned: Dict[int, types.PhysicalObject] = {}
+
+        async def collect() -> None:
+            async for detected_object in scanner.scan():
+                if detected_object.object_type == types.ObjectType.ASTEROID:
+                    scanned[detected_object.object_id] = detected_object
+                now_usec = await clock.time()
+                if len(scanned) >= 2 or now_usec > deadline_usec:
+                    return
+
+        try:
+            await asyncio.wait_for(collect(), timeout=15)
+        except asyncio.TimeoutError:
+            pass
+
+        near: Optional[types.PhysicalObject] = None
+        far: Optional[types.PhysicalObject] = None
+        for asteroid in scanned.values():
+            distance = ship_position.distance_to(asteroid.position)
+            if distance < 1000:
+                near = asteroid
+            elif distance > 3000:
+                far = asteroid
+        return near, far
 
     @BaseTestFixture.run_as_sync
     async def test_get_specification(self):
@@ -132,30 +172,17 @@ class TestCase(BaseTestFixture):
         status = await miner.start_mining(asteroid_id=100500, progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.ASTEROID_DOESNT_EXIST, status)
 
-        # Looking for the asteroid, that should be away
-        scanner: modules.CelestialScanner = modules.get_celestial_scanner(miner_ship, "scanner")
-        self.assertIsNotNone(scanner)
-
-        result, error = await scanner.scan_sync(scanning_radius_km=10, minimal_radius_m=15)
-        self.assertIsNone(error)
-        self.assertIsNotNone(result)
-        self.assertEqual(1, len(result))
-        asteroid = result[0]
+        near, far = await self.find_asteroids(miner_ship, commutator)
+        self.assertIsNotNone(far)
+        self.assertIsNotNone(near)
 
         # Mining an asteroid
-        status = await miner.start_mining(asteroid_id=asteroid.object_id,
+        status = await miner.start_mining(asteroid_id=far.object_id,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.ASTEROID_TOO_FAR, status)
 
-        # Looking for the asteroid, that should be nearby
-        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
-        self.assertIsNone(error)
-        self.assertIsNotNone(result)
-        self.assertEqual(1, len(result))
-        asteroid = result[0]
-
         # Mining an asteroid
-        status = await miner.start_mining(asteroid_id=asteroid.object_id,
+        status = await miner.start_mining(asteroid_id=near.object_id,
                                           progress_cb=progress_cb)
         self.assertEqual(AsteroidMinerI.Status.SUCCESS, status)
 
@@ -179,15 +206,9 @@ class TestCase(BaseTestFixture):
         self.assertEqual(AsteroidMinerI.Status.SUCCESS, status)
         self.assertEqual("cargo", miner.cargo_name)
 
-        # Looking for the asteroid, that should be nearby
-        scanner: modules.CelestialScanner = modules.get_celestial_scanner(miner_ship, "scanner")
-        self.assertIsNotNone(scanner)
-
-        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
-        self.assertIsNone(error)
-        self.assertIsNotNone(result)
-        self.assertEqual(1, len(result))
-        asteroid = result[0]
+        near, _ = await self.find_asteroids(miner_ship, commutator)
+        self.assertIsNotNone(near)
+        asteroid = near
 
         # Mining until we have 1000 of metals
         collected_resources: Dict[ResourceType, float] = {
@@ -243,16 +264,9 @@ class TestCase(BaseTestFixture):
         status = await miner.stop_mining()
         self.assertEqual(AsteroidMinerI.Status.MINER_IS_IDLE, status)
 
-        # Looking for the asteroid, that should be nearby
-        scanner: modules.CelestialScanner = modules.get_celestial_scanner(miner_ship, "scanner")
-        self.assertIsNotNone(scanner)
-        self.assertIsNotNone(scanner)
-
-        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
-        self.assertIsNone(error)
-        self.assertIsNotNone(result)
-        self.assertEqual(1, len(result))
-        asteroid = result[0]
+        near, _ = await self.find_asteroids(miner_ship, commutator)
+        self.assertIsNotNone(near)
+        asteroid = near
 
         # Mining an asteroid
         def progress_cb(status: AsteroidMinerI.Status, item: ResourceItem) -> bool:
@@ -301,15 +315,9 @@ class TestCase(BaseTestFixture):
         self.assertEqual(AsteroidMinerI.Status.SUCCESS, status)
         self.assertEqual("tiny_cargo", miner.cargo_name)
 
-        # Looking for the asteroid, that should be nearby
-        scanner: modules.CelestialScanner = modules.get_celestial_scanner(miner_ship, "scanner")
-        self.assertIsNotNone(scanner)
-
-        result, error = await scanner.scan_sync(scanning_radius_km=1, minimal_radius_m=5)
-        self.assertIsNone(error)
-        self.assertIsNotNone(result)
-        self.assertEqual(1, len(result))
-        asteroid = result[0]
+        near, _ = await self.find_asteroids(miner_ship, commutator)
+        self.assertIsNotNone(near)
+        asteroid = near
 
         # Mining an asteroid
         def progress_cb(status: AsteroidMinerI.Status, item: ResourceItem) -> bool:

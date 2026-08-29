@@ -17,7 +17,6 @@ message Message {
     IShip              ship               = 5;
     INavigation        navigation         = 6;
     IEngine            engine             = 7;
-    ICelestialScanner  celestial_scanner  = 8;
     IAsteroidScanner   asteroid_scanner   = 9;
     // etc...
   }

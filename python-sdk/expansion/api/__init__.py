@@ -6,7 +6,6 @@ from Protocol_pb2 import (
     IAccessPanel,
     IShip,
     INavigation,
-    ICelestialScanner,
     IGame,
     IEngine,
     IShipyard,
