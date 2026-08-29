@@ -29,25 +29,6 @@ protected:
     std::string data[] = {
       "Blueprints:",
       "  Modules:",
-      "    CelestialScanner:",
-      "      tiny-scanner:",
-      "        max_scanning_radius_km: 200000",
-      "        processing_time_us:     10",
-      "        expenses:",
-      "          labor:    10",
-      "      civilian-scanner:",
-      "        max_scanning_radius_km: 2000000",
-      "        processing_time_us:     20",
-      "        expenses:",
-      "          labor: 100",
-      "      huge-scanner:",
-      "        max_scanning_radius_km: 20000000",
-      "        processing_time_us:     40",
-      "        expenses:",
-      "          labor:     500",
-      "          metals:    2000",
-      "          silicates: 1000",
-      "          ice:       500",
       "    AsteroidScanner:",
       "      tiny-scanner:",
       "        max_scanning_distance:  10000",
@@ -105,7 +86,6 @@ protected:
       "      radius: 10",
       "      weight: 10000",
       "      modules:",
-      "        celestial-scanner: CelestialScanner/tiny-scanner",
       "        asteroid-scanner:  AsteroidScanner/tiny-scanner",
       "        engine:            Engine/ancient-nordic-engine",
       "      expenses:",
@@ -114,7 +94,6 @@ protected:
       "      radius: 50",
       "      weight: 1000000",
       "      modules:",
-      "        celestial-scanner: CelestialScanner/tiny-scanner",
       "        asteroid-scanner:  AsteroidScanner/tiny-scanner",
       "        engine:            Engine/ancient-nordic-engine",
       "      expenses:",
@@ -123,7 +102,6 @@ protected:
       "      radius: 250",
       "      weight: 100000000",
       "      modules:",
-      "        celestial-scanner: CelestialScanner/huge-scanner",
       "        asteroid-scanner:  AsteroidScanner/huge-scanner",
       "        engine:            Engine/titanic-engine",
       "      expenses:",
@@ -157,9 +135,6 @@ TEST_F(BlueprintStorageTests, GetAllModules)
   ASSERT_TRUE(client::FindBlueprintStorage(*pCommutator, storage));
 
   std::set<client::BlueprintName> expected = {
-    client::BlueprintName("CelestialScanner/tiny-scanner"),
-    client::BlueprintName("CelestialScanner/civilian-scanner"),
-    client::BlueprintName("CelestialScanner/huge-scanner"),
     client::BlueprintName("AsteroidScanner/tiny-scanner"),
     client::BlueprintName("AsteroidScanner/civilian-scanner"),
     client::BlueprintName("AsteroidScanner/huge-scanner"),
@@ -254,22 +229,6 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
     client::Blueprint blueprint;
     ASSERT_EQ(client::BlueprintsStorage::eSuccess,
               storage.getBlueprint(
-                client::BlueprintName("CelestialScanner/huge-scanner"),
-                blueprint));
-    EXPECT_EQ("CelestialScanner/huge-scanner", blueprint.m_sName);
-    EXPECT_EQ("20000000", blueprint.m_properties["max_scanning_radius_km"]->sValue);
-    EXPECT_EQ("40",       blueprint.m_properties["processing_time_us"]->sValue);
-
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(2000)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::silicates(1000)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(500)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(500)));
-  }
-
-  {
-    client::Blueprint blueprint;
-    ASSERT_EQ(client::BlueprintsStorage::eSuccess,
-              storage.getBlueprint(
                 client::BlueprintName("AsteroidScanner/tiny-scanner"),
                 blueprint));
     EXPECT_EQ("AsteroidScanner/tiny-scanner", blueprint.m_sName);
@@ -322,17 +281,15 @@ TEST_F(BlueprintStorageTests, GetShipBlueprints)
     EXPECT_EQ("100000000", blueprint.m_properties["weight"]->sValue);
 
     client::PropertyUniqPtr const& pShipModules = blueprint.m_properties["modules"];
-    EXPECT_EQ("CelestialScanner/huge-scanner",
-              pShipModules->nested["celestial-scanner"]->sValue);
     EXPECT_EQ("AsteroidScanner/huge-scanner",
               pShipModules->nested["asteroid-scanner"]->sValue);
     EXPECT_EQ("Engine/titanic-engine",
               pShipModules->nested["engine"]->sValue);
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(49000)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(47000)));
     EXPECT_TRUE(hasResource(blueprint.m_expenses,
-                            world::ResourceItem::silicates(24000)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(12000)));
-    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(12000)));
+                            world::ResourceItem::silicates(23000)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::ice(11500)));
+    EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::labor(11500)));
   }
 }
 

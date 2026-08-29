@@ -79,7 +79,6 @@ private:
   modules::ShipManagerPtr              m_pShipsManager;
   modules::CommutatorManagerPtr        m_pCommutatorsManager;
   modules::EngineManagerPtr            m_pEnginesManager;
-  modules::CelestialScannerManagerPtr  m_pCelestialScannerManager;
   modules::PassiveScannerManagerPtr    m_pPassiveScannerManager;
   modules::AsteroidScannerManagerPtr   m_pAsteroidScannerManager;
   modules::ResourceContainerManagerPtr m_pResourceContainerManager;

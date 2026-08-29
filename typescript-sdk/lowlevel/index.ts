@@ -18,13 +18,6 @@ export {
     PassiveScannerSpecification,
 } from "./passive_scanner.js";
 export {
-    CelestialScanner,
-    CelestialScannerStatus,
-    CelestialScannerSpecification,
-    CelestialScanningReport,
-    CelestialScanningResult,
-} from "./celestial_scanner.js";
-export {
     BlueprintsLibrary,
     BlueprintsLibraryStatus,
     BlueprintsNamesPage,

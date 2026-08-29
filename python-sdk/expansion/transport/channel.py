@@ -62,14 +62,14 @@ class Channel(abc.ABC):
         all messages to attached terminal. Otherwise, attaching terminal has
         no sense."""
         self.terminal = terminal
-        self.channel_logger.info(f"Attached to terminal {self.terminal.terminal_name}")
+        #self.channel_logger.info(f"Attached to terminal {self.terminal.terminal_name}")
 
     def detach_terminal(self):
         """Detach channel from terminal.
         Note that if channel is in ACTIVE mode, but is not attached to
         terminal, than all received messages will be dropped."""
         self.terminal = None
-        self.channel_logger.info(f"Terminal detached")
+        #self.channel_logger.info(f"Terminal detached")
 
     @abc.abstractmethod
     def send(self, message: Any) -> bool:

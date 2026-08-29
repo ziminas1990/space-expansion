@@ -90,38 +90,6 @@ bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
   return true;
 }
 
-bool FindBestCelestialScanner(Ship &ship, CelestialScanner& bestScanner,
-                              CelestialScannerSpecification *pSpec)
-{
-  ModulesList scanners;
-  if (!GetAllModules(ship, "CelestialScanner", scanners))
-    return false;
-  if (scanners.empty())
-    return false;
-
-  uint32_t nMaxScanningRadiusKm = 0;
-
-  for (ModuleInfo const& moduleInfo : scanners) {
-    client::Router::SessionPtr pSession = ship.openSession(moduleInfo.nSlotId);
-    if (!pSession)
-      return false;
-
-    CelestialScanner scanner;
-    scanner.attachToChannel(pSession);
-
-    CelestialScannerSpecification specification;
-    if (!scanner.getSpecification(specification))
-      return false;
-    if (specification.m_nMaxScanningRadiusKm > nMaxScanningRadiusKm) {
-      bestScanner.attachToChannel(pSession);
-      if (pSpec) {
-        *pSpec = specification;
-      }
-    }
-  }
-  return true;
-}
-
 bool FindAsteroidScanner(Ship& ship, AsteroidScanner& scanner, std::string const& sName)
 {
   return FindModule(ship, "AsteroidScanner", scanner, sName);

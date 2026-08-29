@@ -23,7 +23,6 @@ enum class Cooldown {
   eAsteroidMiner     = 150611,
   eAsteroidScanner   = 150713,
   eShipyard          = 150817,
-  eCelestialScanner  = 200919,
   eResourceContainer = 201023,
   eBlueprintsStorage = 201129,
 };
@@ -38,7 +37,6 @@ enum class Cooldown {
   eEngine            = 0,
   eAsteroidScanner   = 0,
   eAsteroidMiner     = 0,
-  eCelestialScanner  = 0,
   ePassiveScanner    = 50405,
   eMessanger         = 0,
   eShipyard          = 150817,

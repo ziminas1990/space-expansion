@@ -57,7 +57,7 @@ not implement it (no slot, no `reinit`). Narrowing to a concrete type is
 
 Each wrapper follows this pattern:
 
-- Ordinary class, `implements BaseModule` on all 11 slot modules;
+- Ordinary class, `implements BaseModule` on all 10 slot modules;
   `extends EventEmitter<Events>` only when the wrapper publishes events.
 - `readonly type` with a literal (`readonly type = ModuleType.ENGINE`) is the
   discriminant of `HighlevelModule`.

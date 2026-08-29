@@ -115,47 +115,6 @@ message INavigation {
 }
 
 
-message ICelestialScanner {
-
-  enum Status {
-    SUCCESS      = 0;
-    SCANNER_BUSY = 1;
-  }
-
-  message Specification {
-    uint32 max_radius_km      = 1;
-    uint32 processing_time_us = 2;
-  }
-
-  message Scan {
-    uint32 scanning_radius_km = 1;
-    uint32 minimal_radius_m   = 2;
-  }
-
-  message AsteroidInfo {
-    uint32 id = 1;
-    double x  = 2;
-    double y  = 3;
-    double vx = 4;
-    double vy = 5;
-    double r  = 6;
-  }
-
-  message ScanResults {
-    repeated AsteroidInfo asteroids = 1;
-    uint32                left      = 2;
-  }
-
-  oneof choice {
-    bool specification_req = 1;
-    Scan scan              = 2;
-
-    Specification specification   = 21;
-    ScanResults   scanning_report = 22;
-    Status        scanning_failed = 23;
-  }
-}
-
 message IPassiveScanner {
 
   message Specification {
@@ -500,6 +459,9 @@ message Message {
   uint32 tunnelId  = 1;
   uint64 timestamp = 2;
 
+  reserved 18;
+  reserved "celestial_scanner";
+
   oneof choice {
     // All possible interfaces are listed here
     ISessionControl    session            = 10;
@@ -509,7 +471,6 @@ message Message {
     IShip              ship               = 15;
     INavigation        navigation         = 16;
     IEngine            engine             = 17;
-    ICelestialScanner  celestial_scanner  = 18;
     IPassiveScanner    passive_scanner    = 19;
     IAsteroidScanner   asteroid_scanner   = 20;
     IResourceContainer resource_container = 21;

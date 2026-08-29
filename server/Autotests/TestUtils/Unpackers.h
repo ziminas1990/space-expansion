@@ -79,17 +79,6 @@ struct Unpacker<spex::IPassiveScanner> {
 };
 
 template<>
-struct Unpacker<spex::ICelestialScanner> {
-  inline static spex::Message::ChoiceCase choice() {
-    return spex::Message::kCelestialScanner;
-  }
-
-  inline static const spex::ICelestialScanner& unpack(const spex::Message& message) {
-    return message.celestial_scanner();
-  }
-};
-
-template<>
 struct Unpacker<spex::IAsteroidScanner> {
   inline static spex::Message::ChoiceCase choice() {
     return spex::Message::kAsteroidScanner;

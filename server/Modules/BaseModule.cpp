@@ -92,10 +92,6 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
         handleSystemClockMessage(nSessionId, message.system_clock());
         return;
       }
-      case spex::Message::kCelestialScanner: {
-        handleCelestialScannerMessage(nSessionId, message.celestial_scanner());
-        return;
-      }
       case spex::Message::kAsteroidMiner: {
         handleAsteroidMinerMessage(nSessionId, message.asteroid_miner());
         return;

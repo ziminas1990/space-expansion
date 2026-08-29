@@ -22,11 +22,6 @@ export type {
     AsteroidScanResult,
     AsteroidScannerStatus,
 } from "./asteroid_scanner.js";
-export { CelestialScanner } from "./celestial_scanner.js";
-export type {
-    CelestialScannerSpecification,
-    CelestialScannerStatus,
-} from "./celestial_scanner.js";
 export { PassiveScanner } from "./passive_scanner.js";
 export type { PassiveScannerSpecification } from "./passive_scanner.js";
 export { Shipyard } from "./shipyard.js";

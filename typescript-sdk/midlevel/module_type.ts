@@ -6,7 +6,6 @@ export const ModuleType = {
     SYSTEM_CLOCK: "SystemClock",
     ENGINE: "Engine",
     RESOURCE_CONTAINER: "ResourceContainer",
-    CELESTIAL_SCANNER: "CelestialScanner",
     PASSIVE_SCANNER: "PassiveScanner",
     ASTEROID_SCANNER: "AsteroidScanner",
     ASTEROID_MINER: "AsteroidMiner",

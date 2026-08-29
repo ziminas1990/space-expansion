@@ -36,7 +36,6 @@ UdpSocket::createPersistentSession(udp::endpoint const& remote)
     {
       m_pTerminal->openSession(i);
       m_sessions[i] = remote;
-      std::cout << "Persistant session #" << i << " created" << std::endl;
       return i;
     }
   }
@@ -88,7 +87,6 @@ bool UdpSocket::send(uint32_t nSessionId, BinaryMessage&& message)
 void UdpSocket::closeSession(uint32_t nSessionId)
 {
   if (nSessionId < m_sessions.size()) {
-    //std::cout << "Close session #" << nSessionId << std::endl;
     m_sessions[nSessionId] = udp::endpoint();
   }
 }
