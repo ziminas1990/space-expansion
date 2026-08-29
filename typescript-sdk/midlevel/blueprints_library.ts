@@ -2,10 +2,12 @@ import * as lowlevel from "../lowlevel/index.js";
 import { Status } from "../types/status.js";
 import { Blueprint } from "../types/index.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type BlueprintsLibraryStatus = lowlevel.BlueprintsLibraryStatus;
 
 export class BlueprintsLibrary extends BaseModule<lowlevel.BlueprintsLibrary> {
+    readonly type = ModuleType.BLUEPRINTS_LIBRARY;
 
     constructor(open_session_callback: OpenSessionCallback)
     {

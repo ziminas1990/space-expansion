@@ -2,6 +2,7 @@ import * as lowlevel from "../lowlevel/index.js";
 import { ResourceItem } from "../types/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { ModuleType } from "./module_type.js";
 
 export type ResourceContainerStatus = lowlevel.ResourceContainerStatus;
 export type ResourceContainerContent = lowlevel.ResourceContainerContent;
@@ -11,6 +12,7 @@ export type MonitoringCallback =
     (content: ResourceContainerContent) => Promise<boolean>;
 
 export class ResourceContainer extends BaseModule<lowlevel.ResourceContainer> {
+    readonly type = ModuleType.RESOURCE_CONTAINER;
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,
@@ -157,14 +159,20 @@ export class ResourceContainer extends BaseModule<lowlevel.ResourceContainer> {
             return Status.ok();
         }
 
+        let last_content = start_content;
         while (true) {
-            const [status, content] = await session.wait_content();
+            const [status, content] = await session.wait_content(200);
             if (status.is_timeout()) {
+                // Idle heartbeat: reuse the last snapshot so the caller can stop.
+                if (!await callback(last_content)) {
+                    return Status.ok();
+                }
                 continue;
             }
             if (!status.is_ok() || !content) {
                 return status.wrap("monitoring stopped");
             }
+            last_content = content;
             const resume = await callback(content);
             if (!resume) {
                 return Status.ok();

@@ -20,6 +20,12 @@ export class Status {
         return new Status(WellKnownStatus.fail, details);
     }
 
+    static exception(error: unknown): Status {
+        return new Status(
+            WellKnownStatus.fail,
+            error instanceof Error ? error.message : String(error));
+    }
+
     static timeout(details: string | undefined = undefined): Status {
         return new Status(WellKnownStatus.timeout, details);
     }

@@ -1,65 +1,108 @@
+import * as midlevel from "../midlevel/index.js";
 import { Status } from "../types/status.js";
-import { Commutator, ModuleInfo } from "./commutator.js";
+import { BlueprintsLibrary } from "./blueprints_library.js";
+import { EventEmitter } from "./events.js";
+import type { CreateModule } from "./factory.js";
+import { Game } from "./game.js";
+import { Messanger } from "./messanger.js";
+import { ModuleRegistry } from "./module_registry.js";
+import type { HighlevelModule } from "./module_types.js";
+import { ModuleType } from "./module_types.js";
 import { Ship } from "./ship.js";
-import assert from "assert";
+import { SystemClock } from "./system_clock.js";
 
+export type Events = {
+    ship_attached: (ship: Ship) => Promise<void> | void;
+    ship_detached: (ship: Ship) => Promise<void> | void;
+};
 
-export class Player {
+export class Player extends EventEmitter<Events> {
 
     public ships: Map<string, Ship> = new Map();
+    public readonly game: Game;
+    private readonly registry: ModuleRegistry;
 
-    constructor(private root_commutator: Commutator) {}
+    constructor(
+        private commutator: midlevel.Commutator,
+        private game_rpc: midlevel.Game,
+        create_module: CreateModule,
+    ) {
+        super();
+        this.game = new Game(game_rpc);
+        this.registry = new ModuleRegistry(commutator, create_module);
+        this.registry.on("attached", this.module_attached.bind(this));
+        this.registry.on("detached", this.module_detached.bind(this));
+    }
+
+    system_clock(): SystemClock | undefined {
+        return this.registry.get_all(ModuleType.SYSTEM_CLOCK)[0];
+    }
+
+    blueprints_library(): BlueprintsLibrary | undefined {
+        return this.registry.get_all(ModuleType.BLUEPRINTS_LIBRARY)[0];
+    }
+
+    messanger(): Messanger | undefined {
+        return this.registry.get_all(ModuleType.MESSANGER)[0];
+    }
+
+    down_level(what: "root_commutator"): midlevel.Commutator;
+    down_level(what: "game"): midlevel.Game;
+    down_level(what: "root_commutator" | "game"):
+        midlevel.Commutator | midlevel.Game
+    {
+        switch (what) {
+            case "root_commutator": return this.commutator;
+            case "game": return this.game_rpc;
+        }
+    }
 
     async init(): Promise<Status> {
-        this.root_commutator.on("attached", this.module_attached.bind(this));
-        this.root_commutator.on("detached", this.module_detached.bind(this));
-
-        // Start root commutator
-        {
-            const status = await this.root_commutator.init();
-            if (!status.is_ok()) {
-                return status.wrap("Failed to init root commutator");
-            }
-        }
-
-        return Status.ok();
-    }
-
-    private async module_attached(module: ModuleInfo) {
-        if (module.module_type.startsWith("Ship/")) {
-            const status = await this.on_ship_attached(module);
-            if (!status.is_ok()) {
-                console.error(`Failed to attach ship ${module.module_name}: ${status.what()}`);
-            }
-        }
-    }
-
-    private async module_detached(module: ModuleInfo) {
-        if (module.module_type.startsWith("Ship/")) {
-            const ship = this.ships.get(module.module_name);
-            if (ship) {
-                await ship.release();
-                this.ships.delete(module.module_name);
-            }
-        }
-    }
-
-    private async on_ship_attached(module: ModuleInfo): Promise<Status>
-    {
-        console.log("GREPIT: on_ship_attached ", module);
-        if (this.ships.has(module.module_name)) {
-            const ship = this.ships.get(module.module_name);
-            assert(ship);
-            return ship.reinit(module.open_session_cb);
-        }
-        const ship = new Ship(module.open_session_cb, module.module_name);
-        const status = await ship.init();
+        const status = await this.registry.init();
         if (!status.is_ok()) {
-            console.error(`Failed to init ship ${module.module_name}: ${status}`);
-            return status;
+            return status.wrap("Failed to init root commutator");
         }
-        this.ships.set(module.module_name, ship);
+
+        const game_status = await this.game.init();
+        if (!game_status.is_ok()) {
+            return game_status.wrap("Failed to init game");
+        }
+
+        const clock = this.system_clock();
+        if (clock) {
+            const sync = await clock.initial_sync();
+            if (!sync.is_ok()) {
+                return sync.wrap("Failed to sync system clock");
+            }
+        }
+
         return Status.ok();
+    }
+
+    async release(): Promise<Status> {
+        this.ships.clear();
+        await this.game.release();
+        return await this.registry.release();
+    }
+
+    async terminate(): Promise<void> {
+        await this.release();
+        await this.game_rpc.terminate();
+        await this.registry.terminate();
+    }
+
+    private async module_attached(module: HighlevelModule) {
+        if (module.type === ModuleType.SHIP) {
+            this.ships.set(module.name, module);
+            await this.emit("ship_attached", module);
+        }
+    }
+
+    private async module_detached(module: HighlevelModule) {
+        if (module.type === ModuleType.SHIP) {
+            this.ships.delete(module.name);
+            await this.emit("ship_detached", module);
+        }
     }
 
 }

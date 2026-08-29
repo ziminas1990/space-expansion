@@ -1,83 +1,120 @@
 import * as midlevel from "../midlevel/index.js";
 import { Position, Status } from "../types/index.js";
+import { Cached } from "../utils/cache.js";
+import type { CreateModule } from "./factory.js";
+import { ModuleRegistry } from "./module_registry.js";
+import { Navigation } from "./navigation.js";
+import type { BaseModule } from "./base_module.js";
+import { EventEmitter } from "./events.js";
+import type { HighlevelModule } from "./module_types.js";
 
 export type { Position };
 export type ShipState = midlevel.ShipState;
 
-export class Ship {
-    private ship: midlevel.Ship;
-    private navigation: midlevel.Navigation;
-    private commutator: midlevel.Commutator;
+export type Events = {
+    attached: (module: HighlevelModule) => Promise<void> | void;
+    detached: (module: HighlevelModule) => Promise<void> | void;
+};
 
-    private state: ShipState | undefined = undefined;
-    private position: Position | undefined = undefined;
-    private state_cached_at_ms: number | undefined = undefined;
-    private position_cached_at_ms: number | undefined = undefined;
+const DEFAULT_STATE_CACHE_MS = 50;
+
+export class Ship extends EventEmitter<Events> implements BaseModule {
+    readonly type = midlevel.ModuleType.SHIP;
+    readonly ship_class: string;
+    private navigation: Navigation;
+    private registry: ModuleRegistry;
+
+    private state = new Cached<ShipState>();
 
     private monitor: Promise<Status> | undefined = undefined;
-    private commutator_monitor: Promise<Status> | undefined = undefined;
     private stop_monitoring: boolean = false;
-    private stop_commutator_monitoring: boolean = false;
 
     constructor(
-        open_session_cb: midlevel.OpenSessionCallback,
-        public name: string)
+        private ship: midlevel.Ship,
+        public name: string,
+        module_type: string = midlevel.ModuleType.SHIP,
+        private readonly create_module: CreateModule,
+    )
     {
-        this.ship = new midlevel.Ship(open_session_cb);
-        this.navigation = new midlevel.Navigation(open_session_cb);
-        this.commutator = new midlevel.Commutator(open_session_cb);
+        super();
+        this.ship_class = module_type;
+        this.navigation = new Navigation(ship.navigator());
+        this.registry = this.bind_registry(ship.commutator());
     }
 
-    get slots() {
-        return this.commutator.slots;
+    modules(): HighlevelModule[] {
+        const result: HighlevelModule[] = [];
+        for (const by_name of this.registry.attached.values()) {
+            result.push(...by_name.values());
+        }
+        return result;
     }
 
-    get modules() {
-        return this.commutator.modules;
+    get_all<T extends midlevel.ModuleType>(
+        type: T,
+    ): Extract<HighlevelModule, { type: T }>[] {
+        return this.registry.get_all(type);
+    }
+
+    get_by_name<T extends midlevel.ModuleType>(
+        type: T,
+        name: string,
+    ): Extract<HighlevelModule, { type: T }> | undefined {
+        return this.registry.get_by_name(type, name);
+    }
+
+    down_level(what: "ship"): midlevel.Ship;
+    down_level(what: "navigator"): midlevel.Navigation;
+    down_level(what: "commutator"): midlevel.Commutator;
+    down_level(what: "ship" | "navigator" | "commutator"):
+        midlevel.Ship | midlevel.Navigation | midlevel.Commutator
+    {
+        switch (what) {
+            case "ship": return this.ship;
+            case "navigator": return this.ship.navigator();
+            case "commutator": return this.ship.commutator();
+        }
     }
 
     async init(): Promise<Status> {
         this.stop_monitoring = false;
-        this.stop_commutator_monitoring = false;
+        const status = await this.registry.init();
+        if (!status.is_ok()) {
+            return status.wrap("failed to get ship modules");
+        }
         this.monitor = this.monitor_ship_state();
-        this.commutator_monitor = this.monitor_nested_commutator();
         return Status.ok();
     }
 
-    async reinit(open_session_cb: midlevel.OpenSessionCallback): Promise<Status> {
+    async reinit(rpc: midlevel.MidlevelModule): Promise<Status> {
+        if (!midlevel.is_module(rpc, midlevel.ModuleType.SHIP)) {
+            return Status.fail("expected Ship");
+        }
         await this.release();
-        this.ship = new midlevel.Ship(open_session_cb);
-        this.navigation = new midlevel.Navigation(open_session_cb);
-        this.commutator = new midlevel.Commutator(open_session_cb);
+        this.ship = rpc;
+        this.navigation = new Navigation(rpc.navigator());
+        this.registry = this.bind_registry(rpc.commutator());
         return await this.init();
     }
 
     async release(): Promise<Status> {
         this.stop_monitoring = true;
-        this.stop_commutator_monitoring = true;
-        await this.ship.terminate();
-        await this.navigation.terminate();
-        await this.commutator.terminate();
         if (this.monitor) {
             await this.monitor;
             this.monitor = undefined;
         }
-        if (this.commutator_monitor) {
-            await this.commutator_monitor;
-            this.commutator_monitor = undefined;
-        }
-        this.state = undefined;
-        this.position = undefined;
-        this.state_cached_at_ms = undefined;
-        this.position_cached_at_ms = undefined;
+        await this.registry.release();
+        await this.navigation.release();
+        this.state.reset();
         return Status.ok();
     }
 
-    async get_state(cache_expiring_ms: number = 50)
+    async get_state(cache_expiring_ms: number = DEFAULT_STATE_CACHE_MS)
         : Promise<[Status, ShipState | undefined]>
     {
-        if (this.state && !this.is_expired(this.state_cached_at_ms, cache_expiring_ms)) {
-            return [Status.ok(), this.state];
+        const cached = this.state.get(cache_expiring_ms);
+        if (cached) {
+            return [Status.ok(), cached];
         }
         const [status, state] = await this.ship.get_state();
         if (status.is_ok() && state) {
@@ -89,85 +126,43 @@ export class Ship {
     async get_position(at_us?: bigint, cache_expiring_ms: number = 10)
         : Promise<[Status, Position | undefined]>
     {
-        if (!this.position
-            || this.is_expired(this.position_cached_at_ms, cache_expiring_ms))
-        {
-            const [status, position] = await this.navigation.get_position();
-            if (!status.is_ok() || !position) {
-                return [status, undefined];
-            }
-            this.cache_position(position);
-        }
-        if (at_us !== undefined && this.position) {
-            return [Status.ok(), this.extrapolate(this.position, at_us)];
-        }
-        return [Status.ok(), this.position];
+        return this.navigation.get_position(at_us, cache_expiring_ms);
     }
 
-    predict_position(at_us?: bigint): Position | undefined {
-        if (!this.position) {
-            return undefined;
-        }
-        const at = at_us ?? this.predicted_server_us(this.position);
-        return this.extrapolate(this.position, at);
+    predict_position(at_us: bigint): Position | undefined {
+        return this.navigation.predict_position(at_us);
+    }
+
+    private bind_registry(commutator: midlevel.Commutator): ModuleRegistry {
+        const registry = new ModuleRegistry(commutator, this.create_module);
+        registry.on("attached", (module) => this.emit("attached", module));
+        registry.on("detached", (module) => this.emit("detached", module));
+        return registry;
     }
 
     private cache_state(state: ShipState) {
-        this.state = state;
-        this.state_cached_at_ms = performance.now();
+        this.state.set(state);
         if (state.position) {
-            this.cache_position(state.position, this.state_cached_at_ms);
+            this.navigation.update_from(state.position);
         }
-    }
-
-    private cache_position(position: Position, cached_at_ms?: number) {
-        this.position = position;
-        this.position_cached_at_ms = cached_at_ms ?? performance.now();
-    }
-
-    private is_expired(cached_at_ms: number | undefined, expiration_ms: number): boolean {
-        if (cached_at_ms == undefined) {
-            return true;
-        }
-        return performance.now() - cached_at_ms > expiration_ms;
-    }
-
-    private predicted_server_us(position: Position): bigint {
-        if (this.position_cached_at_ms == undefined) {
-            return position.timestamp;
-        }
-        const elapsed_us = BigInt(Math.round(
-            (performance.now() - this.position_cached_at_ms) * 1000));
-        return position.timestamp + elapsed_us;
-    }
-
-    private extrapolate(position: Position, at_us: bigint): Position {
-        const dt_sec = Number(at_us - position.timestamp) / 1e6;
-        return {
-            timestamp: at_us,
-            point: [
-                position.point[0] + position.velocity[0] * dt_sec,
-                position.point[1] + position.velocity[1] * dt_sec,
-            ],
-            velocity: [position.velocity[0], position.velocity[1]],
-        };
     }
 
     private handle_update(update: ShipState) {
-        if (this.state == undefined) {
+        const current = this.state.get(Infinity);
+        if (current == undefined) {
             this.cache_state(update);
             return;
         }
 
         if (update.position) {
-            this.state.position = update.position;
-            this.cache_position(update.position);
+            current.position = update.position;
+            this.navigation.update_from(update.position);
         }
         if (update.weight) {
-            this.state.weight = update.weight;
+            current.weight = update.weight;
         }
-        this.state.timestamp = update.timestamp;
-        this.state_cached_at_ms = performance.now();
+        current.timestamp = update.timestamp;
+        this.state.set(current);
     }
 
     private async monitor_ship_state(): Promise<Status> {
@@ -186,22 +181,6 @@ export class Ship {
                 return Status.ok();
             }
             await new Promise((r) => setTimeout(r, 200));
-        }
-        return Status.ok();
-    }
-
-    private async monitor_nested_commutator(): Promise<Status> {
-        while (!this.stop_commutator_monitoring) {
-            const [status] = await this.commutator.get_all_modules_info();
-            if (status.is_ok()) {
-                await this.commutator.monitoring(async () => {
-                    return !this.stop_commutator_monitoring;
-                });
-            }
-            if (this.stop_commutator_monitoring) {
-                return Status.ok();
-            }
-            await new Promise((r) => setTimeout(r, 1000));
         }
         return Status.ok();
     }

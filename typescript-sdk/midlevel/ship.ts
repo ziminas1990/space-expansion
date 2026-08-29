@@ -1,16 +1,38 @@
 import * as lowlevel from "../lowlevel/index.js";
 import { Status } from "../types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
+import { Commutator } from "./commutator.js";
+import { ModuleType } from "./module_type.js";
+import { Navigation } from "./navigation.js";
 
 export type ShipState = lowlevel.ShipState
 export type MonitoringCallback = (status: Status, update: ShipState | undefined) => Promise<boolean>;
 
 export class Ship extends BaseModule<lowlevel.Ship> {
+    readonly type = ModuleType.SHIP;
+    private nested_navigation?: Navigation;
+    private nested_commutator?: Commutator;
 
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,
               async (session) => [Status.ok(), new lowlevel.Ship(session)]);
+    }
+
+    navigator(): Navigation {
+        this.nested_navigation ??= new Navigation(this.open_session_cb);
+        return this.nested_navigation;
+    }
+
+    commutator(): Commutator {
+        this.nested_commutator ??= new Commutator(this.open_session_cb);
+        return this.nested_commutator;
+    }
+
+    override async terminate(): Promise<void> {
+        await this.nested_navigation?.terminate();
+        await this.nested_commutator?.terminate();
+        await super.terminate();
     }
 
     async get_state(): Promise<[Status, ShipState | undefined]> {

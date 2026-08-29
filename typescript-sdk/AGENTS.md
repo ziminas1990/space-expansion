@@ -40,11 +40,58 @@ routes sessions. It contains no game API or domain behavior.
 - It may cache state, predict values, run background monitoring, expose events,
   and coordinate complex procedures.
 - One highlevel class may compose multiple midlevel interfaces.
-- Example: `highlevel.Ship` combines `midlevel.Ship` (`IShip`),
-  `midlevel.Navigation` (`INavigation`), and `midlevel.Commutator`
-  (`ICommutator`) using the same ship-slot `open_session_cb`.
-- Highlevel owns the lifecycle of all clients it composes and terminates them
-  together.
+- Example: `highlevel.Ship` wraps `midlevel.Ship` (`IShip`) and takes nested
+  `INavigation` / `ICommutator` clients from `midlevel.Ship.navigator()` /
+  `commutator()`. Highlevel does not open those tunnels itself.
+- Highlevel does not import `lowlevel/` and does not reimplement protocol loops.
+- **Highlevel does not open or close sessions.** The session pool belongs
+  entirely to `midlevel.BaseModule`. `open_session_cb` is a midlevel
+  implementation detail; it does not appear in public highlevel signatures.
+  Hidden `ModuleRegistry` reads it only inside `spawn_client`.
+
+There is no highlevel base **class**. Slot wrappers implement the `BaseModule`
+interface (`type`, `name`, `release`, `reinit`). `Navigation` and `Game` do
+not implement it (no slot, no `reinit`). Narrowing to a concrete type is
+`module.type === ModuleType.ENGINE` on the `HighlevelModule` union, not
+`instanceof`.
+
+Each wrapper follows this pattern:
+
+- Ordinary class, `implements BaseModule` on all 11 slot modules;
+  `extends EventEmitter<Events>` only when the wrapper publishes events.
+- `readonly type` with a literal (`readonly type = ModuleType.ENGINE`) is the
+  discriminant of `HighlevelModule`.
+- `constructor(private rpc: midlevel.X, readonly name: string)` — omit `name`
+  for objects not bound to a slot (`Navigation`, `Game`).
+- `rpc` stays private. 1:1 wrappers expose it with argument-free
+  `down_level(): M`. Aggregates that own several midlevel clients (`Ship`,
+  `Player`) take a discriminator and return the matching client, not a
+  highlevel wrapper.
+- Caches are ordinary `Cached<T>` fields, or a `Map` when keyed by id. There is
+  no central cache registry.
+- `init(): Promise<Status>` exists only on wrappers that run background work
+  the registry must start.
+- Every wrapper has `release(): Promise<Status>`: set a stop flag, await own
+  background tasks, reset own caches. It does **not** call `rpc.terminate()`.
+- Hidden `ModuleRegistry` (not exported from `highlevel/index.ts`) **owns**
+  midlevel slot clients: it creates them with `midlevel.create_module` and
+  the slot's `open_session_cb`, stores them in `clients`, and calls
+  `terminate()` on detach and in `release()`. After `terminate()`,
+  `midlevel.BaseModule` immediately returns `Status.closed("terminated")` on
+  any attempt to open a session. Highlevel does not keep an `alive` flag
+  and does not fail-fast with its own status; public methods just forward the
+  midlevel error.
+- The wrapper instance stays in the user's hands across detach. The
+  registry keeps it in `known` and calls `reinit(new_rpc)` on reattach of
+  the same `(type, name)` instead of `new`. Nested nav/commutator clients of
+  a ship die with `midlevel.Ship.terminate()`, which the parent registry
+  calls on ship detach. `highlevel.Ship.release()` must not terminate its
+  own `midlevel.Ship`.
+- Midlevel `Commutator` does not track attached modules. `get_all_modules_info`
+  and `monitoring` return snapshots and updates only. Opening a tunnel stays on
+  midlevel; remembering which slots are live is highlevel (`ModuleRegistry`).
+- There are no static `find()` selectors. Pick a module with `get_all` /
+  `get_by_name` on `Ship` or `Player` (delegated to the hidden registry).
 
 ## Design rule
 
