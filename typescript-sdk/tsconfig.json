@@ -31,8 +31,9 @@
   "include": [
     "*.ts",
     "tests/**/*.ts"
-  ],
+, "tests/helpers/modules.ts"  ],
   "exclude": [
-    "node_modules/**/*"
+    "node_modules/**/*",
+    "vitest.config.ts"
   ]
 }

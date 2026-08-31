@@ -26,7 +26,7 @@ export async function login(
     const player = new Player(commutator, game, create_module);
     const init_status = await player.init();
     if (!init_status.is_ok()) {
-        await player.terminate();
+        await player.release();
         return [init_status.wrap("failed to initialize player"), undefined];
     }
     return [Status.ok(), player];

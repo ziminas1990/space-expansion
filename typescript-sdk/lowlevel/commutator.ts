@@ -140,11 +140,13 @@ export class Commutator {
             : Status.fail(`monitoring rejected: ${monitor_status}`);
     }
 
-    async wait_update(timeout: number = 500): Promise<[Status, Update | undefined]> {
-        const [status, response] = await this.wait(timeout);
+    // Waits for a commutator update. Completes on an update, session close
+    // (closedInd), or timeout — all three are valid. timeout_ms <= 0 waits
+    // until a message arrives or the session is closed.
+    async wait_update(timeout_ms: number = 500): Promise<[Status, Update | undefined]> {
+        const [status, response] = await this.wait(timeout_ms);
         if (status.is_timeout()) {
-            // Just no updates ¯\_(ツ)_/¯
-            return [Status.ok(), undefined];
+            return [status, undefined];
         }
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];

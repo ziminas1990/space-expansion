@@ -85,12 +85,6 @@ export class Player extends EventEmitter<Events> {
         return await this.registry.release();
     }
 
-    async terminate(): Promise<void> {
-        await this.release();
-        await this.game_rpc.terminate();
-        await this.registry.terminate();
-    }
-
     private async module_attached(module: HighlevelModule) {
         if (module.type === ModuleType.SHIP) {
             this.ships.set(module.name, module);

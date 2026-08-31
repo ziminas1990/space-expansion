@@ -55,7 +55,6 @@ export class ModuleRegistry extends EventEmitter<Events> {
     // `type::name` -> module
     private readonly known = new Map<string, HighlevelModule>();
 
-    private readonly clients = new Map<number, midlevel.MidlevelModule>();
     private monitor: Promise<void> | undefined = undefined;
     private stop_monitoring = false;
 
@@ -83,10 +82,6 @@ export class ModuleRegistry extends EventEmitter<Events> {
         return Status.ok();
     }
 
-    async terminate() {
-        return await this.rpc.terminate();
-    }
-
     get_all<T extends ModuleType>(
         type: T,
     ): Extract<HighlevelModule, { type: T }>[] {
@@ -108,24 +103,23 @@ export class ModuleRegistry extends EventEmitter<Events> {
 
     async release(): Promise<Status> {
         this.stop_monitoring = true;
-        if (this.monitor) {
-            await this.monitor;
-            this.monitor = undefined;
-        }
         const wrappers = new Set<BaseModule>(this.known.values());
         for (const slot of this.slots.values()) {
             wrappers.add(slot.module);
         }
-        for (const module of wrappers) {
-            await module.release();
+        await this.rpc.terminate();
+        if (this.monitor) {
+            await this.monitor;
+            this.monitor = undefined;
         }
-        for (const client of this.clients.values()) {
-            await client.terminate();
+        try {
+            await Promise.all([...wrappers].map((module) => module.release()));
+        } catch (_error) {
+            // best effort. release() should never throw, but just in case...
         }
         this.slots.clear();
         this.attached.clear();
         this.known.clear();
-        this.clients.clear();
         return Status.ok();
     }
 
@@ -135,20 +129,15 @@ export class ModuleRegistry extends EventEmitter<Events> {
 
     private async monitoring_loop(): Promise<void> {
         while (!this.stop_monitoring) {
-            await this.rpc.monitoring(async (status, update) => {
-                if (status.is_ok() && update) {
+            const status = await this.rpc.monitoring(async (update) => {
+                if (update) {
                     await this.handle_update(update);
                 }
                 return !this.stop_monitoring;
             });
-            if (this.stop_monitoring) {
-                return;
+            if (!status.is_ok()) {
+                break;
             }
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            if (this.stop_monitoring) {
-                return;
-            }
-            await this.synchronize_slots();
         }
     }
 
@@ -198,7 +187,6 @@ export class ModuleRegistry extends EventEmitter<Events> {
         if (!rpc) {
             return;
         }
-        this.clients.set(info.slot_id, rpc);
 
         const key = identity_key(info.module_type, info.module_name);
         const known = this.known.get(key);
@@ -209,7 +197,6 @@ export class ModuleRegistry extends EventEmitter<Events> {
         } else {
             const created = this.create_module(info, rpc);
             if (!created) {
-                this.clients.delete(info.slot_id);
                 await rpc.terminate();
                 return;
             }
@@ -236,12 +223,7 @@ export class ModuleRegistry extends EventEmitter<Events> {
         }
         this.slots.delete(slot_id);
         this.unindex(registered.module);
-        const rpc = this.clients.get(slot_id);
-        this.clients.delete(slot_id);
         await registered.module.release();
-        if (rpc) {
-            await rpc.terminate();
-        }
         await this.emit("detached", registered.module);
     }
 

@@ -107,6 +107,10 @@ export class Shipyard extends EventEmitter<Events> implements BaseModule {
     }
 
     async release(): Promise<Status> {
+        await this.rpc.terminate();
+        if (this.build_task) {
+            await this.build_task;
+        }
         this.specification.reset();
         this.cargo_name = undefined;
         this.building = false;

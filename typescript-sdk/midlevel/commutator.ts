@@ -12,7 +12,7 @@ export type Update = {
 }
 
 export type MonitoringCallback =
-    (status: Status, update: Update | undefined) => Promise<boolean>;
+    (update: Update | undefined) => Promise<boolean>;
 
 export type Session = lowlevel.Session;
 
@@ -49,9 +49,9 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
     }
 
     async monitoring(callback: MonitoringCallback)
-    : Promise<[Status, unknown]>
+    : Promise<Status>
     {
-        return await this.run(async (session) => this._monitoring(session, callback), true);
+        return await this.run_no_return(async (session) => this._monitoring(session, callback), true);
     }
 
     override async terminate(): Promise<void> {
@@ -160,43 +160,46 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
 
     private async _monitoring(
         session: lowlevel.Commutator, callback: MonitoringCallback)
-    : Promise<[Status, unknown]>
+    : Promise<Status>
     {
         const send_status = await session.send_start_monitoring_request();
         if (!send_status.is_ok()) {
-            return [send_status.wrap("failed to start monitoring"), undefined];
+            return send_status.wrap("failed to start monitoring");
         }
 
         {
             const status = await session.wait_monitor_ack();
             if (!status.is_ok()) {
-                return [status, undefined];
+                return status;
             }
         }
 
         while (true) {
             const [status, update] = await session.wait_update();
-            if (!status.is_ok()) {
-                const stop_status = status.wrap("monitoring stopped");
-                callback(stop_status, undefined);
-                return [stop_status, undefined];
+            if (status.is_timeout()) {
+                // Just a heartbeat for upper level, so that it could have a
+                // chance to report that monitoring should be stopped by
+                // returning false value.
+                const resume = await callback(undefined);
+                if (!resume) {
+                    return Status.ok();
+                }
+                continue;
             }
-            if (update) {
-                const public_update: Update = {
+            if (!status.is_ok()) {
+                return status.wrap("monitoring stopped");
+            }
+            const public_update: Update | undefined = update
+                ? {
                     module_attached: update.module_attached
                         ? this.bind_info(update.module_attached)
                         : undefined,
                     module_detached: update.module_detached
-                };
-                const resume = await callback(Status.ok(), public_update);
-                if (!resume) {
-                    return [Status.ok(), undefined];
                 }
-            } else {
-                const resume = await callback(Status.ok(), undefined);
-                if (!resume) {
-                    return [Status.ok(), undefined];
-                }
+                : undefined;
+            const resume = await callback(public_update);
+            if (!resume) {
+                return Status.ok();
             }
         }
     }

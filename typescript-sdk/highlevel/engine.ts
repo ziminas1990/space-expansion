@@ -78,6 +78,7 @@ export class Engine implements BaseModule {
     }
 
     async release(): Promise<Status> {
+        await this.rpc.terminate();
         this.specification.reset();
         this.thrust.reset();
         return Status.ok();

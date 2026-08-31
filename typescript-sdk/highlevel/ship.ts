@@ -82,6 +82,10 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
         if (!status.is_ok()) {
             return status.wrap("failed to get ship modules");
         }
+        const [state_status, state] = await this.get_state();
+        if (!state_status.is_ok() || !state) {
+            return state_status.wrap("failed to get ship state");
+        }
         this.monitor = this.monitor_ship_state();
         return Status.ok();
     }
@@ -99,6 +103,7 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
 
     async release(): Promise<Status> {
         this.stop_monitoring = true;
+        await this.ship.terminate();
         if (this.monitor) {
             await this.monitor;
             this.monitor = undefined;
@@ -167,20 +172,15 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
 
     private async monitor_ship_state(): Promise<Status> {
         while (!this.stop_monitoring) {
-            const [status, state] = await this.ship.get_state();
-            if (status.is_ok() && state) {
-                this.cache_state(state);
-                await this.ship.monitoring(100, async (status, state) => {
-                    if (status.is_ok() && state) {
-                        this.handle_update(state);
-                    }
-                    return !this.stop_monitoring;
-                });
-            }
-            if (this.stop_monitoring) {
+            const status = await this.ship.monitoring(100, async (state) => {
+                if (state) {
+                    this.handle_update(state);
+                }
+                return !this.stop_monitoring;
+            });
+            if (this.stop_monitoring || !status.is_ok()) {
                 return Status.ok();
             }
-            await new Promise((r) => setTimeout(r, 200));
         }
         return Status.ok();
     }

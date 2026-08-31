@@ -6,7 +6,7 @@ import { ModuleType } from "./module_type.js";
 
 export type { ServerTimestamp };
 export type MonitoringCallback =
-    (timestamp: ServerTimestamp) => Promise<boolean>;
+    (timestamp: ServerTimestamp | undefined) => Promise<boolean>;
 
 export class SystemClock extends BaseModule<lowlevel.SystemClock> {
     readonly type = ModuleType.SYSTEM_CLOCK;
@@ -106,6 +106,11 @@ export class SystemClock extends BaseModule<lowlevel.SystemClock> {
         while (true) {
             const [status, timestamp] = await session.wait_time(timeout_ms);
             if (status.is_timeout()) {
+                // Heartbeat so the caller can stop by returning false.
+                const resume = await callback(undefined);
+                if (!resume) {
+                    return Status.ok();
+                }
                 continue;
             }
             if (!status.is_ok() || !timestamp) {

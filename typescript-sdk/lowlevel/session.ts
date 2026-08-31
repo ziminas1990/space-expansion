@@ -7,8 +7,6 @@ export type RegisterSessionCallback =
     (session_id: number) => [Status, Session | undefined];
 
 export class Session extends transport.Endpoint<msg.Message> {
-    private closed: boolean = false;
-
     constructor(protected channel: transport.IChannel<msg.Message>,
                 private session_id: number,
                 private readonly register_session_cb: RegisterSessionCallback)
@@ -18,10 +16,6 @@ export class Session extends transport.Endpoint<msg.Message> {
 
     register_session(session_id: number): [Status, Session | undefined] {
         return this.register_session_cb(session_id);
-    }
-
-    is_active(): boolean {
-        return !this.closed;
     }
 
     async send(message: msg.Message): Promise<Status> {
@@ -49,20 +43,20 @@ export class Session extends transport.Endpoint<msg.Message> {
         }
     }
 
-    async on_closed(): Promise<void> {
-        this.closed = true;
-        super.on_closed();
-    }
-
     async close(): Promise<Status> {
+        if (!this.is_active()) {
+            return Status.closed("session is already closed");
+        }
         const close_req = create(msg.ISessionControlSchema, {
             choice: { case: "close", value: true },
         });
         const message = create(msg.MessageSchema, {
             choice: { case: "session", value: close_req },
         });
-        this.closed = true;
         const status = await this.send(message);
+        // We are not obliged to call on_close() here, because we will receive
+        // a closeInd soon. But anyway, closing the session immediately is a
+        // good idea here.
         await this.on_closed();
         return status;
     }

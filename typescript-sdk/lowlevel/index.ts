@@ -53,4 +53,16 @@ export {
     MessangerServicesPage,
     MessangerClientEvent,
 } from "./messanger.js";
-export { login } from "./procedures.js";
+export { login, login_as_administrator } from "./procedures.js";
+export {
+    Administrator,
+    AdministratorClock,
+    BasicManipulator,
+    Spawner,
+    type AdministratorClockStatus,
+    type ManipulatorResult,
+    type ManipulatorStatus,
+    type SpawnComposition,
+    type SpawnResult,
+    type SpawnStatus,
+} from "./administrator.js";

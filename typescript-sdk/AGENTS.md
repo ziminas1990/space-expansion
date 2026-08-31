@@ -30,6 +30,12 @@ routes sessions. It contains no game API or domain behavior.
   return cached RPC results.
 - Pagination and request/report/terminal-status loops belong here. Long-running
   operations use a dedicated session.
+- `monitoring()` is a dedicated-session loop. The callback is
+  `(value: T | undefined) => Promise<boolean>` and does not take `Status`: a
+  payload is passed on a real update; a failed wait returns that status from
+  `monitoring()` itself. A wait timeout is not a failure — the loop calls the
+  callback with `undefined` so upper logic can check a stop flag and return
+  `false` to leave the loop (`Status.ok()`), or `true` to keep waiting.
 - Different interfaces use different midlevel clients and pools, even when they
   share the same `open_session_cb`.
 
@@ -44,8 +50,8 @@ routes sessions. It contains no game API or domain behavior.
   `INavigation` / `ICommutator` clients from `midlevel.Ship.navigator()` /
   `commutator()`. Highlevel does not open those tunnels itself.
 - Highlevel does not import `lowlevel/` and does not reimplement protocol loops.
-- **Highlevel does not open or close sessions.** The session pool belongs
-  entirely to `midlevel.BaseModule`. `open_session_cb` is a midlevel
+- Highlevel does not open sessions or call `session.close()`. The session pool
+  belongs to `midlevel.BaseModule`. `open_session_cb` is a midlevel
   implementation detail; it does not appear in public highlevel signatures.
   Hidden `ModuleRegistry` reads it only inside `spawn_client`.
 
@@ -67,31 +73,10 @@ Each wrapper follows this pattern:
   `down_level(): M`. Aggregates that own several midlevel clients (`Ship`,
   `Player`) take a discriminator and return the matching client, not a
   highlevel wrapper.
-- Caches are ordinary `Cached<T>` fields, or a `Map` when keyed by id. There is
-  no central cache registry.
-- `init(): Promise<Status>` exists only on wrappers that run background work
-  the registry must start.
-- Every wrapper has `release(): Promise<Status>`: set a stop flag, await own
-  background tasks, reset own caches. It does **not** call `rpc.terminate()`.
-- Hidden `ModuleRegistry` (not exported from `highlevel/index.ts`) **owns**
-  midlevel slot clients: it creates them with `midlevel.create_module` and
-  the slot's `open_session_cb`, stores them in `clients`, and calls
-  `terminate()` on detach and in `release()`. After `terminate()`,
-  `midlevel.BaseModule` immediately returns `Status.closed("terminated")` on
-  any attempt to open a session. Highlevel does not keep an `alive` flag
-  and does not fail-fast with its own status; public methods just forward the
-  midlevel error.
-- The wrapper instance stays in the user's hands across detach. The
-  registry keeps it in `known` and calls `reinit(new_rpc)` on reattach of
-  the same `(type, name)` instead of `new`. Nested nav/commutator clients of
-  a ship die with `midlevel.Ship.terminate()`, which the parent registry
-  calls on ship detach. `highlevel.Ship.release()` must not terminate its
-  own `midlevel.Ship`.
-- Midlevel `Commutator` does not track attached modules. `get_all_modules_info`
-  and `monitoring` return snapshots and updates only. Opening a tunnel stays on
-  midlevel; remembering which slots are live is highlevel (`ModuleRegistry`).
-- There are no static `find()` selectors. Pick a module with `get_all` /
-  `get_by_name` on `Ship` or `Player` (delegated to the hidden registry).
+- `release()` is the only highlevel teardown. There is no highlevel
+  `terminate()`. Internally `release()` calls `rpc.terminate()` **first**
+  (sessions close, waiters wake), then awaits own background tasks and resets
+  caches.
 
 ## Design rule
 

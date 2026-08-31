@@ -70,6 +70,7 @@ export class BlueprintsLibrary implements BaseModule {
     }
 
     async release(): Promise<Status> {
+        await this.rpc.terminate();
         this.names.reset();
         this.blueprints.clear();
         return Status.ok();

@@ -116,6 +116,7 @@ export class ResourceContainer extends EventEmitter<Events> implements BaseModul
 
     async release(): Promise<Status> {
         this.stopped = true;
+        await this.rpc.terminate();
         if (this.loop && !this.in_callback) {
             await this.loop;
             this.loop = undefined;
@@ -129,7 +130,9 @@ export class ResourceContainer extends EventEmitter<Events> implements BaseModul
         while (!this.stopped) {
             try {
                 const status = await this.rpc.monitoring(async (content) => {
-                    await this.apply_content(content);
+                    if (content) {
+                        await this.apply_content(content);
+                    }
                     return !this.stopped;
                 });
                 if (!status.is_ok()) {

@@ -86,6 +86,7 @@ export class AsteroidScanner implements BaseModule {
     }
 
     async release(): Promise<Status> {
+        await this.rpc.terminate();
         this.specification.reset();
         this.results.clear();
         return Status.ok();

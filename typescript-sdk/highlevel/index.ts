@@ -8,7 +8,7 @@ export type { HighlevelModule } from "./module_types.js";
 export { create_module } from "./factory.js";
 export { Player } from "./player.js";
 export { Ship, ShipState } from "./ship.js";
-export { Navigation, extrapolate } from "./navigation.js";
+export { Navigation } from "./navigation.js";
 export type { Position } from "./navigation.js";
 export { Game } from "./game.js";
 export type { GameOver, GameScore } from "./game.js";
