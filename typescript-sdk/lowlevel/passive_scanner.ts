@@ -64,7 +64,7 @@ export class PassiveScanner {
     {
         const [status, response, timestamp] = await this.wait(timeout);
         if (status.is_timeout()) {
-            return [types.Status.ok(), undefined];
+            return [status, undefined];
         }
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];

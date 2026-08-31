@@ -110,6 +110,7 @@ export class Messanger implements BaseModule {
 
     async release(): Promise<Status> {
         this.stopped = true;
+        await this.rpc.terminate();
         const hosted = [...this.hosted.values()];
         this.hosted.clear();
         await Promise.all(hosted.map((entry) => this.close_service(entry)));

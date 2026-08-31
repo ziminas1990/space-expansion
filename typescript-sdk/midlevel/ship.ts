@@ -6,7 +6,8 @@ import { ModuleType } from "./module_type.js";
 import { Navigation } from "./navigation.js";
 
 export type ShipState = lowlevel.ShipState
-export type MonitoringCallback = (status: Status, update: ShipState | undefined) => Promise<boolean>;
+export type MonitoringCallback =
+    (update: ShipState | undefined) => Promise<boolean>;
 
 export class Ship extends BaseModule<lowlevel.Ship> {
     readonly type = ModuleType.SHIP;
@@ -40,8 +41,9 @@ export class Ship extends BaseModule<lowlevel.Ship> {
     }
 
     async monitoring(update_ms: number, callback: MonitoringCallback)
-        : Promise<[Status, unknown]> {
-        return await this.run(async (session) => this._monitoring(session, update_ms, callback), true);
+        : Promise<Status> {
+        return await this.run_no_return(
+            async (session) => this._monitoring(session, update_ms, callback), true);
     }
 
     async _get_ship_state(session: lowlevel.Ship)
@@ -58,23 +60,27 @@ export class Ship extends BaseModule<lowlevel.Ship> {
         session: lowlevel.Ship,
         update_ms: number,
         callback: MonitoringCallback)
-        : Promise<[Status, unknown]> {
+        : Promise<Status> {
         const send_status = await session.send_monitor_request(update_ms);
         if (!send_status.is_ok()) {
-            return [send_status.wrap("failed to start monitoring"), undefined];
+            return send_status.wrap("failed to start monitoring");
         }
 
         while (true) {
             const [status, update] = await session.wait_state();
-            if (!status.is_ok()) {
-                const stop_status = status.wrap("monitoring stopped");
-                callback(stop_status, undefined);
-                return [stop_status, undefined];
-            } else if (update) {
-                const resume = await callback(Status.ok(), update);
+            if (status.is_timeout()) {
+                const resume = await callback(undefined);
                 if (!resume) {
-                    return [Status.ok(), undefined];
+                    return Status.ok();
                 }
+                continue;
+            }
+            if (!status.is_ok() || !update) {
+                return status.wrap("monitoring stopped");
+            }
+            const resume = await callback(update);
+            if (!resume) {
+                return Status.ok();
             }
         }
     }

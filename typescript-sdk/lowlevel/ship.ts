@@ -28,8 +28,10 @@ export class Ship {
         return this.send_request(request);
     }
 
-    async wait_state(): Promise<[types.Status, ShipState | undefined]> {
-        const [status, response, timestamp] = await this.wait();
+    async wait_state(timeout_ms: number = 500)
+    : Promise<[types.Status, ShipState | undefined]>
+    {
+        const [status, response, timestamp] = await this.wait(timeout_ms);
         if (!response) {
             return [status, undefined];
         }

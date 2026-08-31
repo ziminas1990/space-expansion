@@ -125,11 +125,9 @@ export class AsteroidMiner extends EventEmitter<Events> implements BaseModule {
 
     async release(): Promise<Status> {
         this.stop_requested = true;
-        if (this.mining) {
-            await this.rpc.stop_mining();
-            if (this.mining_task && !this.in_callback) {
-                await this.mining_task;
-            }
+        await this.rpc.terminate();
+        if (this.mining_task && !this.in_callback) {
+            await this.mining_task;
         }
         this.specification.reset();
         this.mined.clear();

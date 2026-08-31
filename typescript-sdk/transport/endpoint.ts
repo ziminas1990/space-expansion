@@ -6,6 +6,7 @@ import { ITerminal } from './abstract.js';
 export class Endpoint<T> implements ITerminal<T> {
     private queue: T[] = [];
     private readers: ((status: Status, msg: T | undefined) => void)[] = [];
+    protected closed: boolean = false;
 
     async on_message(message: T): Promise<void> {
         const reader = this.readers.shift();
@@ -16,7 +17,12 @@ export class Endpoint<T> implements ITerminal<T> {
         }
     }
 
+    is_active(): boolean {
+        return !this.closed;
+    }
+
     async on_closed(): Promise<void> {
+        this.closed = true;
         this.readers.forEach(reader => {
             reader(Status.closed("channel is closed"), undefined);
         });
@@ -24,6 +30,10 @@ export class Endpoint<T> implements ITerminal<T> {
     }
 
     async wait(timeout_ms: number = 500): Promise<[Status, T | undefined]> {
+        if (this.closed) {
+            return [Status.closed("channel is closed"), undefined];
+        }
+
         const message = this.queue.shift();
         if (message) {
             return [Status.ok(), message];

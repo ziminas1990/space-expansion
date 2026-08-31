@@ -1,23 +1,11 @@
 import * as midlevel from "../midlevel/index.js";
 import { Position, Status } from "../types/index.js";
 import { Cached } from "../utils/cache.js";
+import { predict_position } from "../utils/predictor.js";
 
 export type { Position };
 
 const DEFAULT_CACHE_MS = 20;
-
-// Linear kinematics: p(t) = p0 + v * dt. Velocity is treated as constant.
-export function extrapolate(position: Position, at_us: bigint): Position {
-    const dt_sec = Number(at_us - position.timestamp) / 1e6;
-    return {
-        timestamp: at_us,
-        point: [
-            position.point[0] + position.velocity[0] * dt_sec,
-            position.point[1] + position.velocity[1] * dt_sec,
-        ],
-        velocity: [position.velocity[0], position.velocity[1]],
-    };
-}
 
 export class Navigation {
     private position = new Cached<Position>();
@@ -42,7 +30,7 @@ export class Navigation {
             position = fetched;
         }
         if (at_us !== undefined) {
-            return [Status.ok(), extrapolate(position, at_us)];
+            return [Status.ok(), predict_position(position, at_us)];
         }
         return [Status.ok(), position];
     }
@@ -58,10 +46,11 @@ export class Navigation {
         if (!position) {
             return undefined;
         }
-        return extrapolate(position, at_us);
+        return predict_position(position, at_us);
     }
 
     async release(): Promise<Status> {
+        await this.rpc.terminate();
         this.position.reset();
         return Status.ok();
     }

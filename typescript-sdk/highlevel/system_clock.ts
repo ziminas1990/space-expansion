@@ -133,6 +133,7 @@ export class SystemClock implements BaseModule {
         for (const token of this.tokens) {
             token.stop = true;
         }
+        await this.rpc.terminate();
         if (!this.in_callback) {
             await Promise.all(this.loops);
         }
@@ -168,6 +169,10 @@ export class SystemClock implements BaseModule {
     ): Promise<Status> {
         while (!token.stop) {
             const status = await this.rpc.monitoring(interval_ms, async (timestamp) => {
+                if (!timestamp) {
+                    // a heartbeat by lower level
+                    return !token.stop;
+                }
                 const time_us = this.apply_timestamp(timestamp);
                 this.in_callback = true;
                 try {

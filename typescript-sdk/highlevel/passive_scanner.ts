@@ -3,7 +3,7 @@ import { PhysicalObject, Status } from "../types/index.js";
 import { Cached } from "../utils/cache.js";
 import { EventEmitter } from "./events.js";
 import type { BaseModule } from "./base_module.js";
-import { extrapolate } from "./navigation.js";
+import { predict_position } from "../utils/predictor.js";
 
 export type PassiveScannerSpecification = midlevel.PassiveScannerSpecification;
 
@@ -78,12 +78,13 @@ export class PassiveScanner extends EventEmitter<Events> implements BaseModule {
     predict_objects(at_us: bigint): PhysicalObject[] {
         return this.objects().map((object) => ({
             ...object,
-            position: extrapolate(object.position, at_us),
+            position: predict_position(object.position, at_us),
         }));
     }
 
     async release(): Promise<Status> {
         this.stopped = true;
+        await this.rpc.terminate();
         if (this.loop) {
             await this.loop;
             this.loop = undefined;
@@ -98,7 +99,7 @@ export class PassiveScanner extends EventEmitter<Events> implements BaseModule {
             await this.get_specification();
             try {
                 const status = await this.rpc.monitoring(async (objects) => {
-                    if (objects.length > 0) {
+                    if (objects && objects.length > 0) {
                         await this.apply_objects(objects);
                         const at_us = objects.reduce(
                             (latest, object) => object.position.timestamp > latest

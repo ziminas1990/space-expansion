@@ -22,11 +22,6 @@ export class Game extends EventEmitter<Events> {
         return this.rpc;
     }
 
-    async terminate(): Promise<void> {
-        await this.release();
-        await this.down_level().terminate();
-    }
-
     async init(): Promise<Status> {
         this.stopped = false;
         this.result = undefined;
@@ -36,6 +31,7 @@ export class Game extends EventEmitter<Events> {
 
     async release(): Promise<Status> {
         this.stopped = true;
+        await this.rpc.terminate();
         if (this.loop) {
             await this.loop;
             this.loop = undefined;
@@ -45,7 +41,10 @@ export class Game extends EventEmitter<Events> {
 
     private async wait_loop(): Promise<void> {
         while (!this.stopped) {
-            const [status, result] = await this.rpc.wait_game_over(100);
+            const [status, result] = await this.rpc.wait_game_over(0);
+            if (this.stopped || status.is_closed()) {
+                return;
+            }
             if (status.is_ok() && result) {
                 this.result = result;
                 await this.emit("game_over", result);

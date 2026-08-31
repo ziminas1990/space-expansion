@@ -1,4 +1,4 @@
-export { login } from "./procedures.js";
+export { login, login_as_administrator } from "./procedures.js";
 export type { RootAccess } from "./procedures.js";
 export {
     Commutator,
@@ -56,3 +56,13 @@ export {
 } from "./messanger.js";
 export { Game, GameScore, GameOver } from "./game.js";
 export { OpenSessionCallback } from "./base_module.js";
+export {
+    Administrator,
+    AdministratorClock,
+    BasicManipulator,
+    Spawner,
+    type AdministratorClockStatus,
+    type ManipulatorStatus,
+    type SpawnComposition,
+    type SpawnStatus,
+} from "./administrator.js";

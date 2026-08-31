@@ -10,21 +10,27 @@ export class BaseModule<I> {
     private sessions: lowlevel.Session[] = [];
     // Sessions currently used by run() (including dedicated long-running ones)
     private in_use: Set<lowlevel.Session> = new Set();
-    private active: boolean = true;
+    private terminated: boolean = false;
 
     constructor(
         protected readonly open_session_cb: OpenSessionCallback,
         private create_lowlevel_interface: CreateLowlevelInterface<I>
     ) {}
 
+    // Closes all sessions. All waiters will receive a closed session status.
+    // Once module is terminated, it cannot be reused.
     async terminate() {
-        this.active = false;
-        const pooled = this.sessions;
-        this.sessions = [];
-        const busy = Array.from(this.in_use);
-        this.in_use.clear();
-        for (const session of [...pooled, ...busy]) {
-            await session.close();
+        try {
+            this.terminated = true;
+            const pooled = this.sessions;
+            this.sessions = [];
+            const busy = Array.from(this.in_use);
+            this.in_use.clear();
+            await Promise.all([...pooled, ...busy].map((session) => session.close()));
+        } catch (_error) {
+            // best effort. terminate() should never throw, but just in case...
+        } finally {
+            this.terminated = true;
         }
     }
 
@@ -34,7 +40,7 @@ export class BaseModule<I> {
     async run<T>(callback: UserLogicCallback<I, T>,
                  close_session: boolean = false): Promise<[Status, T | undefined]>
     {
-        if (!this.active) {
+        if (this.terminated) {
             return [Status.closed("terminated"), undefined];
         }
         const [status, session] = await this.get_session();
@@ -51,7 +57,7 @@ export class BaseModule<I> {
         this.in_use.add(session);
         const [user_status, result] = await callback(iface);
         this.in_use.delete(session);
-        if (user_status.is_ok() && !close_session && this.active) {
+        if (user_status.is_ok() && !close_session && !this.terminated) {
             this.sessions.push(session);
         } else {
             await session.close();
@@ -71,7 +77,7 @@ export class BaseModule<I> {
     }
 
     private async get_session(): Promise<[Status, lowlevel.Session | undefined]> {
-        if (!this.active) {
+        if (this.terminated) {
             return [Status.closed("terminated"), undefined];
         }
         while (this.sessions.length > 0) {
@@ -82,7 +88,7 @@ export class BaseModule<I> {
         }
         let last_status = Status.ok();
         for (let attempt = 0; attempt < 3; attempt++) {
-            if (!this.active) {
+            if (this.terminated) {
                 return [Status.closed("terminated"), undefined];
             }
             const [status, session] = await this.open_session_cb();
