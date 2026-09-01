@@ -53,6 +53,7 @@ export {
     MessangerService,
     MessangerStatus,
     MessangerRequest,
+    MessangerServicesList,
 } from "./messanger.js";
 export { Game, GameScore, GameOver } from "./game.js";
 export { OpenSessionCallback } from "./base_module.js";

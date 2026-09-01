@@ -21,6 +21,10 @@ export class Endpoint<T> implements ITerminal<T> {
         return !this.closed;
     }
 
+    flush(): void {
+        this.queue = [];
+    }
+
     async on_closed(): Promise<void> {
         this.closed = true;
         this.readers.forEach(reader => {

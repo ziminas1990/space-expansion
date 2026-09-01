@@ -1,0 +1,9 @@
+---
+description: A root rule
+alwaysApply: true
+---
+
+# Project rules
+
+- Before **adding** or **editing** tests, read and follow
+  [`test-steps.mdc`](./test-steps.mdc).

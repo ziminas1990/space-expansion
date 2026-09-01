@@ -53,12 +53,12 @@ export class Messanger implements BaseModule {
         if (cached) {
             return [Status.ok(), cached];
         }
-        const [status, services] = await this.rpc.services_list();
-        if (!status.is_ok() || !services) {
+        const [status, listed] = await this.rpc.services_list();
+        if (!status.is_ok() || !listed) {
             return [status, undefined];
         }
-        this.services_list.set(services);
-        return [Status.ok(), services];
+        this.services_list.set(listed.services);
+        return [Status.ok(), listed.services];
     }
 
     async send_request(
