@@ -95,9 +95,13 @@ test.skipIf(!hasServerBinary)(
         await withServer(messangerConfiguration(), async ({ login, clock }) => {
             await clock.fastForward(20);
 
+            // 1. player logins
             const player = await login("player", "awesome");
+
+            // 2. get messanger
             const messanger = getMessanger(player).down_level();
 
+            // 3. open a service
             const service = expectOk(
                 await messanger.open_service("awesomesvc"),
                 "open service",
@@ -114,21 +118,29 @@ test.skipIf(!hasServerBinary)(
         await withServer(messangerConfiguration(), async ({ login, clock }) => {
             await clock.fastForward(20);
 
+            // 1. player logins
             const player = await login("player", "awesome");
+
+            // 2. get messanger
             const messanger = getMessanger(player).down_level();
 
+            // 3. open a service
             const service = expectOk(
                 await messanger.open_service("awesomesvc"),
                 "open service",
             );
 
+            // 4. opening the same name fails
             const [duplicateStatus, duplicate] = await messanger.open_service(
                 "awesomesvc",
             );
             expectError(duplicateStatus, "SERVICE_EXISTS");
             expect(duplicate).toBeUndefined();
+
+            // 5. close the service
             await service.close();
 
+            // 6. open services up to the limit
             for (let i = 0; i < SERVICES_LIMIT; i += 1) {
                 expectOk(
                     await messanger.open_service(`svc_${i}`),
@@ -136,6 +148,7 @@ test.skipIf(!hasServerBinary)(
                 );
             }
 
+            // 7. opening one more fails
             const [overflowStatus, overflow] = await messanger.open_service(
                 "yet_another_service",
             );
@@ -152,16 +165,21 @@ test.skipIf(!hasServerBinary)(
         await withServer(messangerConfiguration(), async ({ login, clock }) => {
             await clock.fastForward(20);
 
+            // 1. player logins
             const player = await login("player", "awesome");
-            const messanger = getMessanger(player).down_level();
-            const randomizer = new Randomizer(1);
 
+            // 2. get messanger
+            const messanger = getMessanger(player).down_level();
+
+            // 3. open services in random order and check the list
+            const randomizer = new Randomizer(1);
             const allNames = randomizer.shuffle(
                 Array.from({ length: SERVICES_LIMIT }, (_, i) => `service_${i}`),
             );
             const services: MessangerService[] = [];
 
             for (const serviceName of allNames) {
+                // 3.1 open the service
                 services.push(
                     expectOk(
                         await messanger.open_service(serviceName),
@@ -169,6 +187,7 @@ test.skipIf(!hasServerBinary)(
                     ),
                 );
 
+                // 3.2 check listed services match
                 const listed = expectOk(
                     await messanger.services_list(),
                     "services list after open",
@@ -178,11 +197,14 @@ test.skipIf(!hasServerBinary)(
                 );
             }
 
+            // 4. close services in random order and check the list
             randomizer.shuffle(services);
             while (services.length > 0) {
+                // 4.1 close a service
                 const service = services.pop()!;
                 await service.close();
 
+                // 4.2 check listed services match
                 const listed = expectOk(
                     await messanger.services_list(),
                     "services list after close",
@@ -202,21 +224,27 @@ test.skipIf(!hasServerBinary)(
         await withServer(messangerConfiguration(), async ({ login, clock }) => {
             await clock.fastForward(20);
 
+            // 1. player logins
             const player = await login("player", "awesome");
+
+            // 2. get messanger
             const messanger = getMessanger(player).down_level();
 
+            // 3. request a missing service
             const [missingStatus] = await messanger.send_request(
                 "wrongsvc",
                 "ping",
             );
             expectError(missingStatus, "NO_SUCH_SERVICE");
 
+            // 4. open a service
             const serviceName = "awesomesvc";
             expectOk(
                 await messanger.open_service(serviceName),
                 "open service",
             );
 
+            // 5. request with too long timeout fails
             const [tooLongStatus] = await messanger.send_request(
                 serviceName,
                 "ping",
@@ -224,6 +252,7 @@ test.skipIf(!hasServerBinary)(
             );
             expectError(tooLongStatus, "REQUEST_TIMEOUT_TOO_LONG");
 
+            // 6. request to an idle service fails
             const [closedStatus] = await messanger.send_request(
                 serviceName,
                 "ping",
@@ -241,27 +270,34 @@ test.skipIf(!hasServerBinary)(
         await withServer(messangerConfiguration(), async ({ login, clock }) => {
             await clock.fastForward(20);
 
+            // 1. player logins
             const player = await login("player", "awesome");
+
+            // 2. get messanger
             const messanger = getMessanger(player).down_level();
 
+            // 3. request a missing service
             const [missingStatus] = await messanger.send_request(
                 "wrongsvc",
                 "ping",
             );
             expectError(missingStatus, "NO_SUCH_SERVICE");
 
+            // 4. open a service
             const serviceName = "awesomesvc";
             const service = expectOk(
                 await messanger.open_service(serviceName),
                 "open service",
             );
 
+            // 5. request to an idle service fails
             const [idleStatus] = await messanger.send_request(
                 serviceName,
                 "ping",
             );
             expectError(idleStatus, "CLOSED");
 
+            // 6. reverse a request body through the hosted service
             const reverse = new ReverseService(service);
             const reverseTask = reverse.run();
             try {
@@ -286,11 +322,15 @@ test.skipIf(!hasServerBinary)(
         await withServer(messangerConfiguration(), async ({ login, clock }) => {
             await clock.fastForward(20);
 
+            // 1. two players login
             const playerA = await login("player", "awesome");
             const playerB = await login("player", "awesome");
+
+            // 2. get messangers
             const messangerA = getMessanger(playerA).down_level();
             const messangerB = getMessanger(playerB).down_level();
 
+            // 3. open reverse and duplicate services
             const reverseName = "reverse";
             const duplicateName = "duplicate";
             const reverseService = expectOk(
@@ -302,9 +342,11 @@ test.skipIf(!hasServerBinary)(
                 "open duplicate service",
             );
 
+            // 4. start reverse and duplicate services
             const reverseTask = new ReverseService(reverseService).run();
             const duplicateTask = new DuplicateService(duplicateService).run();
 
+            // 5. send cross-requests and check responses
             const aToReverse = "alpha";
             const aToDuplicate = "beta";
             const bToReverse = "gamma";

@@ -55,6 +55,7 @@ test.skipIf(!hasServerBinary)(
     { timeout: integrationTimeoutMs },
     async () => {
         await withServer(loginConfiguration(), async ({ login }) => {
+            // 1. player logins
             const player = await login("spy007", "iamspy");
             expect(player).toBeTruthy();
             expect(player.down_level("root_commutator")).toBeTruthy();
@@ -67,6 +68,7 @@ test.skipIf(!hasServerBinary)(
     { timeout: integrationTimeoutMs },
     async () => {
         await withServer(loginConfiguration(), async ({ login }) => {
+            // 1. open 8 simultaneous sessions for the same player
             // 8 is a hardcoded server's persistent-session limit (per player).
             for (let i = 0; i < 8; i += 1) {
                 try {
@@ -88,6 +90,7 @@ test.skipIf(!hasServerBinary)(
     { timeout: integrationTimeoutMs },
     async () => {
         await withServer(loginConfiguration(), async ({ login }) => {
+            // 1. login and release 100 times
             for (let i = 0; i < 100; i += 1) {
                 try {
                     const player = await login("spy007", "iamspy");
