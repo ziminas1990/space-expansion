@@ -32,11 +32,18 @@ test.skipIf(!hasServerBinary)(
             clock,
             server,
         }) => {
+            // 1. check server is running and frozen time is zero
             expect(server.isRunning()).toBe(true);
             expect(await clock.time()).toBe(0n);
+
+            // 2. proceed frozen time by 2000ms
             const after = await clock.proceed(2_000, 1_000);
+
+            // 3. check time advanced by ~2000000us
             expect(after).toBeGreaterThanOrEqual(1_999_000n);
             expect(after).toBeLessThanOrEqual(2_001_000n);
+
+            // 4. check administrator clock, spawner, and manipulator
             const [timeStatus, time] = await administrator.clock.get_time();
             expect(timeStatus.is_ok()).toBe(true);
             expect(typeof time).toBe("bigint");
