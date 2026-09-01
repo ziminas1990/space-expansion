@@ -1,0 +1,52 @@
+---
+description: Numbered step comments in test bodies (loops, nesting, blank lines)
+globs: "**/*.test.ts,**/test_*.py,**/tests_*.py,**/*_test.py,**/*Tests.cpp"
+alwaysApply: false
+---
+
+# Test step comments
+
+Number each test body with comments so a reader can follow the scenario.
+Use the host language’s comment syntax (`//`, `#`). Write steps in English,
+lowercase after the number.
+
+```ts
+// 1. player logins
+const player = await login("spy007", "iamspy");
+
+// 2. administrator spawns a new ship
+const spawned = expectOk(await spawner.spawn_ship(...), "spawn ship");
+```
+
+## Numbering
+
+- Top-level steps: `1.`, `2.`, `3.`, …
+- A loop is one step **X** placed **before** the loop.
+- Actions inside the loop: `X.1`, `X.2`, …
+- Nested loops use the same pattern (`X.1` before the inner loop, `X.1.1` inside).
+- If a loop body is a **single** action, do **not** add a nested step. The
+  outer `X` is enough.
+
+```ts
+// 1. spawn ships
+for (let i = 0; i < 100; i += 1) {
+    spawnedShips.push(expectOk(await spawner.spawn_ship(...), `spawn ${i}`));
+}
+
+// 2. look up spawned ships and check positions
+for (const spawned of spawnedShips) {
+    // 2.1 get the ship via manipulator
+    const found = expectOk(await manipulator.get_object(...), "get ship");
+
+    // 2.2 check predicted position matches
+    expect(almostEqualPosition(...)).toBe(true);
+}
+```
+
+## Blank lines
+
+Put a blank line **before** a step when it follows another step of the **same**
+level (`2` after `1`, `1.2` after `1.1`).
+
+Do **not** insert a blank line between a parent step and its first nested step
+(`1` then `1.1` inside the loop) — those are different levels.

@@ -5,6 +5,10 @@ import { ModuleType } from "./module_type.js";
 
 export type MessangerStatus = lowlevel.MessangerStatus;
 export type MessangerRequest = lowlevel.MessangerRequest;
+export type MessangerServicesList = {
+    services: string[];
+    timestamp: bigint;
+};
 
 export class MessangerService {
     private readonly messanger: lowlevel.Messanger;
@@ -45,6 +49,12 @@ export class MessangerService {
         return this.messanger.send_response(request.seq, body);
     }
 
+    // Drop all incoming requests, that has been queued already.
+    drop_queued_requests(): void
+    {
+        this.session.flush();
+    }
+
     async close(): Promise<Status>
     {
         this.on_closed?.();
@@ -75,7 +85,7 @@ export class Messanger extends BaseModule<lowlevel.Messanger> {
         await super.terminate();
     }
 
-    async services_list(): Promise<[Status, string[] | undefined]>
+    async services_list(): Promise<[Status, MessangerServicesList | undefined]>
     {
         return await this.run(async (session) => this._services_list(session));
     }
@@ -134,7 +144,7 @@ export class Messanger extends BaseModule<lowlevel.Messanger> {
     }
 
     private async _services_list(session: lowlevel.Messanger)
-        : Promise<[Status, string[] | undefined]>
+        : Promise<[Status, MessangerServicesList | undefined]>
     {
         const send_status = await session.send_services_list_request();
         if (!send_status.is_ok()) {
@@ -142,14 +152,16 @@ export class Messanger extends BaseModule<lowlevel.Messanger> {
         }
 
         const services: string[] = [];
+        let timestamp = 0n;
         while (true) {
             const [status, page] = await session.wait_services_list();
             if (!status.is_ok() || !page) {
                 return [status.wrap("failed to get services list page"), undefined];
             }
             services.push(...page.services);
+            timestamp = page.timestamp;
             if (page.left === 0) {
-                return [Status.ok(), services];
+                return [Status.ok(), { services, timestamp }];
             }
         }
     }
@@ -178,10 +190,7 @@ export class Messanger extends BaseModule<lowlevel.Messanger> {
             ];
         }
         if (session_status.status !== "ROUTED") {
-            return [
-                Status.fail(`got unexpected status ${session_status.status} for request ${seq}`),
-                undefined
-            ];
+            return [Status.fail(session_status.status), undefined];
         }
 
         const [event_status, event] = await session.wait_response(timeout_ms + 500);
@@ -193,10 +202,7 @@ export class Messanger extends BaseModule<lowlevel.Messanger> {
                     undefined];
         }
         if (event.case === "session_status") {
-            return [
-                Status.fail(`got unexpected session status ${event.status} message`),
-                undefined
-            ];
+            return [Status.fail(event.status), undefined];
         }
         return [Status.ok(), event.body];
     }

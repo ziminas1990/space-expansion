@@ -37,6 +37,7 @@ export type MessangerSessionStatus = {
 export type MessangerServicesPage = {
     services: string[];
     left: number;
+    timestamp: bigint;
 }
 
 export type MessangerClientEvent =
@@ -88,7 +89,7 @@ export class Messanger {
     async wait_services_list(timeout: number = 500)
     : Promise<[types.Status, MessangerServicesPage | undefined]>
     {
-        const [status, response] = await this.wait(timeout);
+        const [status, response, timestamp] = await this.wait(timeout);
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];
         }
@@ -100,6 +101,7 @@ export class Messanger {
         return [types.Status.ok(), {
             services: page.services ?? [],
             left: page.left,
+            timestamp,
         }];
     }
 
@@ -212,17 +214,21 @@ export class Messanger {
     }
 
     private async wait(timeout_ms: number = 500)
-    : Promise<[types.Status, msg.IMessanger | undefined]>
+    : Promise<[types.Status, msg.IMessanger | undefined, bigint]>
     {
         const [status, response] = await this.session.wait(timeout_ms);
         if (!status.is_ok() || !response) {
-            return [status.wrap("no response"), undefined];
+            return [status.wrap("no response"), undefined, 0n];
         }
         if (response.choice.case != "messanger") {
             return [types.Status.fail(`got unexpected message ${response.choice.case}`),
-                    undefined];
+                    undefined, 0n];
         }
-        return [types.Status.ok(), response.choice.value];
+        return [
+            types.Status.ok(),
+            response.choice.value,
+            types.asUint64(response.timestamp),
+        ];
     }
 
 }

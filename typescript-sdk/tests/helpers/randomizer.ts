@@ -68,6 +68,16 @@ export class Randomizer {
         };
     }
 
+    shuffle<T>(items: T[]): T[] {
+        for (let i = items.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(this.next() * (i + 1));
+            const current = items[i]!;
+            items[i] = items[j]!;
+            items[j] = current;
+        }
+        return items;
+    }
+
     // mulberry32: deterministic, independent of Math.random().
     private next(): number {
         this.seed |= 0;
