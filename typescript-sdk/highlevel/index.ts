@@ -1,4 +1,14 @@
 export { login } from "./procedures.js";
+export {
+    FlightPlan,
+    Maneuver,
+    approach_to_plan,
+    follow_flight_plan,
+    prepare_flight_plan,
+    prepare_flight_plan_in_delta_v,
+    prepare_flight_plan_in_time,
+} from "./flight_plan.js";
+export type { FlightClock } from "./flight_plan.js";
 export { EventEmitter } from "./events.js";
 export { Cached } from "../utils/cache.js";
 export { TimePoint } from "../types/time_point.js";

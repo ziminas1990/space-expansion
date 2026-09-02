@@ -24,4 +24,5 @@ export {
     waitForShip,
 } from "./modules.js";
 export { collectEvent, Collector } from "./collector.js";
+export { FastForwardClock } from "./fast_forward_clock.js";
 export { waitFor } from "./wait.js";

@@ -22,6 +22,10 @@ export class Randomizer {
         return min + (max - min) * this.next();
     }
 
+    randomInt(min: number, max: number): number {
+        return Math.floor(this.randomValue(min, max + 1));
+    }
+
     randomPosition(options: {
         rect?: Rect;
         center?: Position;
