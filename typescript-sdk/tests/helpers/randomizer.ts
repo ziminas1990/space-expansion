@@ -82,6 +82,33 @@ export class Randomizer {
         return items;
     }
 
+    choice<T>(items: readonly T[]): T {
+        if (items.length === 0) {
+            throw new Error("choice() requires a non-empty list");
+        }
+        return items[this.randomInt(0, items.length - 1)]!;
+    }
+
+    choiceWeighted<T>(items: readonly T[], weights: readonly number[]): T {
+        if (items.length === 0) {
+            throw new Error("choiceWeighted() requires a non-empty list");
+        }
+        if (items.length !== weights.length) {
+            throw new Error(
+                "choiceWeighted() items and weights must have the same length",
+            );
+        }
+        const total = weights.reduce((sum, weight) => sum + weight, 0);
+        let threshold = this.next() * total;
+        for (let i = 0; i < items.length; i += 1) {
+            threshold -= weights[i]!;
+            if (threshold < 0) {
+                return items[i]!;
+            }
+        }
+        return items[items.length - 1]!;
+    }
+
     // mulberry32: deterministic, independent of Math.random().
     private next(): number {
         this.seed |= 0;
