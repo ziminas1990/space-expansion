@@ -56,6 +56,9 @@ TEST_F(CommutatorTests, Monitoring)
     spex::ICommutator::ModuleInfo info;
     ASSERT_TRUE(pSession->waitModuleAttached(info));
     EXPECT_EQ(info.slot_id(), ship.m_nSlotId);
+    EXPECT_EQ("Ship", info.module_type());
+    EXPECT_EQ("SomeShip", info.module_name());
+    EXPECT_EQ("Ship/SomeType", info.blueprint_name());
   }
 
   // Detach module
@@ -66,6 +69,37 @@ TEST_F(CommutatorTests, Monitoring)
     ASSERT_TRUE(pSession->waitModuleDetached(nSlotId));
     EXPECT_EQ(nSlotId, ship.m_nSlotId);
   }
+}
+
+TEST_F(CommutatorTests, ShipModuleInfoReportsFixedTypeAndBlueprint)
+{
+  // 1. connect and open a commutator session
+  client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
+  ASSERT_TRUE(pRootSession);
+  client::ClientCommutatorPtr pCommutator =
+      Helper::openCommutatorSession(*this, pRootSession);
+  ASSERT_TRUE(pCommutator);
+
+  // 2. spawn a ship without opening a tunnel to it
+  ShipBinding ship = Helper::spawnShip(
+    *this, pCommutator, geometry::Point(0, 0),
+    Helper::ShipParams().shipType("Civilian-Miner").shipName("Miner-1"));
+
+  // 3. list attached modules and check type, name, and blueprint
+  client::ModulesList attached;
+  ASSERT_TRUE(pCommutator->getAttachedModulesList(attached));
+
+  const client::ModuleInfo* pShipInfo = nullptr;
+  for (const client::ModuleInfo& info : attached) {
+    if (info.nSlotId == ship.m_nSlotId) {
+      pShipInfo = &info;
+      break;
+    }
+  }
+  ASSERT_TRUE(pShipInfo);
+  EXPECT_EQ("Ship", pShipInfo->sModuleType);
+  EXPECT_EQ("Miner-1", pShipInfo->sModuleName);
+  EXPECT_EQ("Ship/Civilian-Miner", pShipInfo->sBlueprintName);
 }
 
 TEST_F(CommutatorTests, CloseSession)

@@ -32,12 +32,12 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
     constructor(
         private ship: midlevel.Ship,
         public name: string,
-        module_type: string = midlevel.ModuleType.SHIP,
+        ship_class: string,
         private readonly create_module: CreateModule,
     )
     {
         super();
-        this.ship_class = module_type;
+        this.ship_class = ship_class;
         this.navigation = new Navigation(ship.navigator());
         this.registry = this.bind_registry(ship.commutator());
     }

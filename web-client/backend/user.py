@@ -97,7 +97,7 @@ class User:
                     continue
                 assert isinstance(update, rpc.CommutatorUpdate)
                 if update.module_attached:
-                    if update.module_attached.type.startswith("Ship/"):
+                    if update.module_attached.type == modules.ModuleType.SHIP.value:
                         ship = modules.Ship.get_ship_by_name(
                             commutator=self.connection.commutator,
                             name=update.module_attached.name

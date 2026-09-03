@@ -110,7 +110,7 @@ class TacticalCore:
                 if update is not None:
                     assert isinstance(update, rpc.CommutatorUpdate)
                     if update.module_attached:
-                        if update.module_attached.type.startswith("Ship/"):
+                        if update.module_attached.type == ModuleType.SHIP.value:
                             self.__on_ship_spawned(update.module_attached)
 
     def __on_ship_spawned(self, ship_info: rpc.ModuleInfo):

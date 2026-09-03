@@ -73,8 +73,8 @@ struct Helper {
 
     // Spawn a ship on server side and attach it to player's commutator:
     modules::ShipPtr pShip = std::make_shared<modules::Ship>(
-      params.shipType(), params.shipName(), pOwner, params.weight(),
-      params.radius());
+      std::string("Ship/") + params.shipType(), params.shipName(), pOwner,
+      params.weight(), params.radius());
     pShip->moveTo(position);
 
     const uint32_t nSlotId = pOwner->onNewShip(pShip);

@@ -1,5 +1,4 @@
 import * as midlevel from "../midlevel/index.js";
-import { ModuleType } from "../midlevel/module_types.js";
 import { Status } from "../types/status.js";
 import { EventEmitter } from "./events.js";
 import type { BaseModule } from "./base_module.js";
@@ -11,6 +10,7 @@ export type { CreateModule };
 export type RegisteredSlot = {
     module_type: string;
     module_name: string;
+    blueprint_name: string;
     module: HighlevelModule;
 };
 
@@ -23,36 +23,30 @@ type Initable = HighlevelModule & {
     init: () => Promise<Status>;
 };
 
-function identity_key(module_type: string, module_name: string): string {
-    const type = module_type.startsWith(ModuleType.SHIP)
-        ? ModuleType.SHIP
-        : module_type;
-    return `${type}::${module_name}`;
-}
-
 function has_init(module: HighlevelModule): module is Initable {
     return "init" in module
         && typeof (module as { init?: unknown }).init === "function";
 }
 
+function identity_key(module_type: string, module_name: string): string {
+    return `${module_type}::${module_name}`;
+}
+
 export class ModuleRegistry extends EventEmitter<Events> {
-    // slot_id -> slot info
+    // Currently attached modules, keyed by slot_id.
     public readonly slots = new Map<number, RegisteredSlot>();
 
     // The `attached` map has only modules that are currently attached to the
     // commutator. When a module detaches, it is removed from the map.
+    // Names are unique per commutator, so (type, name) is a valid key.
     // type -> name -> module
-    public readonly attached = new Map<ModuleType, Map<string, HighlevelModule>>();
+    public readonly attached = new Map<midlevel.ModuleType, Map<string, HighlevelModule>>();
 
-    // The `known` map has all modules that were ever attached to the
-    // commutator. When a module detaches, it is removed from the `attached` map
-    // but kept in the `known` map (after release()). If later a module with the
-    // same type and name is attached again, the object from `known` is reused
-    // as the highlevel representation (reinit() is called on it).
-    // So if client code once got a module, then the module was detached and
-    // reattached later, the client may keep using the same object. The object
-    // is not usable in the gap between release() and reinit()
-    // `type::name` -> module
+    // Wrappers for modules that were ever attached, keyed by `type::name`.
+    // When a module detaches it is removed from `attached` but kept here
+    // (after release()). If a module with the same type and name is attached
+    // later — even on a different slot — reinit() is called on the same object.
+    // The object is not usable in the gap between release() and reinit().
     private readonly known = new Map<string, HighlevelModule>();
 
     private monitor: Promise<void> | undefined = undefined;
@@ -82,7 +76,7 @@ export class ModuleRegistry extends EventEmitter<Events> {
         return Status.ok();
     }
 
-    get_all<T extends ModuleType>(
+    get_all<T extends midlevel.ModuleType>(
         type: T,
     ): Extract<HighlevelModule, { type: T }>[] {
         const by_name = this.attached.get(type);
@@ -92,7 +86,7 @@ export class ModuleRegistry extends EventEmitter<Events> {
         return [...by_name.values()] as Extract<HighlevelModule, { type: T }>[];
     }
 
-    get_by_name<T extends ModuleType>(
+    get_by_name<T extends midlevel.ModuleType>(
         type: T,
         name: string,
     ): Extract<HighlevelModule, { type: T }> | undefined {
@@ -175,7 +169,8 @@ export class ModuleRegistry extends EventEmitter<Events> {
         const current = this.slots.get(info.slot_id);
         if (current
             && current.module_type === info.module_type
-            && current.module_name === info.module_name)
+            && current.module_name === info.module_name
+            && current.blueprint_name === info.blueprint_name)
         {
             return;
         }
@@ -210,6 +205,7 @@ export class ModuleRegistry extends EventEmitter<Events> {
         this.slots.set(info.slot_id, {
             module_type: info.module_type,
             module_name: info.module_name,
+            blueprint_name: info.blueprint_name,
             module,
         });
         this.index(module);

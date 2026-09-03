@@ -91,11 +91,13 @@ class TestNavigation(BaseTestFixture):
 
     @BaseTestFixture.run_as_sync
     async def test_move_to(self):
+        # 1. player logins
         connection, error = await self.login('spy007', "127.0.0.1")
         self.assertIsNotNone(connection)
         commutator = connection.commutator
         self.assertIsNone(error)
 
+        # 2. wrap system clock so the test can fast-forward
         system_clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(system_clock)
         fast_forward_clock = FastForwardAdapter(
@@ -104,14 +106,16 @@ class TestNavigation(BaseTestFixture):
             fast_forward=self.system_clock_fast_forward,
             fast_forward_multiplier=50)
 
-        scout_1: modules.Ship = modules.get_ship(commutator, "Probe", "scout-1")
+        # 3. look up both ships
+        scout_1: modules.Ship = modules.get_ship(commutator, "scout-1")
         self.assertIsNotNone(scout_1)
         scout_1_state = await scout_1.get_state()
         self.assertIsNotNone(scout_1_state)
 
-        scout_2: modules.Ship = modules.get_ship(commutator, "Ship/Probe", "scout-2")
-        self.assertIsNotNone(scout_1)
+        scout_2: modules.Ship = modules.get_ship(commutator, "scout-2")
+        self.assertIsNotNone(scout_2)
 
+        # 4. get scout-1 engine specification
         engine = modules.get_engine(scout_1, "main_engine")
         self.assertIsNotNone(engine)
         engine_spec = await engine.get_specification()
@@ -119,6 +123,7 @@ class TestNavigation(BaseTestFixture):
 
         amax = engine_spec.max_thrust / scout_1_state.weight
 
+        # 5. plan and follow a flight from scout-1 to scout-2
         position, target = \
             await asyncio.gather(scout_1.get_position(),
                                  scout_2.get_position())

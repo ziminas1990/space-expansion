@@ -14,6 +14,7 @@ import { SystemClock } from "./system_clock.js";
 type ModuleConstructor = new (open_session_cb: OpenSessionCallback) => MidlevelModule;
 
 const module_constructors: Record<string, ModuleConstructor> = {
+    [ModuleType.SHIP]: Ship,
     [ModuleType.SYSTEM_CLOCK]: SystemClock,
     [ModuleType.ENGINE]: Engine,
     [ModuleType.RESOURCE_CONTAINER]: ResourceContainer,
@@ -31,9 +32,6 @@ export function create_module(
     module_type: string,
     open_session_cb: OpenSessionCallback): MidlevelModule | undefined
 {
-    if (module_type.startsWith(ModuleType.SHIP)) {
-        return new Ship(open_session_cb);
-    }
     const constructor = module_constructors[module_type];
     return constructor ? new constructor(open_session_cb) : undefined;
 }

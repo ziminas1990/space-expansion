@@ -137,7 +137,7 @@ void PassiveScannerTests::SetUp()
 
   // Create a ship with a passive scanner on it
   m_pShip = std::make_shared<modules::Ship>(
-        "Scout", "scout-1", m_pPlayer, 1000, 10);
+        "Ship/Scout", "scout-1", m_pPlayer, 1000, 10);
   m_nShipSlot = m_pPlayer->onNewShip(m_pShip);
 
   m_pPassiveScanner = std::make_shared<modules::PassiveScanner>(

@@ -11,7 +11,7 @@ bool attachToShip(ClientCommutatorPtr pRootCommutator, std::string const& sShipN
 
   for (ModuleInfo& shipInfo : ships) {
     if (shipInfo.sModuleName == sShipName) {
-      client::Router::SessionPtr pSession = 
+      client::Router::SessionPtr pSession =
           pRootCommutator->openSession(shipInfo.nSlotId);
       ship.attachToChannel(pSession);
       return pSession != nullptr;
@@ -25,13 +25,14 @@ bool GetAllModules(ClientCommutator& commutator,
                    ModulesList &modules)
 {
   ModulesList attachedModules;
-  if (!commutator.getAttachedModulesList(attachedModules))
+  if (!commutator.getAttachedModulesList(attachedModules)) {
     return false;
+  }
 
   for (ModuleInfo const& module : attachedModules) {
-    std::string sType = module.sModuleType.substr(0, module.sModuleType.find("/"));
-    if (sType == sModuleType)
+    if (module.sModuleType == sModuleType) {
       modules.push_back(module);
+    }
   }
   return true;
 }
@@ -52,7 +53,7 @@ bool FindModule(ClientCommutator&  commutator,
     if (!sName.empty() && moduleInfo.sModuleName != sName)
       continue;
 
-    client::Router::SessionPtr pSession = 
+    client::Router::SessionPtr pSession =
         commutator.openSession(moduleInfo.nSlotId);
     module.attachToChannel(pSession);
     return pSession != nullptr;
@@ -72,7 +73,7 @@ bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
 
   for (ModuleInfo const& engineInfo : engines) {
 
-    client::Router::SessionPtr pSession = 
+    client::Router::SessionPtr pSession =
         ship.openSession(engineInfo.nSlotId);
     if (!pSession)
       return false;

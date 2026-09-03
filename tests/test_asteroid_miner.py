@@ -106,7 +106,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_ship = modules.get_ship(commutator, "Miner", "miner-1")
+        miner_ship = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_ship)
 
         miner = modules.get_asteroid_miner(miner_ship, "miner")
@@ -131,7 +131,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNone(error)
         self.assertIsNotNone(commutator)
 
-        miner_ship = modules.get_ship(commutator, "Miner", "miner-1")
+        miner_ship = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_ship)
 
         miner = modules.get_asteroid_miner(miner_ship, "miner")
@@ -155,7 +155,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_ship = modules.get_ship(commutator, "Miner", "miner-1")
+        miner_ship = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_ship)
 
         miner = modules.get_asteroid_miner(miner_ship, "miner")
@@ -196,7 +196,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_ship = modules.get_ship(commutator, "Miner", "miner-1")
+        miner_ship = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_ship)
 
         miner = modules.get_asteroid_miner(miner_ship, "miner")
@@ -247,7 +247,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_ship = modules.get_ship(commutator, "Miner", "miner-1")
+        miner_ship = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_ship)
 
         miner = modules.get_asteroid_miner(miner_ship, "miner")
@@ -301,7 +301,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_ship = modules.get_ship(commutator, "Miner", "miner-1")
+        miner_ship = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_ship)
 
         miner = modules.get_asteroid_miner(miner_ship, "miner")

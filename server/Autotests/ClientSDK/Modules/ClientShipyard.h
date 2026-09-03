@@ -31,7 +31,7 @@ public:
     eTimeoutError,
     eStatusError
   };
-  
+
   bool getSpecification(ShipyardSpecification& spec);
   Status bindToCargo(std::string const& container);
   Status startBuilding(std::string const& sBlueprint, std::string const& sShipName);

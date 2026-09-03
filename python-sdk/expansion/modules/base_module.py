@@ -25,7 +25,7 @@ TunnelOrError = Tuple[Optional[Channel], Optional[str]]
 TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
 
 class ModuleType(Enum):
-    SHIP = "Ship/"
+    SHIP = "Ship"
     SYSTEM_CLOCK = "SystemClock"
     ENGINE = "Engine"
     RESOURCE_CONTAINER = "ResourceContainer"

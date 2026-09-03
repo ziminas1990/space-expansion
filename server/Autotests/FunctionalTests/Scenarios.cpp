@@ -60,9 +60,10 @@ Scenarios::CheckAttachedModulesScenario::CheckAttachedModulesScenario(
 
 Scenarios::CheckAttachedModulesScenario&
 Scenarios::CheckAttachedModulesScenario::hasModule(std::string const& sType,
-                                                   std::string const& sName)
+                                                   std::string const& sName,
+                                                   std::string const& sBlueprint)
 {
-  expectedModules.insert(std::make_pair(sType, sName));
+  expectedModules.insert(std::make_tuple(sType, sName, sBlueprint));
   return *this;
 }
 
@@ -74,9 +75,11 @@ void Scenarios::CheckAttachedModulesScenario::execute()
 
   for (client::ModuleInfo const& module : attachedModules)
   {
-    auto I = expectedModules.find(std::make_pair(module.sModuleType, module.sModuleName));
-    if (I != expectedModules.end())
+    auto I = expectedModules.find(std::make_tuple(
+        module.sModuleType, module.sModuleName, module.sBlueprintName));
+    if (I != expectedModules.end()) {
       expectedModules.erase(I);
+    }
   }
   ASSERT_TRUE(expectedModules.empty());
 }

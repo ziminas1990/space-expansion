@@ -38,13 +38,15 @@ private:
 public:
   BaseModule(std::string sModuleType,
              std::string moduleName,
-             world::PlayerWeakPtr pOwner);
+             world::PlayerWeakPtr pOwner,
+             std::string sBlueprintName = {});
 
   virtual bool loadState(YAML::Node const& /*source*/) { return true; }
   virtual void proceed(uint32_t /*nIntervalUs*/) { switchToIdleState(); }
 
-  std::string const& getModuleType() const { return m_sModuleType; }
-  std::string const& getModuleName() const { return m_sModuleName; }
+  std::string const& getModuleType()    const { return m_sModuleType; }
+  std::string const& getModuleName()    const { return m_sModuleName; }
+  std::string const& getBlueprintName() const { return m_sBlueprintName; }
 
   void putOffline()         { m_eStatus = Status::eOffline; }
   void putOnline()          { m_eStatus = Status::eOnline; }
@@ -130,6 +132,7 @@ private:
   mutable utils::Mutex  m_mutex;
   std::string           m_sModuleType;
   std::string           m_sModuleName;
+  std::string           m_sBlueprintName;
   world::PlayerWeakPtr  m_pOwner;
   Status                m_eStatus;
   State                 m_eState;

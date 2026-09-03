@@ -1,6 +1,8 @@
 #pragma once
 
 #include <list>
+#include <set>
+#include <tuple>
 #include "FunctionalTestFixture.h"
 #include <Protocol.pb.h>
 #include <Autotests/ClientSDK/Procedures/AbstractProcedure.h>
@@ -67,14 +69,16 @@ public:
                                  FunctionalTestFixture* pEnv);
 
     CheckAttachedModulesScenario&
-    hasModule(std::string const& sType, std::string const& name);
+    hasModule(std::string const& sType,
+              std::string const& name,
+              std::string const& sBlueprint = {});
 
   protected:
     void execute() override;
 
   private:
     client::ClientCommutatorPtr pCommutator;
-    std::set<std::pair<std::string, std::string>> expectedModules;
+    std::set<std::tuple<std::string, std::string, std::string>> expectedModules;
   };
 
 

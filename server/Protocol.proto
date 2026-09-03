@@ -337,9 +337,10 @@ message ICommutator {
   }
 
   message ModuleInfo {
-    uint32 slot_id     = 1;
-    string module_type = 2;
-    string module_name = 3;
+    uint32 slot_id        = 1;
+    string module_type    = 2;
+    string module_name    = 3;
+    string blueprint_name = 4;
   }
 
   message Update {

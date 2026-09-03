@@ -13,14 +13,15 @@ namespace modules
 {
 
 Ship::Ship(
-    std::string const& sShipType,
+    std::string sBlueprintName,
     std::string sName,
     world::PlayerWeakPtr pOwner,
     double weight,
     double radius)
-  : BaseModule(std::string("Ship/") + sShipType,
+  : BaseModule(TypeName(),
                std::move(sName),
-               std::move(pOwner)),
+               std::move(pOwner),
+               std::move(sBlueprintName)),
     newton::PhysicalObject(weight, radius)
 {
   GlobalObject<Ship>::registerSelf(this);
@@ -50,7 +51,7 @@ bool Ship::loadState(YAML::Node const& source)
 }
 
 void Ship::proceed(uint32_t)
-{ 
+{
   const uint64_t now = utils::GlobalClock::now();
 
   // Send updates to subscribers

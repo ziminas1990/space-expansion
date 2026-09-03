@@ -28,7 +28,8 @@ modules::ShipPtr ShipBlueprint::build(
 {
   modules::ShipPtr pShip =
       std::make_shared<modules::Ship>(
-        m_sType, std::move(sName), pOwner, m_weight, m_radius);
+        BlueprintName("Ship", m_sType).toString(),
+        std::move(sName), pOwner, m_weight, m_radius);
 
   // Create ship's modules
   for (auto const& kv : m_modules)

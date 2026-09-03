@@ -11,10 +11,10 @@ message Access {
     string login    = 1;
     string password = 2;
   }
-  
+
   oneof choice {
     Login  login   = 1;
-  
+
     uint64 success = 128;
     bool   fail    = 129;
   }
@@ -28,12 +28,12 @@ message SystemClock {
     MODE_REAL_TIME  = 0;
     MODE_DEBUG      = 1;
     MODE_TERMINATED = 2;
-    
+
     // Clock statuses:
     CLOCK_IS_BUSY   = 3;
     INTERNAL_ERROR  = 4;
   }
-  
+
   oneof choice {
     bool    time_req             = 1;
     bool    mode_req             = 2;
@@ -42,7 +42,7 @@ message SystemClock {
     bool    terminate            = 5;
     uint32  tick_duration_us     = 6;
     uint32  proceed_ticks        = 7;
-    
+
     uint64 now    = 129;
     Status status = 130;
   }
@@ -65,7 +65,7 @@ message Screen {
   oneof choice {
     Position        move    = 1;
     spex.ObjectType show    = 2;
-    
+
     Status                   status  = 129;
     spex.PhysicalObjectsList objects = 130;
   }
@@ -93,7 +93,7 @@ message Spawn {
     string         ship_name  = 3;
     spex.Position  position  = 4;
   }
-  
+
   oneof choice {
     Ship     ship     = 1;
     Asteroid asteroid = 2;
@@ -120,12 +120,12 @@ message BasicManipulator {
     ObjectId      object_id = 1;
     spex.Position position  = 2;
   };
-  
-  oneof choice {    
+
+  oneof choice {
     ObjectId object_req = 1;
     Move     move       = 2;
-    
-    
+
+
     Status              problem  = 128;
     spex.PhysicalObject object   = 129;
     uint32              moved_at = 130;

@@ -22,6 +22,7 @@ import {
     getShip,
     Randomizer,
 } from "./helpers/index.js";
+import { ModuleType } from "../highlevel/index.js";
 
 function commutatorConfiguration(): Configuration {
     return new Configuration({
@@ -89,6 +90,7 @@ test.skipIf(!hasServerBinary)(
                 );
                 const eventShip = attached.take();
                 expect(eventShip?.name).toBe(shipName);
+                expect(eventShip?.type).toBe(ModuleType.SHIP);
                 expect(eventShip?.ship_class).toBe("Ship/Miner");
 
                 // 2.3 look up the ship in the player registry
@@ -111,3 +113,53 @@ test.skipIf(!hasServerBinary)(
         });
     },
 );
+
+test.skipIf(!hasServerBinary)(
+    "reports a spawned ship as type Ship with its blueprint name",
+    { timeout: integrationTimeoutMs },
+    async () => {
+        await withServer(commutatorConfiguration(), async ({
+            administrator,
+            login,
+        }) => {
+            // 1. player logins
+            const player = await login("player", "expansion");
+            const attached = collectEvent(player, "ship_attached");
+
+            // 2. administrator spawns a ship without the client opening a
+            //    tunnel to it first
+            expectOk(
+                await administrator.spawner.spawn_ship(
+                    "player",
+                    "Ship/Miner",
+                    "Miner-1",
+                    {
+                        timestamp: 0n,
+                        point: [0, 0],
+                        velocity: [0, 0],
+                    },
+                ),
+                "spawn Miner-1",
+            );
+
+            // 3. wait until the ship is listed on the root commutator
+            await attached.waitForCount(1, "Miner-1 attached");
+
+            // 4. read module info from the commutator (no ship specification)
+            const modules = expectOk(
+                await player.down_level("root_commutator").get_all_modules_info(),
+                "list attached modules",
+            );
+            const shipInfo = modules.find((info) => info.module_name === "Miner-1");
+            expect(shipInfo?.module_type).toBe(ModuleType.SHIP);
+            expect(shipInfo?.module_name).toBe("Miner-1");
+            expect(shipInfo?.blueprint_name).toBe("Ship/Miner");
+
+            // 5. the highlevel ship uses the same blueprint as ship_class
+            const ship = getShip(player, "Miner-1");
+            expect(ship.type).toBe(ModuleType.SHIP);
+            expect(ship.ship_class).toBe("Ship/Miner");
+        });
+    },
+);
+

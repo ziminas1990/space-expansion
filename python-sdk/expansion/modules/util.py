@@ -21,16 +21,8 @@ def get_system_clock(commutator: Commutator) -> Optional[SystemClock]:
     return None
 
 
-def get_ship(commutator: Commutator, ship_type: str, ship_name: str) -> Optional[Ship]:
-    if not ship_type.startswith(ModuleType.SHIP.value):
-        ship_type = f"{ModuleType.SHIP.value}{ship_type}"
-
-    try:
-        ship = commutator.modules[ship_type][ship_name]
-        assert isinstance(ship, Ship)
-        return ship
-    except KeyError:
-        return None
+def get_ship(commutator: Commutator, name: str) -> Optional[Ship]:
+    return Ship.get_ship_by_name(commutator, name)
 
 
 def get_engine(commutator: Commutator, name: str) -> Optional[Engine]:

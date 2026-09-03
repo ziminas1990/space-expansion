@@ -11,6 +11,26 @@ DECLARE_GLOBAL_CONTAINER_CPP(modules::Commutator);
 namespace modules
 {
 
+namespace {
+
+void fillModuleInfo(spex::ICommutator::ModuleInfo* pBody,
+                    uint32_t nSlotId,
+                    const BaseModulePtr& pModule)
+{
+    pBody->set_slot_id(nSlotId);
+    if (!pModule) {
+    pBody->set_module_type("empty");
+    return;
+    }
+    pBody->set_module_type(pModule->getModuleType());
+    pBody->set_module_name(pModule->getModuleName());
+    if (!pModule->getBlueprintName().empty()) {
+    pBody->set_blueprint_name(pModule->getBlueprintName());
+    }
+}
+
+} // namespace
+
 Commutator::Commutator(network::SessionMuxWeakPtr pSessionMux)
   : BaseModule("Commutator", std::string(), world::PlayerWeakPtr())
   , m_pSessionMux(pSessionMux)
@@ -159,14 +179,9 @@ void Commutator::getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const
   spex::Message response;
   spex::ICommutator::ModuleInfo* pBody =
       response.mutable_commutator()->mutable_module_info();
-  pBody->set_slot_id(nSlotId);
-  if (nSlotId >= m_modules.size() || !m_modules[nSlotId]) {
-    pBody->set_module_type("empty");
-  } else {
-    const BaseModulePtr pModule = m_modules[nSlotId];
-    pBody->set_module_type(pModule->getModuleType());
-    pBody->set_module_name(pModule->getModuleName());
-  }
+  const BaseModulePtr pModule =
+      (nSlotId < m_modules.size()) ? m_modules[nSlotId] : BaseModulePtr();
+  fillModuleInfo(pBody, nSlotId, pModule);
   sendToClient(nSessionId, std::move(response));
 }
 
@@ -179,9 +194,7 @@ void Commutator::getAllModulesInfo(uint32_t nSessionId) const
       spex::Message response;
       spex::ICommutator::ModuleInfo* pBody =
           response.mutable_commutator()->mutable_module_info();
-      pBody->set_slot_id(nSlotId);
-      pBody->set_module_type(pModule->getModuleType());
-      pBody->set_module_name(pModule->getModuleName());
+      fillModuleInfo(pBody, nSlotId, pModule);
       sendToClient(nSessionId, std::move(response));
     }
   }
@@ -277,9 +290,7 @@ void Commutator::sendModuleAttachedUpdate(uint32_t nSlotId) const
   spex::Message update;
   spex::ICommutator::ModuleInfo* pBody =
       update.mutable_commutator()->mutable_update()->mutable_module_attached();
-  pBody->set_slot_id(nSlotId);
-  pBody->set_module_type(pModule->getModuleType());
-  pBody->set_module_name(pModule->getModuleName());
+  fillModuleInfo(pBody, nSlotId, pModule);
 
   for (uint32_t nMonitoringSession: m_monitoringSessions) {
     sendToClient(nMonitoringSession, spex::Message(update));

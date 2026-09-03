@@ -15,6 +15,7 @@ import { SystemClock } from "./system_clock.js";
 export type SlotInfo = {
     module_type: string;
     module_name: string;
+    blueprint_name: string;
 };
 
 export type CreateModule = (
@@ -38,11 +39,16 @@ export function create_module(
     info: SlotInfo,
     midlevel_module: midlevel.MidlevelModule,
 ): HighlevelModule | undefined {
-    if (info.module_type.startsWith(ModuleType.SHIP)) {
+    if (info.module_type === ModuleType.SHIP) {
         if (!(midlevel_module instanceof midlevel.Ship)) {
             return undefined;
         }
-        return new Ship(midlevel_module, info.module_name, info.module_type, create_module);
+        return new Ship(
+            midlevel_module,
+            info.module_name,
+            info.blueprint_name,
+            create_module,
+        );
     }
 
     switch (info.module_type) {

@@ -1,6 +1,5 @@
 #include "BaseModule.h"
 
-#include <random>
 #include <SystemManager.h>
 #include <Modules/Constants.h>
 
@@ -9,9 +8,11 @@ namespace modules {
 BaseModule::BaseModule(
   std::string sModuleType,
   std::string moduleName,
-  world::PlayerWeakPtr pOwner)
+  world::PlayerWeakPtr pOwner,
+  std::string sBlueprintName)
   : m_sModuleType(std::move(sModuleType)),
   m_sModuleName(std::move(moduleName)),
+  m_sBlueprintName(std::move(sBlueprintName)),
   m_pOwner(std::move(pOwner)),
   m_eStatus(Status::eOnline),
   m_eState(State::eIdle)

@@ -1,7 +1,7 @@
-from typing import Callable, Awaitable, Tuple, Optional, TYPE_CHECKING
-import logging
+from typing import Callable, Awaitable, Tuple, Optional
 
 from expansion.transport import ProxyChannel, SessionsMux
+import expansion.interfaces.rpc as rpc
 
 from .base_module import BaseModule, ModuleType
 from .ship import Ship
@@ -19,21 +19,19 @@ TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
 TunnelFactory = Callable[[], Awaitable[TunnelOrError]]
 # Type for the coroutine, that returns a tunnel or an error
 
-_logger = logging.getLogger("expansion.modules.factory")
 
-
-def module_factory(module_type: str,
-                   module_name: str,
+def module_factory(module_info: rpc.ModuleInfo,
                    session_mux: SessionsMux,
                    tunnel_factory: TunnelFactory) -> ModuleOrError:
-    """Create a module with the specified 'module_type' and the specified
-    'module_name'. The specified 'tunnel_factory' callback will be used
-    to open a tunnel to the module and may be called at any time during the
-    module's lifecycle.
+    """Create a module described by 'module_info'. The specified
+    'tunnel_factory' callback will be used to open a tunnel to the module
+    and may be called at any time during the module's lifecycle.
     """
-    if module_type.startswith(ModuleType.SHIP.value):
-        return Ship(ship_type=module_type,
-                    ship_name=module_name,
+    module_type = module_info.type
+    module_name = module_info.name
+    if module_type == ModuleType.SHIP.value:
+        return Ship(name=module_name,
+                    ship_class=module_info.blueprint_name,
                     session_mux=session_mux,
                     modules_factory=module_factory,
                     tunnel_factory=tunnel_factory), None

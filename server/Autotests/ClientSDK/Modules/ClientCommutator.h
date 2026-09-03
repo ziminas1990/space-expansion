@@ -14,6 +14,7 @@ struct ModuleInfo
   uint32_t    nSlotId;
   std::string sModuleType;
   std::string sModuleName;
+  std::string sBlueprintName;
 };
 
 using ModulesList = std::vector<ModuleInfo>;

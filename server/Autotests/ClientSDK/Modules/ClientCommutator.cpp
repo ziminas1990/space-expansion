@@ -28,7 +28,8 @@ bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
     attachedModules.push_back(
           ModuleInfo({response.module_info().slot_id(),
                       response.module_info().module_type(),
-                      response.module_info().module_name()}));
+                      response.module_info().module_name(),
+                      response.module_info().blueprint_name()}));
   }
   return attachedModules.size() == nTotal;
 }

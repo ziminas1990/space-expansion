@@ -19,7 +19,13 @@ class Ship :
     public utils::GlobalObject<Ship>
 {
 public:
-  Ship(std::string const& sShipType,
+  static std::string const& TypeName() {
+    const static std::string sTypeName = "Ship";
+    return sTypeName;
+  }
+
+  // 'sBlueprintName' is the full blueprint identity, e.g. "Ship/Civilian-Miner".
+  Ship(std::string sBlueprintName,
        std::string sName,
        world::PlayerWeakPtr pOwner,
        double weight,

@@ -3,7 +3,7 @@ from base_test_fixture import BaseTestFixture
 import server.configurator.blueprints as blueprints
 import server.configurator.world as world
 
-from server.configurator.modules import default_ships, ShipType
+from server.configurator.modules import default_ships
 from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
 
@@ -65,7 +65,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        miner_1 = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_1)
 
         scanner = modules.PassiveScanner.get_by_name(miner_1, "perceiver")
@@ -87,7 +87,7 @@ class TestCase(BaseTestFixture):
         clock = modules.get_system_clock(commutator)
         self.assertIsNotNone(clock)
 
-        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        miner_1 = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_1)
         scanner = modules.PassiveScanner.get_by_name(miner_1, "perceiver")
         self.assertIsNotNone(scanner)

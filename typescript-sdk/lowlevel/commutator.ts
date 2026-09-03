@@ -8,11 +8,26 @@ export type ModuleInfo = {
     slot_id: number;
     module_type: string;
     module_name: string;
+    blueprint_name: string;
 }
 
 export type Update = {
     module_attached?: ModuleInfo;
     module_detached?: number;
+}
+
+function parse_module_info(info: {
+    slotId: number;
+    moduleType: string;
+    moduleName: string;
+    blueprintName: string;
+}): ModuleInfo {
+    return {
+        slot_id: info.slotId,
+        module_type: info.moduleType,
+        module_name: info.moduleName,
+        blueprint_name: info.blueprintName,
+    };
 }
 
 export class Commutator {
@@ -89,11 +104,7 @@ export class Commutator {
         if (response.choice.case != "moduleInfo") {
             return [Status.fail(`got unexpected response ${response.choice.case}`), undefined];
         }
-        return [Status.ok(), {
-            slot_id: response.choice.value.slotId,
-            module_type: response.choice.value.moduleType,
-            module_name: response.choice.value.moduleName
-        }];
+        return [Status.ok(), parse_module_info(response.choice.value)];
     }
 
     async wait_open_tunnel_report(timeout: number = 500)
@@ -157,11 +168,7 @@ export class Commutator {
         const update = response.choice.value;
         if (update.choice.case == "moduleAttached") {
             return [Status.ok(), {
-                module_attached: {
-                    slot_id: update.choice.value.slotId,
-                    module_type: update.choice.value.moduleType,
-                    module_name: update.choice.value.moduleName
-                }
+                module_attached: parse_module_info(update.choice.value)
             }];
         } else if (update.choice.case == "moduleDetached") {
             return [Status.ok(), { module_detached: update.choice.value }];

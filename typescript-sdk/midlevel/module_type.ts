@@ -1,8 +1,7 @@
 
-// Server reports a ship as "Ship/<subtype>", every other module type is
-// reported as is.
+// Runtime module_type is the supported interface name ("Ship", "Engine", ...).
 export const ModuleType = {
-    SHIP: "Ship/",
+    SHIP: "Ship",
     SYSTEM_CLOCK: "SystemClock",
     ENGINE: "Engine",
     RESOURCE_CONTAINER: "ResourceContainer",

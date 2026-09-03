@@ -8,8 +8,7 @@ import server.configurator.world as world
 
 from server.configurator.modules import (
     default_ships,
-    ResourceContainerState,
-    ShipType
+    ResourceContainerState
 )
 from server.configurator.configuration import Configuration
 from server.configurator.general import General, ApplicationMode
@@ -78,7 +77,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        miner_1 = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_1)
 
         cargo = modules.get_cargo(commutator=miner_1, name='cargo')
@@ -99,7 +98,7 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        miner_1 = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_1)
 
         cargo = modules.get_cargo(commutator=miner_1, name='cargo')
@@ -146,12 +145,12 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        miner_1 = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_1)
         miner_1_cargo = modules.get_cargo(commutator=miner_1, name='cargo')
         self.assertIsNotNone(miner_1_cargo)
 
-        miner_2 = modules.get_ship(commutator, ShipType.MINER.value, "miner-2")
+        miner_2 = modules.get_ship(commutator, "miner-2")
         self.assertIsNotNone(miner_2)
         miner_2_cargo = modules.get_cargo(commutator=miner_2, name='cargo')
         self.assertIsNotNone(miner_2_cargo)
@@ -197,12 +196,12 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        miner_1 = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_1)
         miner_1_cargo = modules.get_cargo(commutator=miner_1, name='cargo')
         self.assertIsNotNone(miner_1_cargo)
 
-        miner_2 = modules.get_ship(commutator, ShipType.MINER.value, "miner-2")
+        miner_2 = modules.get_ship(commutator, "miner-2")
         self.assertIsNotNone(miner_2)
         miner_2_cargo = modules.get_cargo(commutator=miner_2, name='cargo')
         self.assertIsNotNone(miner_2_cargo)
@@ -233,12 +232,12 @@ class TestCase(BaseTestFixture):
         self.assertIsNotNone(commutator)
         self.assertIsNone(error)
 
-        miner_1 = modules.get_ship(commutator, ShipType.MINER.value, "miner-1")
+        miner_1 = modules.get_ship(commutator, "miner-1")
         self.assertIsNotNone(miner_1)
         miner_1_cargo = modules.get_cargo(commutator=miner_1, name='cargo')
         self.assertIsNotNone(miner_1_cargo)
 
-        miner_2 = modules.get_ship(commutator, ShipType.MINER.value, "miner-2")
+        miner_2 = modules.get_ship(commutator, "miner-2")
         self.assertIsNotNone(miner_2)
         miner_2_cargo = modules.get_cargo(commutator=miner_2, name='cargo')
         self.assertIsNotNone(miner_2_cargo)

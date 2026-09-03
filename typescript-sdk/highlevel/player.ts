@@ -18,7 +18,6 @@ export type Events = {
 
 export class Player extends EventEmitter<Events> {
 
-    public ships: Map<string, Ship> = new Map();
     public readonly game: Game;
     private readonly registry: ModuleRegistry;
 
@@ -44,6 +43,10 @@ export class Player extends EventEmitter<Events> {
 
     messanger(): Messanger | undefined {
         return this.registry.get_all(ModuleType.MESSANGER)[0];
+    }
+
+    get ships(): Ship[] {
+        return this.registry.get_all(ModuleType.SHIP);
     }
 
     down_level(what: "root_commutator"): midlevel.Commutator;
@@ -80,21 +83,18 @@ export class Player extends EventEmitter<Events> {
     }
 
     async release(): Promise<Status> {
-        this.ships.clear();
         await this.game.release();
         return await this.registry.release();
     }
 
     private async module_attached(module: HighlevelModule) {
         if (module.type === ModuleType.SHIP) {
-            this.ships.set(module.name, module);
             await this.emit("ship_attached", module);
         }
     }
 
     private async module_detached(module: HighlevelModule) {
         if (module.type === ModuleType.SHIP) {
-            this.ships.delete(module.name);
             await this.emit("ship_detached", module);
         }
     }

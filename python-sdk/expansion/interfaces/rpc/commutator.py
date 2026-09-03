@@ -12,12 +12,14 @@ class ModuleInfo(NamedTuple):
     slot_id: int
     type: str
     name: str
+    blueprint_name: str = ""
 
     @staticmethod
     def from_protubuf(info: api.ICommutator.ModuleInfo) -> 'ModuleInfo':
         return ModuleInfo(slot_id=info.slot_id,
                           type=info.module_type,
-                          name=info.module_name)
+                          name=info.module_name,
+                          blueprint_name=info.blueprint_name)
 
 
 class Update(NamedTuple):

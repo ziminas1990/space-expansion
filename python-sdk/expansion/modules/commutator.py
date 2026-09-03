@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from expansion.transport import Channel
 
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
-ModulesFactory = Callable[[str, str, SessionsMux, TunnelFactory], ModuleOrError]
+ModulesFactory = Callable[[rpc.ModuleInfo, SessionsMux, TunnelFactory], ModuleOrError]
 
 
 class Commutator(BaseModule):
@@ -35,8 +35,8 @@ class Commutator(BaseModule):
                          name=self.name)
         self.session_mux = session_mux
         self.modules_factory = modules_factory
-        # Map: slot_id -> (module_type, module_name)
-        self.slots: Dict[int, Tuple[str, str]] = {}
+        # Map: slot_id -> (module_type, module_name, blueprint_name)
+        self.slots: Dict[int, Tuple[str, str, str]] = {}
         # Map: module_type -> module_name -> module
         self.modules: Dict[str, Dict[str, BaseModule]] = {}
 
@@ -54,7 +54,9 @@ class Commutator(BaseModule):
         for module in modules:
             try:
                 existing = self.slots[module.slot_id]
-                if existing[0] != module.type or existing[1] != module.name:
+                if (existing[0] != module.type
+                        or existing[1] != module.name
+                        or existing[2] != module.blueprint_name):
                     # Old module was replaced with a new one
                     self._on_module_detached(module.slot_id)
                     await self._on_module_attached(module)
@@ -100,14 +102,14 @@ class Commutator(BaseModule):
                     module.name: module_instance
                 })
                 self.slots.update({
-                    module.slot_id: (module.type, module.name)
+                    module.slot_id: (module.type, module.name, module.blueprint_name)
                 })
             else:
                 self.logger.warning(f"Can't init {module.type} '{module.name}'")
 
     def _on_module_detached(self, slot_id: int):
         try:
-            module_type, module_name = self.slots[slot_id]
+            module_type, module_name, _ = self.slots[slot_id]
             del self.modules[module_type][module_name]
         except KeyError:
             return
@@ -147,8 +149,7 @@ class Commutator(BaseModule):
             return await self._open_tunnel(module_info.slot_id)
 
         module_instance, error = self.modules_factory(
-            module_info.type,
-            module_info.name,
+            module_info,
             self.session_mux,
             tunnel_factory)
         if error is None:

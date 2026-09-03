@@ -17,8 +17,8 @@ class Ship(Commutator, BaseModule):
     caching and prediction ship's position"""
 
     def __init__(self,
-                 ship_type: str,
-                 ship_name: str,
+                 name: str,
+                 ship_class: str,
                  session_mux: "SessionsMux",
                  modules_factory: "ModulesFactory",
                  tunnel_factory: "TunnelFactory"):
@@ -26,9 +26,10 @@ class Ship(Commutator, BaseModule):
             session_mux=session_mux,
             tunnel_factory=tunnel_factory,
             modules_factory=modules_factory,
-            name=ship_name)
-        self.type = ship_type
-        self.name = ship_name
+            name=name)
+        self.type = ModuleType.SHIP.value
+        self.name = name
+        self.ship_class = ship_class
 
         self.position: Optional[Position] = None
         self.state: Optional[rpc.ShipState] = None
@@ -137,25 +138,21 @@ class Ship(Commutator, BaseModule):
     def get_ship_by_name(
             commutator: "Commutator",
             name: str) -> Optional["Ship"]:
-        for module_type, name2ship in commutator.modules.items():
-            if module_type.startswith(ModuleType.SHIP.value):
-                try:
-                    ship = name2ship[name]
-                    assert isinstance(ship, Ship)
-                    return ship
-                except KeyError:
-                    continue
-        return None
+        try:
+            ship = commutator.modules[ModuleType.SHIP.value][name]
+        except KeyError:
+            return None
+        assert isinstance(ship, Ship)
+        return ship
 
     @staticmethod
     def get_all_ships(commutator: "Commutator") -> List["Ship"]:
         ships: List[Ship] = []
-        for module_type, name2ship in commutator.modules.items():
-            if module_type.startswith(ModuleType.SHIP.value):
-                # Actually, we could just do
-                # ships.extend(name2ship.values())
-                # but using a loop to make type checker calm
-                for ship in name2ship.values():
-                    assert isinstance(ship, Ship)  # for type checker
-                    ships.append(ship)
+        try:
+            name2ship = commutator.modules[ModuleType.SHIP.value]
+        except KeyError:
+            return ships
+        for ship in name2ship.values():
+            assert isinstance(ship, Ship)
+            ships.append(ship)
         return ships

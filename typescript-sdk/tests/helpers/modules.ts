@@ -16,7 +16,7 @@ import {
 import { waitFor } from "./wait.js";
 
 export function getShip(player: Player, name: string): Ship {
-    const ship = player.ships.get(name);
+    const ship = player.ships.find((item) => item.name === name);
     if (ship === undefined) {
         throw new Error(`Ship '${name}' not found`);
     }
@@ -24,7 +24,7 @@ export function getShip(player: Player, name: string): Ship {
 }
 
 export function getAllShips(player: Player): Ship[] {
-    return [...player.ships.values()];
+    return player.ships;
 }
 
 export async function waitForShip(
@@ -32,7 +32,11 @@ export async function waitForShip(
     name: string,
     timeoutMs = 2_000,
 ): Promise<Ship> {
-    await waitFor(() => player.ships.has(name), `ship '${name}'`, timeoutMs);
+    await waitFor(
+        () => player.ships.some((item) => item.name === name),
+        `ship '${name}'`,
+        timeoutMs,
+    );
     return getShip(player, name);
 }
 

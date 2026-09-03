@@ -84,6 +84,7 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsCount)
 
 TEST_F(ExploringShipsFunctionalTests, GetShipsTypes)
 {
+  // 1. login and open the root commutator
   ASSERT_TRUE(
         Scenarios::Login()
         .sendLoginRequest("admin", "admin")
@@ -91,15 +92,15 @@ TEST_F(ExploringShipsFunctionalTests, GetShipsTypes)
   client::ClientCommutatorPtr pCommutator = openCommutatorSession();
   ASSERT_TRUE(pCommutator);
 
-  // with cycle it's even more harder
+  // 2. repeatedly list ships and check type, name, and blueprint
   for(size_t i = 0; i < 200; ++i) {
     ASSERT_TRUE(
           Scenarios::CheckAttachedModules(pCommutator)
-          .hasModule("Ship/CommandCenter", "Head")
-          .hasModule("Ship/Miner",  "Bogatstvo Narodov")
-          .hasModule("Ship/Zond",   "Sokol")
-          .hasModule("Ship/Corvet", "Raven")
-          .hasModule("Ship/Corvet", "Caracal")) << "on oteration #" << i;
+          .hasModule("Ship", "Head", "Ship/CommandCenter")
+          .hasModule("Ship", "Bogatstvo Narodov", "Ship/Miner")
+          .hasModule("Ship", "Sokol", "Ship/Zond")
+          .hasModule("Ship", "Raven", "Ship/Corvet")
+          .hasModule("Ship", "Caracal", "Ship/Corvet")) << "on oteration #" << i;
   }
 }
 
