@@ -1,0 +1,20 @@
+---
+description: Python SDK tests must run inside the project venv, not system Python
+globs: python-sdk/expansion/unit_tests/**/*.py, tests/**/*.py
+alwaysApply: false
+---
+
+# Running Python SDK tests
+
+- Use the venv from [`docs/building-on-linux.md`](../../docs/building-on-linux.md):
+  `source ~/dev/space-expansion-venv/bin/activate` (path there is
+  `$SPEX_VENV_DIR`, default `~/dev/space-expansion-venv`). If it doesn't
+  exist report user that since venv is not created, tests cannot run. Refer user
+  to `docs/building-on-linux.md`.
+- The SDK isn't installed as a package — export
+  `PYTHONPATH=<repo>/python-sdk` before running tests.
+- Run a specific test module directly, e.g.
+  `python -m unittest expansion.unit_tests.procedures.test_navigation -v`.
+  Don't `python -m unittest discover` over all of `expansion/unit_tests` —
+  `expansion/unit_tests/types/` collides with the stdlib `types` module and
+  breaks discovery; that failure is pre-existing and unrelated to your change.

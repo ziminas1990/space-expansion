@@ -1,0 +1,38 @@
+---
+description: How to write SES task documents. Use when creating or editing a task in docs/tasks/.
+globs: docs/tasks/**/*.md
+alwaysApply: false
+---
+
+# Writing SES tasks
+
+Tasks live in `docs/tasks/` as `SES-NNN.md` (next free number). They are
+for a person, not an agent: one page, readable in about five minutes.
+
+Write **what** to do and **why**. Do not write **how**. The implementer
+will read the code.
+
+## Sections
+
+Only these three, in this order, after `# SES-NNN: …`:
+
+**Background** — the problem today, or the new behavior that is missing.
+Enough context to care. Not a design.
+
+**Require** — the change in broad strokes: add or extend an interface,
+change a contract, add a component, refactor, split, merge. Name the
+capability, not the files.
+
+**Acceptance** — how a person knows it is done. Observable outcomes, not
+a checklist of edits. Always a bullet list.
+
+If a sentence enumerates three or more conditions, objects, or reasons or
+whatever, make it a list. People scan lists; they skip comma-separated prose.
+
+## Do not
+
+- List files, modules, or functions to touch
+- Paste code, protobuf, or API sketches
+- Explain the algorithm or the implementation plan
+- Add extra sections (scope, out of scope, alternatives, proposed behavior)
+- Catalog edge cases for an agent
