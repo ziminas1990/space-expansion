@@ -1,18 +1,17 @@
-import types
 from typing import Optional
 import asyncio
 
 from expansion import modules
 from expansion.modules import Commutator, SystemClock, ModuleType, Shipyard, ResourceContainer
-from expansion.types import TimePoint, Position, Vector
+from expansion.types import TimePoint
 import expansion.interfaces.rpc as rpc
 import logging
 
-from ship import Ship
-from world import World
-from player import Player
+from .ship import Ship
+from .world import World
+from .player import Player
 
-from tasks.mining.random_mining import RandomMining
+from .tasks.mining.random_mining import RandomMining
 
 
 class TacticalCore:
@@ -57,15 +56,23 @@ class TacticalCore:
 
         return True
 
-    def stop(self):
+    async def stop(self):
+        if self.random_mining_task:
+            self.random_mining_task.interrupt()
+        for ship in self.player.ships.values():
+            ship.stop()
+        tasks = [
+            task for task in (
+                self.build_miners_task,
+                self.commutator_monitoring_task,
+                self.time_monitoring_task,
+            ) if task is not None and not task.done()
+        ]
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
         self.root_commutator.disconnect()
-
-    def move_ship(self, ship_name:str, x: float, y: float):
-        try:
-            ship = self.player.ships[ship_name]
-            ship.navigator.move_to_async(Position(x, y, Vector(0, 0)))
-        except KeyError:
-            self.log.warning(f"Can't move ship '{ship_name}': no such ship!")
 
     async def build_more_miners(self):
         ships = self.player.get_ships_by_equipment(
@@ -98,11 +105,18 @@ class TacticalCore:
 
         next_id = 10
         ship_type = "Ship/Civilian-Miner"
+        backoff_ms = 500
         while True:
-            await shipyard.build_ship(
+            status, _, _ = await shipyard.build_ship(
                 ship_type, f"Miner-{next_id}",
                 lambda s, p: self.log.info(f"Shipyard: {s} {p}"))
-            next_id += 1
+            if status == Shipyard.Status.SUCCESS:
+                next_id += 1
+                backoff_ms = 500
+                continue
+            self.log.warning(f"Failed to build miner: {status}")
+            await asyncio.sleep(backoff_ms / 1000)
+            backoff_ms = min(backoff_ms * 2, 32_000)
 
     async def monitor_commutator(self):
         while True:

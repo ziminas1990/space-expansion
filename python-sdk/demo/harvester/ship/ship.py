@@ -1,9 +1,9 @@
 import asyncio
 from typing import List, Optional, TYPE_CHECKING
 
-import world
 from expansion import modules
-from ship.navigator import Navigator
+from .navigator import Navigator
+from ..world import World
 
 if TYPE_CHECKING:
     from expansion.modules import ModuleType
@@ -12,10 +12,10 @@ if TYPE_CHECKING:
 class Ship:
     def __init__(self,
                  remote: modules.Ship,
-                 the_world: world.World,
+                 the_world: World,
                  system_clock: modules.SystemClock):
         self.remote: modules.Ship = remote
-        self.world: world.World = the_world
+        self.world: World = the_world
         self.system_clock = system_clock
         self.name = remote.name
 
@@ -66,3 +66,12 @@ class Ship:
         if self.state_monitoring_task is not None:
             self.state_monitoring_task.cancel()
         self.state_monitoring_task = asyncio.create_task(impl())
+
+    def stop(self):
+        if self.state_monitoring_task is not None:
+            self.state_monitoring_task.cancel()
+            self.state_monitoring_task = None
+        if self.scanning_task is not None:
+            self.scanning_task.cancel()
+            self.scanning_task = None
+        self.navigator.interrupt()

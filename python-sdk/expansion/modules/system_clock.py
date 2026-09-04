@@ -98,9 +98,10 @@ class SystemClock(rpc.SystemClockI, BaseModule):
             timeout = 1.2 * dt / 10**6 if dt > 10000 else 0.1
 
         timestamp = await session.wait_until(time=time, timeout=timeout)
-        if timestamp:
-            deviation_us = self.server_time.predict_usec() - timestamp.real_us if self.server_time is not None else 0
-            self.ingame_time.update(timestamp.ingame_us + deviation_us)
+        if not timestamp:
+            return None
+        deviation_us = self.server_time.predict_usec() - timestamp.real_us if self.server_time is not None else 0
+        self.ingame_time.update(timestamp.ingame_us + deviation_us)
         return self.ingame_time.predict_usec()
 
     @BaseModule.use_session(
@@ -117,9 +118,10 @@ class SystemClock(rpc.SystemClockI, BaseModule):
             timeout = max(1.2 * period_us / 10 ** 6, 0.1)
 
         timestamp = await session.wait_for(period_us=period_us, timeout=timeout)
-        if timestamp:
-            deviation_us = self.server_time.predict_usec() - timestamp.real_us if self.server_time is not None else 0
-            self.ingame_time.update(timestamp.ingame_us + deviation_us)
+        if not timestamp:
+            return None
+        deviation_us = self.server_time.predict_usec() - timestamp.real_us if self.server_time is not None else 0
+        self.ingame_time.update(timestamp.ingame_us + deviation_us)
         return self.ingame_time.predict_usec()
 
     @BaseModule.use_session_for_generators(

@@ -2,12 +2,12 @@ import asyncio
 import random
 from typing import Optional, TYPE_CHECKING
 
-from tasks.base_task import BaseTask
+from ..base_task import BaseTask
 from expansion.modules import AsteroidMiner, ResourceContainer
 
 if TYPE_CHECKING:
-    from ship import Ship
-    from tactical_core import TacticalCore
+    from ...ship import Ship
+    from ...tactical_core import TacticalCore
     from expansion.modules import (
         SystemClock,
     )
@@ -72,7 +72,7 @@ class SimpleMining(BaseTask):
 
         self._container = await ResourceContainer.find_most_free(
             self.ship.commutator())
-        if not self._miner:
+        if not self._container:
             self.add_journal_record("Can't find appropriate container!")
             return False
         self.add_journal_record(f"Use '{self._container.name}' as container")

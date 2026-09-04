@@ -3,7 +3,7 @@ import logging
 from typing import Dict, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ship import Ship
+    from .ship import Ship
     from expansion.modules import ModuleType
 
 
@@ -20,4 +20,3 @@ class Player:
             if ship.has_modules(modules):
                 ships.append(ship)
         return ships
-

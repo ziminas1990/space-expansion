@@ -9,6 +9,10 @@ alwaysApply: false
 Tasks live in `docs/tasks/` as `SES-NNN.md` (next free number). They are
 for a person, not an agent: one page, readable in about five minutes.
 
+When picking the next number, check **both** `docs/tasks/` and
+`docs/tasks/closed/` — closed tasks still occupy their numbers and must
+not be reused.
+
 Write **what** to do and **why**. Do not write **how**. The implementer
 will read the code.
 

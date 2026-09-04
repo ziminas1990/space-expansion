@@ -77,10 +77,14 @@ class BaseTestFixture(unittest.TestCase):
         )
 
     def tearDown(self) -> None:
-        async def stop_system_clock():
-            """Stop the server's system clock (server will terminate)"""
-            return await self.administrator.get_clock().terminate()
-        BaseTestFixture.event_loop.run_until_complete(stop_system_clock())
+        async def shutdown():
+            # Stop the manual time wheel first so it is not destroyed while
+            # still awaiting proceed_ticks after the loop is closed.
+            if self.time_manual_control_flag or self.time_wheel_task is not None:
+                await self.system_clock_stop()
+            await self.administrator.get_clock().terminate()
+
+        BaseTestFixture.event_loop.run_until_complete(shutdown())
         # At this point server should stop himself, but to be sure:
         self.server.stop()
         BaseTestFixture.event_loop = None

@@ -1,11 +1,9 @@
-import asyncio
 from typing import Optional
-from enum import Enum
 
 from expansion import modules
 from expansion import types
 
-from tasks.navigation import MoveTo
+from ..tasks.navigation import MoveTo
 
 
 class Navigator:

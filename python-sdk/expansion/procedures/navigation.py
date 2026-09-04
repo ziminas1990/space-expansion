@@ -372,7 +372,8 @@ async def follow_flight_plan(
     system_clock: rpc.SystemClockI,
 ) -> bool:
     for maneuver in plan.maneuvers:
-        await system_clock.wait_until(time=maneuver.at - 25000)
+        if await system_clock.wait_until(time=maneuver.at - 25000) is None:
+            return False
         ship_state = await ship.get_state()
         if ship_state is None:
             return False
@@ -384,5 +385,6 @@ async def follow_flight_plan(
         ):
             return False
     if plan.maneuvers:
-        await system_clock.wait_until(time=plan.ends_at())
+        if await system_clock.wait_until(time=plan.ends_at()) is None:
+            return False
     return True

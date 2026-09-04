@@ -1,15 +1,15 @@
 import asyncio
 import random
 from typing import Dict, Optional, TYPE_CHECKING
-from tasks.base_task import BaseTask
-from tasks.mining.simple_mining import SimpleMining
+from ..base_task import BaseTask
+from .simple_mining import SimpleMining
 import expansion.modules as modules
 
 if TYPE_CHECKING:
-    from ship import Ship
+    from ...ship import Ship
     from expansion.modules import SystemClock
     from expansion.types import PhysicalObject
-    from tactical_core import TacticalCore
+    from ...tactical_core import TacticalCore
 
 
 class RandomMining(BaseTask):
@@ -37,6 +37,12 @@ class RandomMining(BaseTask):
     def add_ship(self, miner: "Ship"):
         if miner not in self._tasks:
             self._tasks.update({miner: None})
+
+    def interrupt(self):
+        for task in self._tasks.values():
+            if task:
+                task.interrupt()
+        super().interrupt()
 
     async def _impl(self, *argc, **argv) -> bool:
         cycle = 1

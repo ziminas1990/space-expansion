@@ -3,7 +3,6 @@ import abc
 import asyncio
 import logging
 
-from expansion import types
 from expansion import modules
 
 
