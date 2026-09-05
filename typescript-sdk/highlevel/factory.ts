@@ -1,4 +1,4 @@
-import * as midlevel from "../midlevel/index.js";
+import * as midlevel from "#sdk/midlevel/index.js";
 import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import type { BaseModule } from "./base_module.js";

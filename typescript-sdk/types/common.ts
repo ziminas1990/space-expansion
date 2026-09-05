@@ -1,5 +1,5 @@
 import { create } from "@bufbuild/protobuf";
-import * as proto from "../CommonTypes_pb.js";
+import * as proto from "#sdk/CommonTypes_pb.js";
 
 export type Point = [number, number];
 export type Vector = [number, number];

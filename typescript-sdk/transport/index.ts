@@ -1,5 +1,5 @@
 import { fromBinary, toBinary } from "@bufbuild/protobuf";
-import * as msg from "../Protocol_pb.js";
+import * as msg from "#sdk/Protocol_pb.js";
 import { IChannel, ITerminal } from "./abstract.js";
 import { Decoder } from "./decoder.js";
 

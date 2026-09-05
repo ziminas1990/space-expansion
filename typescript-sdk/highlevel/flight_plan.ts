@@ -1,6 +1,6 @@
-import type { Point, Position, Vector } from "../types/common.js";
-import { Status } from "../types/status.js";
-import { predict_position } from "../utils/predictor.js";
+import type { Point, Position, Vector } from "#sdk/types/common.js";
+import { Status } from "#sdk/types/status.js";
+import { predict_position } from "#sdk/utils/predictor.js";
 import {
     almostNull,
     codirected,
@@ -8,7 +8,7 @@ import {
     vecAdd,
     vecScale,
     vecSub,
-} from "../utils/vector.js";
+} from "#sdk/utils/vector.js";
 import type { Engine } from "./engine.js";
 import type { Ship } from "./ship.js";
 

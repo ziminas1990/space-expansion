@@ -1,5 +1,5 @@
 import dgram from "node:dgram"
-import { Status } from "../types/status.js";
+import { Status } from "#sdk/types/status.js";
 import { IChannel, ITerminal } from "./abstract.js";
 
 

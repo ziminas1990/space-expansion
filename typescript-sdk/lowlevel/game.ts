@@ -1,5 +1,5 @@
-import * as msg from "../Protocol_pb.js";
-import * as types from "../types/index.js";
+import * as msg from "#sdk/Protocol_pb.js";
+import * as types from "#sdk/types/index.js";
 import { Session } from "./session.js";
 
 

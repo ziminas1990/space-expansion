@@ -1,4 +1,4 @@
-import * as space from "space";
+import * as space from "@spx/sdk";
 import { toJsonString } from "@bufbuild/protobuf";
 import * as api from "../common/api.js";
 

@@ -2,11 +2,11 @@ import {
     approach_to_plan,
     follow_flight_plan,
     prepare_flight_plan,
+    type Position,
     type Ship,
     type SystemClock,
-} from "../../../highlevel/index.js";
-import type { Position } from "../../../types/index.js";
-import { almostNull } from "../../../utils/vector.js";
+} from "@spx/sdk/highlevel";
+import { almostNull } from "../util.js";
 import { find_most_powerful_engine } from "../equipment.js";
 import { BaseTask } from "./base_task.js";
 

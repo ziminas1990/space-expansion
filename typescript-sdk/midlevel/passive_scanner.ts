@@ -1,6 +1,6 @@
-import * as lowlevel from "../lowlevel/index.js";
-import { PhysicalObject } from "../types/index.js";
-import { Status } from "../types/status.js";
+import * as lowlevel from "#sdk/lowlevel/index.js";
+import { PhysicalObject } from "#sdk/types/index.js";
+import { Status } from "#sdk/types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
 import { ModuleType } from "./module_type.js";
 

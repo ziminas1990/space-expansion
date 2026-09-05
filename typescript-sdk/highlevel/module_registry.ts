@@ -1,5 +1,5 @@
-import * as midlevel from "../midlevel/index.js";
-import { Status } from "../types/status.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { Status } from "#sdk/types/status.js";
 import { EventEmitter } from "./events.js";
 import type { BaseModule } from "./base_module.js";
 import type { CreateModule } from "./factory.js";

@@ -1,5 +1,5 @@
-import * as midlevel from "../midlevel/index.js";
-import { Status } from "../types/status.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { Status } from "#sdk/types/status.js";
 import { EventEmitter } from "./events.js";
 
 export type GameScore = midlevel.GameScore;

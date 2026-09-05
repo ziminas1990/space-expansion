@@ -1,6 +1,6 @@
-import * as midlevel from "../midlevel/index.js";
-import { Status } from "../types/index.js";
-import { Cached } from "../utils/cache.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { Status } from "#sdk/types/index.js";
+import { Cached } from "#sdk/utils/cache.js";
 import type { BaseModule } from "./base_module.js";
 
 export type EngineSpecification = midlevel.EngineSpecification;

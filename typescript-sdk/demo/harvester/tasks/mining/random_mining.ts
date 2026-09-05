@@ -1,5 +1,4 @@
-import { ModuleType, type SystemClock } from "../../../../highlevel/index.js";
-import type { PhysicalObject } from "../../../../types/index.js";
+import { ModuleType, type PhysicalObject, type SystemClock } from "@spx/sdk/highlevel";
 import type { Ship } from "../../ship.js";
 import type { TacticalCore } from "../../tactical_core.js";
 import { distance_to, sleep } from "../../util.js";

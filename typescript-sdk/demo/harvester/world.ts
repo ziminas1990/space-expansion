@@ -1,4 +1,4 @@
-import type { PhysicalObject } from "../../types/index.js";
+import type { PhysicalObject } from "@spx/sdk/highlevel";
 
 export class World {
     readonly asteroids = new Map<number, PhysicalObject>();

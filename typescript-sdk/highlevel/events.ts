@@ -1,4 +1,4 @@
-import { Status } from "../types/status.js";
+import { Status } from "#sdk/types/status.js";
 
 export class EventEmitter<
     Events extends { [K in keyof Events]: (...args: any[]) => Promise<void> | void }

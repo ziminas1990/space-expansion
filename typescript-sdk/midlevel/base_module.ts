@@ -1,5 +1,5 @@
-import { Status } from "../types/status.js";
-import * as lowlevel from "../lowlevel/index.js";
+import { Status } from "#sdk/types/status.js";
+import * as lowlevel from "#sdk/lowlevel/index.js";
 
 export type OpenSessionCallback = () => Promise<[Status, lowlevel.Session | undefined]>;
 export type CreateLowlevelInterface<I> = (session: lowlevel.Session) => Promise<[Status, I | undefined]>;

@@ -1,0 +1,17 @@
+{
+    "name": "harvester",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/main.js"
+    },
+    "dependencies": {
+        "@spx/sdk": "file:../.."
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.10",
+        "typescript": "^7.0.2"
+    }
+}

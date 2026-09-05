@@ -1,4 +1,4 @@
-import type { Vector } from "../types/common.js";
+import type { Vector } from "#sdk/types/common.js";
 
 const ALMOST_NULL_DELTA = 0.001;
 const COLLINEAR_DELTA = 0.02;

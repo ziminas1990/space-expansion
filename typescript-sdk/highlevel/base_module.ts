@@ -1,5 +1,5 @@
-import type { MidlevelModule, ModuleType } from "../midlevel/module_types.js";
-import { Status } from "../types/status.js";
+import type { MidlevelModule, ModuleType } from "#sdk/midlevel/module_types.js";
+import { Status } from "#sdk/types/status.js";
 
 export interface BaseModule {
     readonly type: ModuleType;

@@ -84,7 +84,23 @@ Do not copy Python classes across layers mechanically. Decide whether a concept
 is a protocol interface, a composed server operation, or a world entity, then
 place it in lowlevel, midlevel, or highlevel respectively.
 
+## Package
+
+The installable package is `@spx/sdk`. Consumers import the public API through
+package specifiers such as `@spx/sdk/highlevel` and `@spx/sdk/highlevel/ship`.
+Do not import SDK sources by relative path from applications.
+
+Inside the library, cross-layer imports use Node subpath imports from
+`package.json` (`#sdk/midlevel/…`, `#sdk/types/…`, `#sdk/Protocol_pb.js`).
+Same-folder imports stay relative (`./ship.js`). Applications never use `#…`
+specifiers.
+
+The harvester is a separate private application in `demo/harvester/`. It
+depends on `@spx/sdk` and is not part of the library build. Start it with
+`npm run harvester` from this directory.
+
 ## Build
 
 Run `npm run build` from `typescript-sdk/`. It regenerates protobuf sources and
-runs TypeScript compilation.
+runs TypeScript compilation. The library compile does not include tests or
+demos.

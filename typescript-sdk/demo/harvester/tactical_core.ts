@@ -4,7 +4,7 @@ import {
     type ResourceContainerContent,
     type Ship as RemoteShip,
     type SystemClock,
-} from "../../highlevel/index.js";
+} from "@spx/sdk/highlevel";
 import { create_logger } from "./log.js";
 import { Ship } from "./ship.js";
 import { RandomMining } from "./tasks/mining/random_mining.js";

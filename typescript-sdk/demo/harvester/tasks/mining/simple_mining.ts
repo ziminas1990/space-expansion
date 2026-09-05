@@ -2,9 +2,9 @@ import type {
     AsteroidMiner,
     ResourceContainer,
     ResourceContainerContent,
+    ResourceItem,
     SystemClock,
-} from "../../../../highlevel/index.js";
-import type { ResourceItem } from "../../../../types/index.js";
+} from "@spx/sdk/highlevel";
 import { find_most_efficient_miner, find_most_free_container } from "../../equipment.js";
 import type { Ship } from "../../ship.js";
 import type { TacticalCore } from "../../tactical_core.js";

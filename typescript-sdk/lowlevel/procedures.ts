@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
-import * as admin from "../Privileged_pb.js";
-import * as transport from "../transport/index.js"
-import { Status } from "../types/status.js";
+import * as admin from "#sdk/Privileged_pb.js";
+import * as transport from "#sdk/transport/index.js"
+import { Status } from "#sdk/types/status.js";
 import { AccessPanel } from "./access_panel.js"
 import { Administrator, privilegedDecoder } from "./administrator.js";
 import { RootSession } from "./root_session.js";

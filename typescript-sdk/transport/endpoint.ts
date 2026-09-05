@@ -1,4 +1,4 @@
-import { Status } from '../types/status.js';
+import { Status } from '#sdk/types/status.js';
 import { ITerminal } from './abstract.js';
 
 // Endpoint stores all incoming messages into an internal queue and allows to

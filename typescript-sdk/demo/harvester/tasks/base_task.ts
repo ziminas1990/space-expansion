@@ -1,4 +1,4 @@
-import type { SystemClock } from "../../../highlevel/index.js";
+import type { SystemClock } from "@spx/sdk/highlevel";
 import { create_logger } from "../log.js";
 import { is_abort_error } from "../util.js";
 

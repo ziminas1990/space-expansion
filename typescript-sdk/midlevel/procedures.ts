@@ -1,6 +1,6 @@
-import * as lowlevel from '../lowlevel/index.js';
-import * as transport from '../transport/index.js';
-import { Status } from '../types/status.js';
+import * as lowlevel from '#sdk/lowlevel/index.js';
+import * as transport from '#sdk/transport/index.js';
+import { Status } from '#sdk/types/status.js';
 import { Administrator } from "./administrator.js";
 import { OpenSessionCallback } from "./base_module.js"
 

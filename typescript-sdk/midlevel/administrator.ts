@@ -1,10 +1,10 @@
-import * as lowlevel from "../lowlevel/index.js";
+import * as lowlevel from "#sdk/lowlevel/index.js";
 import type {
     ObjectType,
     PhysicalObject,
     Position,
-} from "../types/index.js";
-import { Status } from "../types/status.js";
+} from "#sdk/types/index.js";
+import { Status } from "#sdk/types/status.js";
 
 export type AdministratorClockStatus = lowlevel.AdministratorClockStatus;
 export type SpawnComposition = lowlevel.SpawnComposition;

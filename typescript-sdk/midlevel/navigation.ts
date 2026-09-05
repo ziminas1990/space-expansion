@@ -1,6 +1,6 @@
-import * as lowlevel from "../lowlevel/index.js";
-import { Status } from "../types/status.js";
-import { Position } from "../types/index.js";
+import * as lowlevel from "#sdk/lowlevel/index.js";
+import { Status } from "#sdk/types/status.js";
+import { Position } from "#sdk/types/index.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
 
 export class Navigation extends BaseModule<lowlevel.Navigation> {

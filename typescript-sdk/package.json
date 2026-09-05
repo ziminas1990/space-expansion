@@ -1,10 +1,52 @@
 {
-    "name": "space",
+    "name": "@spx/sdk",
     "version": "0.0.1",
     "type": "module",
-    "main": "dist/index.js",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "imports": {
+        "#sdk/*": {
+            "development": "./*",
+            "default": "./dist/*"
+        }
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./highlevel": {
+            "types": "./dist/highlevel/index.d.ts",
+            "import": "./dist/highlevel/index.js",
+            "default": "./dist/highlevel/index.js"
+        },
+        "./highlevel/*": {
+            "types": "./dist/highlevel/*.d.ts",
+            "import": "./dist/highlevel/*.js",
+            "default": "./dist/highlevel/*.js"
+        },
+        "./midlevel": {
+            "types": "./dist/midlevel/index.d.ts",
+            "import": "./dist/midlevel/index.js",
+            "default": "./dist/midlevel/index.js"
+        },
+        "./lowlevel": {
+            "types": "./dist/lowlevel/index.d.ts",
+            "import": "./dist/lowlevel/index.js",
+            "default": "./dist/lowlevel/index.js"
+        },
+        "./transport": {
+            "types": "./dist/transport/index.d.ts",
+            "import": "./dist/transport/index.js",
+            "default": "./dist/transport/index.js"
+        },
+        "./package.json": "./package.json"
+    },
     "files": [
-        "/dist"
+        "dist",
+        "!dist/demo",
+        "!dist/tests"
     ],
     "dependencies": {
         "@bufbuild/protobuf": "^2.14.0",
@@ -21,6 +63,6 @@
         "compile": "tsc",
         "build": "npm run regenerate && npm run compile",
         "test": "npm run regenerate && vitest run --reporter=verbose",
-        "harvester": "node dist/demo/harvester/main.js"
+        "harvester": "npm run build && npm --prefix demo/harvester install && npm --prefix demo/harvester run build && node demo/harvester/dist/main.js"
     }
 }

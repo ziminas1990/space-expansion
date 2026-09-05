@@ -10,7 +10,7 @@ import { Shipyard } from "./shipyard.js";
 import { SystemClock } from "./system_clock.js";
 
 // TODO: get rid of re-export
-export { ModuleType } from "../midlevel/module_types.js";
+export { ModuleType } from "#sdk/midlevel/module_types.js";
 
 export type HighlevelModule =
     | Ship

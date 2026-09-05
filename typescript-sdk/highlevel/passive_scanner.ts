@@ -1,9 +1,11 @@
-import * as midlevel from "../midlevel/index.js";
-import { PhysicalObject, Status } from "../types/index.js";
-import { Cached } from "../utils/cache.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { PhysicalObject, Status } from "#sdk/types/index.js";
+import { Cached } from "#sdk/utils/cache.js";
 import { EventEmitter } from "./events.js";
 import type { BaseModule } from "./base_module.js";
-import { predict_position } from "../utils/predictor.js";
+import { predict_position } from "#sdk/utils/predictor.js";
+
+export type { PhysicalObject };
 
 export type PassiveScannerSpecification = midlevel.PassiveScannerSpecification;
 

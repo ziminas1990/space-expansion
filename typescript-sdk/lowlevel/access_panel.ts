@@ -1,7 +1,7 @@
 import { create } from "@bufbuild/protobuf";
-import * as msg from "../Protocol_pb.js"
-import * as transport from "../transport/index.js"
-import { Status } from "../types/status.js";
+import * as msg from "#sdk/Protocol_pb.js"
+import * as transport from "#sdk/transport/index.js"
+import { Status } from "#sdk/types/status.js";
 
 export type AccessGranted = {
     port: number,

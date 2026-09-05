@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { login } from "../../highlevel/index.js";
+import { login } from "@spx/sdk/highlevel";
 import { create_logger, set_log_level } from "./log.js";
 import { TacticalCore } from "./tactical_core.js";
 

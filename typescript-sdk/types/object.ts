@@ -1,4 +1,4 @@
-import * as proto from "../CommonTypes_pb.js";
+import * as proto from "#sdk/CommonTypes_pb.js";
 import { Position, positionFromKinematics } from "./common.js";
 
 export type ObjectType = "unknown" | "asteroid" | "ship";

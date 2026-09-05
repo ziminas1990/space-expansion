@@ -1,6 +1,6 @@
-import * as midlevel from "../midlevel/index.js";
-import { Position, Status } from "../types/index.js";
-import { Cached } from "../utils/cache.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { Position, Status } from "#sdk/types/index.js";
+import { Cached } from "#sdk/utils/cache.js";
 import type { CreateModule } from "./factory.js";
 import { ModuleRegistry } from "./module_registry.js";
 import { Navigation } from "./navigation.js";

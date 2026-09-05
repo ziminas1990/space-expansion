@@ -1,7 +1,7 @@
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
-import * as common from "../CommonTypes_pb.js";
-import * as admin from "../Privileged_pb.js";
-import * as transport from "../transport/index.js";
+import * as common from "#sdk/CommonTypes_pb.js";
+import * as admin from "#sdk/Privileged_pb.js";
+import * as transport from "#sdk/transport/index.js";
 import {
     objectTypeToProtobuf,
     physicalObjectFromProtobuf,
@@ -12,8 +12,8 @@ import {
     type Position,
     type ResourceItem,
     type ResourceType,
-} from "../types/index.js";
-import { Status } from "../types/status.js";
+} from "#sdk/types/index.js";
+import { Status } from "#sdk/types/status.js";
 
 export type SpawnComposition =
     | readonly ResourceItem[]

@@ -1,8 +1,10 @@
-import * as midlevel from "../midlevel/index.js";
-import { ResourceItem, Status } from "../types/index.js";
-import { Cached } from "../utils/cache.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { ResourceItem, Status } from "#sdk/types/index.js";
+import { Cached } from "#sdk/utils/cache.js";
 import { EventEmitter } from "./events.js";
 import type { BaseModule } from "./base_module.js";
+
+export type { ResourceItem };
 
 export type ResourceContainerContent = midlevel.ResourceContainerContent;
 export type ResourceContainerStatus = midlevel.ResourceContainerStatus;

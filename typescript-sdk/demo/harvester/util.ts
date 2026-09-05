@@ -1,4 +1,4 @@
-import type { Position } from "../../types/index.js";
+import type { Position } from "@spx/sdk/highlevel";
 
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -42,4 +42,11 @@ export function distance_to(left: Position, right: Position): number {
 
 export function random_int(max_inclusive: number): number {
     return Math.floor(Math.random() * (max_inclusive + 1));
+}
+
+export function almostNull(
+    vector: readonly [number, number],
+    delta = 0.001,
+): boolean {
+    return vector[0] * vector[0] + vector[1] * vector[1] < delta;
 }

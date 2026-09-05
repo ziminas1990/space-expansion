@@ -10,8 +10,8 @@ export {
 } from "./flight_plan.js";
 export type { FlightClock } from "./flight_plan.js";
 export { EventEmitter } from "./events.js";
-export { Cached } from "../utils/cache.js";
-export { TimePoint } from "../types/time_point.js";
+export { Cached } from "#sdk/utils/cache.js";
+export { TimePoint } from "#sdk/types/time_point.js";
 export { ModuleType } from "./module_types.js";
 export type { BaseModule } from "./base_module.js";
 export type { HighlevelModule } from "./module_types.js";
@@ -33,7 +33,10 @@ export type {
     AsteroidScannerStatus,
 } from "./asteroid_scanner.js";
 export { PassiveScanner } from "./passive_scanner.js";
-export type { PassiveScannerSpecification } from "./passive_scanner.js";
+export type {
+    PassiveScannerSpecification,
+    PhysicalObject,
+} from "./passive_scanner.js";
 export { Shipyard } from "./shipyard.js";
 export type {
     ShipyardSpecification,
@@ -50,6 +53,7 @@ export { ResourceContainer } from "./resource_container.js";
 export type {
     ResourceContainerContent,
     ResourceContainerStatus,
+    ResourceItem,
     TransferCallback as ResourceContainerTransferCallback,
 } from "./resource_container.js";
 export { SystemClock } from "./system_clock.js";

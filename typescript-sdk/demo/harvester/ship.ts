@@ -2,7 +2,7 @@ import {
     ModuleType,
     type Ship as RemoteShip,
     type SystemClock,
-} from "../../highlevel/index.js";
+} from "@spx/sdk/highlevel";
 import { find_most_ranged_scanner, has_modules } from "./equipment.js";
 import { Navigator } from "./navigator.js";
 import type { World } from "./world.js";

@@ -1,4 +1,4 @@
-import { Status } from "../types/status.js";
+import { Status } from "#sdk/types/status.js";
 import { IChannel, ITerminal } from "./abstract.js"
 
 export class Decoder<U, D> implements ITerminal<D>, IChannel<U> {

@@ -1,6 +1,6 @@
-import * as midlevel from "../midlevel/index.js"
-import * as transport from "../transport/index.js"
-import { Status } from "../types/status.js";
+import * as midlevel from "#sdk/midlevel/index.js"
+import * as transport from "#sdk/transport/index.js"
+import { Status } from "#sdk/types/status.js";
 import { create_module } from "./factory.js";
 import { Player } from "./player.js"
 

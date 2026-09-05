@@ -1,5 +1,4 @@
-import type { Position } from "../../types/index.js";
-import type { Ship as RemoteShip, SystemClock } from "../../highlevel/index.js";
+import type { Position, Ship as RemoteShip, SystemClock } from "@spx/sdk/highlevel";
 import { MoveTo } from "./tasks/navigation.js";
 
 export class Navigator {

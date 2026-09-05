@@ -1,4 +1,4 @@
-import { Status } from "../types/status.js";
+import { Status } from "#sdk/types/status.js";
 
 // Something that receives and handle incoming meesages of type T
 export abstract class ITerminal<T> {

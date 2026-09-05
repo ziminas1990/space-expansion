@@ -1,5 +1,5 @@
-import * as midlevel from "../midlevel/index.js";
-import { ServerTimestamp, Status, TimePoint } from "../types/index.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { ServerTimestamp, Status, TimePoint } from "#sdk/types/index.js";
 import type { BaseModule } from "./base_module.js";
 
 export type MonitoringCallback =

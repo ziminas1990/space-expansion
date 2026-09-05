@@ -6,7 +6,7 @@ import {
     type ResourceContainer,
     type Ship,
     type Shipyard,
-} from "../../highlevel/index.js";
+} from "@spx/sdk/highlevel";
 
 export function has_modules(ship: Ship, types: ModuleType[]): boolean {
     return types.every((type) => ship.get_all(type).length > 0);

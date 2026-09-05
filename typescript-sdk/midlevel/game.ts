@@ -1,5 +1,5 @@
-import * as lowlevel from "../lowlevel/index.js";
-import { Status } from "../types/status.js";
+import * as lowlevel from "#sdk/lowlevel/index.js";
+import { Status } from "#sdk/types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
 
 export type GameScore = lowlevel.GameScore;

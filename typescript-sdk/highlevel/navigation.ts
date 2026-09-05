@@ -1,7 +1,7 @@
-import * as midlevel from "../midlevel/index.js";
-import { Position, Status } from "../types/index.js";
-import { Cached } from "../utils/cache.js";
-import { predict_position } from "../utils/predictor.js";
+import * as midlevel from "#sdk/midlevel/index.js";
+import { Position, Status } from "#sdk/types/index.js";
+import { Cached } from "#sdk/utils/cache.js";
+import { predict_position } from "#sdk/utils/predictor.js";
 
 export type { Position };
 

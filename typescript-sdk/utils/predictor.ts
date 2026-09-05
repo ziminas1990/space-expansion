@@ -1,4 +1,4 @@
-import type { Position } from "../types/common.js";
+import type { Position } from "#sdk/types/common.js";
 
 // Linear kinematics: p(t) = p0 + v * dt. Velocity is treated as constant.
 export function predict_position(position: Position, at_us: bigint): Position {

@@ -1,6 +1,6 @@
-import * as lowlevel from "../lowlevel/index.js";
+import * as lowlevel from "#sdk/lowlevel/index.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
-import { Status } from "../types/status.js";
+import { Status } from "#sdk/types/status.js";
 
 export type ModuleInfo = lowlevel.ModuleInfo & {
     open_session_cb: OpenSessionCallback;
