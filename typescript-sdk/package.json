@@ -20,6 +20,7 @@
         "regenerate": "protoc -I . --plugin ./node_modules/.bin/protoc-gen-es --es_out . --es_opt target=ts --es_opt import_extension=js --proto_path=../server/ ../server/*.proto",
         "compile": "tsc",
         "build": "npm run regenerate && npm run compile",
-        "test": "npm run regenerate && vitest run --reporter=verbose"
+        "test": "npm run regenerate && vitest run --reporter=verbose",
+        "harvester": "node dist/demo/harvester/main.js"
     }
 }

@@ -15,6 +15,15 @@ export class EventEmitter<
         return Status.ok();
     }
 
+    off<K extends keyof Events>(event: K, listener: Events[K]): Status {
+        const handlers = this.listeners[event];
+        if (!handlers) {
+            return Status.ok();
+        }
+        this.listeners[event] = handlers.filter((item) => item !== listener) as Events[K][];
+        return Status.ok();
+    }
+
     protected async emit<K extends keyof Events>(
         event: K,
         ...params: Parameters<Events[K]>
