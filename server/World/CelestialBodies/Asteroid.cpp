@@ -89,7 +89,9 @@ ResourcesArray Asteroid::yield(double amount)
 
   const double avgDensity = 1 / m_composition.calculateTotalVolume();
   const double volume = (mass / avgDensity);
-  const double newRadius = pow(volume * 3 / (4 * M_PI), 1/3);
+  // 1.0/3.0: integer 1/3 is 0 in C++, and pow(x, 0) collapses every mined
+  // asteroid to radius 1.
+  const double newRadius = pow(volume * 3.0 / (4.0 * M_PI), 1.0 / 3.0);
   setWeight(mass);
   setRadius(newRadius);
 
