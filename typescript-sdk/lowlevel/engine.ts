@@ -72,7 +72,7 @@ export class Engine {
         y: number,
         thrust: number,
         duration_ms: number = 0,
-        at?: bigint): Promise<types.Status>
+        at?: number): Promise<types.Status>
     {
         const request = create(msg.IEngineSchema, {
             choice: {
@@ -83,9 +83,9 @@ export class Engine {
         return this.send(request, at);
     }
 
-    private async send(request: msg.IEngine, timestamp?: bigint): Promise<types.Status> {
+    private async send(request: msg.IEngine, timestamp?: number): Promise<types.Status> {
         const message = create(msg.MessageSchema, {
-            timestamp: timestamp ?? BigInt(0),
+            timestamp: BigInt(timestamp ?? 0),
             choice: { case: "engine", value: request },
         });
         return this.session.send(message);

@@ -40,7 +40,7 @@ export class Ship {
         }
         const state = response.choice.value as msg.IShip_State;
         return [types.Status.ok(), {
-            timestamp: Number(timestamp),
+            timestamp,
             position: types.positionFromProtobuf(state.position, timestamp),
             weight: state.weight ? Number(state.weight.value) : undefined,
         }];
@@ -54,16 +54,20 @@ export class Ship {
     }
 
     private async wait(timeout_ms: number = 500):
-        Promise<[types.Status, msg.IShip | undefined, bigint]> {
+        Promise<[types.Status, msg.IShip | undefined, number]> {
         const [status, response] = await this.session.wait(timeout_ms);
         if (!status.is_ok() || !response) {
-            return [status.wrap("no response"), undefined, BigInt(0)];
+            return [status.wrap("no response"), undefined, 0];
         }
         if (response.choice.case != "ship") {
             return [types.Status.fail(`got unexpected message ${response.choice.case}`),
-                    undefined, BigInt(0)];
+                    undefined, 0];
         }
-        return [types.Status.ok(), response.choice.value, response.timestamp];
+        return [
+            types.Status.ok(),
+            response.choice.value,
+            types.asNumber(response.timestamp)
+        ];
     }
 
 }

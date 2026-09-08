@@ -28,7 +28,7 @@ export function objectTypeToProtobuf(value: ObjectType): proto.ObjectType {
 
 export function physicalObjectFromProtobuf(
     object: proto.PhysicalObject,
-    timestamp: bigint): PhysicalObject
+    timestamp: number): PhysicalObject
 {
     return {
         object_type: objectTypeFromProtobuf(object.objectType),

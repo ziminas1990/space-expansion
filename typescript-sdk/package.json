@@ -41,6 +41,21 @@
             "import": "./dist/transport/index.js",
             "default": "./dist/transport/index.js"
         },
+        "./types": {
+            "types": "./dist/types/index.d.ts",
+            "import": "./dist/types/index.js",
+            "default": "./dist/types/index.js"
+        },
+        "./types/*": {
+            "types": "./dist/types/*.d.ts",
+            "import": "./dist/types/*.js",
+            "default": "./dist/types/*.js"
+        },
+        "./utils": {
+            "types": "./dist/utils/index.d.ts",
+            "import": "./dist/utils/index.js",
+            "default": "./dist/utils/index.js"
+        },
         "./package.json": "./package.json"
     },
     "files": [
@@ -62,7 +77,12 @@
         "regenerate": "protoc -I . --plugin ./node_modules/.bin/protoc-gen-es --es_out . --es_opt target=ts --es_opt import_extension=js --proto_path=../server/ ../server/*.proto",
         "compile": "tsc",
         "build": "npm run regenerate && npm run compile",
+        "build_harvester": "npm --prefix demo/harvester install && npm --prefix demo/harvester run build",
+        "build_tactical_map": "npm --prefix demo/tactical-map install && npm --prefix demo/tactical-map run build",
+        "build_demo": "npm run build_harvester && npm run build_tactical_map",
+        "build_all": "npm run build && npm run build_demo",
         "test": "npm run regenerate && vitest run --reporter=verbose",
-        "harvester": "npm run build && npm --prefix demo/harvester install && npm --prefix demo/harvester run build && node demo/harvester/dist/main.js"
+        "harvester": "npm run build && npm run build_harvester && node demo/harvester/dist/main.js",
+        "tactical-map": "npm run build && npm run build_tactical_map && node demo/tactical-map/dist/backend/main.js"
     }
 }

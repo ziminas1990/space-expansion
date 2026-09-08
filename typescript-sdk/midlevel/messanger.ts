@@ -7,7 +7,7 @@ export type MessangerStatus = lowlevel.MessangerStatus;
 export type MessangerRequest = lowlevel.MessangerRequest;
 export type MessangerServicesList = {
     services: string[];
-    timestamp: bigint;
+    timestamp: number;
 };
 
 export class MessangerService {
@@ -152,7 +152,7 @@ export class Messanger extends BaseModule<lowlevel.Messanger> {
         }
 
         const services: string[] = [];
-        let timestamp = 0n;
+        let timestamp = 0;
         while (true) {
             const [status, page] = await session.wait_services_list();
             if (!status.is_ok() || !page) {

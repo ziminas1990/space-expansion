@@ -27,21 +27,21 @@ export class SystemClock {
                     undefined];
         }
         return [types.Status.ok(), {
-            real_us: types.asUint64(response.choice.value),
+            real_us: types.asNumber(response.choice.value),
             ingame_us: timestamp,
         }];
     }
 
-    async send_wait_until(time_us: bigint): Promise<types.Status> {
+    async send_wait_until(time_us: number): Promise<types.Status> {
         const request = create(msg.ISystemClockSchema, {
-            choice: { case: "waitUntil", value: time_us },
+            choice: { case: "waitUntil", value: BigInt(time_us) },
         });
         return this.send(request);
     }
 
-    async send_wait_for(period_us: bigint): Promise<types.Status> {
+    async send_wait_for(period_us: number): Promise<types.Status> {
         const request = create(msg.ISystemClockSchema, {
-            choice: { case: "waitFor", value: period_us },
+            choice: { case: "waitFor", value: BigInt(period_us) },
         });
         return this.send(request);
     }
@@ -58,7 +58,7 @@ export class SystemClock {
                     undefined];
         }
         return [types.Status.ok(), {
-            real_us: types.asUint64(response.choice.value),
+            real_us: types.asNumber(response.choice.value),
             ingame_us: timestamp,
         }];
     }
@@ -78,17 +78,17 @@ export class SystemClock {
     }
 
     private async wait(timeout_ms: number = 500)
-    : Promise<[types.Status, msg.ISystemClock | undefined, bigint]>
+    : Promise<[types.Status, msg.ISystemClock | undefined, number]>
     {
         const [status, response] = await this.session.wait(timeout_ms);
         if (!status.is_ok() || !response) {
-            return [status.wrap("no response"), undefined, BigInt(0)];
+            return [status.wrap("no response"), undefined, 0];
         }
         if (response.choice.case != "systemClock") {
             return [types.Status.fail(`got unexpected message ${response.choice.case}`),
-                    undefined, BigInt(0)];
+                    undefined, 0];
         }
-        return [types.Status.ok(), response.choice.value, types.asUint64(response.timestamp)];
+        return [types.Status.ok(), response.choice.value, types.asNumber(response.timestamp)];
     }
 
 }

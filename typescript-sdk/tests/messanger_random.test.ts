@@ -90,11 +90,11 @@ function isStatus(status: Status, code: string): boolean {
 
 class Interval {
     constructor(
-        readonly begin: bigint,
-        readonly end: bigint,
+        readonly begin: number,
+        readonly end: number,
     ) {}
 
-    contains(point: bigint): boolean {
+    contains(point: number): boolean {
         return this.begin <= point && point <= this.end;
     }
 
@@ -102,13 +102,11 @@ class Interval {
         if (!(0 < 2 * margin && 2 * margin < 1)) {
             throw new Error("margin must satisfy 0 < 2 * margin < 1");
         }
-        const marginUs = BigInt(
-            Math.round(Number(this.end - this.begin) * margin),
-        );
+        const marginUs = Math.round((this.end - this.begin) * margin);
         return new Interval(this.begin + marginUs, this.end - marginUs);
     }
 
-    cutByNow(now: bigint): Interval {
+    cutByNow(now: number): Interval {
         return new Interval(
             now > this.begin ? now : this.begin,
             now > this.end ? now : this.end,
@@ -119,12 +117,12 @@ class Interval {
         if (!(0 < lengthPart && lengthPart < 1)) {
             throw new Error("lengthPart must satisfy 0 < lengthPart < 1");
         }
-        const frameLength = Number(this.end - this.begin);
+        const frameLength = this.end - this.begin;
         const length = Math.round(frameLength * lengthPart);
         const leftOffset = rng.randomInt(0, frameLength - length);
         return new Interval(
-            this.begin + BigInt(leftOffset),
-            this.begin + BigInt(leftOffset + length),
+            this.begin + leftOffset,
+            this.begin + leftOffset + length,
         );
     }
 }
@@ -179,11 +177,11 @@ class DuplicatingService {
         return request.repeat(this.multiplier);
     }
 
-    isActive(now: bigint, margin = 0.05): boolean {
+    isActive(now: number, margin = 0.05): boolean {
         return this.lifetime.withMargin(margin).contains(now) && this.registered;
     }
 
-    isInactive(now: bigint): boolean {
+    isInactive(now: number): boolean {
         return !this.lifetime.contains(now) && !this.registered;
     }
 
@@ -245,11 +243,11 @@ class Environment {
         private rng: Randomizer,
     ) {}
 
-    getActiveServices(now: bigint): DuplicatingService[] {
+    getActiveServices(now: number): DuplicatingService[] {
         return this.services.filter((service) => service.isActive(now));
     }
 
-    getNonActiveServices(now: bigint): DuplicatingService[] {
+    getNonActiveServices(now: number): DuplicatingService[] {
         return this.services.filter(
             (service) => service.isInactive(now) && service.done(),
         );
@@ -332,7 +330,7 @@ class StressPlayer {
         return Status.ok();
     }
 
-    private async sendRandomRequest(now: bigint): Promise<Status> {
+    private async sendRandomRequest(now: number): Promise<Status> {
         const candidates = this.env.getActiveServices(now);
         if (candidates.length === 0) {
             return Status.ok();
@@ -357,7 +355,7 @@ class StressPlayer {
     }
 
     private async sendRandomRequestToInactiveService(
-        now: bigint,
+        now: number,
     ): Promise<Status> {
         const candidates = this.env.getNonActiveServices(now);
         if (candidates.length === 0) {
@@ -412,8 +410,8 @@ test.skipIf(!hasServerBinary)(
                 "main session time",
             );
             const lifetime = new Interval(
-                startedAt + 10_000_000n,
-                startedAt + 130_000_000n,
+                startedAt + 10_000_000,
+                startedAt + 130_000_000,
             );
 
             // 4. spawn a number of services
@@ -446,7 +444,7 @@ test.skipIf(!hasServerBinary)(
                 // 6.2 wait 200ms of ingame time
                 now = expectOk(
                     await mainSession.clock.wait_for(
-                        200_000n,
+                        200_000,
                         CLOCK_WAIT_TIMEOUT_MS,
                     ),
                     "wait 200ms",
@@ -480,8 +478,8 @@ test.skipIf(!hasServerBinary)(
                 "main session time",
             );
             const lifetime = new Interval(
-                startedAt + 10_000_000n,
-                startedAt + 130_000_000n,
+                startedAt + 10_000_000,
+                startedAt + 130_000_000,
             );
 
             // 4. spawn a number of services
@@ -526,7 +524,7 @@ test.skipIf(!hasServerBinary)(
                 // 6.2 wait 100ms of ingame time
                 now = expectOk(
                     await mainSession.clock.wait_for(
-                        100_000n,
+                        100_000,
                         CLOCK_WAIT_TIMEOUT_MS,
                     ),
                     "wait 100ms",

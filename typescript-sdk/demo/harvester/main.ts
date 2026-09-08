@@ -1,6 +1,4 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
 
 import { login } from "@spx/sdk/highlevel";
 import { create_logger, set_log_level } from "./log.js";
@@ -162,7 +160,23 @@ function install_stop_signals(stop: AbortController): void {
     process.on("SIGTERM", request_stop);
 }
 
-async function async_main(credentials: Credentials): Promise<number> {
+async function run(): Promise<number> {
+    let args: Args;
+    try {
+        args = parse_args();
+    } catch (error) {
+        process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
+        return 2;
+    }
+    set_log_level(args.log_level);
+    let credentials: Credentials;
+    try {
+        credentials = load_credentials(args);
+    } catch (error) {
+        process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
+        return 2;
+    }
+
     const stop = new AbortController();
     install_stop_signals(stop);
 
@@ -233,42 +247,13 @@ function wait_signal(signal: AbortSignal): Promise<void> {
     });
 }
 
-export function run(argv?: string[]): void {
-    let args: Args;
-    try {
-        args = parse_args(argv);
-    } catch (error) {
-        process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
-        process.exit(2);
-    }
-    set_log_level(args.log_level);
-    let credentials: Credentials;
-    try {
-        credentials = load_credentials(args);
-    } catch (error) {
-        process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
-        process.exit(2);
-    }
-    async_main(credentials).then(
-        (code) => process.exit(code),
-        (error) => {
-            if (error instanceof Error && error.name === "AbortError") {
-                process.exit(0);
-            }
-            log.error(error instanceof Error ? error.stack ?? error.message : String(error));
-            process.exit(1);
-        },
-    );
-}
-
-function is_direct_run(): boolean {
-    const entry = process.argv[1];
-    if (!entry) {
-        return false;
-    }
-    return path.resolve(entry) === fileURLToPath(import.meta.url);
-}
-
-if (is_direct_run()) {
-    run();
-}
+run().then(
+    (code) => process.exit(code),
+    (error) => {
+        if (error instanceof Error && error.name === "AbortError") {
+            process.exit(0);
+        }
+        log.error(error instanceof Error ? error.stack ?? error.message : String(error));
+        process.exit(1);
+    },
+);

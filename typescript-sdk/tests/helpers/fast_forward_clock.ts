@@ -10,9 +10,9 @@ export class FastForwardClock {
     ) {}
 
     async wait_until(
-        time_us: bigint,
+        time_us: number,
         timeout_ms?: number,
-    ): Promise<[Status, bigint | undefined]> {
+    ): Promise<[Status, number | undefined]> {
         await this.clock.fastForward(this.multiplier, 1_000);
         try {
             return await this.systemClock.wait_until(
@@ -24,8 +24,8 @@ export class FastForwardClock {
         }
     }
 
-    private waitTimeoutMs(time_us: bigint): number {
-        const remaining_us = Number(time_us - this.systemClock.now_us());
+    private waitTimeoutMs(time_us: number): number {
+        const remaining_us = time_us - this.systemClock.now_us();
         const real_ms = remaining_us / this.multiplier / 1_000;
         return Math.max(1_000, real_ms * 1.5);
     }

@@ -45,7 +45,7 @@ export class Randomizer {
         if (options.rect !== undefined) {
             const { rect } = options;
             return {
-                timestamp: 0n,
+                timestamp: 0,
                 point: [
                     this.randomValue(rect.left, rect.right),
                     this.randomValue(rect.bottom, rect.top),
@@ -63,7 +63,7 @@ export class Randomizer {
         const alfa = this.randomValue(0, Math.PI * 2);
         const r = Math.sqrt(this.randomValue(0, options.radius ** 2));
         return {
-            timestamp: 0n,
+            timestamp: 0,
             point: [
                 options.center.point[0] + r * Math.cos(alfa),
                 options.center.point[1] + r * Math.sin(alfa),

@@ -132,7 +132,7 @@ async function findAsteroids(
     const scanner = getPassiveScanner(minerShip, "perceiver");
     const shipPosition = expectOk(await minerShip.get_position(), "ship position");
     const startAtUs = expectOk(await clock.time(), "scan start time");
-    const deadlineUs = startAtUs + 10_000n * 1_000n;
+    const deadlineUs = startAtUs + 10_000 * 1_000;
     const scanned = new Map<number, PhysicalObject>();
 
     expectStatus(

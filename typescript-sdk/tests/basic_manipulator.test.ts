@@ -20,7 +20,7 @@ import {
 } from "./helpers/index.js";
 
 const asteroidCount = 500;
-const oneMinuteUs = 60n * 1_000_000n;
+const oneMinuteUs = 60 * 1_000_000;
 
 function basicManipulatorConfiguration(): Configuration {
     return new Configuration({

@@ -68,7 +68,7 @@ test.skipIf(!hasServerBinary)(
             for (let i = 0; i < 3; i += 1) {
                 // 1.1 read ingame time and expect zero
                 const ingameTime = await clock.time();
-                expect(ingameTime, `iteration ${i}`).toBe(0n);
+                expect(ingameTime, `iteration ${i}`).toBe(0);
 
                 // 1.2 wait on wall clock
                 await sleep(100);
@@ -84,15 +84,15 @@ test.skipIf(!hasServerBinary)(
         await withServer(administratorConfiguration(), async ({ clock }) => {
             // 1. check frozen time is zero
             const ingameTime = await clock.time();
-            expect(ingameTime).toBe(0n);
+            expect(ingameTime).toBe(0);
 
             // 2. proceed frozen time by 2000ms
             const newIngameTime = await clock.proceed(2_000, 1_000);
             const timeDelta = newIngameTime - ingameTime;
 
             // 3. check time advanced by ~2000000us
-            expect(timeDelta).toBeGreaterThanOrEqual(1_999_000n);
-            expect(timeDelta).toBeLessThanOrEqual(2_001_000n);
+            expect(timeDelta).toBeGreaterThanOrEqual(1_999_000);
+            expect(timeDelta).toBeLessThanOrEqual(2_001_000);
         });
     },
 );
@@ -104,7 +104,7 @@ test.skipIf(!hasServerBinary)(
         await withServer(administratorConfiguration(), async ({ clock }) => {
             // 1. check frozen time is zero
             const ingameTime = await clock.time();
-            expect(ingameTime).toBe(0n);
+            expect(ingameTime).toBe(0);
 
             // 2. switch to real-time and wait 1s
             await clock.play();
@@ -113,8 +113,8 @@ test.skipIf(!hasServerBinary)(
             // 3. stop clock and check ~1s elapsed
             const stoppedAt = await clock.stop();
             // Rude check with 5% accuracy.
-            expect(stoppedAt).toBeGreaterThanOrEqual(950_000n);
-            expect(stoppedAt).toBeLessThanOrEqual(1_050_000n);
+            expect(stoppedAt).toBeGreaterThanOrEqual(950_000);
+            expect(stoppedAt).toBeLessThanOrEqual(1_050_000);
         });
     },
 );
@@ -217,7 +217,7 @@ test.skipIf(!hasServerBinary)(
 
             // 2. administrator spawns a new ship
             const spawnPosition: Position = {
-                timestamp: 0n,
+                timestamp: 0,
                 point: [1_500, -2_400],
                 velocity: [12, -7],
             };
@@ -261,7 +261,7 @@ test.skipIf(!hasServerBinary)(
             await clock.play();
             const { spawner } = administrator;
             const position: Position = {
-                timestamp: 0n,
+                timestamp: 0,
                 point: [0, 0],
                 velocity: [0, 0],
             };

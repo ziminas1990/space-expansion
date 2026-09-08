@@ -27,7 +27,7 @@ export class Engine extends BaseModule<lowlevel.Engine> {
     }
 
     async set_thrust(x: number, y: number, thrust: number,
-                     duration_ms: number = 0, at?: bigint): Promise<Status>
+                     duration_ms: number = 0, at?: number): Promise<Status>
     {
         return await this.run_no_return(
             async (session) => session.send_change_thrust(x, y, thrust, duration_ms, at));

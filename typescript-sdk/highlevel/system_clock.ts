@@ -3,7 +3,7 @@ import { ServerTimestamp, Status, TimePoint } from "#sdk/types/index.js";
 import type { BaseModule } from "./base_module.js";
 
 export type MonitoringCallback =
-    (time_us: bigint) => Promise<boolean> | boolean;
+    (time_us: number) => Promise<boolean> | boolean;
 
 const INITIAL_SYNC_SAMPLES = 10;
 const MIN_WAIT_TIMEOUT_MS = 100;
@@ -16,7 +16,7 @@ export class SystemClock implements BaseModule {
     private server_time: TimePoint | undefined = undefined;
     // Predicts current ingame time on the server. Same instance is returned
     // by time_point() and updated in place whenever a timestamp arrives.
-    private ingame_time = new TimePoint(0n);
+    private ingame_time = new TimePoint(0);
     private loops = new Set<Promise<Status>>();
     private tokens = new Set<{ stop: boolean }>();
     private in_callback = false;
@@ -43,7 +43,7 @@ export class SystemClock implements BaseModule {
         return this.ingame_time;
     }
 
-    now_us(): bigint {
+    now_us(): number {
         return this.ingame_time.predict_us();
     }
 
@@ -63,7 +63,7 @@ export class SystemClock implements BaseModule {
         const elapsed_us = (performance.now() - started_at_ms) * 1000;
         const rtt_us = elapsed_us / points.length;
         this.server_time = new TimePoint(
-            last.real_us + BigInt(Math.round(rtt_us / 2)));
+            last.real_us + Math.round(rtt_us / 2));
         this.ingame_time.update(last.ingame_us);
         return Status.ok();
     }
@@ -79,7 +79,7 @@ export class SystemClock implements BaseModule {
 
     async time(
         predict: boolean = true,
-    ): Promise<[Status, bigint | undefined]> {
+    ): Promise<[Status, number | undefined]> {
         const status = await this.sync();
         if (!status.is_ok()) {
             return [status, undefined];
@@ -88,9 +88,9 @@ export class SystemClock implements BaseModule {
     }
 
     async wait_until(
-        time_us: bigint,
+        time_us: number,
         timeout_ms?: number,
-    ): Promise<[Status, bigint | undefined]> {
+    ): Promise<[Status, number | undefined]> {
         const timeout = timeout_ms ?? this.auto_timeout_until(time_us);
         const [status, timestamp] = await this.rpc.wait_until(time_us, timeout);
         if (!status.is_ok() || !timestamp) {
@@ -101,9 +101,9 @@ export class SystemClock implements BaseModule {
     }
 
     async wait_for(
-        period_us: bigint,
+        period_us: number,
         timeout_ms?: number,
-    ): Promise<[Status, bigint | undefined]> {
+    ): Promise<[Status, number | undefined]> {
         const timeout = timeout_ms ?? this.auto_timeout_for(period_us);
         const [status, timestamp] = await this.rpc.wait_for(period_us, timeout);
         if (!status.is_ok() || !timestamp) {
@@ -140,25 +140,25 @@ export class SystemClock implements BaseModule {
         return Status.ok();
     }
 
-    private apply_timestamp(timestamp: ServerTimestamp): bigint {
+    private apply_timestamp(timestamp: ServerTimestamp): number {
         const deviation_us = this.server_time
             ? this.server_time.predict_us() - timestamp.real_us
-            : 0n;
+            : 0;
         this.ingame_time.update(timestamp.ingame_us + deviation_us);
         return this.ingame_time.us();
     }
 
-    private auto_timeout_until(time_us: bigint): number {
-        const dt_us = Number(time_us - this.ingame_time.predict_us());
+    private auto_timeout_until(time_us: number): number {
+        const dt_us = time_us - this.ingame_time.predict_us();
         if (dt_us > SHORT_WAIT_DT_US) {
             return (dt_us * AUTO_TIMEOUT_FACTOR) / 1000;
         }
         return MIN_WAIT_TIMEOUT_MS;
     }
 
-    private auto_timeout_for(period_us: bigint): number {
+    private auto_timeout_for(period_us: number): number {
         return Math.max(
-            (Number(period_us) * AUTO_TIMEOUT_FACTOR) / 1000,
+            (period_us * AUTO_TIMEOUT_FACTOR) / 1000,
             MIN_WAIT_TIMEOUT_MS);
     }
 

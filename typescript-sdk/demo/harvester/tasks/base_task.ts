@@ -3,7 +3,7 @@ import { create_logger } from "../log.js";
 import { is_abort_error } from "../util.js";
 
 export type JournalRecord = {
-    timestamp: bigint;
+    timestamp: number;
     action: string;
 };
 

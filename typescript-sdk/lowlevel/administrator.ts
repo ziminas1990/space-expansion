@@ -7,6 +7,7 @@ import {
     physicalObjectFromProtobuf,
     positionToProtobuf,
     resourceItemToProtobuf,
+    asNumber,
     type ObjectType,
     type PhysicalObject,
     type Position,
@@ -64,6 +65,7 @@ export class Administrator implements transport.ITerminal<admin.Message> {
 
     constructor(
         private readonly channel: transport.IChannel<admin.Message>,
+        // Opaque proto uint64. Must round-trip exactly, so it stays bigint.
         private readonly token: bigint,
     ) {
         this.clock = new AdministratorClock(this);
@@ -131,37 +133,37 @@ export class Administrator implements transport.ITerminal<admin.Message> {
     }
 
     async wait_spawn(timeout_ms = 500)
-        : Promise<[Status, admin.Spawn | undefined, bigint]>
+        : Promise<[Status, admin.Spawn | undefined, number]>
     {
         const [status, message] = await this.spawn_queue.wait(timeout_ms);
         if (!status.is_ok() || message === undefined) {
-            return [status.wrap("no spawn response"), undefined, 0n];
+            return [status.wrap("no spawn response"), undefined, 0];
         }
         if (message.choice.case !== "spawn") {
             return [
                 Status.fail(`unexpected response type ${message.choice.case}`),
                 undefined,
-                0n,
+                0,
             ];
         }
-        return [Status.ok(), message.choice.value, message.timestamp];
+        return [Status.ok(), message.choice.value, asNumber(message.timestamp)];
     }
 
     async wait_manipulator(timeout_ms = 500)
-        : Promise<[Status, admin.BasicManipulator | undefined, bigint]>
+        : Promise<[Status, admin.BasicManipulator | undefined, number]>
     {
         const [status, message] = await this.manipulator_queue.wait(timeout_ms);
         if (!status.is_ok() || message === undefined) {
-            return [status.wrap("no manipulator response"), undefined, 0n];
+            return [status.wrap("no manipulator response"), undefined, 0];
         }
         if (message.choice.case !== "manipulator") {
             return [
                 Status.fail(`unexpected response type ${message.choice.case}`),
                 undefined,
-                0n,
+                0,
             ];
         }
-        return [Status.ok(), message.choice.value, message.timestamp];
+        return [Status.ok(), message.choice.value, asNumber(message.timestamp)];
     }
 }
 
@@ -172,7 +174,7 @@ export class AdministratorClock {
         return this.send({ case: "timeReq", value: true });
     }
 
-    async wait_now(timeout_ms = 500): Promise<[Status, bigint | undefined]> {
+    async wait_now(timeout_ms = 500): Promise<[Status, number | undefined]> {
         const [status, response] = await this.administrator.wait_clock(timeout_ms);
         if (!status.is_ok() || response === undefined) {
             return [status, undefined];
@@ -183,7 +185,7 @@ export class AdministratorClock {
                 undefined,
             ];
         }
-        return [Status.ok(), response.choice.value];
+        return [Status.ok(), asNumber(response.choice.value)];
     }
 
     async send_mode_request(): Promise<Status> {
@@ -280,7 +282,7 @@ export class Spawner {
     }
 
     async wait_spawn(timeout_ms = 1_000)
-        : Promise<[Status, SpawnResult | undefined, bigint]>
+        : Promise<[Status, SpawnResult | undefined, number]>
     {
         const [status, response, timestamp] =
             await this.administrator.wait_spawn(timeout_ms);

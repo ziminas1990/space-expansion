@@ -17,7 +17,7 @@ export class Navigation {
     }
 
     async get_position(
-        at_us?: bigint,
+        at_us?: number,
         cache_expiring_ms: number = DEFAULT_CACHE_MS,
     ): Promise<[Status, Position | undefined]> {
         let position = this.position.get(cache_expiring_ms);
@@ -36,12 +36,12 @@ export class Navigation {
     }
 
     update_from(position: Position): void {
-        if (position.timestamp > (this.position.get(Infinity)?.timestamp ?? 0n)) {
+        if (position.timestamp > (this.position.get(Infinity)?.timestamp ?? 0)) {
             this.position.set(position);
         }
     }
 
-    predict_position(at_us: bigint): Position | undefined {
+    predict_position(at_us: number): Position | undefined {
         const position = this.position.get(Infinity);
         if (!position) {
             return undefined;

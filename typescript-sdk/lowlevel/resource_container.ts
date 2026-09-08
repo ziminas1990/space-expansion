@@ -18,7 +18,7 @@ export type ResourceContainerStatus =
     | "NOT_ENOUGH_RESOURCES";
 
 export type ResourceContainerContent = {
-    timestamp: bigint;
+    timestamp: number;
     volume: number;
     used: number;
     resources: types.ResourceItem[];
@@ -200,17 +200,21 @@ export class ResourceContainer {
     }
 
     private async wait(timeout_ms: number = 500)
-    : Promise<[types.Status, msg.IResourceContainer | undefined, bigint]>
+    : Promise<[types.Status, msg.IResourceContainer | undefined, number]>
     {
         const [status, response] = await this.session.wait(timeout_ms);
         if (!status.is_ok() || !response) {
-            return [status.wrap("no response"), undefined, BigInt(0)];
+            return [status.wrap("no response"), undefined, 0];
         }
         if (response.choice.case != "resourceContainer") {
             return [types.Status.fail(`got unexpected message ${response.choice.case}`),
-                    undefined, BigInt(0)];
+                    undefined, 0];
         }
-        return [types.Status.ok(), response.choice.value, types.asUint64(response.timestamp)];
+        return [
+            types.Status.ok(),
+            response.choice.value,
+            types.asNumber(response.timestamp)
+        ];
     }
 
 }

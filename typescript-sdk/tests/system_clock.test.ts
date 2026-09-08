@@ -47,9 +47,9 @@ function track<T>(promise: Promise<T>): { done: boolean; promise: Promise<T> } {
 }
 
 function expectCloseUs(
-    actual: bigint,
-    expected: bigint,
-    slackUs = 5_000n,
+    actual: number,
+    expected: number,
+    slackUs = 5_000,
     description = "time",
 ): void {
     const delta = actual >= expected ? actual - expected : expected - actual;
@@ -77,7 +77,7 @@ test.skipIf(!hasServerBinary)(
             expectCloseUs(
                 expectOk(await systemClock.time(false), "system clock time"),
                 stoppedAt,
-                5_000n,
+                5_000,
                 "highlevel time after stop",
             );
 
@@ -90,13 +90,13 @@ test.skipIf(!hasServerBinary)(
             expectCloseUs(
                 currentTimePoint.us(),
                 proceededTo,
-                5_000n,
+                5_000,
                 "time_point after sync",
             );
             expectCloseUs(
                 expectOk(await systemClock.time(false), "time after sync"),
                 proceededTo,
-                5_000n,
+                5_000,
                 "highlevel time after sync",
             );
 
@@ -104,7 +104,7 @@ test.skipIf(!hasServerBinary)(
             const waitDeltaMs = 10_000;
             const waitUntil = track(
                 systemClock.wait_until(
-                    proceededTo + BigInt(waitDeltaMs) * 1_000n,
+                    proceededTo + waitDeltaMs * 1_000,
                     1_000,
                 ),
             );
@@ -122,7 +122,7 @@ test.skipIf(!hasServerBinary)(
 
             // 9. start wait_for
             const waitFor = track(
-                systemClock.wait_for(BigInt(waitDeltaMs) * 1_000n, 1_000),
+                systemClock.wait_for(waitDeltaMs * 1_000, 1_000),
             );
 
             // 10. proceed almost to the deadline and check wait is still pending
@@ -154,14 +154,14 @@ test.skipIf(!hasServerBinary)(
             const stoppedAt = await clock.stop();
 
             // 4. start overlapping wait_for and wait_until sessions
-            const waitFor2s = track(systemClock.wait_for(2_000_000n, 1_000));
+            const waitFor2s = track(systemClock.wait_for(2_000_000, 1_000));
             const waitUntil10s = track(
-                systemClock.wait_until(stoppedAt + 10_000_000n, 1_000),
+                systemClock.wait_until(stoppedAt + 10_000_000, 1_000),
             );
             const waitUntil5s = track(
-                systemClock.wait_until(stoppedAt + 5_000_000n, 1_000),
+                systemClock.wait_until(stoppedAt + 5_000_000, 1_000),
             );
-            const waitFor50s = track(systemClock.wait_for(50_000_000n, 1_000));
+            const waitFor50s = track(systemClock.wait_for(50_000_000, 1_000));
             await sleep(10);
 
             // 5. proceed 2s and check wait_for 2s completes
@@ -171,7 +171,7 @@ test.skipIf(!hasServerBinary)(
             expectOk(await waitFor2s.promise, "wait_for 2s");
 
             // 6. start wait_for 3s
-            const waitFor3s = track(systemClock.wait_for(3_000_000n, 1_000));
+            const waitFor3s = track(systemClock.wait_for(3_000_000, 1_000));
 
             // 7. proceed 3s and check wait_until 5s and wait_for 3s complete
             await clock.proceed(3_000, 1_000);
@@ -211,10 +211,10 @@ test.skipIf(!hasServerBinary)(
 
             // 3. start monitoring sessions at different intervals
             const sessions = [
-                { interval: 110, timestamps: [] as bigint[] },
-                { interval: 75, timestamps: [] as bigint[] },
-                { interval: 55, timestamps: [] as bigint[] },
-                { interval: 20, timestamps: [] as bigint[] },
+                { interval: 110, timestamps: [] as number[] },
+                { interval: 75, timestamps: [] as number[] },
+                { interval: 55, timestamps: [] as number[] },
+                { interval: 20, timestamps: [] as number[] },
             ];
             const stop = { value: false };
 
@@ -230,7 +230,7 @@ test.skipIf(!hasServerBinary)(
 
             // 4. wait 10s of ingame time
             await clock.fastForward(5);
-            expectOk(await systemClock.wait_for(10_000_000n, 5_000), "wait 10s");
+            expectOk(await systemClock.wait_for(10_000_000, 5_000), "wait 10s");
             const endAt = await clock.stop();
 
             // 5. stop monitoring
@@ -249,7 +249,7 @@ test.skipIf(!hasServerBinary)(
 
                 // 6.2 check timestamp count matches the interval
                 const sessionDuration =
-                    Number(endAt - session.timestamps[0]!) / 1_000;
+                    (endAt - session.timestamps[0]!) / 1_000;
                 const totalExpected =
                     1 + Math.floor(sessionDuration / session.interval);
                 expect(
@@ -262,7 +262,7 @@ test.skipIf(!hasServerBinary)(
                     expect(
                         session.timestamps[i]! - session.timestamps[i - 1]!,
                         `interval ${session.interval}ms step ${i}`,
-                    ).toBe(BigInt(session.interval * 1_000));
+                    ).toBe(session.interval * 1_000);
                 }
             }
         });

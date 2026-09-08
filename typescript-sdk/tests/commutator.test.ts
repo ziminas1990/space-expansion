@@ -67,7 +67,7 @@ test.skipIf(!hasServerBinary)(
                 // 2.1 administrator spawns a ship
                 const spawnPosition: Position = randomizer.randomPosition({
                     center: {
-                        timestamp: 0n,
+                        timestamp: 0,
                         point: [0, 0],
                         velocity: [0, 0],
                     },
@@ -134,7 +134,7 @@ test.skipIf(!hasServerBinary)(
                     "Ship/Miner",
                     "Miner-1",
                     {
-                        timestamp: 0n,
+                        timestamp: 0,
                         point: [0, 0],
                         velocity: [0, 0],
                     },

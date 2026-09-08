@@ -9,11 +9,11 @@ export class IngameClock {
 
     constructor(private clock: AdministratorClock){}
 
-    async time(): Promise<bigint> {
+    async time(): Promise<number> {
         return expectOk(await this.clock.get_time(), "clock time");
     }
 
-    async stop(): Promise<bigint> {
+    async stop(): Promise<number> {
         await this.shutdown();
         expectStatus(
             await this.clock.switch_to_debug_mode(),
@@ -34,7 +34,7 @@ export class IngameClock {
         proceedMs: number,
         timeoutMs: number,
         granularityUs = 1_000,
-    ): Promise<bigint> {
+    ): Promise<number> {
         await this.stop();
         this.timeGranularityUs = granularityUs;
         expectStatus(
@@ -77,7 +77,7 @@ export class IngameClock {
     private async proceedTime(
         proceedMs: number,
         timeoutMs: number,
-    ): Promise<bigint> {
+    ): Promise<number> {
         const proceedUs = proceedMs * 1_000;
         let ticks = Math.trunc(proceedUs / this.timeGranularityUs);
         if (proceedUs % this.timeGranularityUs > 0) {
@@ -101,7 +101,7 @@ export class IngameClock {
 
             while (this.timeManualControl) {
                 const deltaMs = Date.now() - beginMs;
-                const ingameDeltaMs = Number(ingameNowUs - ingameBeginUs) / 1_000;
+                const ingameDeltaMs = (ingameNowUs - ingameBeginUs) / 1_000;
                 const proceedIntervalMs = this.timeMultiplier * deltaMs
                     - ingameDeltaMs;
                 if (proceedIntervalMs < 1) {

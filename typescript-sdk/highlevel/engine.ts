@@ -70,7 +70,7 @@ export class Engine implements BaseModule {
         y: number,
         thrust: number,
         duration_ms: number = 0,
-        at?: bigint,
+        at?: number,
     ): Promise<Status> {
         const status = await this.rpc.set_thrust(x, y, thrust, duration_ms, at);
         this.thrust.reset();

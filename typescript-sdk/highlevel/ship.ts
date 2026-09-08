@@ -128,13 +128,13 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
         return [status, state];
     }
 
-    async get_position(at_us?: bigint, cache_expiring_ms: number = 10)
+    async get_position(at_us?: number, cache_expiring_ms: number = 10)
         : Promise<[Status, Position | undefined]>
     {
         return this.navigation.get_position(at_us, cache_expiring_ms);
     }
 
-    predict_position(at_us: bigint): Position | undefined {
+    predict_position(at_us: number): Position | undefined {
         return this.navigation.predict_position(at_us);
     }
 

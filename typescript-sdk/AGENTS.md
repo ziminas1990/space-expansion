@@ -87,8 +87,8 @@ place it in lowlevel, midlevel, or highlevel respectively.
 ## Package
 
 The installable package is `@spx/sdk`. Consumers import the public API through
-package specifiers such as `@spx/sdk/highlevel` and `@spx/sdk/highlevel/ship`.
-Do not import SDK sources by relative path from applications.
+package specifiers such as `@spx/sdk/highlevel`, `@spx/sdk/highlevel/ship`, and
+`@spx/sdk/types`. Do not import SDK sources by relative path from applications.
 
 Inside the library, cross-layer imports use Node subpath imports from
 `package.json` (`#sdk/midlevel/…`, `#sdk/types/…`, `#sdk/Protocol_pb.js`).

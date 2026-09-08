@@ -4,7 +4,7 @@ export {
     Position,
     ServerTimestamp,
     Kinematics,
-    asUint64,
+    asNumber,
     positionFromKinematics,
     positionFromProtobuf,
     positionToProtobuf,

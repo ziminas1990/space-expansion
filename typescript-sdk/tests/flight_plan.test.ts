@@ -15,9 +15,9 @@ const POSITION_DELTA = 5;
 const VELOCITY_DELTA = 1;
 const INNER_WINDOWS = 3;
 
-function randomKinematic(rng: Randomizer, timestamp: bigint): Position {
+function randomKinematic(rng: Randomizer, timestamp: number): Position {
     const position = rng.randomPosition({
-        center: { timestamp: 0n, point: [0, 0], velocity: [0, 0] },
+        center: { timestamp: 0, point: [0, 0], velocity: [0, 0] },
         radius: 100_000,
         maxSpeed: 5_000,
     });
@@ -69,7 +69,7 @@ test("plans intercepts for random start and target states", () => {
             const rng = new Randomizer(seed);
 
             // 2.1 generate random start and target
-            const timestamp = BigInt(rng.randomInt(0, 10_000_000));
+            const timestamp = rng.randomInt(0, 10_000_000);
             const position = randomKinematic(rng, timestamp);
             const target = randomKinematic(rng, timestamp);
             const amax = rng.randomValue(5, 100);
@@ -102,7 +102,7 @@ test("prepares a plan in a requested time window", () => {
             const rng = new Randomizer(seed);
 
             // 2.1 generate random start and target
-            const timestamp = BigInt(rng.randomInt(0, 10_000_000));
+            const timestamp = rng.randomInt(0, 10_000_000);
             const position = randomKinematic(rng, timestamp);
             const target = randomKinematic(rng, timestamp);
             const amax = rng.randomValue(5, 100);
@@ -211,7 +211,7 @@ test("prepares a plan in a requested delta-v window", () => {
             const rng = new Randomizer(seed);
 
             // 2.1 generate random start and target
-            const timestamp = BigInt(rng.randomInt(0, 10_000_000));
+            const timestamp = rng.randomInt(0, 10_000_000);
             const position = randomKinematic(rng, timestamp);
             const target = randomKinematic(rng, timestamp);
             const amax = rng.randomValue(5, 100);

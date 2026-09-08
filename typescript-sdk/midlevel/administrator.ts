@@ -34,7 +34,7 @@ export class Administrator {
 export class AdministratorClock {
     constructor(private readonly rpc: lowlevel.AdministratorClock) {}
 
-    async get_time(timeout_ms = 500): Promise<[Status, bigint | undefined]> {
+    async get_time(timeout_ms = 500): Promise<[Status, number | undefined]> {
         const send_status = await this.rpc.send_time_request();
         if (!send_status.is_ok()) {
             return [send_status.wrap("failed to send time request"), undefined];
@@ -89,7 +89,7 @@ export class AdministratorClock {
     }
 
     async proceed_ticks(ticks: number, timeout_ms: number)
-        : Promise<[Status, bigint | undefined]>
+        : Promise<[Status, number | undefined]>
     {
         const send_status = await this.rpc.send_proceed_ticks(ticks);
         if (!send_status.is_ok()) {
@@ -252,7 +252,7 @@ export class BasicManipulator {
         if (result.case === "moved_at") {
             return [
                 Status.ok(),
-                { ...position, timestamp: BigInt(result.time) },
+                { ...position, timestamp: result.time },
             ];
         }
         if (result.case === "problem") {

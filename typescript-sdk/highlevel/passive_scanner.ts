@@ -18,7 +18,7 @@ export type Events = {
 
 type TrackedObject = {
     object: PhysicalObject;
-    last_seen_us: bigint;
+    last_seen_us: number;
 };
 
 export class PassiveScanner extends EventEmitter<Events> implements BaseModule {
@@ -77,7 +77,7 @@ export class PassiveScanner extends EventEmitter<Events> implements BaseModule {
         return [...this.detected.values()].map((tracked) => tracked.object);
     }
 
-    predict_objects(at_us: bigint): PhysicalObject[] {
+    predict_objects(at_us: number): PhysicalObject[] {
         return this.objects().map((object) => ({
             ...object,
             position: predict_position(object.position, at_us),
@@ -107,7 +107,7 @@ export class PassiveScanner extends EventEmitter<Events> implements BaseModule {
                             (latest, object) => object.position.timestamp > latest
                                 ? object.position.timestamp
                                 : latest,
-                            0n);
+                            0);
                         await this.drop_lost(at_us);
                     }
                     return !this.stopped;
@@ -139,12 +139,12 @@ export class PassiveScanner extends EventEmitter<Events> implements BaseModule {
         }
     }
 
-    private async drop_lost(at_us: bigint): Promise<void> {
+    private async drop_lost(at_us: number): Promise<void> {
         const spec = this.specification.get(Infinity);
         if (!spec) {
             return;
         }
-        const threshold_us = BigInt(spec.max_update_time_ms) * 2_000n;
+        const threshold_us = spec.max_update_time_ms * 2_000;
         const lost: PhysicalObject[] = [];
         for (const [object_id, tracked] of this.detected) {
             if (at_us > tracked.last_seen_us + threshold_us) {

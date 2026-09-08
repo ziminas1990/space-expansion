@@ -52,7 +52,7 @@ async function scanning(
     scanningTimeMs: number,
 ): Promise<Map<number, PhysicalObject>> {
     const startAtUs = expectOk(await clock.time(), "scan start time");
-    const endAtUs = startAtUs + BigInt(scanningTimeMs) * 1_000n;
+    const endAtUs = startAtUs + scanningTimeMs * 1_000;
     const scanningResult = new Map<number, PhysicalObject>();
 
     expectStatus(

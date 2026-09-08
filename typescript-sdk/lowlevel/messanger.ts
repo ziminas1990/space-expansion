@@ -37,7 +37,7 @@ export type MessangerSessionStatus = {
 export type MessangerServicesPage = {
     services: string[];
     left: number;
-    timestamp: bigint;
+    timestamp: number;
 }
 
 export type MessangerClientEvent =
@@ -214,20 +214,20 @@ export class Messanger {
     }
 
     private async wait(timeout_ms: number = 500)
-    : Promise<[types.Status, msg.IMessanger | undefined, bigint]>
+    : Promise<[types.Status, msg.IMessanger | undefined, number]>
     {
         const [status, response] = await this.session.wait(timeout_ms);
         if (!status.is_ok() || !response) {
-            return [status.wrap("no response"), undefined, 0n];
+            return [status.wrap("no response"), undefined, 0];
         }
         if (response.choice.case != "messanger") {
             return [types.Status.fail(`got unexpected message ${response.choice.case}`),
-                    undefined, 0n];
+                    undefined, 0];
         }
         return [
             types.Status.ok(),
             response.choice.value,
-            types.asUint64(response.timestamp),
+            types.asNumber(response.timestamp),
         ];
     }
 

@@ -55,7 +55,7 @@ export class MoveTo extends BaseTask {
         }
 
         const [position_status, position] = await this.ship.get_position(
-            now_us + 100_000n,
+            now_us + 100_000,
         );
         if (!position_status.is_ok() || !position) {
             return false;

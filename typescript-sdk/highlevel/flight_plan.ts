@@ -19,7 +19,7 @@ const SPLIT_ITERATIONS = 40;
 const SEARCH_CYCLES = 32;
 
 type PlanPosition = {
-    timestamp: bigint | undefined;
+    timestamp: number | undefined;
     point: Point;
     velocity: Vector;
 };
@@ -37,11 +37,11 @@ function as_plan(position: Position): PlanPosition {
     };
 }
 
-function usec(position: PlanPosition): bigint {
-    return position.timestamp ?? 0n;
+function usec(position: PlanPosition): number {
+    return position.timestamp ?? 0;
 }
 
-function predict(position: PlanPosition, at: bigint): PlanPosition {
+function predict(position: PlanPosition, at: number): PlanPosition {
     const predicted = predict_position(
         {
             timestamp: usec(position),
@@ -57,8 +57,8 @@ function predict(position: PlanPosition, at: bigint): PlanPosition {
     };
 }
 
-function duration_us(seconds: number): bigint {
-    return BigInt(Math.round(seconds * 1e6));
+function duration_us(seconds: number): number {
+    return Math.round(seconds * 1e6);
 }
 
 function accelerate_plan(
@@ -68,9 +68,9 @@ function accelerate_plan(
 ): PlanPosition {
     const dv = vecScale(acc, t_sec);
     const ds = vecScale(vecAdd(start.velocity, vecScale(dv, 0.5)), t_sec);
-    const end_at = t_sec * 1e6 + Number(usec(start));
+    const end_at = t_sec * 1e6 + usec(start);
     return {
-        timestamp: BigInt(Math.round(end_at)),
+        timestamp: Math.round(end_at),
         point: [start.point[0] + ds[0], start.point[1] + ds[1]],
         velocity: vecAdd(start.velocity, dv),
     };
@@ -78,12 +78,12 @@ function accelerate_plan(
 
 export class Maneuver {
     constructor(
-        readonly at: bigint,
-        readonly duration: bigint,
+        readonly at: number,
+        readonly duration: number,
         readonly acc: Vector,
     ) {}
 
-    ends_at(): bigint {
+    ends_at(): number {
         return this.at + this.duration;
     }
 
@@ -92,11 +92,11 @@ export class Maneuver {
         if (current.timestamp !== undefined) {
             current = predict(current, this.at);
         }
-        return accelerate_plan(current, this.acc, Number(this.duration) / 1e6);
+        return accelerate_plan(current, this.acc, this.duration / 1e6);
     }
 
-    partially_apply_to(position: PlanPosition, duration_usec: bigint): PlanPosition {
-        return accelerate_plan(position, this.acc, Number(duration_usec) / 1e6);
+    partially_apply_to(position: PlanPosition, duration_usec: number): PlanPosition {
+        return accelerate_plan(position, this.acc, duration_usec / 1e6);
     }
 }
 
@@ -123,8 +123,8 @@ function squash_maneuvers(maneuvers: Maneuver[]): Maneuver[] {
 export class FlightPlan {
     constructor(readonly maneuvers: Maneuver[]) {}
 
-    time_points(): bigint[] {
-        const points: bigint[] = [];
+    time_points(): number[] {
+        const points: number[] = [];
         for (const maneuver of this.maneuvers) {
             const last = points.at(-1);
             if (last === undefined || last < maneuver.at) {
@@ -136,7 +136,7 @@ export class FlightPlan {
         return points;
     }
 
-    acceleration_at(at_us: bigint): Vector {
+    acceleration_at(at_us: number): Vector {
         for (const maneuver of this.maneuvers) {
             if (at_us < maneuver.at) {
                 return [0, 0];
@@ -163,7 +163,7 @@ export class FlightPlan {
         if (this.maneuvers.length === 0) {
             return 0;
         }
-        return Number(this.ends_at() - this.starts_at());
+        return this.ends_at() - this.starts_at();
     }
 
     duration_sec(): number {
@@ -173,19 +173,19 @@ export class FlightPlan {
     delta_v(): number {
         let total = 0;
         for (const maneuver of this.maneuvers) {
-            total += vecAbs(maneuver.acc) * Number(maneuver.duration) / 1e6;
+            total += vecAbs(maneuver.acc) * maneuver.duration / 1e6;
         }
         return total;
     }
 
-    starts_at(): bigint {
-        return this.maneuvers[0]?.at ?? 0n;
+    starts_at(): number {
+        return this.maneuvers[0]?.at ?? 0;
     }
 
-    ends_at(): bigint {
+    ends_at(): number {
         const last = this.maneuvers.at(-1);
         if (!last) {
-            return 0n;
+            return 0;
         }
         return last.at + last.duration;
     }
@@ -233,25 +233,21 @@ export class FlightPlan {
         return current;
     }
 
-    partially_apply_to(position: PlanPosition, duration_usec: bigint): PlanPosition {
+    partially_apply_to(position: PlanPosition, duration_usec: number): PlanPosition {
         let current = position;
         let remaining = duration_usec;
         for (const maneuver of this.maneuvers) {
             if (usec(current) < maneuver.ends_at()) {
-                const dt = min_bigint(maneuver.ends_at() - usec(current), remaining);
+                const dt = Math.min(maneuver.ends_at() - usec(current), remaining);
                 current = maneuver.partially_apply_to(current, dt);
                 remaining -= dt;
-                if (remaining <= 0n) {
+                if (remaining <= 0) {
                     break;
                 }
             }
         }
         return current;
     }
-}
-
-function min_bigint(left: bigint, right: bigint): bigint {
-    return left < right ? left : right;
 }
 
 function sgn(value: number): number {
@@ -334,13 +330,13 @@ function stop_at_zero_1d(
 function axis_plan(
     burns: AxisBurn[],
     axis: 0 | 1,
-    now: bigint,
+    now: number,
 ): FlightPlan {
     const maneuvers: Maneuver[] = [];
     let at = now;
     for (const burn of burns) {
         const duration = duration_us(burn.duration_sec);
-        if (duration <= 0n) {
+        if (duration <= 0) {
             continue;
         }
         const acc: Vector = [0, 0];
@@ -556,9 +552,9 @@ export function prepare_flight_plan_in_delta_v(
 
 export type FlightClock = {
     wait_until(
-        time_us: bigint,
+        time_us: number,
         timeout_ms?: number,
-    ): Promise<[Status, bigint | undefined]>;
+    ): Promise<[Status, number | undefined]>;
 };
 
 export async function follow_flight_plan(
@@ -568,7 +564,7 @@ export async function follow_flight_plan(
     clock: FlightClock,
 ): Promise<Status> {
     for (const maneuver of plan.maneuvers) {
-        await clock.wait_until(maneuver.at - 25_000n);
+        await clock.wait_until(maneuver.at - 25_000);
 
         const [state_status, ship_state] = await ship.get_state();
         if (!state_status.is_ok() || ship_state === undefined
@@ -582,7 +578,7 @@ export async function follow_flight_plan(
             maneuver.acc[0],
             maneuver.acc[1],
             thrust,
-            Math.round(Number(maneuver.duration) / 1000),
+            Math.round(maneuver.duration / 1000),
             maneuver.at,
         );
         if (!status.is_ok()) {

@@ -5,14 +5,14 @@ export type Point = [number, number];
 export type Vector = [number, number];
 
 export type Position = {
-    timestamp: bigint;
+    timestamp: number;
     point: Point;
     velocity: Vector;
 };
 
 export type ServerTimestamp = {
-    real_us: bigint;
-    ingame_us: bigint;
+    real_us: number;
+    ingame_us: number;
 };
 
 export type Kinematics = {
@@ -22,13 +22,14 @@ export type Kinematics = {
     vy: number;
 };
 
-export function asUint64(value: bigint | number): bigint {
-    return typeof value === "bigint" ? value : BigInt(value);
+// Convert a protobuf uint64 (bigint) into a JS number.
+export function asNumber(value: bigint | number): number {
+    return Number(value);
 }
 
 export function positionFromKinematics(
     kinematics: Kinematics | undefined,
-    timestamp: bigint): Position
+    timestamp: number): Position
 {
     return {
         timestamp,
@@ -39,7 +40,7 @@ export function positionFromKinematics(
 
 export function positionFromProtobuf(
     position: proto.Position | undefined,
-    timestamp: bigint): Position
+    timestamp: number): Position
 {
     return positionFromKinematics(position, timestamp);
 }

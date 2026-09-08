@@ -22,14 +22,14 @@ export class SystemClock extends BaseModule<lowlevel.SystemClock> {
         return await this.run(async (session) => this._get_time(session));
     }
 
-    async wait_until(time_us: bigint, timeout_ms: number)
+    async wait_until(time_us: number, timeout_ms: number)
         : Promise<[Status, ServerTimestamp | undefined]>
     {
         return await this.run(
             async (session) => this._wait_until(session, time_us, timeout_ms));
     }
 
-    async wait_for(period_us: bigint, timeout_ms: number)
+    async wait_for(period_us: number, timeout_ms: number)
         : Promise<[Status, ServerTimestamp | undefined]>
     {
         return await this.run(
@@ -60,7 +60,7 @@ export class SystemClock extends BaseModule<lowlevel.SystemClock> {
 
     private async _wait_until(
         session: lowlevel.SystemClock,
-        time_us: bigint,
+        time_us: number,
         timeout_ms: number)
         : Promise<[Status, ServerTimestamp | undefined]>
     {
@@ -77,7 +77,7 @@ export class SystemClock extends BaseModule<lowlevel.SystemClock> {
 
     private async _wait_for(
         session: lowlevel.SystemClock,
-        period_us: bigint,
+        period_us: number,
         timeout_ms: number)
         : Promise<[Status, ServerTimestamp | undefined]>
     {
