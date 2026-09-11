@@ -36,7 +36,7 @@ export class Commutator {
 
     // Binds a tunnel id from openTunnelReport to a Session on this connection.
     enable_tunnel(session_id: number): [Status, Session | undefined] {
-        return this.session.register_session(session_id);
+        return this.session.router().register_session(session_id);
     }
 
     async send_total_slots_request(): Promise<Status> {

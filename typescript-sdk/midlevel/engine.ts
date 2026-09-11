@@ -8,6 +8,7 @@ export type CurrentThrust = lowlevel.CurrentThrust;
 
 export class Engine extends BaseModule<lowlevel.Engine> {
     readonly type = ModuleType.ENGINE;
+
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,

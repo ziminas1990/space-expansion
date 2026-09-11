@@ -6,7 +6,7 @@ export type CreateLowlevelInterface<I> = (session: lowlevel.Session) => Promise<
 export type UserLogicCallback<I, T> = (session: I) => Promise<[Status, T]>;
 
 export class BaseModule<I> {
-    // Sessions that can be reused for communication
+    // Sessions that are opened already and can be reused for communication
     private sessions: lowlevel.Session[] = [];
     // Sessions currently used by run() (including dedicated long-running ones)
     private in_use: Set<lowlevel.Session> = new Set();

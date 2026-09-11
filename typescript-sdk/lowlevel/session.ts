@@ -2,20 +2,18 @@ import { create } from "@bufbuild/protobuf";
 import * as msg from "#sdk/Protocol_pb.js"
 import * as transport from "#sdk/transport/index.js"
 import { Status } from "#sdk/types/status.js";
-
-export type RegisterSessionCallback =
-    (session_id: number) => [Status, Session | undefined];
+import type { Router } from "./router.js";
 
 export class Session extends transport.Endpoint<msg.Message> {
     constructor(protected channel: transport.IChannel<msg.Message>,
                 private session_id: number,
-                private readonly register_session_cb: RegisterSessionCallback)
+                private readonly owner: Router)
     {
         super();
     }
 
-    register_session(session_id: number): [Status, Session | undefined] {
-        return this.register_session_cb(session_id);
+    router(): Router {
+        return this.owner;
     }
 
     async send(message: msg.Message): Promise<Status> {

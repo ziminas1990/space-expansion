@@ -4,7 +4,7 @@ import * as transport from "#sdk/transport/index.js"
 import { Status } from "#sdk/types/status.js";
 import { AccessPanel } from "./access_panel.js"
 import { Administrator, privilegedDecoder } from "./administrator.js";
-import { RootSession } from "./root_session.js";
+import { Router } from "./router.js";
 
 export async function login(
     ip: string,
@@ -12,7 +12,7 @@ export async function login(
     password: string,
     mirroring: transport.Mirroring | undefined = undefined,
     port: number = 6842,
-): Promise<[Status,  RootSession | undefined]>
+): Promise<[Status,  Router | undefined]>
 {
     const socket = new transport.UdpSocket();
     socket.connect(ip, port);
@@ -33,9 +33,9 @@ export async function login(
     // Redirect socket to the new port
     socket.connect(ip, access.port);
 
-    const root_session = new RootSession(decoder, access.session_id);
-    decoder.attach_uplevel(root_session);
-    return [Status.ok(), root_session];
+    const mux = new Router(decoder, access.session_id);
+    decoder.attach_uplevel(mux);
+    return [Status.ok(), mux];
 }
 
 export async function login_as_administrator(

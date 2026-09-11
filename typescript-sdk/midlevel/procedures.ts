@@ -17,20 +17,20 @@ export async function login(
     port: number = 6842,
 ): Promise<[Status, RootAccess | undefined]> {
 
-    const [status, root_session] = await lowlevel.login(
+    const [status, router] = await lowlevel.login(
         ip,
         user,
         password,
         mirroring,
         port,
     );
-    if (!status.is_ok() || !root_session) {
+    if (!status.is_ok() || !router) {
         return [status.wrap("failed to create root session"), undefined];
     }
 
     return [Status.ok(), {
-        open_session: () => root_session.open_session(),
-        close: () => root_session.close(),
+        open_session: () => router.open_commutator_session(),
+        close: () => router.close(),
     }];
 }
 
