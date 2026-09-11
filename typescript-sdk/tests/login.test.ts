@@ -58,7 +58,7 @@ test.skipIf(!hasServerBinary)(
             // 1. player logins
             const player = await login("spy007", "iamspy");
             expect(player).toBeTruthy();
-            expect(player.down_level("root_commutator")).toBeTruthy();
+            expect(player.down_level()).toBeTruthy();
         });
     },
 );

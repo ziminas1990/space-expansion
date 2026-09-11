@@ -12,7 +12,7 @@ export async function login(
     password: string,
     mirroring: transport.Mirroring | undefined = undefined,
     port: number = 6842,
-): Promise<[Status,  Router | undefined]>
+): Promise<[Status, Router | undefined]>
 {
     const socket = new transport.UdpSocket();
     socket.connect(ip, port);

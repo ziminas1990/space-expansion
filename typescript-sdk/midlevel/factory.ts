@@ -27,7 +27,7 @@ const module_constructors: Record<string, ModuleConstructor> = {
 };
 
 // Returns undefined for interfaces that are not attached to a slot, such as
-// INavigation and IGame.
+// INavigation.
 export function create_module(
     module_type: string,
     open_session_cb: OpenSessionCallback): MidlevelModule | undefined

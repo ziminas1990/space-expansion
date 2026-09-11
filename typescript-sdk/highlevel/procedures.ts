@@ -21,9 +21,12 @@ export async function login(
     if (!status.is_ok() || !root) {
         return [status, undefined];
     }
-    const commutator = new midlevel.Commutator(root.open_session, root.close);
-    const game = new midlevel.Game(root.open_session);
-    const player = new Player(commutator, game, create_module);
+    const [open_status, commutator] = await root.open_session();
+    if (!open_status.is_ok() || !commutator) {
+        await root.close();
+        return [open_status.wrap("failed to open root commutator"), undefined];
+    }
+    const player = new Player(commutator, create_module);
     const init_status = await player.init();
     if (!init_status.is_ok()) {
         await player.release();

@@ -20,8 +20,6 @@ export { Player } from "./player.js";
 export { Ship, ShipState } from "./ship.js";
 export { Navigation } from "./navigation.js";
 export type { Position } from "./navigation.js";
-export { Game } from "./game.js";
-export type { GameOver, GameScore } from "./game.js";
 export { BlueprintsLibrary } from "./blueprints_library.js";
 export type { Blueprint } from "./blueprints_library.js";
 export { Engine } from "./engine.js";

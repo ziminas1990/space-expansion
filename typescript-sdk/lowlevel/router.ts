@@ -59,7 +59,7 @@ export class Router implements transport.ITerminal<msg.Message> {
 
     // Opens a new tunnel attached to the player's root commutator via
     // IRootSession.newCommutatorSession.
-    async open_commutator_session(): Promise<[Status, Session | undefined]> {
+    async open_session(): Promise<[Status, Session | undefined]> {
         const send_status = await this.send_new_commutator_session_request();
         if (!send_status.is_ok()) {
             return [send_status.wrap("failed to send request"), undefined];
@@ -73,7 +73,11 @@ export class Router implements transport.ITerminal<msg.Message> {
             return [Status.fail("got invalid session_id"), undefined];
         }
 
-        return this.register_session(session_id);
+        const [status, session] = this.register_session(session_id);
+        if (!status.is_ok() || !session) {
+            return [status, undefined];
+        }
+        return [status, session];
     }
 
     private async send_new_commutator_session_request() {

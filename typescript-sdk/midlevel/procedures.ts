@@ -2,10 +2,10 @@ import * as lowlevel from '#sdk/lowlevel/index.js';
 import * as transport from '#sdk/transport/index.js';
 import { Status } from '#sdk/types/status.js';
 import { Administrator } from "./administrator.js";
-import { OpenSessionCallback } from "./base_module.js"
+import { Commutator } from "./commutator.js";
 
 export type RootAccess = {
-    open_session: OpenSessionCallback;
+    open_session: () => Promise<[Status, Commutator | undefined]>;
     close: () => Promise<unknown>;
 };
 
@@ -29,7 +29,13 @@ export async function login(
     }
 
     return [Status.ok(), {
-        open_session: () => router.open_commutator_session(),
+        open_session: async () => [
+            Status.ok(),
+            new Commutator(
+                () => router.open_session(),
+                () => router.close(),
+            ),
+        ],
         close: () => router.close(),
     }];
 }

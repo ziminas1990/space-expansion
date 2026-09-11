@@ -34,7 +34,7 @@ function wrap<M extends midlevel.MidlevelModule, H extends BaseModule>(
 
 // Wraps a midlevel client created by ModuleRegistry for a commutator slot.
 // Returns undefined for interfaces that are not attached to a slot, such as
-// INavigation and IGame.
+// INavigation.
 export function create_module(
     info: SlotInfo,
     midlevel_module: midlevel.MidlevelModule,

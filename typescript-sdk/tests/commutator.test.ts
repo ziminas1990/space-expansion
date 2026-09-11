@@ -147,7 +147,7 @@ test.skipIf(!hasServerBinary)(
 
             // 4. read module info from the commutator (no ship specification)
             const modules = expectOk(
-                await player.down_level("root_commutator").get_all_modules_info(),
+                await player.down_level().get_all_modules_info(),
                 "list attached modules",
             );
             const shipInfo = modules.find((info) => info.module_name === "Miner-1");

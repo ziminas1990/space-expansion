@@ -56,7 +56,7 @@ routes sessions. It contains no game API or domain behavior.
   Hidden `ModuleRegistry` reads it only inside `spawn_client`.
 
 There is no highlevel base **class**. Slot wrappers implement the `BaseModule`
-interface (`type`, `name`, `release`, `reinit`). `Navigation` and `Game` do
+interface (`type`, `name`, `release`, `reinit`). `Navigation` does
 not implement it (no slot, no `reinit`). Narrowing to a concrete type is
 `module.type === ModuleType.ENGINE` on the `HighlevelModule` union, not
 `instanceof`.
@@ -68,10 +68,10 @@ Each wrapper follows this pattern:
 - `readonly type` with a literal (`readonly type = ModuleType.ENGINE`) is the
   discriminant of `HighlevelModule`.
 - `constructor(private rpc: midlevel.X, readonly name: string)` — omit `name`
-  for objects not bound to a slot (`Navigation`, `Game`).
+  for objects not bound to a slot (`Navigation`).
 - `rpc` stays private. 1:1 wrappers expose it with argument-free
-  `down_level(): M`. Aggregates that own several midlevel clients (`Ship`,
-  `Player`) take a discriminator and return the matching client, not a
+  `down_level(): M`. Aggregates that own several midlevel clients (`Ship`)
+  take a discriminator and return the matching client, not a
   highlevel wrapper.
 - `release()` is the only highlevel teardown. There is no highlevel
   `terminate()`. Internally `release()` calls `rpc.terminate()` **first**
