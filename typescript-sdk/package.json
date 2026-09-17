@@ -83,6 +83,6 @@
         "build_all": "npm run build && npm run build_demo",
         "test": "npm run regenerate && vitest run --reporter=verbose",
         "harvester": "npm run build && npm run build_harvester && node demo/harvester/dist/main.js",
-        "tactical-map": "npm run build && npm run build_tactical_map && node demo/tactical-map/dist/main.js"
+        "tactical-map": "npm run build && npm run build_tactical_map && node demo/tactical-map/dist/backend/main.js"
     }
 }

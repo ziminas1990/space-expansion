@@ -1,9 +1,9 @@
 import * as midlevel from "@spx/sdk/midlevel";
 import { Status } from "@spx/sdk/types";
 import type { PhysicalObject } from "@spx/sdk/types";
-import { Asteroid } from "../domain/asteroid.js";
-import { Ship as DomainShip } from "../domain/ship.js";
-import { EntityRef } from "../domain/world.js";
+import { Asteroid } from "../../common/domain/asteroid.js";
+import { Ship as DomainShip } from "../../common/domain/ship.js";
+import { EntityRef } from "../../common/domain/world.js";
 import { convert_position } from "./helpers.js";
 import { IWorld } from "./interfaces.js";
 import { Logger } from "../log.js";

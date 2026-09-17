@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "build": "tsc",
-        "start": "node dist/main.js"
+        "start": "node dist/backend/main.js"
     },
     "dependencies": {
         "@spx/sdk": "file:../.."

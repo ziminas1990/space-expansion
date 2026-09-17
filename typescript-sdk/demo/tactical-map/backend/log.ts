@@ -1,3 +1,5 @@
+import { ILogger } from "../common/logger.js";
+
 export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
 
 const LEVELS: Record<LogLevel, number> = {
@@ -14,13 +16,7 @@ export function set_log_level(level: string): void {
     min_level = LEVELS[normalized] ?? LEVELS.INFO;
 }
 
-export type Logger = {
-    debug: (message: string) => void;
-    info: (message: string) => void;
-    warning: (message: string) => void;
-    error: (message: string) => void;
-    child: (name: string) => Logger;
-};
+export type Logger = ILogger;
 
 function emit(level: LogLevel, name: string, message: string): void {
     if (LEVELS[level] < min_level) {

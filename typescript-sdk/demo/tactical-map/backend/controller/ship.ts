@@ -1,7 +1,7 @@
 import * as midlevel from "@spx/sdk/midlevel";
 import { Status } from "@spx/sdk/types";
-import { PlayerShip } from "../domain/player_ship.js";
-import { EntityRef } from "../domain/world.js";
+import { PlayerShip } from "../../common/domain/player_ship.js";
+import { EntityRef } from "../../common/domain/world.js";
 import { convert_position } from "./helpers.js";
 import { IWorld } from "./interfaces.js";
 import { Logger } from "../log.js";

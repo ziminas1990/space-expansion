@@ -4,9 +4,9 @@ import { fileURLToPath } from "node:url";
 import { login } from "@spx/sdk/midlevel";
 import { create_logger } from "./log.js";
 import { RootCommutator } from "./controller/root_commutator.js";
-import { World } from "./domain/world.js";
+import { World } from "../common/domain/world.js";
 
-const CONFIG_PATH = fileURLToPath(new URL("../config.json", import.meta.url));
+const CONFIG_PATH = fileURLToPath(new URL("../../config.json", import.meta.url));
 
 type Credentials = {
     server: string;

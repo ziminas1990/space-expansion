@@ -21,17 +21,17 @@ export type PositionTolerance = {
 export function predict_position(position: Position, timestamp: number)
 : Position
 {
-    const time_delta = timestamp - position.timestamp;
+    const dt_sec = (timestamp - position.timestamp) / 1e6;
     const velocity = position.velocity;
     const acc = position.acc;
-    const new_x = position.x + velocity.x * time_delta + 0.5 * acc.x * time_delta * time_delta;
-    const new_y = position.y + velocity.y * time_delta + 0.5 * acc.y * time_delta * time_delta;
+    const new_x = position.x + velocity.x * dt_sec + 0.5 * acc.x * dt_sec * dt_sec;
+    const new_y = position.y + velocity.y * dt_sec + 0.5 * acc.y * dt_sec * dt_sec;
     return {
         timestamp: timestamp,
         x: new_x,
         y: new_y,
-        velocity: velocity,
-        acc: acc,
+        velocity: { x: velocity.x, y: velocity.y },
+        acc: { x: acc.x, y: acc.y },
     }
 }
 

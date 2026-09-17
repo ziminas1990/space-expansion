@@ -1,4 +1,4 @@
-import { EntityRef, WorldUpdate } from "../domain/world.js";
+import { EntityRef, WorldUpdate } from "../../common/domain/world.js";
 
 export interface IWorld {
     has_entity(entity: EntityRef): boolean;

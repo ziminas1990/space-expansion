@@ -1,5 +1,5 @@
 import * as sdk from "@spx/sdk";
-import { Position } from "../domain/position.js";
+import { Position } from "../../common/domain/position.js";
 
 export function convert_position(position: sdk.Position): Position {
     return {

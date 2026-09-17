@@ -1,6 +1,6 @@
 import { Clock } from "@spx/sdk/utils";
-import { Logger } from "../log.js";
 import { Asteroid, AsteroidUpdate } from "./asteroid.js";
+import { ILogger } from "../logger.js";
 import { PlayerShip } from "./player_ship.js";
 import { Ship, ShipUpdate } from "./ship.js";
 
@@ -29,7 +29,7 @@ export class World {
     private readonly player_ships: Map<string, PlayerShip> = new Map();
     private readonly clock = new Clock();
 
-    static unpack(packed: WorldPacked, journal: Logger): World {
+    static unpack(packed: WorldPacked, journal: ILogger): World {
         const [asteroids, ships, player_ships, outdated_after_us] = packed;
         const world = new World(journal, outdated_after_us);
         for (const asteroid_packed of asteroids) {
@@ -48,7 +48,7 @@ export class World {
     }
 
     constructor(
-        private journal: Logger,
+        private journal: ILogger,
         private outdated_after_us: number = DEFAULT_OUTDATED_AFTER_US,
     ) {}
 
@@ -63,6 +63,34 @@ export class World {
             default:
                 return false;
         }
+    }
+
+    get_asteroids(): readonly Asteroid[] {
+        return [...this.asteroids.values()];
+    }
+
+    get_asteroid(id: string): Asteroid | undefined {
+        return this.asteroids.get(id);
+    }
+
+    get_detected_ships(): readonly Ship[] {
+        return [...this.ships.values()];
+    }
+
+    get_detected_ship(id: string): Ship | undefined {
+        return this.ships.get(id);
+    }
+
+    get_player_ships(): readonly PlayerShip[] {
+        return [...this.player_ships.values()];
+    }
+
+    get_player_ship(id: string): PlayerShip | undefined {
+        return this.player_ships.get(id);
+    }
+
+    now(): number | undefined {
+        return this.clock.monotonic_now();
     }
 
     update(update: WorldUpdate): void {
@@ -129,7 +157,7 @@ export class World {
         }
     }
 
-    private age_one(entity: Asteroid | Ship, label: string, now_us: number): void {
+    private age_one(entity: Asteroid | Ship | PlayerShip, label: string, now_us: number): void {
         const age = now_us - entity.get_position().timestamp;
         const stale = age > this.outdated_after_us;
         if (stale === entity.outdated) {
