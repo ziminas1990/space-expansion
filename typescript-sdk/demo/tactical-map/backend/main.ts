@@ -1,55 +1,30 @@
-import { readFileSync } from "node:fs";
+import http from "node:http";
 import { fileURLToPath } from "node:url";
 
-import { login } from "@spx/sdk/midlevel";
+import express from "express";
+import { WebSocketServer } from "ws";
+
 import { create_logger } from "./log.js";
-import { RootCommutator } from "./controller/root_commutator.js";
-import { World } from "../common/domain/world.js";
+import { Session } from "./session.js";
 
-const CONFIG_PATH = fileURLToPath(new URL("../../config.json", import.meta.url));
+const DEFAULT_HOST = "127.0.0.1";
+const DEFAULT_PORT = 8080;
 
-type Credentials = {
-    server: string;
+const log = create_logger("app");
+
+type BindAddress = {
+    host: string;
     port: number;
-    login: string;
-    password: string;
 };
 
-const log = create_logger("tactical-map");
-
-function load_credentials(): Credentials {
-    let raw: unknown;
-    try {
-        raw = JSON.parse(readFileSync(CONFIG_PATH, "utf8"));
-    } catch (error) {
-        if (error instanceof SyntaxError) {
-            throw new Error(`Invalid JSON in '${CONFIG_PATH}': ${error.message}`);
-        }
-        throw new Error(`Failed to read config '${CONFIG_PATH}': ${error}`);
+function read_bind(): BindAddress {
+    const host = process.env.TACTICAL_MAP_HOST ?? DEFAULT_HOST;
+    const port_raw = process.env.TACTICAL_MAP_PORT ?? String(DEFAULT_PORT);
+    const port = Number(port_raw);
+    if (!Number.isFinite(port) || port <= 0 || port > 65535) {
+        throw new Error(`Invalid TACTICAL_MAP_PORT: ${port_raw}`);
     }
-    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-        throw new Error(`Config '${CONFIG_PATH}' must be a JSON object`);
-    }
-    const object = raw as Record<string, unknown>;
-    if (typeof object.server !== "string") {
-        throw new Error(`Config '${CONFIG_PATH}' must have a string 'server'`);
-    }
-    if (typeof object.login !== "string") {
-        throw new Error(`Config '${CONFIG_PATH}' must have a string 'login'`);
-    }
-    if (typeof object.password !== "string") {
-        throw new Error(`Config '${CONFIG_PATH}' must have a string 'password'`);
-    }
-    const port = Number(object.port);
-    if (!Number.isFinite(port)) {
-        throw new Error(`Invalid port: ${object.port}`);
-    }
-    return {
-        server: object.server,
-        port: Math.trunc(port),
-        login: object.login,
-        password: object.password,
-    };
+    return { host, port: Math.trunc(port) };
 }
 
 function install_stop_signals(stop: AbortController): void {
@@ -57,94 +32,13 @@ function install_stop_signals(stop: AbortController): void {
         log.info(`Shutdown requested by ${signal}`);
         if (!stop.signal.aborted) {
             stop.abort();
+        } else {
+            log.warning(`Forced exit on second ${signal}`);
+            process.exit(1);
         }
     };
     process.on("SIGINT", () => request_stop("SIGINT"));
     process.on("SIGTERM", () => request_stop("SIGTERM"));
-}
-
-async function run(): Promise<number> {
-    let credentials: Credentials;
-    try {
-        credentials = load_credentials();
-    } catch (error) {
-        process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
-        return 2;
-    }
-
-    const stop = new AbortController();
-    install_stop_signals(stop);
-
-    const operate = async (): Promise<number> => {
-
-        // Login to server
-        log.info(
-            `Connecting to ${credentials.server}:${credentials.port} `
-            + `as '${credentials.login}'`,
-        );
-        const [status, root_access] = await login(
-            credentials.server,
-            credentials.login,
-            credentials.password,
-            undefined,
-            credentials.port,
-        );
-        if (!root_access) {
-            log.error(`Failed to login: ${status.what()}`);
-            return 1;
-        }
-
-        const [commutator_status, commutator] = await root_access.open_session();
-        if (!commutator || !commutator_status.is_ok()) {
-            log.error(`Failed to open commutator: ${commutator_status.what()}`);
-            return 1;
-        }
-
-        const journal = create_logger("app");
-
-        // Create world and root commutator
-        const world = new World(journal.child("world"));
-
-        const root_commutator = new RootCommutator(commutator, world, log);
-        const initialize_status = await root_commutator.initialize();
-        if (!initialize_status.is_ok()) {
-            log.error(`Failed to initialize root commutator: ${initialize_status.what()}`);
-            return 1;
-        }
-
-        const verify_status = root_commutator.verify();
-        if (!verify_status.is_ok()) {
-            log.error(`Root commutator verification failed: ${verify_status.what()}`);
-            await root_commutator.stop("verification failed");
-            return 1;
-        }
-
-        while (!root_commutator.is_stopped()) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            if (stop.signal.aborted) {
-                journal.info("Stopping controller");
-                await root_commutator.stop("shutdown requested");
-            }
-        }
-        log.info("Applicationstopped");
-        return 0;
-    };
-
-    try {
-        const operate_task = operate();
-        const result = await Promise.race([
-            operate_task.then((code) => ({ kind: "done" as const, code })),
-            wait_signal(stop.signal).then(() => ({ kind: "stop" as const })),
-        ]);
-        if (result.kind === "done") {
-            return result.code;
-        }
-        log.info("Shutdown requested");
-        return 0;
-    }
-    finally {
-        stop.abort();
-    }
 }
 
 function wait_signal(signal: AbortSignal): Promise<void> {
@@ -154,6 +48,101 @@ function wait_signal(signal: AbortSignal): Promise<void> {
     return new Promise((resolve) => {
         signal.addEventListener("abort", () => resolve(), { once: true });
     });
+}
+
+function listen(server: http.Server, host: string, port: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const on_error = (error: Error) => {
+            reject(error);
+        };
+        server.once("error", on_error);
+        server.listen(port, host, () => {
+            server.off("error", on_error);
+            resolve();
+        });
+    });
+}
+
+function close_http_server(server: http.Server): Promise<void> {
+    return new Promise((resolve, reject) => {
+        server.close((error) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+function close_websocket_server(wss: WebSocketServer): Promise<void> {
+    return new Promise((resolve, reject) => {
+        wss.close((error) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+async function run(): Promise<number> {
+    let bind: BindAddress;
+    try {
+        bind = read_bind();
+    } catch (error) {
+        process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
+        return 2;
+    }
+
+    const frontend_dir = fileURLToPath(new URL("../frontend", import.meta.url));
+    const app = express();
+    app.use(express.static(frontend_dir));
+
+    const server = http.createServer(app);
+    const wss = new WebSocketServer({ server, path: "/ws" });
+    const sessions = new Set<Session>();
+    let next_session_id = 1;
+
+    wss.on("connection", (socket) => {
+        const session_id = next_session_id;
+        next_session_id += 1;
+        const session = new Session(socket, log.child(`session-${session_id}`));
+        sessions.add(session);
+        void session.closed.then(() => {
+            sessions.delete(session);
+        });
+    });
+
+    const stop = new AbortController();
+    install_stop_signals(stop);
+
+    try {
+        await listen(server, bind.host, bind.port);
+    } catch (error) {
+        log.error(
+            `Failed to listen on ${bind.host}:${bind.port}: ${
+                error instanceof Error ? error.message : error
+            }`,
+        );
+        return 1;
+    }
+    log.info(`Listening on http://${bind.host}:${bind.port}`);
+
+    await wait_signal(stop.signal);
+    log.info("Shutting down");
+
+    // Close the WebSocket server first so it stops accepting, but do not wait
+    // for its 'close' yet: it stays open until existing clients disconnect.
+    const wss_closed = close_websocket_server(wss);
+    await Promise.all(
+        [...sessions].map((session) => session.shutdown("process shutdown")),
+    );
+    await wss_closed;
+    await close_http_server(server);
+    log.info("Stopped");
+    return 0;
 }
 
 run().then(

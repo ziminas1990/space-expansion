@@ -1,4 +1,10 @@
-import { copy_position, pack_position, Position, unpack_position } from "./position.js";
+import {
+    copy_position,
+    pack_position,
+    Position,
+    unpack_position,
+    update_position,
+} from "./position.js";
 import { ShipUpdate } from "./ship.js";
 
 export type PlayerShipPacked = ReturnType<PlayerShip["pack"]>;
@@ -34,7 +40,7 @@ export class PlayerShip {
         if (update.position !== undefined
             && this.position.timestamp < update.position.timestamp)
         {
-            this.position = copy_position(update.position);
+            this.position = update_position(this.position, update.position);
         }
     }
 

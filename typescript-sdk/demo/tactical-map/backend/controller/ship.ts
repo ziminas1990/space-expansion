@@ -14,6 +14,7 @@ const MONITOR_RETRY_MS = [500, 1000, 2000, 5000];
 export class Ship {
 
     private stopped: boolean = false;
+    private stop_task: Promise<Status> | undefined;
     private modules_monitoring_task?: Promise<void>;
     private state_monitoring_task?: Promise<void>;
 
@@ -59,13 +60,20 @@ export class Ship {
     }
 
     async stop(): Promise<Status> {
-        this.stopped = true;
-        this.remove_from_world();
-        for (const scanner of this.passive_scanners.values()) {
-            await scanner.stop();
+        if (this.stop_task) {
+            return this.stop_task;
         }
+        this.stopped = true;
+        this.stop_task = this.run_stop();
+        return this.stop_task;
+    }
+
+    private async run_stop(): Promise<Status> {
+        this.remove_from_world();
+        const scanners = [...this.passive_scanners.values()];
         this.passive_scanners.clear();
         this.modules.clear();
+        await Promise.all(scanners.map((scanner) => scanner.stop()));
         await this.remote.terminate();
         if (this.state_monitoring_task) {
             await this.state_monitoring_task;

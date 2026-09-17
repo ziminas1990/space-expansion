@@ -1,17 +1,33 @@
 {
-    "name": "harvester",
+    "name": "tactical-map",
     "version": "1.0.0",
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "tsc",
+        "typecheck:frontend": "tsc -p tsconfig.frontend.json",
+        "build:frontend": "vite build",
+        "build:backend": "tsc -p tsconfig.json",
+        "build": "npm run typecheck:frontend && npm run build:frontend && npm run build:backend",
+        "test": "vitest run",
         "start": "node dist/backend/main.js"
     },
     "dependencies": {
-        "@spx/sdk": "file:../.."
+        "@spx/sdk": "file:../..",
+        "express": "^5.2.1",
+        "pixi.js": "^8.21.0",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0",
+        "ws": "^8.21.3"
     },
     "devDependencies": {
+        "@types/express": "^5.0.6",
         "@types/node": "^22.13.10",
-        "typescript": "^7.0.2"
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "@types/ws": "^8.18.1",
+        "@vitejs/plugin-react": "^4.7.0",
+        "typescript": "^7.0.2",
+        "vite": "^6.3.6",
+        "vitest": "^4.0.18"
     }
 }

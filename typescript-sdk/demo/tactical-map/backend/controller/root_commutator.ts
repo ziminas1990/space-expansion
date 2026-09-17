@@ -5,6 +5,12 @@ import { Logger } from "../log.js";
 import { Ship } from "./ship.js";
 import { SystemClock } from "./system_clock.js";
 
+enum RootState {
+    OFFLINE = "OFFLINE",
+    INITIALIZING = "INITIALIZING",
+    ONLINE = "ONLINE",
+    DISCONNECTING = "DISCONNECTING",
+}
 
 export class RootCommutator {
 
@@ -14,36 +20,46 @@ export class RootCommutator {
     private ships: Map<number, Ship> = new Map();
     private system_clock?: { slot_id: number, controller: SystemClock };
 
-    private initialized: boolean = false;
-    private stopped: boolean = false;
+    private state: RootState = RootState.OFFLINE;
     private monitoring_task: Promise<void>;
 
     constructor(
         private readonly commutator: midlevel.Commutator,
         private readonly world: IWorld,
         private readonly logger: Logger,
+        private readonly on_unsolicited_stop?: () => void,
     ) {
         this.monitoring_task = Promise.resolve();
     }
 
     async initialize(): Promise<Status> {
+        if (this.state !== RootState.OFFLINE) {
+            return Status.fail(
+                `Cannot initialize root commutator from ${this.state}`,
+            );
+        }
+        this.state = RootState.INITIALIZING;
+
         const [status, modules] = await this.commutator.get_all_modules_info();
         if (!status.is_ok()) {
+            this.state = RootState.OFFLINE;
             return status.wrap("Failed to get all modules info");
         }
         for (const module of modules!) {
-            const status = await this.on_module_attached(module);
-            if (!status.is_ok()) {
-                this.logger.error(`Failed to handle module attached: ${status.what()}`);
+            const attached_status = await this.on_module_attached(module);
+            if (!attached_status.is_ok()) {
+                this.logger.error(
+                    `Failed to handle module attached: ${attached_status.what()}`,
+                );
             }
         }
         this.monitoring_task = this.monitoring();
-        this.initialized = true;
+        this.state = RootState.ONLINE;
         return Status.ok();
     }
 
     verify(): Status {
-        if (!this.initialized) {
+        if (this.state !== RootState.ONLINE) {
             return Status.fail("Root commutator is not initialized");
         }
         if (!this.system_clock) {
@@ -53,21 +69,36 @@ export class RootCommutator {
     }
 
     async stop(reason: string): Promise<Status> {
+        if (this.state !== RootState.ONLINE) {
+            return Status.fail(`Cannot stop root commutator from ${this.state}`);
+        }
         this.logger.info(`Stopping root commutator: ${reason}`);
-        this.stopped = true;
-        await this.monitoring_task;
-        await Promise.all([
-            ...this.ships.values().map(ship => ship.stop()),
-            this.system_clock?.controller.stop(),
-        ]);
-        this.ships.clear();
-        this.system_clock = undefined;
+        this.state = RootState.DISCONNECTING;
+
+        const monitoring = this.monitoring_task;
+        await this.stop_children();
         await this.commutator.terminate();
+        await monitoring;
+
+        this.state = RootState.OFFLINE;
         return Status.ok();
     }
 
     is_stopped(): boolean {
-        return this.stopped;
+        return this.state === RootState.OFFLINE;
+    }
+
+    private async stop_children(): Promise<void> {
+        while (this.ships.size > 0 || this.system_clock) {
+            const ships = [...this.ships.values()];
+            this.ships.clear();
+            const clock = this.system_clock;
+            this.system_clock = undefined;
+            await Promise.all([
+                ...ships.map((ship) => ship.stop()),
+                clock?.controller.stop() ?? Promise.resolve(),
+            ]);
+        }
     }
 
     private async monitoring() {
@@ -76,14 +107,20 @@ export class RootCommutator {
             this.logger.error(`Monitoring error: ${status.what()}`);
         }
         this.logger.info("Monitoring finished");
-        this.stopped = true;
         this.monitoring_task = Promise.resolve();
+        if (this.state !== RootState.ONLINE) {
+            return;
+        }
+        this.on_unsolicited_stop?.();
+        if (this.state === RootState.ONLINE) {
+            void this.stop("monitoring finished");
+        }
     }
 
     private async handle_update(update: midlevel.CommutatorUpdate | undefined)
     : Promise<boolean> {
         if (update === undefined) {
-            return !this.stopped;
+            return this.state === RootState.ONLINE;
         }
         if (update.module_attached) {
             await this.on_module_attached(update.module_attached);
@@ -91,12 +128,15 @@ export class RootCommutator {
         if (update.module_detached !== undefined) {
             await this.on_module_detached(update.module_detached);
         }
-        return !this.stopped;
+        return this.state === RootState.ONLINE;
     }
 
     private async on_module_attached(module_info: midlevel.ModuleInfo)
     : Promise<Status>
     {
+        if (this.state !== RootState.ONLINE && this.state !== RootState.INITIALIZING) {
+            return Status.fail(`Root commutator is ${this.state}`);
+        }
         this.modules.set(module_info.slot_id, module_info);
         if (module_info.module_type === midlevel.ModuleType.SHIP) {
             return this.on_new_ship(module_info);
@@ -123,6 +163,9 @@ export class RootCommutator {
     }
 
     private async on_new_ship(info: midlevel.ModuleInfo): Promise<Status> {
+        if (this.state !== RootState.ONLINE && this.state !== RootState.INITIALIZING) {
+            return Status.fail(`Root commutator is ${this.state}`);
+        }
         if (this.ships.has(info.slot_id)) {
             return Status.ok();
         }
@@ -138,6 +181,11 @@ export class RootCommutator {
             return status;
         }
         this.ships.set(info.slot_id, ship);
+        if (this.state !== RootState.ONLINE && this.state !== RootState.INITIALIZING) {
+            this.ships.delete(info.slot_id);
+            await ship.stop();
+            return Status.fail(`Root commutator is ${this.state}`);
+        }
         return Status.ok();
     }
 
@@ -151,6 +199,9 @@ export class RootCommutator {
     }
 
     private async on_new_system_clock(info: midlevel.ModuleInfo): Promise<Status> {
+        if (this.state !== RootState.ONLINE && this.state !== RootState.INITIALIZING) {
+            return Status.fail(`Root commutator is ${this.state}`);
+        }
         if (this.system_clock?.slot_id === info.slot_id) {
             return Status.ok();
         }
@@ -174,6 +225,11 @@ export class RootCommutator {
             await this.system_clock.controller.stop();
         }
         this.system_clock = { slot_id: info.slot_id, controller: clock };
+        if (this.state !== RootState.ONLINE && this.state !== RootState.INITIALIZING) {
+            this.system_clock = undefined;
+            await clock.stop();
+            return Status.fail(`Root commutator is ${this.state}`);
+        }
         return Status.ok();
     }
 

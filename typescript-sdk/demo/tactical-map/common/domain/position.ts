@@ -24,15 +24,32 @@ export function predict_position(position: Position, timestamp: number)
     const dt_sec = (timestamp - position.timestamp) / 1e6;
     const velocity = position.velocity;
     const acc = position.acc;
-    const new_x = position.x + velocity.x * dt_sec + 0.5 * acc.x * dt_sec * dt_sec;
-    const new_y = position.y + velocity.y * dt_sec + 0.5 * acc.y * dt_sec * dt_sec;
+    const acc_adjustment_x = 0.5 * acc.x * dt_sec * dt_sec;
+    const acc_adjustment_y = 0.5 * acc.y * dt_sec * dt_sec;
+    const new_x = position.x + velocity.x * dt_sec + acc_adjustment_x;
+    const new_y = position.y + velocity.y * dt_sec + acc_adjustment_y;
     return {
         timestamp: timestamp,
         x: new_x,
         y: new_y,
-        velocity: { x: velocity.x, y: velocity.y },
+        velocity: {
+            x: velocity.x + acc.x * dt_sec,
+            y: velocity.y + acc.y * dt_sec,
+        },
         acc: { x: acc.x, y: acc.y },
     }
+}
+
+export function update_position(previous: Position, next: Position): Position {
+    const dt_sec = (next.timestamp - previous.timestamp) / 1e6;
+    const position = copy_position(next);
+    if (dt_sec > 0) {
+        position.acc = {
+            x: (next.velocity.x - previous.velocity.x) / dt_sec,
+            y: (next.velocity.y - previous.velocity.y) / dt_sec,
+        };
+    }
+    return position;
 }
 
 export function equal_positions(

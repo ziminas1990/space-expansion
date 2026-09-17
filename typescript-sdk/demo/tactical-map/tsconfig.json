@@ -23,6 +23,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules/**/*", "dist/**/*"]
+  "include": ["backend/**/*.ts", "common/**/*.ts"],
+  "exclude": ["**/*.test.ts", "node_modules/**/*", "dist/**/*"]
 }

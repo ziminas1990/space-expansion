@@ -11,6 +11,7 @@ const MONITOR_RETRY_MS = [500, 1000, 2000, 5000];
 export class SystemClock {
 
     private stopped: boolean = false;
+    private stop_task: Promise<Status> | undefined;
     private monitoring_task?: Promise<void>;
 
     constructor(
@@ -34,7 +35,15 @@ export class SystemClock {
     }
 
     async stop(): Promise<Status> {
+        if (this.stop_task) {
+            return this.stop_task;
+        }
         this.stopped = true;
+        this.stop_task = this.run_stop();
+        return this.stop_task;
+    }
+
+    private async run_stop(): Promise<Status> {
         await this.remote.terminate();
         if (this.monitoring_task) {
             await this.monitoring_task;

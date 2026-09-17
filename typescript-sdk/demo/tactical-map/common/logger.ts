@@ -39,16 +39,16 @@ export function create_console_logger(): ILogger {
 export function crate_formatted_logger(name: string, underlying: ILogger): ILogger {
     return {
         debug(message) {
-            underlying.debug(`${new Date().toISOString()} [DEBUG] ${name}: ${message}`);
+            underlying.debug(`${new Date().toISOString()} DEBUG: ${name}: ${message}`);
         },
         info(message) {
-            underlying.info(`${new Date().toISOString()} [INFO] ${name}: ${message}`);
+            underlying.info(`${new Date().toISOString()} INFO: ${name}: ${message}`);
         },
         warning(message) {
-            underlying.warning(`${new Date().toISOString()} [WARNING] ${name}: ${message}`);
+            underlying.warning(`${new Date().toISOString()} WARN: ${name}: ${message}`);
         },
         error(message) {
-            underlying.error(`${new Date().toISOString()} [ERROR] ${name}: ${message}`);
+            underlying.error(`${new Date().toISOString()} ERROR: ${name}: ${message}`);
         },
         child(child_name) {
             return crate_formatted_logger(`${name}.${child_name}`, underlying);
