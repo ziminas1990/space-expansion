@@ -1,0 +1,33 @@
+---
+description: TypeScript comment style — no JSDoc block comments
+globs: "**/*.ts,**/*.tsx,**/*.mts,**/*.cts"
+alwaysApply: false
+---
+
+# TypeScript comment style
+
+Never use JSDoc / block documentation comments that start with `/**`.
+
+This applies to single-line and multi-line forms alike. Prefer `//` for
+ordinary comments, including multi-line notes (one `//` per line). Plain
+`/* ... */` is also avoided for documentation; use `//` instead.
+
+```ts
+// ❌ BAD
+/** Encode a timestamp for the wire. */
+export function encodeUsTimestamp(us: bigint): string { ... }
+
+/**
+ * Shared WebSocket contract.
+ * Timestamps are decimal strings.
+ */
+export type UsTimestampString = string;
+
+// ✅ GOOD
+// Encode a timestamp for the wire.
+export function encodeUsTimestamp(us: bigint): string { ... }
+
+// Shared WebSocket contract.
+// Timestamps are decimal strings.
+export type UsTimestampString = string;
+```

@@ -5,6 +5,11 @@ import type { BaseModule } from "./base_module.js";
 export type MonitoringCallback =
     (time_us: number) => Promise<boolean> | boolean;
 
+type MonitorLoop = {
+    stop: boolean;
+    promise: Promise<Status>;
+};
+
 const INITIAL_SYNC_SAMPLES = 10;
 const MIN_WAIT_TIMEOUT_MS = 100;
 const AUTO_TIMEOUT_FACTOR = 1.2;
@@ -17,8 +22,7 @@ export class SystemClock implements BaseModule {
     // Predicts current ingame time on the server. Same instance is returned
     // by time_point() and updated in place whenever a timestamp arrives.
     private ingame_time = new TimePoint(0);
-    private loops = new Set<Promise<Status>>();
-    private tokens = new Set<{ stop: boolean }>();
+    private loops = new Set<MonitorLoop>();
     private in_callback = false;
 
     constructor(
@@ -117,25 +121,26 @@ export class SystemClock implements BaseModule {
         interval_ms: number,
         callback?: MonitoringCallback,
     ): Promise<Status> {
-        const token = { stop: false };
-        this.tokens.add(token);
-        const loop = this.monitor_loop(interval_ms, callback, token);
-        this.loops.add(loop);
+        const loop = { stop: false };
+        const started: MonitorLoop = Object.assign(loop, {
+            promise: this.monitor_loop(
+                interval_ms, callback, () => loop.stop),
+        });
+        this.loops.add(started);
         try {
-            return await loop;
+            return await started.promise;
         } finally {
-            this.tokens.delete(token);
-            this.loops.delete(loop);
+            this.loops.delete(started);
         }
     }
 
     async release(): Promise<Status> {
-        for (const token of this.tokens) {
-            token.stop = true;
+        for (const loop of this.loops) {
+            loop.stop = true;
         }
         await this.rpc.terminate();
         if (!this.in_callback) {
-            await Promise.all(this.loops);
+            await Promise.all([...this.loops].map((loop) => loop.promise));
         }
         return Status.ok();
     }
@@ -165,26 +170,26 @@ export class SystemClock implements BaseModule {
     private async monitor_loop(
         interval_ms: number,
         callback: MonitoringCallback | undefined,
-        token: { stop: boolean },
+        is_stopped: () => boolean,
     ): Promise<Status> {
-        while (!token.stop) {
+        while (!is_stopped()) {
             const status = await this.rpc.monitoring(interval_ms, async (timestamp) => {
                 if (!timestamp) {
                     // a heartbeat by lower level
-                    return !token.stop;
+                    return !is_stopped();
                 }
                 const time_us = this.apply_timestamp(timestamp);
                 this.in_callback = true;
                 try {
                     if (callback) {
-                        return (await callback(time_us)) && !token.stop;
+                        return (await callback(time_us)) && !is_stopped();
                     }
                 } finally {
                     this.in_callback = false;
                 }
-                return !token.stop;
+                return !is_stopped();
             });
-            if (token.stop) {
+            if (is_stopped()) {
                 return Status.ok();
             }
             if (status.is_ok()) {

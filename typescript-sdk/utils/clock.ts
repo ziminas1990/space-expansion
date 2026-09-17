@@ -31,7 +31,7 @@ class LinearTimeMapper {
         }
         const predicted = this.map(local_ts);
         if (predicted !== undefined && remote_ts < predicted) {
-            // this observation is better, because is is closer to the
+            // this observation is better, because it is closer to the
             // remote time
             this.base = { local_ts, remote_ts };
         }
@@ -121,16 +121,8 @@ export class Clock {
     // local_ts is local physical time (use local_now_us()). server_ts is
     // remote physical time; ingame_ts is simulation time. All microseconds.
     observe(local_ts: number, server_ts: number, ingame_ts: number): void {
-
-        const predicted_before = Math.round((this.predict(local_ts) || 0) / 1000);
-
         this.linear.observed(local_ts, server_ts);
         this.smooth.observed(server_ts, ingame_ts);
-
-        const predicted_after = Math.round((this.predict(local_ts) || 0) / 1000);
-
-        const diff = Math.round((ingame_ts - (this.predict(local_ts) || 0)) / 1000);
-        console.log(`predicted_before: ${predicted_before}, predicted_after: ${predicted_after} , diff: ${diff}, received: ${ingame_ts}`);
     }
 
     predict(local_ts: number): number | undefined {

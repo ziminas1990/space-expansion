@@ -14,7 +14,7 @@ import { BaseTask } from "../base_task.js";
 function format_content(content: ResourceContainerContent): string {
     const used_pct = content.volume > 0 ? (100 * content.used / content.volume) : 0;
     const items = content.resources
-        .map((item) => `${item.resource_type}: ${item.amount}`)
+        .map((item) => `${item.resource_type}: ${item.amount.toFixed(1)}`)
         .join(", ");
     return `${used_pct.toFixed(2)}% used: ${items}`;
 }
