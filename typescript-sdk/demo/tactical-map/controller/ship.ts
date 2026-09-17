@@ -1,16 +1,21 @@
 import * as midlevel from "@spx/sdk/midlevel";
 import { Status } from "@spx/sdk/types";
+import { PlayerShip } from "../domain/player_ship.js";
+import { EntityRef } from "../domain/world.js";
+import { convert_position } from "./helpers.js";
 import { IWorld } from "./interfaces.js";
 import { Logger } from "../log.js";
 import { PassiveScanner } from "./passive_scanner.js";
 import { RetryTimeout } from "../utils/retry_timeout.js";
 
+const STATE_MONITOR_MS = 100;
 const MONITOR_RETRY_MS = [500, 1000, 2000, 5000];
 
 export class Ship {
 
     private stopped: boolean = false;
     private modules_monitoring_task?: Promise<void>;
+    private state_monitoring_task?: Promise<void>;
 
     private readonly modules: Map<number, midlevel.ModuleInfo> = new Map();
     private readonly passive_scanners: Map<number, PassiveScanner> = new Map();
@@ -23,9 +28,17 @@ export class Ship {
     ) {}
 
     async initialize(): Promise<Status> {
+        const [state_status, state] = await this.remote.get_state();
+        if (!state_status.is_ok() || !state) {
+            await this.remote.terminate();
+            return state_status.wrap("Failed to get ship state");
+        }
+        this.apply_state(state);
+
         const [status, modules] =
             await this.remote.commutator().get_all_modules_info();
         if (!status.is_ok()) {
+            this.remove_from_world();
             await this.remote.terminate();
             return status.wrap("Failed to get ship modules");
         }
@@ -40,23 +53,90 @@ export class Ship {
             }
         }
 
+        this.state_monitoring_task = this.monitor_state();
         this.modules_monitoring_task = this.monitor_modules();
         return Status.ok();
     }
 
     async stop(): Promise<Status> {
         this.stopped = true;
+        this.remove_from_world();
         for (const scanner of this.passive_scanners.values()) {
             await scanner.stop();
         }
         this.passive_scanners.clear();
         this.modules.clear();
         await this.remote.terminate();
+        if (this.state_monitoring_task) {
+            await this.state_monitoring_task;
+            this.state_monitoring_task = undefined;
+        }
         if (this.modules_monitoring_task) {
             await this.modules_monitoring_task;
             this.modules_monitoring_task = undefined;
         }
         return Status.ok();
+    }
+
+    private entity_ref(): EntityRef {
+        return { kind: "player_ship", id: this.name };
+    }
+
+    private remove_from_world(): void {
+        this.world.update({
+            type: "remove_entity",
+            entity: this.entity_ref(),
+        });
+    }
+
+    private apply_state(state: midlevel.ShipState): void {
+        if (this.stopped) {
+            return;
+        }
+        const position = convert_position(state.position);
+        if (this.world.has_entity(this.entity_ref())) {
+            this.world.update({
+                type: "player_ship_update",
+                ship_id: this.name,
+                update: { position },
+            });
+        } else {
+            this.world.update({
+                type: "add_player_ship",
+                ship: new PlayerShip(this.name, position),
+            });
+        }
+    }
+
+    private async monitor_state() {
+        const retry_timeout = new RetryTimeout(MONITOR_RETRY_MS);
+        while (!this.stopped) {
+            const status = await this.remote.monitoring(
+                STATE_MONITOR_MS,
+                this.handle_state.bind(this),
+            );
+            if (!this.stopped && !status.is_ok()) {
+                this.logger.error(
+                    `Ship '${this.name}' state monitoring failed: ${status.what()}`,
+                );
+                await retry_timeout.wait_to_retry(() => this.stopped);
+            } else {
+                retry_timeout.reset();
+            }
+        }
+    }
+
+    private async handle_state(
+        state: midlevel.ShipState | undefined,
+    ): Promise<boolean>
+    {
+        if (this.stopped) {
+            return false;
+        }
+        if (state !== undefined) {
+            this.apply_state(state);
+        }
+        return true;
     }
 
     private async monitor_modules() {
