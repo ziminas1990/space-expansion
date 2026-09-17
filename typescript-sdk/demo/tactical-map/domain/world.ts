@@ -17,11 +17,27 @@ export type WorldUpdate =
     | { type: "ship_update", ship_id: string, update: ShipUpdate }
     | { type: "remove_entity", entity: EntityRef }
 
+export type WorldPacked = ReturnType<World["pack"]>;
+
 export class World {
 
     private readonly asteroids: Map<string, Asteroid> = new Map();
     private readonly ships: Map<string, Ship> = new Map();
     private readonly clock = new Clock();
+
+    static unpack(packed: WorldPacked, journal: Logger): World {
+        const [asteroids, ships, outdated_after_us] = packed;
+        const world = new World(journal, outdated_after_us);
+        for (const asteroid_packed of asteroids) {
+            const asteroid = Asteroid.unpack(asteroid_packed);
+            world.asteroids.set(asteroid.get_id(), asteroid);
+        }
+        for (const ship_packed of ships) {
+            const ship = Ship.unpack(ship_packed);
+            world.ships.set(ship.get_id(), ship);
+        }
+        return world;
+    }
 
     constructor(
         private journal: Logger,
@@ -102,6 +118,14 @@ export class World {
         } else {
             this.journal.info(`${label} ${entity.get_id()} is current again`);
         }
+    }
+
+    pack() {
+        return [
+            [...this.asteroids.values()].map((asteroid) => asteroid.pack()),
+            [...this.ships.values()].map((ship) => ship.pack()),
+            this.outdated_after_us,
+        ] as const;
     }
 
 }

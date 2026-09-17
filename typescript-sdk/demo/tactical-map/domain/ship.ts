@@ -1,13 +1,22 @@
-import { copy_position, Position } from "./position.js";
+import { copy_position, pack_position, Position, unpack_position } from "./position.js";
 
 export type ShipUpdate = {
     position?: Position;
 }
 
+export type ShipPacked = ReturnType<Ship["pack"]>;
+
 export class Ship {
 
     outdated: boolean = false;
     private position: Position;
+
+    static unpack(packed: ShipPacked): Ship {
+        const [id, position, outdated] = packed;
+        const ship = new Ship(id, unpack_position(position));
+        ship.outdated = outdated;
+        return ship;
+    }
 
     constructor(
         private readonly id: string,
@@ -31,6 +40,14 @@ export class Ship {
         {
             this.position = copy_position(update.position);
         }
+    }
+
+    pack() {
+        return [
+            this.id,
+            pack_position(this.position),
+            this.outdated,
+        ] as const;
     }
 
 }

@@ -1,13 +1,22 @@
-import { copy_position, Position } from "./position.js";
+import { copy_position, pack_position, Position, unpack_position } from "./position.js";
 
 export type AsteroidUpdate = {
     position?: Position;
     radius?: number;
 }
 
+export type AsteroidPacked = ReturnType<Asteroid["pack"]>;
+
 export class Asteroid {
 
     outdated: boolean = false;
+
+    static unpack(packed: AsteroidPacked): Asteroid {
+        const [id, position, radius, outdated] = packed;
+        const asteroid = new Asteroid(id, unpack_position(position), radius);
+        asteroid.outdated = outdated;
+        return asteroid;
+    }
 
     constructor(
         private readonly id: string,
@@ -41,4 +50,12 @@ export class Asteroid {
         }
     }
 
+    pack() {
+        return [
+            this.id,
+            pack_position(this.position),
+            this.radius,
+            this.outdated,
+        ] as const;
+    }
 }

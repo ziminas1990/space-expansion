@@ -70,3 +70,27 @@ export function copy_position(position: Position): Position {
         acc: { x: position.acc.x, y: position.acc.y },
     };
 }
+
+export function pack_position(position: Position) {
+    return [
+        position.timestamp,
+        position.x,
+        position.y,
+        position.velocity.x,
+        position.velocity.y,
+        position.acc.x,
+        position.acc.y,
+    ] as const;
+}
+
+export function unpack_position(packed: ReturnType<typeof pack_position>)
+: Position
+{
+    return {
+        timestamp: packed[0],
+        x: packed[1],
+        y: packed[2],
+        velocity: { x: packed[3], y: packed[4] },
+        acc: { x: packed[5], y: packed[6] },
+    };
+}
