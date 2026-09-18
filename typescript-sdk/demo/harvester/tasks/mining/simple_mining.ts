@@ -16,7 +16,7 @@ function format_content(content: ResourceContainerContent): string {
     const items = content.resources
         .map((item) => `${item.resource_type}: ${item.amount.toFixed(1)}`)
         .join(", ");
-    return `${used_pct.toFixed(2)}% used: ${items}`;
+    return `${used_pct.toFixed(1)}% used: ${items}`;
 }
 
 export class SimpleMining extends BaseTask {

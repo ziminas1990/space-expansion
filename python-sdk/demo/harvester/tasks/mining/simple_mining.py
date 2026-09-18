@@ -14,6 +14,16 @@ if TYPE_CHECKING:
     from expansion.types import ResourceItem
 
 
+def format_resource(resource: "ResourceItem") -> str:
+    return f"{resource.resource_type.value}: {resource.amount:.1f}"
+
+
+def format_content(content: ResourceContainer.Content) -> str:
+    used_pct = 100 * content.used / content.volume if content.volume else 0.0
+    items = ", ".join(format_resource(item) for item in content.as_list())
+    return f"{used_pct:.1f}% used: {items}"
+
+
 class SimpleMining(BaseTask):
 
     def __init__(self,
@@ -95,7 +105,7 @@ class SimpleMining(BaseTask):
         async def print_content():
             content = await self._container.get_content(timeout=1)
             if content:
-                self.add_journal_record(content.print_status())
+                self.add_journal_record(format_content(content))
 
         def mining_progress(status, resources) -> bool:
             if status.is_success():
@@ -140,7 +150,7 @@ class SimpleMining(BaseTask):
             return False
 
         def transfer_status(resource: "ResourceItem"):
-            self.add_journal_record(f"{resource} transferred")
+            self.add_journal_record(f"{format_resource(resource)} transferred")
 
         for resource in content.as_list():
             status = await self._container.transfer(
@@ -149,5 +159,6 @@ class SimpleMining(BaseTask):
                 resource=resource,
                 progress_cb=transfer_status)
             if not status.is_success():
-                self.add_journal_record(f"Can't transfer {resource} to warehouse: {status}")
+                self.add_journal_record(
+                    f"Can't transfer {format_resource(resource)} to warehouse: {status}")
         return True

@@ -97,8 +97,9 @@ class TacticalCore:
             return
 
         async def monitor_cargo():
-            async for content in cargo.monitor():
-                self.log.info(f"Shipyard cargo: {content}")
+            async for _, content in cargo.monitor():
+                if content is not None:
+                    self.log.info(f"Shipyard cargo: {format_cargo(content)}")
 
         asyncio.create_task(monitor_cargo())
         await shipyard.bind_to_cargo(cargo.name)
@@ -109,7 +110,8 @@ class TacticalCore:
         while True:
             status, _, _ = await shipyard.build_ship(
                 ship_type, f"Miner-{next_id}",
-                lambda s, p: self.log.info(f"Shipyard: {s} {p}"))
+                lambda s, p: self.log.info(
+                    f"Shipyard: {s} {p:.3f}" if p is not None else f"Shipyard: {s}"))
             if status == Shipyard.Status.SUCCESS:
                 next_id += 1
                 backoff_ms = 500
@@ -185,3 +187,11 @@ class TacticalCore:
                 self.time = self.system_clock.time_point()
             # Something went wrong. Try again in 250 milliseconds
             await asyncio.sleep(0.25)
+
+
+def format_cargo(content: ResourceContainer.Content) -> str:
+    items = ", ".join(
+        f"{resource_type.value}: {amount:.1f}"
+        for resource_type, amount in content.resources.items()
+    )
+    return f"volume={content.volume:.1f} used={content.used:.1f} [{items}]"
