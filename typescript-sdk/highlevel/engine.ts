@@ -1,22 +1,34 @@
 import * as midlevel from "#sdk/midlevel/index.js";
 import { Status } from "#sdk/types/index.js";
 import { Cached } from "#sdk/utils/cache.js";
+import { EventEmitter } from "./events.js";
 import type { BaseModule } from "./base_module.js";
 
 export type EngineSpecification = midlevel.EngineSpecification;
 export type CurrentThrust = midlevel.CurrentThrust;
 
+export type Events = {
+    thrust: (thrust: CurrentThrust) => Promise<void> | void;
+    // Emitted when the engine goes offline and stops monitoring
+    offline: (status: Status) => Promise<void> | void;
+}
+
 const DEFAULT_THRUST_CACHE_MS = 100;
 
-export class Engine implements BaseModule {
+export class Engine extends EventEmitter<Events> implements BaseModule {
     readonly type = midlevel.ModuleType.ENGINE;
     private specification = new Cached<EngineSpecification>();
     private thrust = new Cached<CurrentThrust>();
+    private stopped = false;
+    private loop?: Promise<void>;
+    private in_callback = false;
 
     constructor(
         private rpc: midlevel.Engine,
         readonly name: string,
-    ) {}
+    ) {
+        super();
+    }
 
     async reinit(rpc: midlevel.MidlevelModule): Promise<Status> {
         if (!midlevel.is_module(rpc, midlevel.ModuleType.ENGINE)) {
@@ -24,11 +36,17 @@ export class Engine implements BaseModule {
         }
         await this.release();
         this.rpc = rpc;
-        return Status.ok();
+        return await this.init();
     }
 
     down_level(): midlevel.Engine {
         return this.rpc;
+    }
+
+    async init(): Promise<Status> {
+        this.stopped = false;
+        this.loop ??= this.monitor_loop();
+        return Status.ok();
     }
 
     async get_specification(
@@ -78,10 +96,55 @@ export class Engine implements BaseModule {
     }
 
     async release(): Promise<Status> {
+        this.stopped = true;
         await this.rpc.terminate();
+        if (this.loop && !this.in_callback) {
+            await this.loop;
+            this.loop = undefined;
+        }
         this.specification.reset();
         this.thrust.reset();
         return Status.ok();
+    }
+
+    private async monitor_loop(): Promise<void> {
+        while (!this.stopped) {
+            try {
+                const status = await this.rpc.monitoring(async (thrust) => {
+                    if (thrust) {
+                        await this.apply_thrust(thrust);
+                    }
+                    return !this.stopped;
+                }, 100);
+                if (!status.is_ok()) {
+                    await this.notify_offline(status);
+                    return;
+                }
+            } catch (error) {
+                await this.notify_offline(Status.exception(error));
+                return;
+            }
+        }
+    }
+
+    private async notify_offline(status: Status): Promise<void> {
+        this.loop = undefined;
+        this.in_callback = true;
+        try {
+            await this.emit("offline", status);
+        } finally {
+            this.in_callback = false;
+        }
+    }
+
+    private async apply_thrust(thrust: CurrentThrust): Promise<void> {
+        this.thrust.set(thrust);
+        this.in_callback = true;
+        try {
+            await this.emit("thrust", thrust);
+        } finally {
+            this.in_callback = false;
+        }
     }
 
 }

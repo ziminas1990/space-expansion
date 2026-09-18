@@ -5,6 +5,8 @@ import { ModuleType } from "./module_type.js";
 
 export type EngineSpecification = lowlevel.EngineSpecification;
 export type CurrentThrust = lowlevel.CurrentThrust;
+export type MonitoringCallback =
+    (thrust: CurrentThrust | undefined) => Promise<boolean>;
 
 export class Engine extends BaseModule<lowlevel.Engine> {
     readonly type = ModuleType.ENGINE;
@@ -34,6 +36,15 @@ export class Engine extends BaseModule<lowlevel.Engine> {
             async (session) => session.send_change_thrust(x, y, thrust, duration_ms, at));
     }
 
+    async monitoring(
+        callback: MonitoringCallback,
+        heartbeat_ms: number = 200): Promise<Status>
+    {
+        return await this.run_no_return(
+            async (session) => this._monitoring(session, callback, heartbeat_ms),
+            true);
+    }
+
     private async _get_specification(session: lowlevel.Engine)
         : Promise<[Status, EngineSpecification | undefined]>
     {
@@ -60,5 +71,42 @@ export class Engine extends BaseModule<lowlevel.Engine> {
             return [status.wrap("failed to get engine thrust"), undefined];
         }
         return [Status.ok(), thrust];
+    }
+
+    private async _monitoring(
+        session: lowlevel.Engine,
+        callback: MonitoringCallback,
+        heartbeat_ms: number): Promise<Status>
+    {
+        const send_status = await session.send_monitor_request();
+        if (!send_status.is_ok()) {
+            return send_status.wrap("failed to send monitor request");
+        }
+
+        const [start_status, start_thrust] = await session.wait_thrust(2000);
+        if (!start_status.is_ok() || !start_thrust) {
+            return start_status.wrap("failed to start monitoring");
+        }
+        if (!await callback(start_thrust)) {
+            return Status.ok();
+        }
+
+        while (true) {
+            const [status, thrust] = await session.wait_thrust(heartbeat_ms);
+            if (status.is_timeout()) {
+                const resume = await callback(undefined);
+                if (!resume) {
+                    return Status.ok();
+                }
+                continue;
+            }
+            if (!status.is_ok() || !thrust) {
+                return status.wrap("monitoring stopped");
+            }
+            const resume = await callback(thrust);
+            if (!resume) {
+                return Status.ok();
+            }
+        }
     }
 }

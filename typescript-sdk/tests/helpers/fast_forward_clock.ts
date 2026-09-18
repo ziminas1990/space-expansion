@@ -11,22 +11,46 @@ export class FastForwardClock {
 
     async wait_until(
         time_us: number,
-        timeout_ms?: number,
     ): Promise<[Status, number | undefined]> {
         await this.clock.fastForward(this.multiplier, 1_000);
         try {
+            const [status, now] = await this.systemClock.time();
+            if (!status.is_ok() || now === undefined) {
+                return [status, undefined];
+            }
             return await this.systemClock.wait_until(
                 time_us,
-                timeout_ms ?? this.waitTimeoutMs(time_us),
+                this.waitTimeoutMs(time_us - now),
             );
         } finally {
             await this.clock.play();
         }
     }
 
-    private waitTimeoutMs(time_us: number): number {
-        const remaining_us = time_us - this.systemClock.now_us();
-        const real_ms = remaining_us / this.multiplier / 1_000;
-        return Math.max(1_000, real_ms * 1.5);
+    async wait_for(
+        period_us: number,
+    ): Promise<[Status, number | undefined]> {
+        await this.clock.fastForward(this.multiplier, 1_000);
+        try {
+            return await this.systemClock.wait_for(
+                period_us,
+                this.waitTimeoutMs(period_us),
+            );
+        } finally {
+            await this.clock.play();
+        }
+    }
+
+    private waitTimeoutMs(remaining_us: number): number {
+        const remaining_s = remaining_us / 1_000_000;
+        // NOTE: local machine MAY not be able to run simulation with current
+        // fast-forward multiplier (say, 50x). In this case, test may fail by
+        // timeout in wait_until/wait_for.
+        // We assume, that local machine is able to run simulation with at least
+        // 10x speed of the server.
+        return Math.max(
+            5_000,
+            remaining_s / Math.min(10, this.multiplier) * 1_000,
+        );
     }
 }

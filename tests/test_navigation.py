@@ -25,19 +25,33 @@ class FastForwardAdapter(rpc.SystemClockI):
         self.fast_forward = fast_forward
         self.fast_forward_multiplier = fast_forward_multiplier
 
-    async def wait_until(self, time: int, timeout: float = 1) -> Optional[int]:
+    def _wait_timeout_s(self, remaining_us: int) -> float:
+        remaining_s = remaining_us / 1_000_000
+        # NOTE: local machine MAY not be able to run simulation with current
+        # fast-forward multiplier (say, 50x). In this case, test may fail by
+        # timeout in wait_until/wait_for.
+        # We assume, that local machine is able to run simulation with at least
+        # 10x speed of the server.
+        return max(5.0, remaining_s / min(10, self.fast_forward_multiplier))
+
+    async def wait_until(self, time: int) -> Optional[int]:
         """Wait until server time reaches the specified 'time'"""
         await self.fast_forward(self.fast_forward_multiplier, 1000)
-        result = await self.system_clock.wait_until(time, timeout)
-        await self.switch_to_real_time()
-        return result
+        try:
+            now = await self.system_clock.time()
+            timeout = self._wait_timeout_s(time - (now or 0))
+            return await self.system_clock.wait_until(time, timeout)
+        finally:
+            await self.switch_to_real_time()
 
-    async def wait_for(self, period_us: int, timeout: float) -> Optional[int]:
+    async def wait_for(self, period_us: int) -> Optional[int]:
         """Wait for the specified 'period' microseconds"""
         await self.fast_forward(self.fast_forward_multiplier, 1000)
-        result = await self.system_clock.wait_for(period_us, timeout)
-        await self.switch_to_real_time()
-        return result
+        try:
+            timeout = self._wait_timeout_s(period_us)
+            return await self.system_clock.wait_for(period_us, timeout)
+        finally:
+            await self.switch_to_real_time()
 
     async def time(self, timeout: float = 0.1) -> Optional[TimePoint]:
         """Return current server time"""

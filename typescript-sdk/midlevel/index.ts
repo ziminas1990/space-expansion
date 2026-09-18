@@ -9,7 +9,12 @@ export {
 export { ModuleType, MidlevelModule, is_module } from "./module_types.js";
 export { create_module } from "./factory.js";
 export { Ship, ShipState } from "./ship.js";
-export { Engine, EngineSpecification, CurrentThrust } from "./engine.js";
+export {
+    Engine,
+    EngineSpecification,
+    CurrentThrust,
+    MonitoringCallback as EngineMonitoringCallback,
+} from "./engine.js";
 export { Navigation } from "./navigation.js";
 export { BlueprintsLibrary, BlueprintsLibraryStatus } from "./blueprints_library.js";
 export {

@@ -48,10 +48,20 @@ export class Engine {
         return this.send(request);
     }
 
+    async send_monitor_request(): Promise<types.Status> {
+        const request = create(msg.IEngineSchema, {
+            choice: { case: "monitor", value: true },
+        });
+        return this.send(request);
+    }
+
     async wait_thrust(timeout: number = 500)
     : Promise<[types.Status, CurrentThrust | undefined]>
     {
         const [status, response] = await this.wait(timeout);
+        if (status.is_timeout()) {
+            return [status, undefined];
+        }
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];
         }

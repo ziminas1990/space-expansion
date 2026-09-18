@@ -11,6 +11,12 @@ class Specification(NamedTuple):
     max_thrust: int
 
 
+def _thrust_from_protobuf(thrust) -> Vector:
+    if not thrust.thrust:
+        return Vector(0, 0)
+    return Vector(x=thrust.x, y=thrust.y).set_length(thrust.thrust)
+
+
 class EngineI(IOTerminal):
 
     def __init__(self, name: Optional[str] = None):
@@ -44,13 +50,29 @@ class EngineI(IOTerminal):
         request.engine.thrust_req = True
         if not self.send(message=request):
             return None
+        return await self.wait_thrust(timeout=timeout)
+
+    @Channel.return_on_close(None)
+    async def wait_thrust(self, timeout: float = 0.5) -> Optional[Vector]:
+        """Wait for a CurrentThrust indication on this session"""
         response, _ = await self.wait_message(timeout=timeout)
         if not response:
             return None
         thrust = api.get_message_field(response, ["engine", "thrust"])
         if not thrust:
             return None
-        return Vector(x=thrust.x, y=thrust.y).set_length(thrust.thrust)
+        return _thrust_from_protobuf(thrust)
+
+    @Channel.return_on_close(None)
+    async def monitor(self, timeout: float = 2.0) -> Optional[Vector]:
+        """Start a monitoring session and return the current thrust snapshot.
+        The only way to stop monitoring is to close the session.
+        """
+        request = api.Message()
+        request.engine.monitor = True
+        if not self.send(message=request):
+            return None
+        return await self.wait_thrust(timeout=timeout)
 
     @Channel.return_on_close(False)
     async def set_thrust(self, thrust: Vector, at: int = 0, duration_ms: int = 0) -> bool:

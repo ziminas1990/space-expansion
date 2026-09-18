@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, AsyncIterable
 import time
 
 from expansion.interfaces.rpc import EngineI, EngineSpec
@@ -71,4 +71,29 @@ class Engine(BaseModule):
         Return true if a request has been sent
         """
         assert session is not None
+        self.cache.thrust = None, 0
         return await session.set_thrust(thrust=thrust, at=at, duration_ms=duration_ms)
+
+    @BaseModule.use_session_for_generators(
+        terminal_type=EngineI,
+        return_on_unreachable=None
+    )
+    async def monitor(self,
+                      session: Optional[EngineI] = None) \
+            -> AsyncIterable[Optional[Vector]]:
+        """Yield the current thrust snapshot, then an update each time a
+        thrust command is applied or a timed burn expires. Yields None
+        on timeout.
+        """
+        assert session is not None
+        thrust = await session.monitor()
+        if thrust is not None:
+            self.cache.thrust = thrust, time.monotonic() * 1000
+        yield thrust
+        if thrust is None:
+            return
+        while True:
+            thrust = await session.wait_thrust(timeout=60)
+            if thrust is not None:
+                self.cache.thrust = thrust, time.monotonic() * 1000
+            yield thrust

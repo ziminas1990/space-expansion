@@ -17,8 +17,11 @@ class Engine : public ClientBaseModule
 public:
   bool getSpecification(EngineSpecification& specification);
 
-  bool setThrust(geometry::Vector thrust, uint32_t nDurationMs);
+  bool setThrust(geometry::Vector thrust, uint32_t nDurationMs,
+                 uint64_t nWhenUs = 0);
   bool getThrust(geometry::Vector& thrust);
+  bool monitor(geometry::Vector& thrust);
+  bool waitThrust(geometry::Vector& thrust, uint16_t nTimeout = 500);
 
 };
 

@@ -83,6 +83,7 @@ message IEngine
     bool         specification_req = 1;
     ChangeThrust change_thrust     = 2;
     bool         thrust_req        = 3;
+    bool         monitor           = 4;
 
     Specification specification = 21;
     CurrentThrust thrust        = 22;

@@ -18,9 +18,13 @@ void Engine::proceed(uint32_t nIntervalUs)
     m_nTimeLeftUs -= nIntervalUs;
     return;
   }
-  getPlatform()->getExternalForce_NoSync(m_nThrustVectorId).toZero();
+
+  geometry::Vector& thrustVector =
+      getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+  thrustVector.toZero();
   switchToIdleState();
   m_nTimeLeftUs = 0;
+  notifyMonitors();
 }
 
 bool Engine::loadState(YAML::Node const& source)
@@ -30,6 +34,12 @@ bool Engine::loadState(YAML::Node const& source)
 
   geometry::Vector& thrust = getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
   return thrust.load(source);
+}
+
+void Engine::onSessionClosed(uint32_t nSessionId)
+{
+  m_monitoringSessions.removeFirst(nSessionId);
+  BaseModule::onSessionClosed(nSessionId);
 }
 
 void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& message)
@@ -45,6 +55,10 @@ void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& messa
     }
     case spex::IEngine::kThrustReq: {
       getThrust(nSessionId);
+      return;
+    }
+    case spex::IEngine::kMonitor: {
+      monitor(nSessionId);
       return;
     }
     case spex::IEngine::kThrust:
@@ -86,20 +100,44 @@ void Engine::setThrust(const spex::IEngine::ChangeThrust &req)
     m_nTimeLeftUs = req.duration_ms() * 1000;
     switchToActiveState();
   }
+
+  notifyMonitors();
 }
 
 void Engine::getThrust(uint32_t nSessionId) const
 {
-  spex::Message response;
-  spex::IEngine::CurrentThrust *pBody = response.mutable_engine()->mutable_thrust();
+  sendThrust(nSessionId);
+}
 
+void Engine::monitor(uint32_t nSessionId)
+{
+  m_monitoringSessions.push(nSessionId);
+  sendThrust(nSessionId);
+}
+
+bool Engine::sendThrust(uint32_t nSessionId) const
+{
   geometry::Vector const& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+
+  spex::Message response;
+  spex::IEngine::CurrentThrust* pBody =
+      response.mutable_engine()->mutable_thrust();
   pBody->set_x(thrustVector.getX());
   pBody->set_y(thrustVector.getY());
   pBody->set_thrust(uint32_t(thrustVector.getLength()));
+  return sendToClient(nSessionId, std::move(response));
+}
 
-  sendToClient(nSessionId, std::move(response));
+void Engine::notifyMonitors()
+{
+  for (size_t i = 0; i < m_monitoringSessions.size();) {
+    if (!sendThrust(m_monitoringSessions[i])) {
+      m_monitoringSessions.remove(i);
+    } else {
+      ++i;
+    }
+  }
 }
 
 } // namespace modules

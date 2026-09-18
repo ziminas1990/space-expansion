@@ -18,6 +18,7 @@ import {
 import {
     expectStatus,
     getCargo,
+    getEngine,
     getPassiveScanner,
     getShip,
     getSystemClock,
@@ -93,6 +94,7 @@ test.skipIf(!hasServerBinary)(
             // 2. get ship modules used for monitoring
             const miner = getShip(player, "miner-1");
             const cargo = getCargo(miner, "cargo");
+            const engine = getEngine(miner, "main_engine");
             const scanner = getPassiveScanner(miner, "perceiver");
             const systemClock = getSystemClock(player);
 
@@ -110,6 +112,10 @@ test.skipIf(!hasServerBinary)(
                 (callback) => cargo.down_level().monitoring(callback, HEARTBEAT_MS),
                 "cargo monitoring",
             );
+            const engineIdle = collectIdleAndStop(
+                (callback) => engine.down_level().monitoring(callback, HEARTBEAT_MS),
+                "engine monitoring",
+            );
             const scannerIdle = collectIdleAndStop(
                 (callback) => scanner.down_level().monitoring(callback, HEARTBEAT_MS),
                 "scanner monitoring",
@@ -121,11 +127,12 @@ test.skipIf(!hasServerBinary)(
             );
 
             // 4. wait for each loop to stop after idle callbacks
-            const [commutatorAt, shipAt, cargoAt, scannerAt, clockAt] =
+            const [commutatorAt, shipAt, cargoAt, engineAt, scannerAt, clockAt] =
                 await Promise.all([
                     commutatorIdle,
                     shipIdle,
                     cargoIdle,
+                    engineIdle,
                     scannerIdle,
                     clockIdle,
                 ]);
@@ -134,6 +141,7 @@ test.skipIf(!hasServerBinary)(
             expectIdleCadence(commutatorAt, "commutator");
             expectIdleCadence(shipAt, "ship");
             expectIdleCadence(cargoAt, "cargo");
+            expectIdleCadence(engineAt, "engine");
             expectIdleCadence(scannerAt, "scanner");
             expectIdleCadence(clockAt, "clock");
         });
