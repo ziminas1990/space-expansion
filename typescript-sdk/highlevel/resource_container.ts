@@ -136,7 +136,7 @@ export class ResourceContainer extends EventEmitter<Events> implements BaseModul
                         await this.apply_content(content);
                     }
                     return !this.stopped;
-                });
+                }, 100);
                 if (!status.is_ok()) {
                     await this.notify_offline(status);
                     return;

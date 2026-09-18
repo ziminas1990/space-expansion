@@ -36,11 +36,15 @@ export class SystemClock extends BaseModule<lowlevel.SystemClock> {
             async (session) => this._wait_for(session, period_us, timeout_ms));
     }
 
-    async monitoring(interval_ms: number, callback: MonitoringCallback)
+    async monitoring(
+        interval_ms: number,
+        callback: MonitoringCallback,
+        heartbeat_ms: number = 200)
         : Promise<Status>
     {
         return await this.run_no_return(
-            async (session) => this._monitoring(session, interval_ms, callback),
+            async (session) => this._monitoring(
+                session, interval_ms, callback, heartbeat_ms),
             true);
     }
 
@@ -95,16 +99,16 @@ export class SystemClock extends BaseModule<lowlevel.SystemClock> {
     private async _monitoring(
         session: lowlevel.SystemClock,
         interval_ms: number,
-        callback: MonitoringCallback): Promise<Status>
+        callback: MonitoringCallback,
+        heartbeat_ms: number): Promise<Status>
     {
         const send_status = await session.send_monitor_request(interval_ms);
         if (!send_status.is_ok()) {
             return send_status.wrap("failed to send monitor request");
         }
 
-        const timeout_ms = Math.max(500, interval_ms * 10);
         while (true) {
-            const [status, timestamp] = await session.wait_time(timeout_ms);
+            const [status, timestamp] = await session.wait_time(heartbeat_ms);
             if (status.is_timeout()) {
                 // Heartbeat so the caller can stop by returning false.
                 const resume = await callback(undefined);

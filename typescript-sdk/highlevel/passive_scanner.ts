@@ -111,7 +111,7 @@ export class PassiveScanner extends EventEmitter<Events> implements BaseModule {
                         await this.drop_lost(at_us);
                     }
                     return !this.stopped;
-                });
+                }, 100);
                 if (!status.is_ok()) {
                     this.loop = undefined;
                     await this.emit("offline", status);

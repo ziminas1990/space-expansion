@@ -49,10 +49,13 @@ export class ResourceContainer extends BaseModule<lowlevel.ResourceContainer> {
             true);
     }
 
-    async monitoring(callback: MonitoringCallback): Promise<Status>
+    async monitoring(
+        callback: MonitoringCallback,
+        heartbeat_ms: number = 200): Promise<Status>
     {
         return await this.run_no_return(
-            async (session) => this._monitoring(session, callback), true);
+            async (session) => this._monitoring(session, callback, heartbeat_ms),
+            true);
     }
 
     private async _get_content(session: lowlevel.ResourceContainer)
@@ -144,7 +147,8 @@ export class ResourceContainer extends BaseModule<lowlevel.ResourceContainer> {
 
     private async _monitoring(
         session: lowlevel.ResourceContainer,
-        callback: MonitoringCallback): Promise<Status>
+        callback: MonitoringCallback,
+        heartbeat_ms: number): Promise<Status>
     {
         const send_status = await session.send_monitor_request();
         if (!send_status.is_ok()) {
@@ -160,7 +164,7 @@ export class ResourceContainer extends BaseModule<lowlevel.ResourceContainer> {
         }
 
         while (true) {
-            const [status, content] = await session.wait_content(200);
+            const [status, content] = await session.wait_content(heartbeat_ms);
             if (status.is_timeout()) {
                 const resume = await callback(undefined);
                 if (!resume) {

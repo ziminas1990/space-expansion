@@ -153,7 +153,7 @@ export class TacticalCore {
                 ship_type,
                 `Miner-${next_id}`,
                 (build_status, progress) => {
-                    this.log.info(`Shipyard: ${build_status} ${progress}`);
+                    this.log.info(`Shipyard: ${build_status} ${progress.toFixed(3)}`);
                 },
             );
             if (status.is_ok()) {
@@ -229,7 +229,7 @@ export class TacticalCore {
 
 function format_cargo(content: ResourceContainerContent): string {
     const items = content.resources
-        .map((item) => `${item.resource_type}: ${item.amount}`)
+        .map((item) => `${item.resource_type}: ${item.amount.toFixed(1)}`)
         .join(", ");
-    return `volume=${content.volume} used=${content.used} [${items}]`;
+    return `volume=${content.volume.toFixed(1)} used=${content.used.toFixed(1)} [${items}]`;
 }

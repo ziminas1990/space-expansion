@@ -188,7 +188,7 @@ export class SystemClock implements BaseModule {
                     this.in_callback = false;
                 }
                 return !is_stopped();
-            });
+            }, 100);
             if (is_stopped()) {
                 return Status.ok();
             }

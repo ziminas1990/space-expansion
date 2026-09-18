@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { Asteroid } from "../domain/asteroid.js";
 import { PlayerShip } from "../domain/player_ship.js";
-import type { Position } from "../domain/position.js";
+import { pack_position, type Position } from "../domain/position.js";
 import { Ship } from "../domain/ship.js";
 import type { WorldUpdate } from "../domain/world.js";
 import { pack_world_update, unpack_world_update } from "./world_update.js";
@@ -23,6 +23,42 @@ function round_trip(update: WorldUpdate): WorldUpdate {
     expect(pack_world_update(unpacked)).toEqual(packed);
     return unpacked;
 }
+
+test("packs world updates as numeric tuples", () => {
+    // 1. pack add, partial-update, and remove variants
+    const asteroid = new Asteroid("rock-1", sample_position(1_000_000, 5, 6), 40);
+    const add_asteroid = pack_world_update({ type: "add_asteroid", asteroid });
+    const radius_only = pack_world_update({
+        type: "asteroid_update",
+        asteroid_id: "rock-1",
+        update: { radius: 12 },
+    });
+    const ship_update = pack_world_update({
+        type: "ship_update",
+        ship_id: "foreign-1",
+        update: { position: sample_position(5_000_000, 11, 12) },
+    });
+    const remove_asteroid = pack_world_update({
+        type: "remove_entity",
+        entity: { kind: "asteroid", id: "rock-1" },
+    });
+    const remove_ship = pack_world_update({
+        type: "remove_entity",
+        entity: { kind: "ship", id: "foreign-1" },
+    });
+    const remove_player = pack_world_update({
+        type: "remove_entity",
+        entity: { kind: "player_ship", id: "Scout" },
+    });
+
+    // 2. check the wire tuples
+    expect(add_asteroid).toEqual([0, asteroid.pack()]);
+    expect(radius_only).toEqual([3, "rock-1", null, 12]);
+    expect(ship_update).toEqual([4, "foreign-1", pack_position(sample_position(5_000_000, 11, 12))]);
+    expect(remove_asteroid).toEqual([6, 0, "rock-1"]);
+    expect(remove_ship).toEqual([6, 1, "foreign-1"]);
+    expect(remove_player).toEqual([6, 2, "Scout"]);
+});
 
 test("round-trips every world update variant", () => {
     const asteroid = new Asteroid("rock-1", sample_position(1_000_000, 5, 6), 40);

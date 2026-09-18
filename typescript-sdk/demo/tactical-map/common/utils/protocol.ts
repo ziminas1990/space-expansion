@@ -171,7 +171,7 @@ function parse_snapshot(value: Record<string, unknown>): ParseResult<WorldSnapsh
 function parse_world_update_message(
     value: Record<string, unknown>,
 ): ParseResult<WorldUpdateMessage> {
-    if (!is_record(value.update) || typeof value.update.type !== "string") {
+    if (!Array.isArray(value.update) || typeof value.update[0] !== "number") {
         return { ok: false, error: "Invalid message" };
     }
     return {

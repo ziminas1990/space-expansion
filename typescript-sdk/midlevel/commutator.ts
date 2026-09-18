@@ -48,10 +48,12 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
         return await this.run_no_return(async (session) => this._close_session(session, session_id));
     }
 
-    async monitoring(callback: MonitoringCallback)
+    async monitoring(callback: MonitoringCallback, heartbeat_ms: number = 200)
     : Promise<Status>
     {
-        return await this.run_no_return(async (session) => this._monitoring(session, callback), true);
+        return await this.run_no_return(
+            async (session) => this._monitoring(session, callback, heartbeat_ms),
+            true);
     }
 
     override async terminate(): Promise<void> {
@@ -159,7 +161,9 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
     }
 
     private async _monitoring(
-        session: lowlevel.Commutator, callback: MonitoringCallback)
+        session: lowlevel.Commutator,
+        callback: MonitoringCallback,
+        heartbeat_ms: number)
     : Promise<Status>
     {
         const send_status = await session.send_start_monitoring_request();
@@ -175,7 +179,7 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
         }
 
         while (true) {
-            const [status, update] = await session.wait_update();
+            const [status, update] = await session.wait_update(heartbeat_ms);
             if (status.is_timeout()) {
                 // Just a heartbeat for upper level, so that it could have a
                 // chance to report that monitoring should be stopped by

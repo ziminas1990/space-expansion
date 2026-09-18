@@ -22,10 +22,13 @@ export class PassiveScanner extends BaseModule<lowlevel.PassiveScanner> {
         return await this.run(async (session) => this._get_specification(session));
     }
 
-    async monitoring(callback: MonitoringCallback): Promise<Status>
+    async monitoring(
+        callback: MonitoringCallback,
+        heartbeat_ms: number = 200): Promise<Status>
     {
         return await this.run_no_return(
-            async (session) => this._monitoring(session, callback), true);
+            async (session) => this._monitoring(session, callback, heartbeat_ms),
+            true);
     }
 
     private async _get_specification(session: lowlevel.PassiveScanner)
@@ -44,7 +47,8 @@ export class PassiveScanner extends BaseModule<lowlevel.PassiveScanner> {
 
     private async _monitoring(
         session: lowlevel.PassiveScanner,
-        callback: MonitoringCallback): Promise<Status>
+        callback: MonitoringCallback,
+        heartbeat_ms: number): Promise<Status>
     {
         const send_status = await session.send_monitor_request();
         if (!send_status.is_ok()) {
@@ -60,7 +64,7 @@ export class PassiveScanner extends BaseModule<lowlevel.PassiveScanner> {
         }
 
         while (true) {
-            const [status, objects] = await session.wait_update(200);
+            const [status, objects] = await session.wait_update(heartbeat_ms);
             if (status.is_timeout()) {
                 const resume = await callback(undefined);
                 if (!resume) {

@@ -19,6 +19,9 @@ export class SystemClock {
     : Promise<[types.Status, types.ServerTimestamp | undefined]>
     {
         const [status, response, timestamp] = await this.wait(timeout);
+        if (status.is_timeout()) {
+            return [status, undefined];
+        }
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];
         }

@@ -40,10 +40,15 @@ export class Ship extends BaseModule<lowlevel.Ship> {
         return await this.run(this._get_ship_state);
     }
 
-    async monitoring(update_ms: number, callback: MonitoringCallback)
+    async monitoring(
+        update_ms: number,
+        callback: MonitoringCallback,
+        heartbeat_ms: number = 200)
         : Promise<Status> {
         return await this.run_no_return(
-            async (session) => this._monitoring(session, update_ms, callback), true);
+            async (session) => this._monitoring(
+                session, update_ms, callback, heartbeat_ms),
+            true);
     }
 
     async _get_ship_state(session: lowlevel.Ship)
@@ -59,7 +64,8 @@ export class Ship extends BaseModule<lowlevel.Ship> {
     private async _monitoring(
         session: lowlevel.Ship,
         update_ms: number,
-        callback: MonitoringCallback)
+        callback: MonitoringCallback,
+        heartbeat_ms: number)
         : Promise<Status> {
         const send_status = await session.send_monitor_request(update_ms);
         if (!send_status.is_ok()) {
@@ -67,7 +73,7 @@ export class Ship extends BaseModule<lowlevel.Ship> {
         }
 
         while (true) {
-            const [status, update] = await session.wait_state();
+            const [status, update] = await session.wait_state(heartbeat_ms);
             if (status.is_timeout()) {
                 const resume = await callback(undefined);
                 if (!resume) {

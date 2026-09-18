@@ -32,6 +32,9 @@ export class Ship {
     : Promise<[types.Status, ShipState | undefined]>
     {
         const [status, response, timestamp] = await this.wait(timeout_ms);
+        if (status.is_timeout()) {
+            return [status, undefined];
+        }
         if (!response) {
             return [status, undefined];
         }

@@ -5,6 +5,7 @@ import type { World } from "../../common/domain/world.js";
 import {
     create_camera,
     follow,
+    pan_by,
     release_follow,
     sync_follow,
     zoom_at,
@@ -89,6 +90,71 @@ export function PixiMap({
         let cleaned = false;
         let last_version = -1;
 
+        let dragging = false;
+        let drag_pointer_id: number | undefined;
+        let last_pointer: Point | undefined;
+
+        const stop_drag = (event?: PointerEvent) => {
+            if (!dragging) {
+                return;
+            }
+            if (
+                event !== undefined
+                && drag_pointer_id !== undefined
+                && event.pointerId !== drag_pointer_id
+            ) {
+                return;
+            }
+            const canvas = app.canvas;
+            if (
+                canvas !== undefined
+                && drag_pointer_id !== undefined
+                && canvas.hasPointerCapture(drag_pointer_id)
+            ) {
+                canvas.releasePointerCapture(drag_pointer_id);
+            }
+            dragging = false;
+            drag_pointer_id = undefined;
+            last_pointer = undefined;
+        };
+
+        const on_pointer_down = (event: PointerEvent) => {
+            if (event.button !== 0 || dragging) {
+                return;
+            }
+            if (camera_ref.current.followed_id !== undefined) {
+                return;
+            }
+            event.preventDefault();
+            dragging = true;
+            drag_pointer_id = event.pointerId;
+            last_pointer = { x: event.clientX, y: event.clientY };
+            app.canvas.setPointerCapture(event.pointerId);
+        };
+
+        const on_pointer_move = (event: PointerEvent) => {
+            if (!dragging || last_pointer === undefined) {
+                return;
+            }
+            if (event.pointerId !== drag_pointer_id) {
+                return;
+            }
+            if (camera_ref.current.followed_id !== undefined) {
+                stop_drag(event);
+                return;
+            }
+            const delta = {
+                x: event.clientX - last_pointer.x,
+                y: event.clientY - last_pointer.y,
+            };
+            last_pointer = { x: event.clientX, y: event.clientY };
+            camera_ref.current = pan_by(camera_ref.current, delta);
+        };
+
+        const on_pointer_up = (event: PointerEvent) => {
+            stop_drag(event);
+        };
+
         const on_wheel = (event: WheelEvent) => {
             event.preventDefault();
             const canvas = app.canvas;
@@ -140,6 +206,11 @@ export function PixiMap({
 
             update_markers(current_world, markers, current_world.now(), camera.scale);
             apply_camera(world_layer, camera, app.screen.width, app.screen.height);
+            if (camera.followed_id !== undefined) {
+                app.canvas.style.cursor = "default";
+            } else {
+                app.canvas.style.cursor = dragging ? "grabbing" : "grab";
+            }
         };
 
         const cleanup_app = () => {
@@ -151,6 +222,10 @@ export function PixiMap({
                 return;
             }
             cleaned = true;
+            app.canvas.removeEventListener("pointerdown", on_pointer_down);
+            app.canvas.removeEventListener("pointermove", on_pointer_move);
+            app.canvas.removeEventListener("pointerup", on_pointer_up);
+            app.canvas.removeEventListener("pointercancel", on_pointer_up);
             app.canvas.removeEventListener("wheel", on_wheel);
             app.ticker.remove(on_tick);
             app.destroy(true, { children: true });
@@ -174,6 +249,10 @@ export function PixiMap({
             }
             app.stage.addChild(world_layer);
             container.appendChild(app.canvas);
+            app.canvas.addEventListener("pointerdown", on_pointer_down);
+            app.canvas.addEventListener("pointermove", on_pointer_move);
+            app.canvas.addEventListener("pointerup", on_pointer_up);
+            app.canvas.addEventListener("pointercancel", on_pointer_up);
             app.canvas.addEventListener("wheel", on_wheel, { passive: false });
             window.addEventListener("keydown", on_keydown);
             app.ticker.add(on_tick);

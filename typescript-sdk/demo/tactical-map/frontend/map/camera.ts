@@ -83,6 +83,21 @@ export function zoom_at(
     };
 }
 
+// Shift the camera so a dragged pointer keeps the same world point under it.
+// No-op while the camera is locked to a ship.
+export function pan_by(camera: Camera, screen_delta: Point): Camera {
+    if (camera.followed_id !== undefined) {
+        return camera;
+    }
+    return {
+        ...camera,
+        center: {
+            x: camera.center.x - screen_delta.x / camera.scale,
+            y: camera.center.y - screen_delta.y / camera.scale,
+        },
+    };
+}
+
 export function follow(camera: Camera, id: string, position: Point): Camera {
     return {
         ...camera,

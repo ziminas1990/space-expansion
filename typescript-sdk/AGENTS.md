@@ -36,6 +36,9 @@ routes sessions. It contains no game API or domain behavior.
   `monitoring()` itself. A wait timeout is not a failure — the loop calls the
   callback with `undefined` so upper logic can check a stop flag and return
   `false` to leave the loop (`Status.ok()`), or `true` to keep waiting.
+  The wait timeout is `heartbeat_ms` (default 200). It is a client-side wait,
+  not the server update period (`update_ms` / `interval_ms` on Ship and
+  SystemClock).
 - Different interfaces use different midlevel clients and pools, even when they
   share the same `open_session_cb`.
 

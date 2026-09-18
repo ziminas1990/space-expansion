@@ -47,6 +47,9 @@ export class ResourceContainer {
     : Promise<[types.Status, ResourceContainerContent | undefined]>
     {
         const [status, response, timestamp] = await this.wait(timeout);
+        if (status.is_timeout()) {
+            return [status, undefined];
+        }
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];
         }

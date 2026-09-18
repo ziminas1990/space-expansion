@@ -108,6 +108,7 @@ body,
 .map-stage canvas {
     display: block;
     touch-action: none;
+    cursor: grab;
 }
 
 .connection-chip {

@@ -177,7 +177,7 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
                     this.handle_update(state);
                 }
                 return !this.stop_monitoring;
-            });
+            }, 100);
             if (this.stop_monitoring || !status.is_ok()) {
                 return Status.ok();
             }

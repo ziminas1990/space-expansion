@@ -128,7 +128,7 @@ export class ModuleRegistry extends EventEmitter<Events> {
                     await this.handle_update(update);
                 }
                 return !this.stop_monitoring;
-            });
+            }, 100);
             if (!status.is_ok()) {
                 break;
             }

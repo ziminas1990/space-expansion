@@ -193,7 +193,7 @@ export class SimpleMining extends BaseTask {
 
         const transfer_status = (resource: ResourceItem) => {
             this.add_journal_record(
-                `${resource.resource_type}: ${resource.amount} transferred`,
+                `${resource.resource_type}: ${resource.amount.toFixed(1)} transferred`,
             );
         };
 
@@ -206,7 +206,7 @@ export class SimpleMining extends BaseTask {
             );
             if (!status.is_ok()) {
                 this.add_journal_record(
-                    `Can't transfer ${resource.resource_type}: ${resource.amount} `
+                    `Can't transfer ${resource.resource_type}: ${resource.amount.toFixed(1)} `
                     + `to warehouse: ${status.what()}`,
                 );
             }

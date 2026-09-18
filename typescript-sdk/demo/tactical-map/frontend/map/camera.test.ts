@@ -4,6 +4,7 @@ import {
     MIN_SCALE,
     create_camera,
     follow,
+    pan_by,
     release_follow,
     screen_to_world,
     sync_follow,
@@ -71,6 +72,32 @@ test("zooms around the pointer without moving the world point under it", () => {
     const world_minned = screen_to_world(pointer, minned, VIEWPORT);
     expect(world_minned.x).toBeCloseTo(world_before.x);
     expect(world_minned.y).toBeCloseTo(world_before.y);
+});
+
+test("pans by screen delta when not following a ship", () => {
+    // 1. start with a free camera at a non-unit scale
+    const camera = create_camera({
+        center: { x: 100, y: 200 },
+        scale: 2,
+    });
+    const pointer = { x: 100, y: 200 };
+    const world_before = screen_to_world(pointer, camera, VIEWPORT);
+
+    // 2. drag the pointer; the grabbed world point stays under it
+    const delta = { x: 40, y: -20 };
+    const panned = pan_by(camera, delta);
+    expect(panned.center).toEqual({ x: 80, y: 210 });
+    const world_after = screen_to_world(
+        { x: pointer.x + delta.x, y: pointer.y + delta.y },
+        panned,
+        VIEWPORT,
+    );
+    expect(world_after.x).toBeCloseTo(world_before.x);
+    expect(world_after.y).toBeCloseTo(world_before.y);
+
+    // 3. panning while following a ship does not move the camera
+    const following = follow(camera, "Scout", { x: 10, y: 20 });
+    expect(pan_by(following, delta)).toEqual(following);
 });
 
 test("escape stops follow without moving the camera", () => {
