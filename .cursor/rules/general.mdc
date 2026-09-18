@@ -11,3 +11,5 @@ alwaysApply: true
   [`python-sdk-tests.mdc`](./python-sdk-tests.mdc).
 - Before **creating** or **editing** a task in `docs/tasks/`, read and
   follow [`task-writing.mdc`](./task-writing.mdc).
+- Never edit a closed task in `docs/tasks/closed/`. Closed tasks are
+  immutable. Do not update them as a side effect of other work.
