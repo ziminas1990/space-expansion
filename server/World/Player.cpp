@@ -1,8 +1,12 @@
 #include "Player.h"
 #include "Network/Fwd.h"
 #include <Utils/YamlReader.h>
+#include <Utils/Roman.h>
 #include <Utils/StringUtils.h>
 #include <yaml-cpp/yaml.h>
+
+#include <cstdint>
+#include <unordered_set>
 
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
 #include <Modules/Commutator/Commutator.h>
@@ -18,6 +22,61 @@
 
 namespace world
 {
+
+namespace {
+
+bool isAttachedShipNameTaken(const modules::Commutator &commutator,
+                             const std::string &sName) {
+  for (const modules::BaseModulePtr &pModule : commutator.getAllModules()) {
+    if (!pModule || pModule->isDestroyed()) {
+      continue;
+    }
+    if (pModule->getModuleType() != modules::Ship::TypeName()) {
+      continue;
+    }
+    if (pModule->getModuleName() == sName) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void ensureUniqueName(const modules::Commutator &commutator,
+                      modules::Ship &ship) {
+  const std::string &sRequested = ship.getModuleName();
+  if (!isAttachedShipNameTaken(commutator, sRequested)) {
+    return;
+  }
+
+  std::unordered_set<std::string> occupied;
+  for (const modules::BaseModulePtr &pModule : commutator.getAllModules()) {
+    if (!pModule || pModule->isDestroyed()) {
+      continue;
+    }
+    if (pModule->getModuleType() != modules::Ship::TypeName()) {
+      continue;
+    }
+    occupied.insert(pModule->getModuleName());
+  }
+
+  const char chSeparator =
+      sRequested.find(' ') != std::string::npos ? ' ' : '-';
+  for (unsigned n = 1;; ++n) {
+    std::string sCandidate = sRequested;
+    sCandidate.push_back(chSeparator);
+    if (n < 1000) {
+      sCandidate += utils::toRoman(static_cast<uint16_t>(n));
+    } else {
+      sCandidate += std::to_string(n);
+    }
+    if (occupied.find(sCandidate) == occupied.end()) {
+      ship.changeModuleName(std::move(sCandidate));
+      return;
+    }
+  }
+}
+
+} // namespace
 
 class RootSession : public network::IPlayerTerminal  {
 private:
@@ -173,6 +232,16 @@ uint32_t Player::onNewConnection(uint32_t nConnectionId)
 
 uint32_t Player::onNewShip(modules::ShipPtr pShip)
 {
+  if (!pShip) {
+    return modules::Commutator::invalidSlot();
+  }
+
+  if (pShip->getModuleName().empty()) {
+    pShip->changeModuleName(pShip->getBlueprintName());
+  }
+
+  std::lock_guard<utils::Mutex> guard(m_addNewShipMutex);
+  ensureUniqueName(*m_pRootCommutator, *pShip);
   return m_linker.attachModule(m_pRootCommutator, pShip);
 }
 

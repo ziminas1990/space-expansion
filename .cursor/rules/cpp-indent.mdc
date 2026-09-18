@@ -1,0 +1,9 @@
+---
+description: C++ files use two-space indentation
+globs: "**/*.cpp,**/*.h,**/*.hpp,**/*.cc,**/*.cxx,**/*.hxx,**/*.hh,**/*.ipp"
+alwaysApply: false
+---
+
+# C++ indentation
+
+Use two spaces per indent level. Do not use tabs.

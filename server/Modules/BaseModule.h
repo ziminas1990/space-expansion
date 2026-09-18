@@ -48,6 +48,9 @@ public:
   std::string const& getModuleName()    const { return m_sModuleName; }
   std::string const& getBlueprintName() const { return m_sBlueprintName; }
 
+  // Change the module name before it is published on a commutator.
+  void changeModuleName(std::string sName) { m_sModuleName = std::move(sName); }
+
   void putOffline()         { m_eStatus = Status::eOffline; }
   void putOnline()          { m_eStatus = Status::eOnline; }
   void onDoestroyed()       { m_eStatus = Status::eDestoyed; }

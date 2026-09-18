@@ -98,10 +98,11 @@ void Shipyard::finishBuildingProcedure()
 
   world::PlayerPtr pOwner = getOwner().lock();
 
-  if (!pNewShip && !pOwner) {
+  if (!pNewShip || !pOwner) {
     assert(pNewShip != nullptr);
     assert(pOwner != nullptr);
     sendBuildingReport(spex::IShipyard::BUILD_FAILED, m_building.progress);
+    switchToIdleState();
     return;
   }
 
@@ -109,8 +110,14 @@ void Shipyard::finishBuildingProcedure()
   pNewShip->setVelocity(getPlatform()->getVelocity());
 
   const uint32_t nSlotId = pOwner->onNewShip(pNewShip);
+  if (nSlotId == modules::Commutator::invalidSlot()) {
+    sendBuildingReport(spex::IShipyard::BUILD_FAILED, m_building.progress);
+    switchToIdleState();
+    return;
+  }
+
   sendBuildingReport(spex::IShipyard::BUILD_COMPLETE, 1.0);
-  sendBuildComplete(std::move(m_building.sShipName), nSlotId);
+  sendBuildComplete(std::string(pNewShip->getModuleName()), nSlotId);
 
   switchToIdleState();
 }

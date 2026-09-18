@@ -74,6 +74,10 @@ private:
     // Every player has it's own set of blueprints, that can be improved during
     // the game. At the beginning, all players have the same blueprints library
 
+  // Serializes check-and-rename-and-attach in onNewShip. Two shipyards can
+  // finish on different conveyor threads at the same time.
+  utils::Mutex m_addNewShipMutex;
+
   // Linker is placed to the end to be destroyed first (and destroy all links)
   utils::Linker m_linker;
 

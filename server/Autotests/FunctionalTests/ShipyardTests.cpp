@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <yaml-cpp/yaml.h>
+#include <set>
 #include <sstream>
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
@@ -368,4 +369,164 @@ TEST_F(ShipyardTests, BuildFrozen)
 
 }
 
+class ShipyardNameTests : public FunctionalTestFixture
+{
+protected:
+  bool initialWorldState(YAML::Node& state) {
+    std::string data[] = {
+       "Blueprints:"
+      ,"  Modules:"
+      ,"    Shipyard:"
+      ,"      fast-shipyard:"
+      ,"        productivity:   10000"
+      ,"        expenses:"
+      ,"          labor: 100"
+      ,"    ResourceContainer:"
+      ,"      huge-container:"
+      ,"        volume: 100"
+      ,"        expenses:"
+      ,"          labor: 100"
+      ,"    Engine:"
+      ,"      toy-engine:"
+      ,"        max_thrust: 500"
+      ,"        expenses:"
+      ,"          labor:     10"
+      ,"          metals:    5"
+      ,"          silicates: 5"
+      ,"          ice:       5"
+      ,"  Ships:"
+      ,"    Station:"
+      ,"      radius: 100"
+      ,"      weight: 100000"
+      ,"      modules:"
+      ,"        shipyard:   Shipyard/fast-shipyard"
+      ,"        shipyard_2: Shipyard/fast-shipyard"
+      ,"        cargo:      ResourceContainer/huge-container"
+      ,"      expenses:"
+      ,"        labor: 10000"
+      ,"    Scout:"
+      ,"      radius: 2"
+      ,"      weight: 120"
+      ,"      modules:"
+      ,"        engine: Engine/toy-engine"
+      ,"      expenses:"
+      ,"        labor:     100"
+      ,"        metals:    20"
+      ,"        silicates: 10"
+      ,"Players:"
+      ,"  Jack:"
+      ,"    password: Black"
+      ,"    ships:"
+      ,"      'Station/Sweet Home':"
+      ,"        position: { x: 100, y: 15}"
+      ,"        velocity: { x: 0,   y: 0}"
+      ,"        modules:"
+      ,"          shipyard: {}"
+      ,"          shipyard_2: {}"
+      ,"          cargo:"
+      ,"            metals:    100"
+      ,"            ice:       100"
+      ,"            silicates: 100"
+    };
+    std::stringstream ss;
+    for (std::string const& line : data)
+      ss << line << "\n";
+    state = YAML::Load(ss.str());
+    return true;
+  }
+};
+
+TEST_F(ShipyardNameTests, StartBuildAcceptsNameOfAttachedShip)
+{
+  const std::string sBlueprintName = "Ship/Scout";
+  resumeTime();
+
+  // 1. player logins and opens the station
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
+
+  client::Ship station(m_pRouter);
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
+
+  // 2. bind the shipyard to cargo
+  client::Shipyard shipyard;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+  ASSERT_EQ(client::Shipyard::eSuccess, shipyard.bindToCargo("cargo"));
+
+  // 3. start a build with the name of an already attached ship
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard.startBuilding(sBlueprintName, "Sweet Home"));
+
+  // 4. wait until the ship is attached under a suffixed name
+  double      progress = 0;
+  uint32_t    nSlotId = 0;
+  std::string sShipName;
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            shipyard.waitingWhileBuilding(&progress, &nSlotId, &sShipName));
+  EXPECT_EQ("Sweet Home I", sShipName);
+
+  // 5. the original station keeps its name
+  client::ModulesList attached;
+  ASSERT_TRUE(pCommutator->getAttachedModulesList(attached));
+  std::set<std::string> shipNames;
+  for (const client::ModuleInfo& info : attached) {
+    if (info.sModuleType == "Ship") {
+      shipNames.insert(info.sModuleName);
+    }
+  }
+  EXPECT_EQ(std::set<std::string>({"Sweet Home", "Sweet Home I"}), shipNames);
+}
+
+TEST_F(ShipyardNameTests, TwoYardsCompleteTheSameRequestedName)
+{
+  const std::string sBlueprintName = "Ship/Scout";
+  resumeTime();
+
+  // 1. player logins and opens the station
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
+
+  client::Ship station(m_pRouter);
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
+
+  // 2. bind both shipyards to cargo
+  client::Shipyard shipyard;
+  client::Shipyard shipyard2;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+  ASSERT_TRUE(client::FindShipyard(station, shipyard2, "shipyard_2"));
+  ASSERT_EQ(client::Shipyard::eSuccess, shipyard.bindToCargo("cargo"));
+  ASSERT_EQ(client::Shipyard::eSuccess, shipyard2.bindToCargo("cargo"));
+
+  // 3. start both builds with the same requested name
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard.startBuilding(sBlueprintName, "Scout"));
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard2.startBuilding(sBlueprintName, "Scout"));
+
+  // 4. wait until both yards finish
+  double      progress = 0;
+  uint32_t    nSlotId = 0;
+  std::string sName1;
+  uint32_t    nSlotId2 = 0;
+  std::string sName2;
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            shipyard.waitingWhileBuilding(&progress, &nSlotId, &sName1));
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            shipyard2.waitingWhileBuilding(&progress, &nSlotId2, &sName2));
+
+  // 5. one ship keeps the requested name, the other gets a hyphen suffix
+  EXPECT_NE(nSlotId, nSlotId2);
+  EXPECT_EQ((std::set<std::string>{"Scout", "Scout-I"}),
+            (std::set<std::string>{sName1, sName2}));
+}
+
 } // namespace autotests
+
