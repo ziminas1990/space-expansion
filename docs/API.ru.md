@@ -13,3 +13,4 @@
 * [Интерфейс IAsteroidMiner](API.ru/IAsteroidMiner.md) - добыча ресурсов на астероида
 * [Интерфейс IBlueprintsLibrary](API.ru/IBlueprintsLibrary.md) - изучение списка чертежей (blueprint'ов), которые могут быть использованы для строительства кораблей
 * [Интерфейс IShipyard](API.ru/IShipyard.md) - строительство новых кораблей
+* [Интерфейс IGame](API.ru/IGame.md) - следить за матчем и получить итог игры

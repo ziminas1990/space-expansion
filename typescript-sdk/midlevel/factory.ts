@@ -3,6 +3,7 @@ import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import { BlueprintsLibrary } from "./blueprints_library.js";
 import { Engine } from "./engine.js";
+import { Game } from "./game.js";
 import { Messanger } from "./messanger.js";
 import { MidlevelModule, ModuleType } from "./module_types.js";
 import { PassiveScanner } from "./passive_scanner.js";
@@ -24,6 +25,7 @@ const module_constructors: Record<string, ModuleConstructor> = {
     [ModuleType.SHIPYARD]: Shipyard,
     [ModuleType.BLUEPRINTS_LIBRARY]: BlueprintsLibrary,
     [ModuleType.MESSANGER]: Messanger,
+    [ModuleType.GAME]: Game,
 };
 
 // Returns undefined for interfaces that are not attached to a slot, such as

@@ -87,6 +87,7 @@ private:
   modules::ShipyardManagerPtr          m_pShipyardManager;
   modules::SystemClockManagerPtr       m_pSystemClockManager;
   modules::MessangerManagerPtr         m_pMessangerManager;
+  modules::GameManagerPtr              m_pGameManager;
 
   utils::Linker m_linker;
 

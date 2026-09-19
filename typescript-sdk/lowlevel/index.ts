@@ -52,6 +52,7 @@ export {
     MessangerServicesPage,
     MessangerClientEvent,
 } from "./messanger.js";
+export { Game, type Score as GameScore, type GameOver } from "./game.js";
 export { login, login_as_administrator } from "./procedures.js";
 export {
     Administrator,

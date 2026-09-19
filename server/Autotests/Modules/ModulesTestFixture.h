@@ -66,6 +66,7 @@ protected:
   modules::EngineManagerPtr         m_pEngineManager;
   modules::PassiveScannerManagerPtr m_pPassiveScannerManager;
   modules::MessangerManagerPtr      m_pMessangerManager;
+  modules::GameManagerPtr           m_pGameManager;
 
   std::function<void()>             m_fConveyorProceeder;
 

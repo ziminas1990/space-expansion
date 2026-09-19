@@ -49,6 +49,7 @@ public:
   blueprints::BlueprintsLibrary const& getBlueprints() const { return m_blueprints; }
 
   const modules::CommutatorPtr getCommutator() const { return m_pRootCommutator; }
+  const modules::GamePtr       getGame()       const { return m_pGame; }
 
   uint32_t onNewShip(modules::ShipPtr);
 
@@ -68,6 +69,7 @@ private:
   modules::SystemClockPtr       m_pSystemClock;
   modules::BlueprintsStoragePtr m_pBlueprintsExplorer;
   modules::MessangerPtr         m_pMessanger;
+  modules::GamePtr              m_pGame;
   RootSessionPtr                m_pRootSession;
 
   blueprints::BlueprintsLibrary m_blueprints;
@@ -92,6 +94,12 @@ private:
     }
 
     uint32_t setMessanger(modules::MessangerPtr pMessanger) const;
+
+    bool hasGame() const {
+      return !!player.m_pGame;
+    }
+
+    uint32_t setGame(modules::GamePtr pGame) const;
   };
 
 public:

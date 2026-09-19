@@ -10,6 +10,7 @@ from .asteroid_miner import AsteroidMiner, AsteroidMinerSpec
 from .shipyard import Shipyard, ShipyardSpec
 from .blueprints_library import BlueprintsLibrary
 from .messanger import Messanger, MessangerStatus
+from .game import Game
 
 from .util import (
     get_system_clock,
@@ -18,5 +19,6 @@ from .util import (
     get_all_engines,
     get_most_powerful_engine,
     get_cargo,
-    get_asteroid_miner
+    get_asteroid_miner,
+    get_game
 )

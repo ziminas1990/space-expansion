@@ -13,6 +13,7 @@ from .asteroid_miner import AsteroidMiner
 from .shipyard import Shipyard
 from .blueprints_library import BlueprintsLibrary
 from .messanger import Messanger
+from .game import Game
 
 ModuleOrError = Tuple[Optional[BaseModule], Optional[str]]
 TunnelOrError = Tuple[Optional[ProxyChannel], Optional[str]]
@@ -68,6 +69,11 @@ def module_factory(module_info: rpc.ModuleInfo,
             name=module_name), None
     elif module_type == ModuleType.MESSANGER.value:
         return Messanger(
+            tunnel_factory=tunnel_factory,
+            name=module_name
+        ), None
+    elif module_type == ModuleType.GAME.value:
+        return Game(
             tunnel_factory=tunnel_factory,
             name=module_name
         ), None

@@ -60,6 +60,12 @@ export {
     MessangerRequest,
     MessangerServicesList,
 } from "./messanger.js";
+export {
+    Game,
+    type Score as GameScore,
+    type GameOver,
+    type MonitoringCallback as GameMonitoringCallback,
+} from "./game.js";
 export { OpenSessionCallback } from "./base_module.js";
 export {
     Administrator,

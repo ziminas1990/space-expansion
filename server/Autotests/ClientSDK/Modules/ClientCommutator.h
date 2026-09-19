@@ -49,8 +49,6 @@ public:
 
   bool sendTotalSlotsReq();
   bool waitTotalSlots(uint32_t& nSlots);
-
-  bool waitGameOverReport(spex::IGame::GameOver &report, uint16_t nTimeout = 500);
 };
 
 using ClientCommutatorPtr = std::shared_ptr<ClientCommutator>;

@@ -11,6 +11,7 @@
 #include <Autotests/ClientSDK/Modules/ClientEngine.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/ClientSDK/Modules/ClientMessanger.h>
+#include <Autotests/ClientSDK/Modules/ClientGame.h>
 #include <Autotests/ClientSDK/RootSession.h>
 #include <Utils/Linker.h>
 
@@ -105,33 +106,15 @@ struct Helper {
 
   static void createMessangerModule(
     ModulesTestFixture& env,
-    world::PlayerPtr    pOwner = nullptr)
-  {
-    pOwner = pOwner ? pOwner : env.m_pPlayer;
+    world::PlayerPtr    pOwner = nullptr);
 
-    // Messanger should be created on "server" side and attached to player's
-    // commutator
-    modules::MessangerPtr pMessanger = std::make_shared<modules::Messanger>(
-      "Messanger", pOwner
-    );
+  static client::MessangerPtr getMessanger(client::ClientCommutatorPtr pCommutator);
 
-    env.m_pPlayer->testAccess().setMessanger(pMessanger);
-    // Now messanger can be reached using client commutator
-    // (use Helper::getMessanger() call)
-  }
+  static void createGameModule(
+    ModulesTestFixture& env,
+    world::PlayerPtr    pOwner = nullptr);
 
-  static client::MessangerPtr getMessanger(client::ClientCommutatorPtr pCommutator)
-  {
-    client::Router::SessionPtr pSession = Helper::openSession(pCommutator, "Messanger");
-
-    if (pSession) {
-      client::MessangerPtr pMessanger = std::make_shared<client::Messanger>();
-      pMessanger->attachToChannel(pSession);
-      return pMessanger;
-    }
-
-    return client::MessangerPtr();
-  }
+  static client::GamePtr getGame(client::ClientCommutatorPtr pCommutator);
 
   static client::Router::SessionPtr openSession(
     client::ClientCommutatorPtr pCommutator, std::string_view sModuleName)

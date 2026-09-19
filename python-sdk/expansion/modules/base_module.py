@@ -34,6 +34,7 @@ class ModuleType(Enum):
     SHIPYARD = "Shipyard"
     BLUEPRINTS_LIBRARY = "BlueprintsLibrary"
     MESSANGER = "Messanger"
+    GAME = "Game"
 
 
 class BaseModule:

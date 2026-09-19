@@ -31,8 +31,10 @@ void ModulesTestFixture::SetUp()
   m_pEngineManager         = std::make_shared<modules::EngineManager>();
   m_pPassiveScannerManager = std::make_shared<modules::PassiveScannerManager>();
   m_pMessangerManager      = std::make_shared<modules::MessangerManager>();
+  m_pGameManager           = std::make_shared<modules::GameManager>();
 
   m_conveyor.addLogicToChain(m_pMessangerManager);
+  m_conveyor.addLogicToChain(m_pGameManager);
   m_conveyor.addLogicToChain(m_pNewtonEngine);
   m_conveyor.addLogicToChain(m_pCommutatorManager);
   m_conveyor.addLogicToChain(m_pEngineManager);

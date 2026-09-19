@@ -54,22 +54,22 @@ void Conveyor::proceed(uint32_t nIntervalUs)
       continue;
 
     // prepharing state for proceeding selected logic
-    IAbstractLogic* pLogic  = context.m_pLogic.get();
-    m_State.pSelectedLogic  = pLogic;
+    m_State.pSelectedLogic  = context.m_pLogic.get();
     m_State.nLastIntervalUs = m_State.nCurrentTimeUs - context.m_nLastProceedAt;
 
     // proceeding logic stages
-    uint16_t nTotalStages = pLogic->getStagesCount();
+    uint16_t nTotalStages = m_State.pSelectedLogic->getStagesCount();
     for (uint16_t nStageId = 0; nStageId < nTotalStages; ++nStageId)
     {
-      if (!pLogic->prephare(nStageId, nIntervalUs, m_now))
+      if (!m_State.pSelectedLogic->prephare(nStageId, nIntervalUs, m_now))
         continue;
       m_State.nStageId = nStageId;
       m_Barrier.wait();
-      pLogic->proceed(nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs), m_now);
+      m_State.pSelectedLogic->proceed(
+        nStageId, static_cast<uint32_t>(m_State.nLastIntervalUs), m_now);
       m_Barrier.wait();
     }
-    context.m_nDoNotDisturbUntil += pLogic->getCooldownTimeUs();
+    context.m_nDoNotDisturbUntil += m_State.pSelectedLogic->getCooldownTimeUs();
     context.m_nLastProceedAt      = m_State.nCurrentTimeUs;
   }
 }

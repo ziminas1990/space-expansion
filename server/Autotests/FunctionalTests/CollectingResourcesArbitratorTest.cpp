@@ -4,6 +4,7 @@
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientResourceContainer.h>
+#include <Autotests/ClientSDK/Modules/ClientGame.h>
 #include <Autotests/ClientSDK/Procedures/FindModule.h>
 #include <Autotests/ClientSDK/Procedures/Resources.h>
 
@@ -151,32 +152,36 @@ TEST_F(CollectingResourcesArbitratorTests, DISABLED_SuccessCase)
   client::Ship hub_2(m_pRouter);
   ASSERT_TRUE(client::attachToShip(pCommutator, "Hub#2", hub_2));
 
+  client::Game game;
+  ASSERT_TRUE(client::FindModule(*pCommutator, "Game", game));
+  ASSERT_TRUE(game.monitor());
+
   spex::IGame::GameOver report;
-  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(game.waitGameOverReport(report, 50));
 
   // Moving mettals to hub_1
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_1, "cargo",
                 world::ResourcesArray().metals(500)));
-  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(game.waitGameOverReport(report, 50));
 
   // Moving silicates to hub_2
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_2, "cargo",
                 world::ResourcesArray().silicates(500)));
-  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(game.waitGameOverReport(report, 50));
 
   // Splitting ice between to hub_1 and hub_2
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_1, "cargo",
                 world::ResourcesArray().ice(250)));
-  ASSERT_FALSE(pCommutator->waitGameOverReport(report, 50));
+  ASSERT_FALSE(game.waitGameOverReport(report, 50));
   ASSERT_TRUE(client::ResourcesManagment::transfer(
                 freighter, "cargo", hub_2, "cargo",
                 world::ResourcesArray().ice(250)));
 
   // Expecting to get game_over
-  ASSERT_TRUE(pCommutator->waitGameOverReport(report));
+  ASSERT_TRUE(game.waitGameOverReport(report));
   ASSERT_EQ(3, report.leaders().size());
 
   EXPECT_EQ("Buffet", report.leaders(0).player());

@@ -2,7 +2,9 @@
 
 #include <assert.h>
 
+#include <Modules/Game/Game.h>
 #include <Utils/YamlReader.h>
+#include <World/Player.h>
 
 namespace arbitrator {
 
@@ -57,7 +59,8 @@ bool BaseArbitrator::prephare(uint16_t nStageId, uint32_t, uint64_t)
   }
 }
 
-void BaseArbitrator::proceed([[maybe_unused]]uint16_t nStageId, uint32_t, uint64_t)
+void BaseArbitrator::proceed(
+    [[maybe_unused]]uint16_t nStageId, uint32_t, uint64_t)
 {
   assert(nStageId == eScoring);
   size_t id = m_nNextId.fetch_add(1);
@@ -71,19 +74,18 @@ void BaseArbitrator::proceed([[maybe_unused]]uint16_t nStageId, uint32_t, uint64
 
 void BaseArbitrator::onGameOver()
 {
-  spex::Message message;
-  spex::IGame::GameOver* pGameOver = message.mutable_game()->mutable_game_over_report();
-
+  spex::IGame::GameOver report;
   for (Leaderboard::Record const& record: m_board.m_table) {
-    spex::IGame::Score* pScore = pGameOver->mutable_leaders()->Add();
+    spex::IGame::Score* pScore = report.mutable_leaders()->Add();
     pScore->set_player(record.m_sLogin);
     pScore->set_score(record.m_nScore);
   }
 
-  // TODO: use IGame channel for it
-  // for (world::PlayerPtr pPlayer: m_pPlayersStorage->getAllPlayers()) {
-  //   pPlayer->getCommutator()->broadcast(message);
-  // }
+  for (world::PlayerPtr pPlayer: m_pPlayersStorage->getAllPlayers()) {
+    if (modules::GamePtr pGame = pPlayer->getGame()) {
+      pGame->notifyGameOver(report);
+    }
+  }
 }
 
 } // namespace arbitrator

@@ -25,6 +25,7 @@ enum class Cooldown {
   eShipyard          = 150817,
   eResourceContainer = 201023,
   eBlueprintsStorage = 201129,
+  eGame              = 202231,
 };
 #else
 // In autotests mode we can't afford to let logics to sleep for unpredictable
@@ -41,7 +42,8 @@ enum class Cooldown {
   eMessanger         = 0,
   eShipyard          = 150817,
   eResourceContainer = 201023,
-  eBlueprintsStorage = 201129
+  eBlueprintsStorage = 201129,
+  eGame              = 0,
 };
 #endif
 

@@ -121,6 +121,10 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
         handleMessangerMessage(nSessionId, message.messanger());
         return;
       }
+      case spex::Message::kGame: {
+        handleGameMessage(nSessionId, message.game());
+        return;
+      }
       case spex::Message::kAccessPanel: {
         // Only AccessPanel is able to handle such massaged, but it is NOT a subclass of
         // BaseModule class
@@ -128,7 +132,6 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
       }
       case spex::Message::kRootSession:
       case spex::Message::kSession:
-      case spex::Message::kGame:
       case spex::Message::CHOICE_NOT_SET: {
         // Just ignoring
         return;

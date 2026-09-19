@@ -383,6 +383,10 @@ message IGame {
   }
 
   oneof choice {
+    // Requests and commands from client
+    bool     monitor          = 1;
+
+    // Responses and indications from server
     GameOver game_over_report = 21;
   }
 }

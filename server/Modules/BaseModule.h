@@ -104,6 +104,7 @@ protected:
   virtual void handleShipyardMessage(uint32_t, spex::IShipyard const&) {}
   virtual void handleSystemClockMessage(uint32_t, spex::ISystemClock const&) {}
   virtual void handleMessangerMessage(uint32_t, spex::IMessanger const&) {}
+  virtual void handleGameMessage(uint32_t, spex::IGame const&) {}
 
   // Will be called once, when module is installed on some ship
   virtual void onInstalled(modules::Ship* /*pPlatform*/) {}

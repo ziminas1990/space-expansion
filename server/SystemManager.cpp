@@ -171,6 +171,7 @@ bool SystemManager::createAllComponents()
   m_pShipyardManager          = std::make_shared<modules::ShipyardManager>();
   m_pSystemClockManager       = std::make_shared<modules::SystemClockManager>();
   m_pMessangerManager         = std::make_shared<modules::MessangerManager>();
+  m_pGameManager              = std::make_shared<modules::GameManager>();
 
   m_pUdpDispatcher = std::make_shared<network::UdpDispatcher>(
         m_IoService,
@@ -241,6 +242,7 @@ bool SystemManager::linkComponents()
   m_pConveyor->addLogicToChain(m_pBlueprintsStorageManager);
   m_pConveyor->addLogicToChain(m_pShipyardManager);
   m_pConveyor->addLogicToChain(m_pMessangerManager);
+  m_pConveyor->addLogicToChain(m_pGameManager);
   return true;
 }
 

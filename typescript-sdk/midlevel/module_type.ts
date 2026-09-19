@@ -11,6 +11,7 @@ export const ModuleType = {
     SHIPYARD: "Shipyard",
     BLUEPRINTS_LIBRARY: "BlueprintsLibrary",
     MESSANGER: "Messanger",
+    GAME: "Game",
 } as const;
 
 export type ModuleType = typeof ModuleType[keyof typeof ModuleType];

@@ -7,6 +7,7 @@ from .engine import Engine, EngineSpec
 from .system_clock import SystemClock
 from .resource_container import ResourceContainer
 from .asteroid_miner import AsteroidMiner
+from .game import Game
 
 
 def get_system_clock(commutator: Commutator) -> Optional[SystemClock]:
@@ -71,3 +72,15 @@ def get_asteroid_miner(commutator: Commutator, name: str) -> Optional[AsteroidMi
         return device
     except KeyError:
         return None
+
+
+def get_game(commutator: Commutator) -> Optional[Game]:
+    try:
+        games = commutator.modules[ModuleType.GAME.value]
+    except KeyError:
+        return None
+    assert len(games) == 1
+    for value in games.values():
+        assert isinstance(value, Game)
+        return value
+    return None

@@ -176,20 +176,4 @@ bool ClientCommutator::waitTotalSlots(uint32_t& nSlots)
   return true;
 }
 
-bool ClientCommutator::waitGameOverReport(spex::IGame::GameOver& report,
-                                          uint16_t nTimeout)
-{
-  spex::IGame message;
-  if (!wait(message, nTimeout)) {
-    return false;
-  }
-
-  if (message.choice_case() != spex::IGame::kGameOverReport) {
-    return false;
-  }
-
-  report = std::move(message.game_over_report());
-  return true;
-}
-
 }}  // namespace autotests::client

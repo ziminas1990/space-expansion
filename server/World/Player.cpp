@@ -16,6 +16,7 @@
 #include <Network/UdpSocket.h>
 #include <Network/SessionMux.h>
 #include <Modules/SystemClock/SystemClock.h>
+#include <Modules/Game/Game.h>
 #include <Network/UdpSocket.h>
 #include <Network/SessionMux.h>
 #include <Blueprints/Ships/ShipBlueprint.h>
@@ -171,11 +172,13 @@ PlayerPtr Player::load(
       std::make_shared<modules::SystemClock>("SystemClock", pPlayer);
   pPlayer->m_pBlueprintsExplorer = std::make_shared<modules::BlueprintsStorage>(pPlayer);
   pPlayer->m_pMessanger = std::make_shared<modules::Messanger>("Messanger", pPlayer);
+  pPlayer->m_pGame = std::make_shared<modules::Game>("Game", pPlayer);
 
   pPlayer->m_linker.attachModule(pPlayer->m_pRootCommutator, pPlayer->m_pSystemClock);
   pPlayer->m_linker.attachModule(pPlayer->m_pRootCommutator,
                                  pPlayer->m_pBlueprintsExplorer);
   pPlayer->m_linker.attachModule(pPlayer->m_pRootCommutator, pPlayer->m_pMessanger);
+  pPlayer->m_linker.attachModule(pPlayer->m_pRootCommutator, pPlayer->m_pGame);
 
   YAML::Node const& shipsState = state["ships"];
   if (!shipsState.IsDefined()) {
@@ -264,6 +267,12 @@ uint32_t Player::TestAccessor::setMessanger(modules::MessangerPtr pMessanger) co
   assert(!hasMessanger());
   player.m_pMessanger = pMessanger;
   return player.m_linker.attachModule(player.m_pRootCommutator, pMessanger);
+}
+
+uint32_t Player::TestAccessor::setGame(modules::GamePtr pGame) const {
+  assert(!hasGame());
+  player.m_pGame = pGame;
+  return player.m_linker.attachModule(player.m_pRootCommutator, pGame);
 }
 
 } // namespace world
