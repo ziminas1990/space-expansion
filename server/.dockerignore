@@ -1,0 +1,5 @@
+Dockerfile
+CMakeUserPresets.json
+**/*~
+**/*.user
+**/compile_commands.json

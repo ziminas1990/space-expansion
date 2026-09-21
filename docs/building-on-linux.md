@@ -167,3 +167,24 @@ export PYTHONPATH=$SPEX_SOURCE_DIR/python-sdk
 cd $SPEX_SOURCE_DIR/tests
 python -m unittest discover
 ```
+
+## Build and upload docker image
+
+The server image is published to Docker Hub as
+`ziminas1990/space-expansion-server`. How to run it is described in
+[Run space-expansion-server using Docker](run-server-in-docker.md).
+
+Build the image. The Docker build context is the `server/` directory:
+
+```bash
+docker build -t ziminas1990/space-expansion-server:latest \
+  -f $SPEX_SOURCE_DIR/server/Dockerfile \
+  $SPEX_SOURCE_DIR/server
+```
+
+Log in to Docker Hub and upload the image:
+
+```bash
+docker login
+docker push ziminas1990/space-expansion-server:latest
+```
