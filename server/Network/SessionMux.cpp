@@ -245,7 +245,7 @@ void SessionMux::checkConnectionsActivity(uint64_t real_now)
       const uint64_t nSilencePeriod = real_now - connection.m_nLastMessageReceivedAt;
       if (nSilencePeriod < disconnectTimeoutUs) {  // [[likely]]
         spex::Message heartbeat;
-        heartbeat.mutable_session()->set_heartbeat(true);
+        heartbeat.mutable_root_session()->set_heartbeat(true);
         m_pSocket->send(connection.getRootSession(), std::move(heartbeat));
         connection.m_nLastHeartbeatSentAt = real_now;
       } else {

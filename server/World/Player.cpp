@@ -108,6 +108,10 @@ public:
           open_commutator_session(nSessionId);
           return;
         }
+        case spex::IRootSession::kHeartbeat: {
+          // Keepalive. The connection timer was already refreshed.
+          return;
+        }
         default: {
           return;
         }

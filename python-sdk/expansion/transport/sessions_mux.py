@@ -47,10 +47,6 @@ class SessionsMux(Terminal):
                 if message.session.WhichOneof("choice") == "closed_ind":
                     session.on_channel_closed()
                     self.sessions.pop(session.session_id)
-                elif message.session.WhichOneof("choice") == "heartbeat":
-                    # A heartbeat message should be just sent back
-                    # No need to pass it to uplevel
-                    session.send(message)
                 return
             # Pass a message to a client
             if timestamp is None:

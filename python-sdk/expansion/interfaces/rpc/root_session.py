@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 import logging
 
 from expansion.transport import IOTerminal, Channel
@@ -14,6 +14,17 @@ class RootSession(IOTerminal):
         if name is None:
             name = utils.generate_name(RootSession)
         self.logger = logging.getLogger(name)
+
+    def on_receive(self, message: Any, timestamp: Optional[int]):
+        # Keepalive lives on the root session. Answer it and do not queue it
+        # for open_commutator_session.
+        if (message.WhichOneof("choice") == "root_session"
+                and message.root_session.WhichOneof("choice") == "heartbeat"):
+            reply = api.Message()
+            reply.root_session.heartbeat = True
+            self.send(message=reply)
+            return
+        super().on_receive(message, timestamp)
 
     @Channel.return_on_close(None)
     async def open_commutator_session(self, timeout: float = 0.1) \

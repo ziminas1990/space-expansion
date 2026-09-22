@@ -6,12 +6,11 @@ alwaysApply: false
 
 # Writing SES tasks
 
-Tasks live in `docs/tasks/` as `SES-NNN.md` (next free number). They are
-for a person, not an agent: one page, readable in about five minutes.
+Tasks live in `docs/tasks/` as `SES-NNN.md`. They are primarily for a person,
+not an agent: one page, readable in about five minutes.
 
-When picking the next number, check **both** `docs/tasks/` and
-`docs/tasks/closed/` — closed tasks still occupy their numbers and must
-not be reused.
+To create a task, run `python docs/tasks/create_task.py`. The script
+allocates the next number, creates the file, and prints only its name. Do not choose the number yourself and do not create the file by hand.
 
 Closed tasks in `docs/tasks/closed/` are immutable historical records.
 Never edit them: not to drop deleted names, not to match later code, not

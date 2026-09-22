@@ -1,4 +1,5 @@
 #include <Autotests/ClientSDK/Router.h>
+#include <Utils/MessageUtil.h>
 
 namespace autotests::client {
 
@@ -25,6 +26,12 @@ void Router::onMessageReceived(spex::Message&& message)
   //             ":\n" << message.DebugString() << std::endl;
   if (I != m_sessions.end()) {
     SessionPtr pSession = I->second;
+    if (utils::isHeartbeat(message)) {
+      // Keepalive belongs to the root session. Answer it here so ordinary
+      // sessions never see the message.
+      pSession->send(std::move(message));
+      return;
+    }
     if (message.choice_case() == spex::Message::kSession) {
       if (message.session().choice_case() == spex::ISessionControl::kClosedInd) {
         m_sessions.erase(I);

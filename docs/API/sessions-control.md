@@ -36,7 +36,6 @@ defines these messages:
 
 - `close` — close the session
 - `closed_ind` — notification that the session was closed
-- `heartbeat` — a check that the connection is alive
 
 The client sends `close` to close a session. Once the server has handled the
 command, it closes the session and ignores further client messages that carry
@@ -45,9 +44,3 @@ that session's identifier.
 The server sends `closed_ind` to tell the client that a session was closed. A
 session may be closed by a `close` command or for another reason. Once
 `closed_ind` has been received, the session is closed.
-
-The server sends `heartbeat` itself when it has had no messages from the client
-for 400 ms, and no more often than once every 400 ms. The server does not reply
-to a `heartbeat` from the client. Any incoming message resets the timer. If
-there are no messages for about 1.4 s, the server closes the UDP connection and
-sends `closed_ind` on every open session.

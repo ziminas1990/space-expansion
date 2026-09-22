@@ -25,20 +25,13 @@ export class Session extends transport.Endpoint<msg.Message> {
     }
 
     async on_message(message: msg.Message): Promise<void> {
-        if (message.choice.case == "session") {
-            const session = message.choice.value;
-            if (session.choice.case == "heartbeat") {
-                // Send heartbeat back, do not forward to the upper level.
-                await this.send_heartbeat();
-                return;
-            } else if (session.choice.case == "closedInd") {
-                // Close session, do not forward to the upper level.
-                this.on_closed();
-                return;
-            }
-        } else {
-            super.on_message(message);
+        if (message.choice.case == "session"
+            && message.choice.value.choice.case == "closedInd") {
+            // Close session, do not forward to the upper level.
+            this.on_closed();
+            return;
         }
+        super.on_message(message);
     }
 
     async close(): Promise<Status> {
@@ -57,15 +50,5 @@ export class Session extends transport.Endpoint<msg.Message> {
         // good idea here.
         await this.on_closed();
         return status;
-    }
-
-    async send_heartbeat() {
-        const heartbeat = create(msg.ISessionControlSchema, {
-            choice: { case: "heartbeat", value: true },
-        });
-        const message = create(msg.MessageSchema, {
-            choice: { case: "session", value: heartbeat },
-        });
-        return await this.send(message);
     }
 }

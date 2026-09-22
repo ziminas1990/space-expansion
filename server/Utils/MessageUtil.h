@@ -14,8 +14,8 @@ template<typename FrameType>
 bool isHeartbeat(const FrameType& frame) {
   if constexpr (std::is_same_v<FrameType, spex::Message>) {
     const spex::Message& message = frame;
-    return message.choice_case() == spex::Message::kSession 
-        && message.session().choice_case() == spex::ISessionControl::kHeartbeat;
+    return message.choice_case() == spex::Message::kRootSession
+        && message.root_session().choice_case() == spex::IRootSession::kHeartbeat;
   }
   return false;
 }

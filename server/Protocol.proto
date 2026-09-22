@@ -12,9 +12,6 @@ package spex;
 message ISessionControl {
 
   oneof choice {
-    // Both directions
-    bool heartbeat = 1;
-
     // Requests
     bool close = 16;
 
@@ -27,6 +24,9 @@ message ISessionControl {
 message IRootSession {
 
   oneof choice {
+    // Both directions. Keepalive for the UDP connection.
+    bool heartbeat = 2;
+
     // Requests
     // Spawn a new session, attached to root commutator
     bool new_commutator_session = 1;

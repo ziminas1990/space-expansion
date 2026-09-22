@@ -23,6 +23,14 @@ export class Router implements transport.ITerminal<msg.Message> {
         if (!session) {
             return;
         }
+        if (session === this.root
+            && message.choice.case == "rootSession"
+            && message.choice.value.choice.case == "heartbeat") {
+            // Keepalive is a root-session message. Answer it here and do not
+            // deliver it to whoever is waiting on the root session.
+            await this.send_heartbeat();
+            return;
+        }
         await session.on_message(message);
         if (message.choice.case == "session"
             && message.choice.value.choice.case == "closedInd")
@@ -78,6 +86,16 @@ export class Router implements transport.ITerminal<msg.Message> {
             return [status, undefined];
         }
         return [status, session];
+    }
+
+    private async send_heartbeat() {
+        const heartbeat = create(msg.IRootSessionSchema, {
+            choice: { case: "heartbeat", value: true },
+        });
+        const message = create(msg.MessageSchema, {
+            choice: { case: "rootSession", value: heartbeat },
+        });
+        return await this.root.send(message);
     }
 
     private async send_new_commutator_session_request() {
