@@ -35,6 +35,7 @@ public:
   bool canOpenSession() const override { return true; }
   void openSession(uint32_t /*nSessionId*/) override {}
   void onSessionClosed(uint32_t /*nSessionId*/) override {}
+  void onMessageReceived(uint32_t nSessionId, spex::Message const& message) override;
 
   // from IAbstractLogic interface
   uint16_t getStagesCount() override { return 1; }

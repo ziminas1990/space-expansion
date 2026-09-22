@@ -17,6 +17,15 @@ bool AccessPanel::prephare(uint16_t, uint32_t, uint64_t)
   return false;
 }
 
+void AccessPanel::onMessageReceived(uint32_t nSessionId, spex::Message const& message)
+{
+  // Login is handled before the client knows ingame time, so timestamp must
+  // not postpone the command in BufferedProtobufTerminal.
+  spex::Message copy = message;
+  copy.set_timestamp(0);
+  network::BufferedPlayerTerminal::onMessageReceived(nSessionId, copy);
+}
+
 void AccessPanel::handleMessage(uint32_t nSessionId, spex::Message const& message)
 {
   std::optional<network::UdpEndPoint> clientAddr =
