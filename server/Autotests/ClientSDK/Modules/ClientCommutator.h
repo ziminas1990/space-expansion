@@ -32,7 +32,6 @@ public:
   bool getAttachedModulesList(ModulesList& attachedModules);
 
   Router::SessionPtr openSession(uint32_t nSlotId);
-  bool closeTunnel(Router::SessionPtr pSession);
 
   bool monitoring();
   bool waitMonitoringStatus(spex::ICommutator::Status expected);
@@ -44,9 +43,6 @@ public:
   bool sendOpenTunnel(uint32_t nSlotId);
   bool waitOpenTunnelSuccess(uint32_t *pOpenedTunnelId = nullptr);
   bool waitOpenTunnelFailed();
-
-  bool sendCloseTunnel(uint32_t nTunnelId);
-  bool waitCloseTunnelStatus(spex::ICommutator::Status& status);
 
   bool sendTotalSlotsReq();
   bool waitTotalSlots(uint32_t& nSlots);

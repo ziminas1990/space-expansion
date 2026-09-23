@@ -67,21 +67,6 @@ Router::SessionPtr ClientCommutator::openSession(uint32_t nSlotId)
   return m_pRouter->openSession(nSessionId);
 }
 
-bool ClientCommutator::closeTunnel(Router::SessionPtr pSession)
-{
-  if (!sendCloseTunnel(pSession->sessionId())) {
-    return false;
-  }
-
-  spex::ICommutator::Status status;
-  if (!waitCloseTunnelStatus(status)) {
-    return false;
-  }
-
-  return status == spex::ICommutator::SUCCESS
-      && !m_pRouter->hasSession(pSession->sessionId());
-}
-
 bool ClientCommutator::monitoring()
 {
   spex::Message request;
@@ -157,26 +142,6 @@ bool ClientCommutator::waitOpenTunnelFailed()
   spex::ICommutator message;
   return wait(message)
       && message.choice_case() == spex::ICommutator::kOpenTunnelFailed;
-}
-
-bool ClientCommutator::sendCloseTunnel(uint32_t nTunnelId)
-{
-  spex::Message request;
-  request.mutable_commutator()->set_close_tunnel(nTunnelId);
-  return send(std::move(request));
-}
-
-bool ClientCommutator::waitCloseTunnelStatus(spex::ICommutator::Status& status)
-{
-  spex::ICommutator message;
-  if (!wait(message)) {
-    return false;
-  }
-  if (message.choice_case() != spex::ICommutator::kCloseTunnelStatus) {
-    return false;
-  }
-  status = message.close_tunnel_status();
-  return true;
 }
 
 bool ClientCommutator::sendTotalSlotsReq()

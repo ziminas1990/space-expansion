@@ -29,7 +29,7 @@ public:
         return PlayerPipe::send(std::move(message));
     }
 
-    bool waitCloseTunnelInd() {
+    bool waitCloseInd() {
       spex::ISessionControl indication;
       return wait(indication)
           && spex::ISessionControl::kClosedInd == indication.choice_case();

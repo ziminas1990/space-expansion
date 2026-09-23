@@ -165,24 +165,6 @@ class CommutatorI(IOTerminal):
         return CommutatorI.Status.SUCCESS, tunnel_id
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED)
-    async def close_tunnel(self, tunnel_id: int) -> Status:
-        request = api.Message()
-        request.commutator.close_tunnel = tunnel_id
-        self.send(request)
-
-        # it shouldn't take much time
-        response, _ = await self.wait_message(timeout=0.2)
-        if not response:
-            return CommutatorI.Status.RESPONSE_TIMEOUT
-
-        status = get_message_field(
-            response,
-            ["commutator", "close_tunnel_status"])
-        if status is None:
-            return CommutatorI.Status.UNEXPECTED_RESPONSE
-        return CommutatorI.Status.convert(status)
-
-    @Channel.return_on_close(Status.CHANNEL_CLOSED)
     async def monitor(self) -> Status:
         request = api.Message()
         request.commutator.monitor = True

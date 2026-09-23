@@ -44,10 +44,6 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
         return await this.run(async (session) => this._open_session(session, slot_id));
     }
 
-    async close_tunnel(session_id: number): Promise<Status> {
-        return await this.run_no_return(async (session) => this._close_session(session, session_id));
-    }
-
     async monitoring(callback: MonitoringCallback, heartbeat_ms: number = 200)
     : Promise<Status>
     {
@@ -137,16 +133,6 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
             ];
         }
         return [Status.ok(), new_session];
-    }
-
-    private async _close_session(session: lowlevel.Commutator, session_id: number)
-        : Promise<Status>
-    {
-        const send_status = await session.send_close_tunnel_request(session_id);
-        if (!send_status.is_ok()) {
-            return send_status;
-        }
-        return await session.wait_close_tunnel_status();
     }
 
     private async _monitoring(

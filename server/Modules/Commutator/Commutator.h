@@ -64,11 +64,9 @@ private:
   void getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const;
   void getAllModulesInfo(uint32_t nSessionId) const;
   void onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot);
-  void onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId);
   void onMonitoringRequest(uint32_t nSessionId);
 
   void sendOpenTunnelFailed(uint32_t nSessionId, spex::ICommutator::Status eReason);
-  void sendCloseTunnelStatus(uint32_t nSessionId, spex::ICommutator::Status eStatus);
   void sendMonitorStatus(uint32_t nSessionId,
                          spex::ICommutator::Status eStatus) const;
   void sendModuleAttachedUpdate(uint32_t nSlotId) const;

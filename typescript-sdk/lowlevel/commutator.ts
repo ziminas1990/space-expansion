@@ -67,13 +67,6 @@ export class Commutator {
         return await this.send(request);
     }
 
-    async send_close_tunnel_request(slot_id: number): Promise<Status> {
-        const request = create(msg.ICommutatorSchema, {
-            choice: { case: "closeTunnel", value: slot_id },
-        });
-        return await this.send(request);
-    }
-
     async send_start_monitoring_request(): Promise<Status> {
         const request = create(msg.ICommutatorSchema, {
             choice: { case: "monitor", value: true },
@@ -135,20 +128,6 @@ export class Commutator {
             return [Status.fail(`got unexpected response ${response.choice.case}`), undefined];
         }
         return [Status.ok(), response.choice.value];
-    }
-
-    async wait_close_tunnel_status(timeout: number = 500): Promise<Status> {
-        const [status, response] = await this.wait(timeout);
-        if (!status.is_ok() || !response) {
-            return status.wrap("no response");
-        }
-        if (response.choice.case != "closeTunnelStatus") {
-            return Status.fail(`got unexpected response ${response.choice.case}`);
-        }
-        const close_status = response.choice.value;
-        return close_status == msg.ICommutator_Status.SUCCESS
-            ? Status.ok()
-            : Status.fail(`close tunnel failed: ${close_status}`);
     }
 
     async wait_monitor_ack(timeout: number = 500): Promise<Status> {

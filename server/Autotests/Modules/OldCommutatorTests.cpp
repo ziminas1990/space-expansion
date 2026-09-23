@@ -1,8 +1,10 @@
 #include <list>
+#include <vector>
 
 #include <gtest/gtest.h>
 
 #include <Conveyor/Conveyor.h>
+#include <Modules/Constants.h>
 #include <Modules/Fwd.h>
 #include <Modules/Managers.h>
 #include <Modules/Commutator/Commutator.h>
@@ -204,38 +206,37 @@ TEST_F(OldCommutatorTests, TunnelingMessageToOfflineModule)
   pAnotherClient->attachToChannel(pTunnel);
   pAnotherCommutator->putOffline();
   ASSERT_TRUE(pAnotherClient->sendOpenTunnel(1));
-  ASSERT_TRUE(pTunnel->waitCloseTunnelInd());
+  ASSERT_TRUE(pTunnel->waitCloseInd());
 }
 
-TEST_F(OldCommutatorTests, CloseTunnel)
+TEST_F(OldCommutatorTests, CloseSession)
 {
-  // 1. Attaching commutator to MockedCommutator
-  MockedCommutatorPtr pMockedCommutator = std::make_shared<MockedCommutator>();
-  m_pCommutatator->attachModule(pMockedCommutator);
-  pMockedCommutator->setEnviromentProceeder(m_fConveyorProceeder);
+  // 1. attach a module
+  m_pCommutatator->attachModule(std::make_shared<MockedBaseModule>());
 
-  // 1. Open tunnel
-  client::Router::SessionPtr pTunnel = m_pClient->openSession(0);
-  ASSERT_TRUE(pTunnel);
+  // 2. open sessions until the module rejects another one
+  std::vector<client::Router::SessionPtr> sessions;
+  for (;;) {
+    // 2.1 open a session
+    client::Router::SessionPtr pSession = m_pClient->openSession(0);
+    if (!pSession) {
+      break;
+    }
+    sessions.push_back(std::move(pSession));
+  }
+  ASSERT_EQ(modules::constants::nSessionsPerModuleLimit, sessions.size());
 
-  // 2. Try to send some request
-  client::ClientCommutatorPtr pAnotherClient =
-      std::make_shared<client::ClientCommutator>(m_pRouter);
-  pAnotherClient->attachToChannel(pTunnel);
+  // 3. close one session on that session and receive closed_ind
+  client::Router::SessionPtr pClosed = std::move(sessions.back());
+  sessions.pop_back();
+  spex::Message closeRequest;
+  closeRequest.mutable_session()->set_close(true);
+  ASSERT_TRUE(pClosed->send(std::move(closeRequest)));
+  ASSERT_TRUE(pClosed->waitCloseInd());
+  ASSERT_FALSE(m_pRouter->hasSession(pClosed->sessionId()));
 
-  ASSERT_TRUE(pAnotherClient->sendTotalSlotsReq());
-  uint32_t nTotalSlots = 16;
-  ASSERT_TRUE(pMockedCommutator->waitTotalSlotsReq(pTunnel->sessionId()));
-  ASSERT_TRUE(pMockedCommutator->sendTotalSlots(pTunnel->sessionId(), nTotalSlots));
-  ASSERT_TRUE(pAnotherClient->waitTotalSlots(nTotalSlots));
-
-  // 3. close channel
-  ASSERT_TRUE(m_pClient->closeTunnel(pTunnel));
-  ASSERT_TRUE(pTunnel->waitCloseTunnelInd());
-
-  // 4. try to send yet another request (should fail)
-  // ASSERT_TRUE(pAnotherClient->sendTotalSlotsReq());
-  // ASSERT_FALSE(pMockedCommutator->waitTotalSlotsReq(pTunnel->sessionId()));
+  // 4. the module accepts another session in the freed slot
+  ASSERT_TRUE(m_pClient->openSession(0));
 }
 
 } // namespace autotests

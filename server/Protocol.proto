@@ -361,18 +361,16 @@ message ICommutator {
     uint32     module_info_req      = 2;
     bool       all_modules_info_req = 3;
     uint32     open_tunnel          = 4;
-    uint32     close_tunnel         = 5;
-    bool       monitor              = 6;
+    bool       monitor              = 5;
 
     // Responces and indications from server
     uint32      total_slots           = 21;
     ModuleInfo  module_info           = 22;
     uint32      open_tunnel_report    = 23;
     Status      open_tunnel_failed    = 24;
-    Status      close_tunnel_status   = 25;
-    Status      monitor_ack           = 26;
-    Update      update                = 27;
-    ModulesList modules_info_list     = 28;
+    Status      monitor_ack           = 25;
+    Update      update                = 26;
+    ModulesList modules_info_list     = 27;
   }
 }
 

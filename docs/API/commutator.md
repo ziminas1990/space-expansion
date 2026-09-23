@@ -14,7 +14,6 @@ commands are available:
 - `all_modules_info_req` — request information about every module installed in
   the commutator
 - `open_tunnel` — open a new session to a module
-- `close_tunnel` — close a session to a module
 - `monitor` — start a session that monitors the state of the commutator
 
 Each command is covered below.
@@ -85,20 +84,9 @@ with one of these codes:
 | COMMUTATOR_OFFLINE    | The commutator is unavailable                        |
 +------------------------------------------------------------------------------+
 
-To close the session, the client sends `close_tunnel` with the session
-identifier received earlier in `open_tunnel_report`. The server replies with
-`close_tunnel_status` and one of these codes:
-
-+------------------------------------------------------------------------------+
-| Code                  | Description                                          |
-+------------------------------------------------------------------------------+
-| SUCCESS               | The session is closed                                |
-| INVALID_TUNNEL        | The specified session does not exist                 |
-| COMMUTATOR_OFFLINE    | The commutator is unavailable                        |
-+------------------------------------------------------------------------------+
-
-When the session is closed, a `closed_ind` message is also generated on that
-session (see [sessions-control.md](./sessions-control.md)).
+The only way to close that session is `close` on the session itself
+(`ISessionControl`). The server then sends `closed_ind` on the closed session
+(see [sessions-control.md](./sessions-control.md)).
 
 ## How to monitor a commutator
 

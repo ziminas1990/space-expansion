@@ -37,9 +37,10 @@ defines these messages:
 - `close` — close the session
 - `closed_ind` — notification that the session was closed
 
-The client sends `close` to close a session. Once the server has handled the
-command, it closes the session and ignores further client messages that carry
-that session's identifier.
+The client sends `close` to close a session. That is the only way for the
+client to close a session, including one opened with `open_tunnel`. Once the
+server has handled the command, it closes the session and ignores further
+client messages that carry that session's identifier.
 
 The server sends `closed_ind` to tell the client that a session was closed. A
 session may be closed by a `close` command or for another reason. Once

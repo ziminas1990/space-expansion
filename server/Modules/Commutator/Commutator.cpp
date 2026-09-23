@@ -155,9 +155,6 @@ void Commutator::handleCommutatorMessage(uint32_t nSessionId,
     case spex::ICommutator::kOpenTunnel:
       onOpenTunnelRequest(nSessionId, message.open_tunnel());
       return;
-    case spex::ICommutator::kCloseTunnel:
-      onCloseTunnelRequest(nSessionId, message.close_tunnel());
-      return;
     case spex::ICommutator::kMonitor:
       onMonitoringRequest(nSessionId);
       return;
@@ -232,22 +229,6 @@ void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)
   sendToClient(nSessionId, std::move(message));
 }
 
-void Commutator::onCloseTunnelRequest(uint32_t nSessionId, uint32_t nTunnelId)
-{
-  network::SessionMuxPtr pSessionMux = m_pSessionMux.lock();
-  if (!pSessionMux) {
-    sendCloseTunnelStatus(nSessionId, spex::ICommutator::COMMUTATOR_OFFLINE);
-    return;
-  }
-
-  if (!pSessionMux->closeSession(nTunnelId)) {  //&& nTunnelId == nSessionId) {
-    sendCloseTunnelStatus(nSessionId, spex::ICommutator::INVALID_TUNNEL);
-    return;
-  }
-
-  sendCloseTunnelStatus(nSessionId, spex::ICommutator::SUCCESS);
-}
-
 void Commutator::onMonitoringRequest(uint32_t nSessionId)
 {
   if (m_monitoringSessions.size() == 8) {
@@ -263,14 +244,6 @@ void Commutator::sendOpenTunnelFailed(uint32_t nSessionId,
 {
   spex::Message message;
   message.mutable_commutator()->set_open_tunnel_failed(eReason);
-  sendToClient(nSessionId, std::move(message));
-}
-
-void Commutator::sendCloseTunnelStatus(uint32_t nSessionId,
-                                       spex::ICommutator::Status eStatus)
-{
-  spex::Message message;
-  message.mutable_commutator()->set_close_tunnel_status(eStatus);
   sendToClient(nSessionId, std::move(message));
 }
 
