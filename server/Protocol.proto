@@ -351,6 +351,10 @@ message ICommutator {
     }
   }
 
+  message ModulesList {
+    repeated ModuleInfo modules = 1;
+  }
+
   oneof choice {
     // Requests and command from Client
     bool       total_slots_req      = 1;
@@ -361,13 +365,14 @@ message ICommutator {
     bool       monitor              = 6;
 
     // Responces and indications from server
-    uint32     total_slots         = 21;
-    ModuleInfo module_info         = 22;
-    uint32     open_tunnel_report  = 23;
-    Status     open_tunnel_failed  = 24;
-    Status     close_tunnel_status = 25;
-    Status     monitor_ack         = 26;
-    Update     update              = 27;
+    uint32      total_slots           = 21;
+    ModuleInfo  module_info           = 22;
+    uint32      open_tunnel_report    = 23;
+    Status      open_tunnel_failed    = 24;
+    Status      close_tunnel_status   = 25;
+    Status      monitor_ack           = 26;
+    Update      update                = 27;
+    ModulesList modules_info_list     = 28;
   }
 }
 

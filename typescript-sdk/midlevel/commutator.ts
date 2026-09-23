@@ -99,27 +99,16 @@ export class Commutator extends BaseModule<lowlevel.Commutator> {
     private async _get_all_modules_info(
         session: lowlevel.Commutator): Promise<[Status, ModuleInfo[] | undefined]>
     {
-        const [status, total] = await this._total_slots(session);
-        if (!status.is_ok()) {
-            return [status.wrap("can't get total slots count"), undefined];
-        }
-
         const send_status = await session.send_all_modules_info_request();
         if (!send_status.is_ok()) {
             return [send_status, undefined];
         }
 
-        const modules_info: ModuleInfo[] = [];
-        for (let i = 0; i < total; i++) {
-            const [info_status, info] = await session.wait_module_info_response();
-            if (!info_status.is_ok() || !info) {
-                return [info_status.wrap(`can't get info for module ${i}`), modules_info];
-            }
-            if (info) {
-                modules_info.push(this.bind_info(info));
-            }
+        const [status, infos] = await session.wait_modules_info_list();
+        if (!status.is_ok() || !infos) {
+            return [status.wrap("can't get modules info"), undefined];
         }
-        return [Status.ok(), modules_info];
+        return [Status.ok(), infos.map((info) => this.bind_info(info))];
     }
 
     private async _open_session(commutator: lowlevel.Commutator, slot_id: number)

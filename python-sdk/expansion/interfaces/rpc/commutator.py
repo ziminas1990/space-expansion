@@ -119,23 +119,22 @@ class CommutatorI(IOTerminal):
 
     @Channel.return_on_close(None)
     async def get_all_modules(self) -> Optional[List[ModuleInfo]]:
-        """Return all modules, attached to commutator. Modules received will
-        be stored to a local cache"""
-        success, total_slots = await self.get_total_slots()
-        if not success:
-            return None
+        """Return every module attached to the commutator.
+
+        The server answers with one list. An empty commutator yields an empty
+        list, not a missing reply.
+        """
         request = api.Message()
         request.commutator.all_modules_info_req = True
         self.send(request)
-
-        result: List[ModuleInfo] = []
-        for i in range(total_slots):
-            response, _ = await self.wait_message()
-            module_info = get_message_field(response, ["commutator", "module_info"])
-            if not module_info:
-                return None
-            result.append(ModuleInfo.from_protubuf(module_info))
-        return result
+        response, _ = await self.wait_message()
+        if not response:
+            return None
+        modules_list = get_message_field(
+            response, ["commutator", "modules_info_list"])
+        if modules_list is None:
+            return None
+        return [ModuleInfo.from_protubuf(info) for info in modules_list.modules]
 
     @Channel.return_on_close(Status.CHANNEL_CLOSED, None)
     async def open_tunnel(self, port: int) -> Tuple[Status, Optional[int]]:

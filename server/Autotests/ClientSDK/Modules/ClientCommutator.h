@@ -28,6 +28,7 @@ public:
   ClientCommutator(RouterPtr pRouter) : m_pRouter(pRouter) {}
 
   bool getTotalSlots(uint32_t &nTotalSlots);
+  bool getModuleInfo(uint32_t nSlotId, ModuleInfo& info);
   bool getAttachedModulesList(ModulesList& attachedModules);
 
   Router::SessionPtr openSession(uint32_t nSlotId);

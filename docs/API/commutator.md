@@ -57,14 +57,12 @@ the number from the request.
 ## The all_modules_info_req command
 
 To get information about every module installed in the commutator at once, the
-client sends `all_modules_info_req`. The server replies with several
-`module_info` messages, one for each occupied slot. Empty slots are left out of
-this reply. The fields of each message are the same as in the reply to
-`module_info_req`.
+client sends `all_modules_info_req`. The server replies with a single
+`modules_info_list` message. That list has one entry for each occupied slot.
+Empty slots are left out. Each entry has the same fields as `module_info`.
 
-The number of messages equals the number of installed modules and can be
-smaller than `total_slots`. If the commutator has no modules, the server sends
-no message at all.
+If the commutator has no modules, the server still sends one
+`modules_info_list`, and that list is empty.
 
 ## How to connect to a module
 

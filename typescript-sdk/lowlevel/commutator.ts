@@ -107,6 +107,20 @@ export class Commutator {
         return [Status.ok(), parse_module_info(response.choice.value)];
     }
 
+    async wait_modules_info_list(timeout: number = 500)
+    : Promise<[Status, ModuleInfo[] | undefined]>
+    {
+        const [status, response] = await this.wait(timeout);
+        if (!status.is_ok() || !response) {
+            return [status.wrap("no response"), undefined];
+        }
+        if (response.choice.case != "modulesInfoList") {
+            return [Status.fail(`got unexpected response ${response.choice.case}`), undefined];
+        }
+        const modules = (response.choice.value.modules ?? []).map(parse_module_info);
+        return [Status.ok(), modules];
+    }
+
     async wait_open_tunnel_report(timeout: number = 500)
     : Promise<[Status, number | undefined]>
     {

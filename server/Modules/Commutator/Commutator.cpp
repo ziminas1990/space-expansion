@@ -187,17 +187,17 @@ void Commutator::getModuleInfo(uint32_t nSessionId, uint32_t nSlotId) const
 
 void Commutator::getAllModulesInfo(uint32_t nSessionId) const
 {
-  const size_t nTotalModules = m_modules.size();
-  for (uint32_t nSlotId = 0; nSlotId < nTotalModules; ++nSlotId) {
+  spex::Message response;
+  spex::ICommutator::ModulesList* pList =
+      response.mutable_commutator()->mutable_modules_info_list();
+  const size_t nTotalSlots = m_modules.size();
+  for (uint32_t nSlotId = 0; nSlotId < nTotalSlots; ++nSlotId) {
     const BaseModulePtr& pModule = m_modules[nSlotId];
     if (pModule) {
-      spex::Message response;
-      spex::ICommutator::ModuleInfo* pBody =
-          response.mutable_commutator()->mutable_module_info();
-      fillModuleInfo(pBody, nSlotId, pModule);
-      sendToClient(nSessionId, std::move(response));
+      fillModuleInfo(pList->add_modules(), nSlotId, pModule);
     }
   }
+  sendToClient(nSessionId, std::move(response));
 }
 
 void Commutator::onOpenTunnelRequest(uint32_t nSessionId, uint32_t nSlot)

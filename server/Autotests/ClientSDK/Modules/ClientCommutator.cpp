@@ -8,30 +8,51 @@ bool ClientCommutator::getTotalSlots(uint32_t& nTotalSlots)
   return sendTotalSlotsReq() && waitTotalSlots(nTotalSlots);
 }
 
-bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
+bool ClientCommutator::getModuleInfo(uint32_t nSlotId, ModuleInfo& info)
 {
-  uint32_t nTotal = 0;
-  if (!getTotalSlots(nTotal))
-    return false;
-
   spex::Message request;
-  request.mutable_commutator()->set_all_modules_info_req(true);
+  request.mutable_commutator()->set_module_info_req(nSlotId);
   if (!send(std::move(request)))
     return false;
 
-  for (size_t i = 0; i < nTotal; ++i) {
-    spex::ICommutator response;
-    if (!wait(response))
-      return false;
-    if (response.choice_case() != spex::ICommutator::kModuleInfo)
-      return false;
-    attachedModules.push_back(
-          ModuleInfo({response.module_info().slot_id(),
-                      response.module_info().module_type(),
-                      response.module_info().module_name(),
-                      response.module_info().blueprint_name()}));
+  spex::ICommutator response;
+  if (!wait(response))
+    return false;
+  if (response.choice_case() != spex::ICommutator::kModuleInfo)
+    return false;
+  info = ModuleInfo({response.module_info().slot_id(),
+                     response.module_info().module_type(),
+                     response.module_info().module_name(),
+                     response.module_info().blueprint_name()});
+  return true;
+}
+
+bool ClientCommutator::getAttachedModulesList(ModulesList& attachedModules)
+{
+  spex::Message request;
+  request.mutable_commutator()->set_all_modules_info_req(true);
+  if (!send(std::move(request))) {
+    return false;
   }
-  return attachedModules.size() == nTotal;
+
+  spex::ICommutator response;
+  if (!wait(response)) {
+    return false;
+  }
+
+  if (response.choice_case() != spex::ICommutator::kModulesInfoList) {
+    return false;
+  }
+
+  const auto& modules = response.modules_info_list().modules();
+  for (const auto& module : modules) {
+    attachedModules.push_back(
+          ModuleInfo({module.slot_id(),
+                      module.module_type(),
+                      module.module_name(),
+                      module.blueprint_name()}));
+  }
+  return true;
 }
 
 Router::SessionPtr ClientCommutator::openSession(uint32_t nSlotId)
