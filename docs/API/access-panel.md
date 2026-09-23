@@ -10,22 +10,9 @@ The interface has only one command, `login`, with which the client must send:
 - login — the user name
 - password — the user password
 
-To send a message to the server, wrap it in a `Message`. `Message` is the
-top-level protocol message. It is a container for every other message (via a
-oneof), and it also has several important fields:
-
-- tunnelId — the session (tunnel) identifier
-- timestamp — an ingame time mark
-
-`tunnelId` will be covered in more detail later. The meaning of `timestamp`
-depends on the direction of the message. If the message goes from the client to
-the server (a command), `timestamp` determines the ingame time at which the
-command must be executed. If the message goes from the server to the client (a
-response), `timestamp` determines the ingame time at which the response was
-produced.
-
-In a `login` message the server ignores `tunnelId` and `timestamp`, so they can
-be left unset.
+Like every other protocol message, `login` is sent inside a `Message` (see
+[UDP message format](./README.md#udp-message-format)). In a `login` message the
+server ignores `tunnelId` and `timestamp`, so they can be left unset.
 
 In protobuf, a zero value of a scalar field is equivalent to the field being
 absent. A field with the value 0 is not transmitted, and a missing field is read

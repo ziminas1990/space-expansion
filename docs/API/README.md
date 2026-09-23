@@ -20,8 +20,33 @@ The whole protocol is described by two protobuf files:
 1. `CommonTypes.proto` — a set of data types
 2. `Protocol.proto` — messages exchanged between the client and the server
 
-Each individual UDP frame can contain only the `Message` message described in
-`Protocol.proto`.
+## UDP message format
+
+Each individual UDP frame carries exactly one `Message`, the top-level message
+described in `Protocol.proto`. To send anything to the server, wrap it in a
+`Message`. `Message` is a container for every other message (via a oneof), and
+it also has several important fields:
+
+- `tunnelId` — the session (tunnel) identifier
+- `timestamp` — an [ingame time](./glossary.md#ingame-time) mark
+
+`tunnelId` will be covered in more detail later.
+
+The meaning of `timestamp` depends on the direction of the message. If the
+message goes from the client to the server (a command), the server executes it
+when ingame time has exceeded `timestamp`. Because ingame time is
+[discrete](./glossary.md#simulation-ticks), the actual execution time can
+differ slightly from the `timestamp` value.
+
+If the message goes from the server to the client (a response), `timestamp`
+determines the ingame time at which the response was produced.
+
+For example, if the client requests a ship's position, the server returns the
+ship's coordinates and velocity, and `timestamp` holds the exact
+[ingame time](./glossary.md#ingame-time) at which the ship had those
+coordinates and that velocity.
+
+## Interfaces
 
 It is useful to think of `Protocol.proto` not merely as a set of messages, but
 as a list of interfaces, where each interface corresponds to some independent
@@ -37,3 +62,12 @@ order of study:
 - [IAccessPanel](access-panel.md) — how to connect to the server
 - [Sessions Control](sessions-control.md) — session control
 - [ICommutator](commutator.md) — the interface for connecting to devices
+- [Ship](ship.md) — exploring a ship
+- [System Clock](system_clock.md) — the system clock
+- [Engine](engine.md) — controlling an engine
+- [Passive Scanner](passive_scanner.md) — scanning nearby objects
+- [Resource Container](resource_container.md) — storing and moving resources
+- [Asteroid Scanner](asteroid_scanner.md) — scanning an asteroid's composition
+- [Asteroid Miner](asteroid_miner.md) — mining an asteroid into a container
+- [Blueprints Library](blueprints_library.md) — reading blueprints and their cost
+- [Shipyard](shipyard.md) — building a ship from a blueprint

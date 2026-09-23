@@ -26,7 +26,8 @@ void Clock::start(bool lDebugMode)
 uint32_t Clock::getNextInterval()
 {
 #ifndef AUTOTESTS_MODE
-  const uint64_t nMaxTickUs = 10000;
+  // One simulation tick advances ingame time by at most 1 ms.
+  const uint64_t nMaxTickUs = 1000;
 #else
   // when running autotests each tick is 5 ms
   const uint64_t nDebugDefaultTickUs = 5000;

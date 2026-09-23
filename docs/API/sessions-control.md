@@ -111,10 +111,10 @@ to the commutator:
 
 ```json
 {
-    "tunnelId": 224,  # the root session id
+    "tunnelId": 224,  // the root session id
     "timestamp": 0,
     "rootSession": {
-        "new_commutator_session": true  # the value does not matter
+        "new_commutator_session": true  // the value does not matter
     }
 }
 ```
@@ -123,10 +123,10 @@ The server responds with `commutator_session`:
 
 ```json
 {
-    "tunnelId": 224,  # the root session id
+    "tunnelId": 224,  // the root session id
     "timestamp": 0,
     "rootSession": {
-        "commutator_session": 456  # the new session id
+        "commutator_session": 456  // the new session id
     }
 }
 ```
@@ -136,7 +136,7 @@ commutator:
 
 ```json
 {
-    "tunnelId": 456,  # the commutator session id
+    "tunnelId": 456,  // the commutator session id
     "timestamp": 0,
     "commutator": {
         "total_slots_req": true

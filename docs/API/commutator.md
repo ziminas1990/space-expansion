@@ -1,6 +1,7 @@
 # ICommutator interface — connecting to devices
 
 Previous topic: [ISessionControl](./sessions-control.md)
+Next topic: [Ship](./ship.md)
 
 A commutator is a device to which other devices can be connected, both physical
 ones, such as an engine or an onboard scanner, and virtual ones, such as the
@@ -45,7 +46,7 @@ types and their interfaces is in the [module table](./modules_table.md).
 guaranteed to be unique for every module in the commutator.
 
 `blueprint_name` is the name of the blueprint the module was created from.
-Blueprints are covered in later sections.
+Blueprints are covered in [Blueprints Library](./blueprints_library.md).
 
 If the requested slot is empty, or no such slot exists (the number is greater
 than or equal to the number of slots), the server still replies with a single
@@ -75,14 +76,12 @@ message sent on that session is delivered to that module for handling.
 If the connection cannot be established, the server sends `open_tunnel_failed`
 with one of these codes:
 
-+------------------------------------------------------------------------------+
 | Code                  | Description                                          |
-+------------------------------------------------------------------------------+
+| --------------------- | ---------------------------------------------------- |
 | INVALID_SLOT          | The specified slot does not exist                    |
 | MODULE_OFFLINE        | The slot is empty or the module is offline           |
 | REJECTED_BY_MODULE    | The module's session limit is reached                |
 | COMMUTATOR_OFFLINE    | The commutator is unavailable                        |
-+------------------------------------------------------------------------------+
 
 The only way to close that session is `close` on the session itself
 (`ISessionControl`). The server then sends `closed_ind` on the closed session
@@ -99,12 +98,10 @@ The `monitor` command implements the push model described in
 
 The server immediately replies with `monitor_ack` and one of these codes:
 
-+------------------------------------------------------------------------------+
 | Code                  | Description                                          |
-+------------------------------------------------------------------------------+
+| --------------------- | ---------------------------------------------------- |
 | SUCCESS               | Subscription accepted; updates will follow           |
 | TOO_MANY_SESSIONS     | 8 monitoring sessions are already open; rejected     |
-+------------------------------------------------------------------------------+
 
 While the session stays open, the server sends `update` messages when the set
 of modules changes:
