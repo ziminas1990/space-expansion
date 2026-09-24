@@ -7,8 +7,6 @@ alwaysApply: true
 
 - Before **adding** or **editing** tests, read and follow
   [`test-steps.mdc`](./test-steps.mdc).
-- Before **running** Python SDK tests, read and follow
-  [`python-sdk-tests.mdc`](./python-sdk-tests.mdc).
 - Before **creating** or **editing** a task in `docs/tasks/`, read and
   follow [`task-writing.mdc`](./task-writing.mdc). Create a new task only by
   running `python docs/tasks/create_task.py`.

@@ -10,7 +10,6 @@ In this article let's assume that you have the following environment variables:
 ```bash
 SPEX_SOURCE_DIR=$HOME/dev/space-expansion
 SPEX_BUILD_DIR=$HOME/dev/space-expansion-build
-SPEX_VENV_DIR=$HOME/dev/space-expansion-venv
 ```
 
 Feel free to specify other paths.
@@ -149,23 +148,14 @@ $SPEX_BUILD_DIR/space-expansion-server
 
 ## Run integration tests
 
-Create and activate a Python virtual environment, then install the dependencies
-required by the Python SDK:
+Integration tests are the TypeScript SDK tests. They start the server binary
+built above. Install Node.js, which includes npm, then run:
 
 ```bash
-python3 -m venv "$SPEX_VENV_DIR"
-source "$SPEX_VENV_DIR/bin/activate"
-python -m pip install pyyaml protobuf typing-extensions
-```
-
-To run the tests, execute the following script:
-
-```bash
-# Directory with the server's executable
+cd $SPEX_SOURCE_DIR/typescript-sdk
+npm install
 export SPEX_SERVER_BINARY=$SPEX_BUILD_DIR/space-expansion-server
-export PYTHONPATH=$SPEX_SOURCE_DIR/python-sdk
-cd $SPEX_SOURCE_DIR/tests
-python -m unittest discover
+npm test
 ```
 
 ## Build and upload docker image

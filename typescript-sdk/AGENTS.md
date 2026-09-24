@@ -3,7 +3,6 @@
 ## Sources of truth
 
 - The wire contract is `../server/Protocol.proto`.
-- `../python-sdk/` is a behavioral reference, not a layering reference.
 - Never edit generated `*_pb.ts` files manually.
 
 ## Layer boundaries
@@ -83,9 +82,9 @@ Each wrapper follows this pattern:
 
 ## Design rule
 
-Do not copy Python classes across layers mechanically. Decide whether a concept
-is a protocol interface, a composed server operation, or a world entity, then
-place it in lowlevel, midlevel, or highlevel respectively.
+Decide whether a concept is a protocol interface, a composed server operation,
+or a world entity, then place it in lowlevel, midlevel, or highlevel
+respectively.
 
 ## Package
 

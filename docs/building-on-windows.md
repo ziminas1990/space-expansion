@@ -54,7 +54,6 @@ The commands below use the following PowerShell variables:
 ```powershell
 $SPEX_SOURCE_DIR="$HOME\Projects\space-expansion"
 $SPEX_BUILD_DIR="$HOME\Projects\space-expansion-build"
-$SPEX_VENV_DIR="$HOME\Projects\space-expansion-venv"
 ```
 
 The source and build directories must be different. Clone the project and
@@ -133,20 +132,14 @@ directory, then run:
 
 ## Run integration tests
 
-Create and activate a Python virtual environment:
+Integration tests are the TypeScript SDK tests. They start the server binary
+built above. Install [Node.js](https://nodejs.org/), which includes npm, then
+run the tests. The path below assumes a release build made with the Visual
+Studio generator:
 
 ```powershell
-python -m venv $SPEX_VENV_DIR
-& "$SPEX_VENV_DIR\Scripts\Activate.ps1"
-pip install pyyaml protobuf typing-extensions
-```
-
-Set up the environment and run the tests. The path below assumes a release
-build made with the Visual Studio generator:
-
-```powershell
-$env:PYTHONPATH="$SPEX_SOURCE_DIR\python-sdk"
+Set-Location "$SPEX_SOURCE_DIR\typescript-sdk"
+npm install
 $env:SPEX_SERVER_BINARY="$SPEX_BUILD_DIR\Release\space-expansion-server.exe"
-Set-Location "$SPEX_SOURCE_DIR\tests"
-python -m unittest discover
+npm test
 ```
