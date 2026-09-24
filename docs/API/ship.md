@@ -39,10 +39,13 @@ to them.
 
 ## How to get the ship's state and position
 
-To get and monitor the ship's state, use the commands of the `IShip` interface:
+To get and monitor the ship's state, and to turn it, use the commands of the
+`IShip` interface:
 
 - `state_req` — request the ship's state
 - `monitor` — start monitoring the ship's state
+- `specification_req` — request the maximum rotation speed
+- `rotate` — turn the nose toward a direction
 
 In response to a `state_req` request the server sends a `state` message that
 describes the ship's current state. The response contains:
@@ -51,6 +54,10 @@ describes the ship's current state. The response contains:
 - `weight` — the ship's mass, in kilograms. The field has the form
   `{ "value": ... }`, because in the protocol it is an `OptionalDouble`
   message, not a single number
+- `orientation` — the direction from the ship's center toward its nose, in
+  global coordinates. `x` and `y` are the components of a unit vector. A
+  `state` read while the ship is turning reports the nose at that moment.
+  The saved ship state always includes this direction
 
 To receive the ship's state regularly, the client sends a `monitor` command
 with an update interval in milliseconds of
@@ -109,8 +116,50 @@ In response the server sends this message:
         "y": 2000,
         "vx": 10,
         "vy": 20
+      },
+      "orientation": {
+        "x": 1,
+        "y": 0
       }
     }
   }
 }
 ```
+
+## The specification_req command
+
+`specification_req` requests the ship's limits and size. The server replies
+with one `specification` message:
+
+- `max_rotation_speed` — the fastest the ship can turn, in radians per
+  second
+- `radius` — the ship's size, in meters. It is the hull radius
+
+Both numbers are the ones set on that ship's blueprint. The
+[blueprints library](./blueprints_library.md) publishes the same values as
+properties of the ship blueprint.
+
+## The rotate command
+
+`rotate` turns the nose toward a direction. The server answers at once with
+`rotate_ack` and then sends nothing further about that turn. The turn runs
+to completion on the server. There is no separate message when the nose
+reaches the target.
+
+The command has these fields:
+
+- `x` and `y` — the target direction, in global coordinates. The server uses
+  this pair only as a direction. A vector `(2, 2)` and a vector `(1, 1)`
+  select the same nose. If both components are zero, the server acknowledges
+  the command and leaves the current turn unchanged
+- `speed` — how fast to turn, in radians per second
+
+The ship turns at that speed along the shorter arc until the nose matches
+the target. The speed used does not exceed `max_rotation_speed`. A requested
+speed above the maximum is carried out at the maximum. A speed of zero or
+less acknowledges the command, leaves the nose where it is, and cancels a
+turn that is already in progress.
+
+A `rotate` that arrives during a turn replaces that turn. The nose stays
+where it is at that moment and then turns toward the new target.
+

@@ -221,12 +221,12 @@ public:
 
 template<typename NumericType>
 inline Cell *Cell::track(uint32_t nObjectId, NumericType x, NumericType y) {
-  if (contains(x, y)) {
+  if (contains(x, y)) [[likely]] {
     return this;
   }
   // This is unlikely path, so we can afford to lock mutex here
   Cell *pNewCell = m_pOwner->getCell(x, y);
-  if (pNewCell) {
+  if (pNewCell) [[likely]] {
     assert(pNewCell->contains(x, y));
     std::lock_guard guard(pNewCell->m_mutex);
     assert(!pNewCell->m_objectsIds.has(nObjectId));

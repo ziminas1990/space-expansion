@@ -69,6 +69,7 @@ protected:
       ,"    Station:"
       ,"      radius: 100"
       ,"      weight: 100000"
+      ,"      max_rotation_speed: 1"
       ,"      modules:"
       ,"        shipyard:       Shipyard/small-shipyard"
       ,"        shipyard_cargo: ResourceContainer/small-container"
@@ -78,6 +79,7 @@ protected:
       ,"    MiningDrone:"
       ,"      radius: 2"
       ,"      weight: 120"
+      ,"      max_rotation_speed: 1"
       ,"      modules:"
       ,"        engine: Engine/toy-engine"
       ,"        cargo:  ResourceContainer/small-container"
@@ -93,6 +95,7 @@ protected:
       ,"      'Station/Sweet Home':"
       ,"        position: { x: 100, y: 15}"
       ,"        velocity: { x: 0,   y: 0}"
+      ,"        orientation: { x: 0.6, y: 0.8}"
       ,"        modules:"
       ,"          shipyard: {}"
       ,"          cargo:"
@@ -291,6 +294,13 @@ TEST_F(ShipyardTests, BuildSuccessCase)
 
   ASSERT_TRUE(dronePosition.almostEqual(stationPosition, 0.1));
   ASSERT_TRUE(droneVelocity.almostEqual(stationVelocity, 0.1));
+
+  // Check that the new ship faces the same way as the shipyard's ship
+  client::ShipState stationState;
+  ASSERT_TRUE(station.getState(stationState));
+  client::ShipState droneState;
+  ASSERT_TRUE(drone.getState(droneState));
+  ASSERT_TRUE(droneState.orientation.almostEqual(stationState.orientation, 1e-6));
 }
 
 TEST_F(ShipyardTests, BuildFrozen)
@@ -398,6 +408,7 @@ protected:
       ,"    Station:"
       ,"      radius: 100"
       ,"      weight: 100000"
+      ,"      max_rotation_speed: 1"
       ,"      modules:"
       ,"        shipyard:   Shipyard/fast-shipyard"
       ,"        shipyard_2: Shipyard/fast-shipyard"
@@ -407,6 +418,7 @@ protected:
       ,"    Scout:"
       ,"      radius: 2"
       ,"      weight: 120"
+      ,"      max_rotation_speed: 1"
       ,"      modules:"
       ,"        engine: Engine/toy-engine"
       ,"      expenses:"
@@ -420,6 +432,7 @@ protected:
       ,"      'Station/Sweet Home':"
       ,"        position: { x: 100, y: 15}"
       ,"        velocity: { x: 0,   y: 0}"
+      ,"        orientation: { x: 1, y: 0}"
       ,"        modules:"
       ,"          shipyard: {}"
       ,"          shipyard_2: {}"

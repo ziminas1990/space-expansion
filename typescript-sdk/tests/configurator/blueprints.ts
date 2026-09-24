@@ -63,6 +63,7 @@ export class ShipBlueprint extends Blueprint {
         readonly weight: number,
         readonly modules: Readonly<Record<string, BlueprintId>>,
         expenses: ResourcesList,
+        readonly max_rotation_speed: number,
     ) {
         super(new BlueprintId(ModuleType.Ship, name), expenses);
     }
@@ -79,6 +80,11 @@ export class ShipBlueprint extends Blueprint {
                 `Ship blueprint '${this.id.name}' has invalid weight`,
             );
         }
+        if (!(this.max_rotation_speed >= 0)) {
+            throw new Error(
+                `Ship blueprint '${this.id.name}' has invalid max rotation speed`,
+            );
+        }
     }
 
     override toPod(): Record<string, unknown> {
@@ -87,6 +93,7 @@ export class ShipBlueprint extends Blueprint {
             ...super.toPod(),
             radius: this.radius,
             weight: this.weight,
+            max_rotation_speed: this.max_rotation_speed,
             modules: Object.fromEntries(
                 Object.entries(this.modules).map((
                     [name, id],
@@ -308,6 +315,7 @@ function createDefaultBlueprints(): Blueprint[] {
                 additional_engine: id(ModuleType.Engine, "Tiny Ion engine"),
             },
             expenses({ metals: 200, silicates: 20, labor: 100 }),
+            2,
         ),
         new ShipBlueprint(
             "Miner",
@@ -328,6 +336,7 @@ function createDefaultBlueprints(): Blueprint[] {
                 miner: id(ModuleType.AsteroidMiner, "Toy Miner"),
             },
             expenses({ metals: 70_000, silicates: 10_000, labor: 20_000 }),
+            1,
         ),
         new ShipBlueprint(
             "Station",
@@ -352,6 +361,7 @@ function createDefaultBlueprints(): Blueprint[] {
                 silicates: 3_000_000,
                 labor: 3_000_000,
             }),
+            0.2,
         ),
     );
     return blueprints;

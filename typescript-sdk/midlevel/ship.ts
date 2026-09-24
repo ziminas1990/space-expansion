@@ -6,6 +6,7 @@ import { ModuleType } from "./module_type.js";
 import { Navigation } from "./navigation.js";
 
 export type ShipState = lowlevel.ShipState
+export type ShipSpecification = lowlevel.ShipSpecification
 export type MonitoringCallback =
     (update: ShipState | undefined) => Promise<boolean>;
 
@@ -40,6 +41,17 @@ export class Ship extends BaseModule<lowlevel.Ship> {
         return await this.run(this._get_ship_state);
     }
 
+    async get_specification()
+        : Promise<[Status, ShipSpecification | undefined]>
+    {
+        return await this.run(async (session) => this._get_specification(session));
+    }
+
+    async rotate(x: number, y: number, speed: number): Promise<Status> {
+        return await this.run_no_return(
+            async (session) => this._rotate(session, x, y, speed));
+    }
+
     async monitoring(
         update_ms: number,
         callback: MonitoringCallback,
@@ -59,6 +71,38 @@ export class Ship extends BaseModule<lowlevel.Ship> {
             return [send_status, undefined];
         }
         return await session.wait_state();
+    }
+
+    private async _get_specification(session: lowlevel.Ship)
+    : Promise<[Status, ShipSpecification | undefined]>
+    {
+        const send_status = await session.send_specification_request();
+        if (!send_status.is_ok()) {
+            return [send_status, undefined];
+        }
+        const [status, spec] = await session.wait_specification();
+        if (!status.is_ok() || !spec) {
+            return [status.wrap("failed to get ship specification"), undefined];
+        }
+        return [Status.ok(), spec];
+    }
+
+    private async _rotate(
+        session: lowlevel.Ship,
+        x: number,
+        y: number,
+        speed: number)
+        : Promise<Status>
+    {
+        const send_status = await session.send_rotate(x, y, speed);
+        if (!send_status.is_ok()) {
+            return send_status.wrap("failed to rotate");
+        }
+        const ack_status = await session.wait_rotate_ack();
+        if (!ack_status.is_ok()) {
+            return ack_status.wrap("rotate was not acknowledged");
+        }
+        return Status.ok();
     }
 
     private async _monitoring(

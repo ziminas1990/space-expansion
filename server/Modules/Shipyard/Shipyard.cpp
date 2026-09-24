@@ -106,8 +106,10 @@ void Shipyard::finishBuildingProcedure()
     return;
   }
 
-  pNewShip->moveTo(getPlatform()->getPosition());
-  pNewShip->setVelocity(getPlatform()->getVelocity());
+  const modules::Ship* pPlatform = getPlatform();
+  pNewShip->moveTo(pPlatform->getPosition());
+  pNewShip->setVelocity(pPlatform->getVelocity());
+  pNewShip->setOrientation(pPlatform->getOrientation());
 
   const uint32_t nSlotId = pOwner->onNewShip(pNewShip);
   if (nSlotId == modules::Commutator::invalidSlot()) {

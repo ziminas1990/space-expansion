@@ -29,7 +29,7 @@ modules::ShipPtr ShipBlueprint::build(
   modules::ShipPtr pShip =
       std::make_shared<modules::Ship>(
         BlueprintName("Ship", m_sType).toString(),
-        std::move(sName), pOwner, m_weight, m_radius);
+        std::move(sName), pOwner, m_weight, m_radius, m_maxRotationSpeed);
 
   // Create ship's modules
   for (auto const& kv : m_modules)
@@ -78,7 +78,9 @@ bool ShipBlueprint::load(YAML::Node const& data)
 
   if (!utils::YamlReader(data)
       .read("weight", m_weight)
-      .read("radius", m_radius)) {
+      .read("radius", m_radius)
+      .read("max_rotation_speed", m_maxRotationSpeed)
+      || !(m_maxRotationSpeed >= 0)) {
     assert(false);
     return false;
   }
@@ -118,6 +120,7 @@ void ShipBlueprint::dump(YAML::Node& out) const
   utils::YamlDumper dumper(out);
   dumper.add("weight", m_weight)
         .add("radius", m_radius)
+        .add("max_rotation_speed", m_maxRotationSpeed)
         .add("modules", std::move(modules));
 }
 

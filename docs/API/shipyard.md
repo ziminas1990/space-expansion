@@ -5,7 +5,8 @@ Next topic: [Game](./game.md)
 
 A shipyard is installed on a ship and builds new ships for the player. The
 finished ship is attached to the player's [commutator](./commutator.md), in the
-same place and with the same velocity as the ship that carries the shipyard.
+same place, with the same velocity, and facing the same way as the ship that
+carries the shipyard.
 
 ## How a build works
 

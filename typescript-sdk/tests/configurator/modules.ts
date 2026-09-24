@@ -66,18 +66,21 @@ export interface ShipOptions {
     shipType: ShipType | string;
     position: Position;
     modules?: Readonly<Record<string, ModuleState>>;
+    orientation?: Vector;
 }
 
 export class Ship {
     readonly shipName: string;
     readonly shipType: string;
     position: Position;
+    orientation: Vector;
     readonly modules = new Map<string, ModuleState>();
 
     constructor(options: ShipOptions) {
         this.shipName = options.name;
         this.shipType = options.shipType;
         this.position = options.position;
+        this.orientation = options.orientation ?? new Vector(1, 0);
         for (const [name, state] of Object.entries(options.modules ?? {})) {
             this.modules.set(name, state);
         }
@@ -85,6 +88,11 @@ export class Ship {
 
     setPosition(position: Position): this {
         this.position = position;
+        return this;
+    }
+
+    setOrientation(orientation: Vector): this {
+        this.orientation = orientation;
         return this;
     }
 
@@ -104,6 +112,7 @@ export class Ship {
             throw new Error("Ship type cannot be empty");
         }
         this.position.verify();
+        this.orientation.verify();
         for (const [name, state] of this.modules) {
             if (name.length === 0) {
                 throw new Error("Module slot name cannot be empty");
@@ -116,6 +125,7 @@ export class Ship {
         this.verify();
         return {
             ...this.position.toPod(),
+            orientation: this.orientation.toPod(),
             modules: Object.fromEntries(
                 [...this.modules].map(([name, state]) => [name, state.toPod()]),
             ),

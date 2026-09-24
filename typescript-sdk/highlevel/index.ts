@@ -18,6 +18,7 @@ export type { HighlevelModule } from "./module_types.js";
 export { create_module } from "./factory.js";
 export { Player } from "./player.js";
 export { Ship, ShipState } from "./ship.js";
+export type { ShipSpecification } from "./ship.js";
 export { Navigation } from "./navigation.js";
 export type { Position } from "./navigation.js";
 export { BlueprintsLibrary } from "./blueprints_library.js";

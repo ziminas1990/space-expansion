@@ -96,6 +96,11 @@ public:
     return (x * other.x + y * other.y) / (getLength() * other.getLength());
   }
 
+  // Shortest signed turn from this vector to `to`, in radians.
+  // A half turn has two equal arcs; that case is always positive, so a nose
+  // on +X passes through +Y on the way to -X.
+  double shortestTurn(Vector const& to) const;
+
   Vector operator/(double k) const { return operator*(1/k); }
 
   void normalize()

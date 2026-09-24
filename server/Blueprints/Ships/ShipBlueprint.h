@@ -64,6 +64,8 @@ private:
   std::string m_sType  = "unknown";
   double      m_weight = 1000;
   double      m_radius = 1;
+  // Maximum nose rotation, in radians per second.
+  double      m_maxRotationSpeed = 0;
 
   std::map<std::string, BlueprintName> m_modules;
 };

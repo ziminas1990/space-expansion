@@ -10,6 +10,7 @@ import type { HighlevelModule } from "./module_types.js";
 
 export type { Position };
 export type ShipState = midlevel.ShipState;
+export type ShipSpecification = midlevel.ShipSpecification;
 
 export type Events = {
     attached: (module: HighlevelModule) => Promise<void> | void;
@@ -25,6 +26,7 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
     private registry: ModuleRegistry;
 
     private state = new Cached<ShipState>();
+    private specification = new Cached<ShipSpecification>();
 
     private monitor: Promise<Status> | undefined = undefined;
     private stop_monitoring: boolean = false;
@@ -111,6 +113,7 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
         await this.registry.release();
         await this.navigation.release();
         this.state.reset();
+        this.specification.reset();
         return Status.ok();
     }
 
@@ -126,6 +129,33 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
             this.cache_state(state);
         }
         return [status, state];
+    }
+
+    async get_specification(
+        reset_cached: boolean = false,
+    ): Promise<[Status, ShipSpecification | undefined]> {
+        if (reset_cached) {
+            this.specification.reset();
+        } else {
+            const cached = this.specification.get(Infinity);
+            if (cached) {
+                return [Status.ok(), cached];
+            }
+        }
+        const [status, spec] = await this.ship.get_specification();
+        if (!status.is_ok() || !spec) {
+            return [status, undefined];
+        }
+        this.specification.set(spec);
+        return [Status.ok(), spec];
+    }
+
+    async rotate(x: number, y: number, speed: number): Promise<Status> {
+        const status = await this.ship.rotate(x, y, speed);
+        if (status.is_ok()) {
+            this.state.reset();
+        }
+        return status;
     }
 
     async get_position(at_us?: number, cache_expiring_ms: number = 10)
@@ -166,6 +196,7 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
         if (update.weight) {
             current.weight = update.weight;
         }
+        current.orientation = update.orientation;
         current.timestamp = update.timestamp;
         this.state.set(current);
     }

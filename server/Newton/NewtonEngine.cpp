@@ -26,6 +26,8 @@ void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
     for (uint32_t nId = begin; nId < end; ++nId) {
       PhysicalObject* pObject = AllObjects::Instance(nId);
       if (pObject) {
+        pObject->applyRotation(nIntervalUs);
+
         // acc_t - acceleration * time
         geometry::Vector acc_t;
         for (geometry::Vector const& externalForce : pObject->m_externalForces)

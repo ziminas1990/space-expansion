@@ -85,6 +85,7 @@ protected:
       "    Tiny-Scout:",
       "      radius: 10",
       "      weight: 10000",
+      "      max_rotation_speed: 1",
       "      modules:",
       "        asteroid-scanner:  AsteroidScanner/tiny-scanner",
       "        engine:            Engine/ancient-nordic-engine",
@@ -93,6 +94,7 @@ protected:
       "    Civilian-Scout:",
       "      radius: 50",
       "      weight: 1000000",
+      "      max_rotation_speed: 1",
       "      modules:",
       "        asteroid-scanner:  AsteroidScanner/tiny-scanner",
       "        engine:            Engine/ancient-nordic-engine",
@@ -101,6 +103,7 @@ protected:
       "    Titanic-Scout:",
       "      radius: 250",
       "      weight: 100000000",
+      "      max_rotation_speed: 1",
       "      modules:",
       "        asteroid-scanner:  AsteroidScanner/huge-scanner",
       "        engine:            Engine/titanic-engine",
@@ -279,6 +282,7 @@ TEST_F(BlueprintStorageTests, GetShipBlueprints)
     EXPECT_EQ("Ship/Titanic-Scout", blueprint.m_sName);
     EXPECT_EQ("250",       blueprint.m_properties["radius"]->sValue);
     EXPECT_EQ("100000000", blueprint.m_properties["weight"]->sValue);
+    EXPECT_EQ("1",         blueprint.m_properties["max_rotation_speed"]->sValue);
 
     client::PropertyUniqPtr const& pShipModules = blueprint.m_properties["modules"];
     EXPECT_EQ("AsteroidScanner/huge-scanner",

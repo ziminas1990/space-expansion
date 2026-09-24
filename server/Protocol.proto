@@ -5,10 +5,6 @@ import "CommonTypes.proto";
 
 package spex;
 
-
-//=============================================================================
-// Modules interfaces
-
 message ISessionControl {
 
   oneof choice {
@@ -92,16 +88,43 @@ message IEngine
 
 
 message IShip {
+  // Unit vector in global coordinates, from the ship's center toward its nose.
+  message Direction {
+    double x = 1;
+    double y = 2;
+  }
+
   message State {
-    OptionalDouble weight   = 1;
-    Position       position = 2;
+    OptionalDouble weight      = 1;
+    Position       position    = 2;
+    Direction      orientation = 3;
+  }
+
+  message Specification {
+    // Maximum rotation speed, in radians per second.
+    double max_rotation_speed = 1;
+    // Ship size: the hull radius, in meters.
+    double radius = 2;
+  }
+
+  // Turn the nose toward a direction. x and y are that direction; the
+  // magnitude is ignored. speed is the desired rotation, in radians per
+  // second, and is not allowed to exceed the maximum.
+  message Rotate {
+    double x     = 1;
+    double y     = 2;
+    double speed = 3;
   }
 
   oneof choice {
-    bool   state_req = 1;
-    uint32 monitor   = 2;
+    bool   state_req         = 1;
+    uint32 monitor           = 2;
+    bool   specification_req = 3;
+    Rotate rotate            = 4;
 
-    State state        = 21;
+    State         state         = 21;
+    Specification specification = 22;
+    bool          rotate_ack    = 23;
   }
 }
 

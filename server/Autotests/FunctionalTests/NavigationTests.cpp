@@ -30,6 +30,7 @@ protected:
       "    Cubesat:",
       "      radius:  0.1",
       "      weight:  10 ",
+      "      max_rotation_speed: 1",
       "      modules:",
       "        engine: Engine/tiny-engine",
       "      expenses:",
@@ -41,6 +42,7 @@ protected:
       "      Cubesat/Experimental:",
       "        position: { x: 0, y: 0}",
       "        velocity: { x: 0, y: 0}",
+      "        orientation: { x: 1, y: 0}",
       "        modules:",
       "          engine: { x: 0, y: 0}"
     };

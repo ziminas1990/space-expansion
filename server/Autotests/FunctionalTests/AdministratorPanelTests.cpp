@@ -19,6 +19,7 @@ protected:
       "    CommandCenter:",
       "      weight : 4000000",
       "      radius : 800",
+      "      max_rotation_speed: 1",
       "      expenses:",
       "        labor: 1000",
       "Players:",
@@ -27,7 +28,8 @@ protected:
       "    ships:",
       "      CommandCenter/Pentagon:",
       "        position: { x: 0, y: 0}",
-      "        velocity: { x: 0, y: 0}"
+      "        velocity: { x: 0, y: 0}",
+      "        orientation: { x: 1, y: 0}"
     };
     std::stringstream ss;
     for (std::string const& line : data)

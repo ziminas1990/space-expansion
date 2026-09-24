@@ -18,6 +18,7 @@ Asteroid::Asteroid(uint32_t seed)
   , m_randomizer(seed)
 {
   utils::GlobalObject<Asteroid>::registerSelf(this);
+  randomizeOrientation();
 }
 
 Asteroid::Asteroid(double radius,
@@ -30,6 +31,14 @@ Asteroid::Asteroid(double radius,
   utils::GlobalObject<Asteroid>::registerSelf(this);
   m_composition.normalize();
   setWeight(calculateMass());
+  randomizeOrientation();
+}
+
+void Asteroid::randomizeOrientation()
+{
+  std::uniform_real_distribution<double> distribution(0.0, 2.0 * M_PI);
+  const double angle = distribution(m_randomizer);
+  setOrientation(geometry::Vector(std::cos(angle), std::sin(angle)));
 }
 
 bool Asteroid::loadState(YAML::Node const& data)

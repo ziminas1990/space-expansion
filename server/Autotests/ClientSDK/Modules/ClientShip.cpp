@@ -54,6 +54,10 @@ bool Ship::waitState(ShipState &state, uint16_t nTimeout)
     state.position.y = position.y();
     state.velocity.setPosition(position.vx(), position.vy());
   }
+  if (response.state().has_orientation()) {
+    state.orientation.setPosition(response.state().orientation().x(),
+                                  response.state().orientation().y());
+  }
   return true;
 }
 

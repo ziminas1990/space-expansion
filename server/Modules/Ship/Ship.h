@@ -29,7 +29,8 @@ public:
        std::string sName,
        world::PlayerWeakPtr pOwner,
        double weight,
-       double radius);
+       double radius,
+       double maxRotationSpeed = 0);
 
   bool loadState(YAML::Node const& source) override;
   void proceed(uint32_t nIntervalUs);
@@ -64,15 +65,18 @@ protected:
       uint32_t nSessionId, spex::INavigation const& message) override;
 
   void handleMonitorRequest(uint32_t nSessionId, uint32_t nPeriodMs);
+  void handleRotate(uint32_t nSessionId, spex::IShip::Rotate const& request);
 
 private:
   enum StateMask {
     eWeight = 0x0001,
     ePosition = 0x0002,
+    eOrientation = 0x0004,
     eAll = 0xFFFF,
   };
 
   void sendState(uint32_t nSessionId, int eStateMask = StateMask::eAll) const;
+  void sendSpecification(uint32_t nSessionId) const;
 
 private:
   modules::CommutatorPtr                        m_pCommutator;
@@ -80,6 +84,8 @@ private:
   utils::Linker                                 m_linker;
 
   utils::SubscriptionsBox m_subscriptions;
+
+  double m_maxRotationSpeed = 0;
 };
 
 } // namespace modules

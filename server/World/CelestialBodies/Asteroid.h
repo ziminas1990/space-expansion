@@ -45,6 +45,7 @@ public:
 
 private:
   double calculateMass() const;
+  void randomizeOrientation();
 
 private:
   ResourcesArray             m_composition;

@@ -8,7 +8,7 @@ export {
 } from "./commutator.js";
 export { ModuleType, MidlevelModule, is_module } from "./module_types.js";
 export { create_module } from "./factory.js";
-export { Ship, ShipState } from "./ship.js";
+export { Ship, ShipState, ShipSpecification } from "./ship.js";
 export {
     Engine,
     EngineSpecification,

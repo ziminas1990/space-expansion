@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <Geometry/Point.h>
 #include <Geometry/Vector.h>
 #include "ClientCommutator.h"
@@ -11,6 +10,7 @@ struct ShipState {
   double           nWeight = 0.001; // to avoid devizion by zero
   geometry::Point  position;
   geometry::Vector velocity;
+  geometry::Vector orientation;
 };
 
 // Ship is a commutator + INavigation interface

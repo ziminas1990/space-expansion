@@ -110,8 +110,10 @@ is the same as in that module's documentation.
 
 A ship blueprint has these properties:
 
-- `radius` — the ship's radius, in meters
+- `radius` — the ship's size, in meters. It is the hull radius.
 - `weight` — the ship's mass, in kilograms
+- `max_rotation_speed` — the fastest the ship can turn, in radians per
+  second.
 - `modules` — the modules installed on the ship. Each nested property's `name`
   is the module's name on the ship, and its `value` is that module's blueprint
   name
@@ -176,6 +178,7 @@ expenses are the sum, 120 labor:
       "properties": [
         { "name": "weight", "value": "10000" },
         { "name": "radius", "value": "30" },
+        { "name": "max_rotation_speed", "value": "1" },
         {
           "name": "modules",
           "nested": [

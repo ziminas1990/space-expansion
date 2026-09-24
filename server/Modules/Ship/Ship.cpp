@@ -1,11 +1,18 @@
 #include "Ship.h"
 
+#include <cmath>
 #include <yaml-cpp/yaml.h>
 
 #include <Modules/Commutator/Commutator.h>
 #include <Utils/YamlReader.h>
 #include <Utils/Clock.h>
 #include <World/Player.h>
+
+namespace {
+
+constexpr double kAngleEpsilon = 1e-8;
+
+} // namespace
 
 DECLARE_GLOBAL_CONTAINER_CPP(modules::Ship);
 
@@ -17,12 +24,14 @@ Ship::Ship(
     std::string sName,
     world::PlayerWeakPtr pOwner,
     double weight,
-    double radius)
+    double radius,
+    double maxRotationSpeed)
   : BaseModule(TypeName(),
                std::move(sName),
                std::move(pOwner),
                std::move(sBlueprintName)),
-    newton::PhysicalObject(weight, radius)
+    newton::PhysicalObject(weight, radius),
+    m_maxRotationSpeed(maxRotationSpeed > 0.0 ? maxRotationSpeed : 0.0)
 {
   GlobalObject<Ship>::registerSelf(this);
   m_pCommutator = std::make_shared<modules::Commutator>(
@@ -33,7 +42,11 @@ Ship::Ship(
 bool Ship::loadState(YAML::Node const& source)
 {
   if (!PhysicalObject::loadState(
-        source, PhysicalObject::LoadMask().loadPosition().loadVelocity()))
+        source,
+        PhysicalObject::LoadMask()
+            .loadPosition()
+            .loadVelocity()
+            .loadOrientation()))
     return false;
 
   // Loading state of modules
@@ -50,7 +63,7 @@ bool Ship::loadState(YAML::Node const& source)
   return true;
 }
 
-void Ship::proceed(uint32_t)
+void Ship::proceed(uint32_t /*nIntervalUs*/)
 {
   const uint64_t now = utils::GlobalClock::now();
 
@@ -117,6 +130,14 @@ void Ship::handleShipMessage(uint32_t nSessionId, spex::IShip const& message)
       handleMonitorRequest(nSessionId, message.monitor());
       return;
     }
+    case spex::IShip::kSpecificationReq: {
+      sendSpecification(nSessionId);
+      return;
+    }
+    case spex::IShip::kRotate: {
+      handleRotate(nSessionId, message.rotate());
+      return;
+    }
     default: {
       return;
     }
@@ -176,7 +197,53 @@ void Ship::sendState(uint32_t nSessionId, int eStateMask) const
     pPosition->set_vy(getVelocity().getY());
   }
 
+  if (eStateMask & StateMask::eOrientation) {
+    spex::IShip::Direction* pOrientation = pBody->mutable_orientation();
+    pOrientation->set_x(getOrientation().getX());
+    pOrientation->set_y(getOrientation().getY());
+  }
+
   sendToClient(nSessionId, std::move(message));
+}
+
+void Ship::sendSpecification(uint32_t nSessionId) const
+{
+  spex::Message message;
+  spex::IShip::Specification* pSpecification =
+      message.mutable_ship()->mutable_specification();
+  pSpecification->set_max_rotation_speed(m_maxRotationSpeed);
+  pSpecification->set_radius(getRadius());
+  sendToClient(nSessionId, std::move(message));
+}
+
+void Ship::handleRotate(uint32_t nSessionId, spex::IShip::Rotate const& request)
+{
+  spex::Message ack;
+  ack.mutable_ship()->set_rotate_ack(true);
+  sendToClient(nSessionId, std::move(ack));
+
+  geometry::Vector target(request.x(), request.y());
+  if (!(target.getLength() > 0.0)) {
+    return;
+  }
+  target.normalize();
+
+  const double speed = std::min(request.speed(), m_maxRotationSpeed);
+  if (!(speed > 0.0)) {
+    rotate(0.0, 0);
+    return;
+  }
+
+  const double angle = getOrientation().shortestTurn(target);
+  if (std::abs(angle) <= kAngleEpsilon) {
+    setOrientation(target);
+    rotate(0.0, 0);
+    return;
+  }
+
+  const double signedSpeed = angle > 0.0 ? speed : -speed;
+  const double durationUs = std::abs(angle) / speed * 1000000.0;
+  rotate(signedSpeed, static_cast<uint64_t>(std::llround(durationUs)));
 }
 
 } // namespace modules
