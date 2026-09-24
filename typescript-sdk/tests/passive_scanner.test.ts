@@ -123,8 +123,10 @@ test.skipIf(!hasServerBinary)(
                 spawnedAsteroids.push(expectOk(
                     await administrator.spawner.spawn_asteroid(
                         randomizer.randomPosition({
-                            center: shipPosition,
-                            radius: 2 * spec.scanning_radius_km * 1_000,
+                            circle: {
+                                center: shipPosition.point,
+                                radius: 2 * spec.scanning_radius_km * 1_000,
+                            },
                         }),
                         { ice: 100, metals: 32 },
                         randomizer.randomValue(5, 20),

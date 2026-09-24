@@ -1,6 +1,6 @@
 import type { Position } from "../../types/common.js";
 import type { ResourceItem, ResourceType } from "../../types/resources.js";
-import type { Rect } from "./geometry.js";
+import type { Circle, Rect } from "./geometry.js";
 
 export function makeResources(
     amounts: Partial<Record<ResourceType, number>>,
@@ -28,8 +28,7 @@ export class Randomizer {
 
     randomPosition(options: {
         rect?: Rect;
-        center?: Position;
-        radius?: number;
+        circle?: Circle;
         minSpeed?: number;
         maxSpeed?: number;
     }): Position {
@@ -42,6 +41,10 @@ export class Randomizer {
             speed * Math.sin(heading),
         ];
 
+        if (options.rect !== undefined && options.circle !== undefined) {
+            throw new Error("randomPosition requires either rect or circle");
+        }
+
         if (options.rect !== undefined) {
             const { rect } = options;
             return {
@@ -53,23 +56,20 @@ export class Randomizer {
                 velocity,
             };
         }
-
-        if (options.center === undefined || options.radius === undefined) {
-            throw new Error(
-                "randomPosition requires either rect or center and radius",
-            );
+        if (options.circle !== undefined) {
+            const { circle } = options;
+            const alfa = this.randomValue(0, Math.PI * 2);
+            const r = Math.sqrt(this.randomValue(0, circle.radius ** 2));
+            return {
+                timestamp: 0,
+                point: [
+                    circle.center[0] + r * Math.cos(alfa),
+                    circle.center[1] + r * Math.sin(alfa),
+                ],
+                velocity,
+            };
         }
-
-        const alfa = this.randomValue(0, Math.PI * 2);
-        const r = Math.sqrt(this.randomValue(0, options.radius ** 2));
-        return {
-            timestamp: 0,
-            point: [
-                options.center.point[0] + r * Math.cos(alfa),
-                options.center.point[1] + r * Math.sin(alfa),
-            ],
-            velocity,
-        };
+        throw new Error("randomPosition requires either rect or circle");
     }
 
     shuffle<T>(items: T[]): T[] {

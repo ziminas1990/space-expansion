@@ -2,6 +2,7 @@ export {
     almostEqualPosition,
     almostEqualVector,
     distance,
+    type Circle,
     type Rect,
 } from "./geometry.js";
 export { makeResources, Randomizer } from "./randomizer.js";

@@ -17,8 +17,7 @@ const INNER_WINDOWS = 3;
 
 function randomKinematic(rng: Randomizer, timestamp: number): Position {
     const position = rng.randomPosition({
-        center: { timestamp: 0, point: [0, 0], velocity: [0, 0] },
-        radius: 100_000,
+        circle: { center: [0, 0], radius: 100_000 },
         maxSpeed: 5_000,
     });
     if (rng.randomValue(0, 1) < 0.1) {

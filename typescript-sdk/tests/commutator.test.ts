@@ -66,12 +66,7 @@ test.skipIf(!hasServerBinary)(
 
                 // 2.1 administrator spawns a ship
                 const spawnPosition: Position = randomizer.randomPosition({
-                    center: {
-                        timestamp: 0,
-                        point: [0, 0],
-                        velocity: [0, 0],
-                    },
-                    radius: 100_000,
+                    circle: { center: [0, 0], radius: 100_000 },
                 });
                 const spawned = expectOk(
                     await administrator.spawner.spawn_ship(

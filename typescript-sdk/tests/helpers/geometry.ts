@@ -7,6 +7,11 @@ export type Rect = {
     top: number;
 };
 
+export type Circle = {
+    center: Point;
+    radius: number;
+};
+
 export function distance(
     left: Position | Point,
     right: Position | Point,
