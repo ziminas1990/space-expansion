@@ -13,4 +13,3 @@
 | "BlueprintsLibrary"    | IBlueprintsLibrary                                  |
 | "Shipyard"             | IShipyard                                           |
 | "Game"                 | IGame                                               |
-| "Messanger"            | IMessanger                                          |

@@ -71,3 +71,4 @@ order of study:
 - [Asteroid Miner](asteroid_miner.md) — mining an asteroid into a container
 - [Blueprints Library](blueprints_library.md) — reading blueprints and their cost
 - [Shipyard](shipyard.md) — building a ship from a blueprint
+- [Game](game.md) — following the match and its result

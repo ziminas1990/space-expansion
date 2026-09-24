@@ -53,7 +53,7 @@ void BlueprintsStorage::onModulesListReq(
     uint32_t nSessionId, std::string const& sFilter) const
 {
   std::vector<std::string> modulesNamesList;
-  modulesNamesList.reserve(10);
+  modulesNamesList.reserve(100);
 
   getLibrary().iterate(
         [&modulesNamesList, &sFilter](blueprints::BlueprintName const& name) -> bool {
@@ -73,15 +73,23 @@ void BlueprintsStorage::onModulesListReq(
     return;
   }
 
-  size_t nNamesPerMessage = 10;
-  size_t nNamesLeft       = modulesNamesList.size();
+  constexpr size_t nMaxBytesPerMessage = 900;
+  size_t nNamesLeft = modulesNamesList.size();
   while (nNamesLeft) {
     spex::Message response;
     spex::NamesList* pBody =
         response.mutable_blueprints_library()->mutable_blueprints_list();
-    for (size_t i = 0; i < nNamesPerMessage && nNamesLeft; ++i) {
-       pBody->add_names(std::move(modulesNamesList[--nNamesLeft]));
+
+    size_t nBytes = 0;
+    while (nNamesLeft) {
+      const size_t nNameBytes = modulesNamesList[nNamesLeft - 1].size();
+      if (nBytes > 0 && nBytes + nNameBytes > nMaxBytesPerMessage) {
+        break;
+      }
+      nBytes += nNameBytes;
+      pBody->add_names(std::move(modulesNamesList[--nNamesLeft]));
     }
+
     pBody->set_left(static_cast<uint32_t>(nNamesLeft));
     sendToClient(nSessionId, std::move(response));
   }
