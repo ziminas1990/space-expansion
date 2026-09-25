@@ -194,7 +194,7 @@ bool RCS::loadState(YAML::Node const& source)
   if (!BaseModule::loadState(source))
     return false;
   geometry::Vector& thrust =
-      getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+      getPlatform()->getForce(m_nThrustVectorId);
   return thrust.load(source);
 }
 ```

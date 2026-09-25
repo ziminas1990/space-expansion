@@ -6,6 +6,7 @@
 | "Ship"                 | IShip, INavigation, ICommutator                     |
 | "SystemClock"          | ISystemClock                                        |
 | "RCS"                  | IRCS                                                |
+| "HoverEngine"          | IHoverEngine                                        |
 | "PassiveScanner"       | IPassiveScanner                                     |
 | "ResourceContainer"    | IResourceContainer                                  |
 | "AsteroidScanner"      | IAsteroidScanner                                    |

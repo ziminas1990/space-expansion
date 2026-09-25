@@ -39,8 +39,8 @@ contains these fields:
 
 `module_type` is a string literal drawn from a fixed set of values. It
 determines which interfaces the module implements. For example, a module of
-type `"RCS"` is the hull thrusters and implements `IRCS`. The full list of module
-types and their interfaces is in the [module table](./modules_table.md).
+type `"RCS"` is the hull thrusters and implements `IRCS`. The full list of
+module types and their interfaces is in the [module table](./modules_table.md).
 
 `module_name` is an arbitrary name of the module within the commutator. It is
 guaranteed to be unique for every module in the commutator.

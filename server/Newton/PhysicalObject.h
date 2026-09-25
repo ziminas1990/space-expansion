@@ -85,18 +85,23 @@ public:
 
   double getDistanceTo(PhysicalObject const* other);
 
-  // New external force will be created for object and will affect it forever!
-  // There is NO WAY to remove created external force, so:
-  // 1. The less forces you create, the better perfomance;
-  // 2. you should store created force and change it when it is necessary.
-  size_t createExternalForce();
-  geometry::Vector& getExternalForce_NoSync(size_t nForceId)
-  { return m_externalForces[nForceId]; }
-  geometry::Vector const& getExternalForce_NoSync(size_t nForceId) const
-  { return m_externalForces[nForceId]; }
+  // A force slot lives until the object is destroyed. Fewer slots are cheaper.
+  // An orientation-bound force turns with the object: the same rotation matrix
+  // that turns the orientation is applied to it.
+  struct Force {
+    geometry::Vector vector;
+    bool             orientationBound = false;
+  };
+
+  size_t allocateForce(bool orientationBound);
+  geometry::Vector& getForce(size_t nForceId)
+  { return m_forces[nForceId].vector; }
+  geometry::Vector const& getForce(size_t nForceId) const
+  { return m_forces[nForceId].vector; }
 
 private:
   void applyRotation(uint32_t intervalUs);
+  void rotateBoundForces(double cosine, double sine);
 
   double           m_weight;
   double           m_radius;
@@ -112,8 +117,7 @@ private:
   world::Cell*     m_pCell;
   utils::Spinlock  m_spinlock;
 
-  // Number of external forces
-  std::vector<geometry::Vector> m_externalForces;
+  std::vector<Force> m_forces;
 };
 
 } // namespace newton

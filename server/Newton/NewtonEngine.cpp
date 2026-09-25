@@ -1,7 +1,6 @@
 #include "NewtonEngine.h"
 #include <World/Grid.h>
 
-#include <mutex>
 #include <algorithm>
 
 namespace newton
@@ -30,8 +29,8 @@ void NewtonEngine::proceed(uint16_t, uint32_t nIntervalUs, uint64_t)
 
         // acc_t - acceleration * time
         geometry::Vector acc_t;
-        for (geometry::Vector const& externalForce : pObject->m_externalForces)
-          acc_t += externalForce;
+        for (PhysicalObject::Force const& force : pObject->m_forces)
+          acc_t += force.vector;
         acc_t *= nIntervalSec/pObject->m_weight;
 
         geometry::Vector movement(pObject->m_velocity, nIntervalSec);

@@ -87,6 +87,30 @@ message IRCS
 }
 
 
+// Main engine. Thrust is a magnitude applied along the ship's nose.
+message IHoverEngine
+{
+  message Specification {
+    uint32 max_thrust = 1;
+  }
+
+  message ChangeThrust {
+    uint32 thrust      = 1;
+    uint32 duration_ms = 2;
+  }
+
+  oneof choice {
+    bool         specification_req = 1;
+    ChangeThrust change_thrust     = 2;
+    bool         thrust_req        = 3;
+    bool         monitor           = 4;
+
+    Specification specification = 21;
+    uint32        thrust        = 22;
+  }
+}
+
+
 message IShip {
   // Unit vector in global coordinates, from the ship's center toward its nose.
   message Direction {
@@ -491,26 +515,24 @@ message Message {
   uint32 tunnelId  = 1;
   uint64 timestamp = 2;
 
-  reserved 18;
-  reserved "celestial_scanner";
-
   oneof choice {
     // All possible interfaces are listed here
-    ISessionControl    session            = 10;
-    IRootSession       root_session       = 11;
-    IAccessPanel       accessPanel        = 13;
-    ICommutator        commutator         = 14;
-    IShip              ship               = 15;
-    INavigation        navigation         = 16;
-    IRCS               rcs                = 17;
-    IPassiveScanner    passive_scanner    = 19;
-    IAsteroidScanner   asteroid_scanner   = 20;
-    IResourceContainer resource_container = 21;
-    IAsteroidMiner     asteroid_miner     = 22;
-    IBlueprintsLibrary blueprints_library = 23;
-    IShipyard          shipyard           = 24;
-    IGame              game               = 25;
-    ISystemClock       system_clock       = 26;
-    IMessanger         messanger          = 27;
+    ISessionControl    session            = 32;
+    IRootSession       root_session       = 33;
+    IAccessPanel       accessPanel        = 34;
+    ICommutator        commutator         = 35;
+    IShip              ship               = 36;
+    INavigation        navigation         = 37;
+    IRCS               rcs                = 38;
+    IHoverEngine       hover_engine       = 39;
+    IPassiveScanner    passive_scanner    = 40;
+    IAsteroidScanner   asteroid_scanner   = 41;
+    IResourceContainer resource_container = 42;
+    IAsteroidMiner     asteroid_miner     = 43;
+    IBlueprintsLibrary blueprints_library = 44;
+    IShipyard          shipyard           = 45;
+    IGame              game               = 46;
+    ISystemClock       system_clock       = 47;
+    IMessanger         messanger          = 48;
   }
 }

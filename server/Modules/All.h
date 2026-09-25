@@ -6,6 +6,7 @@
 #include <Modules/BlueprintsStorage/BlueprintsStorage.h>
 #include <Modules/Commutator/Commutator.h>
 #include <Modules/RCS/RCS.h>
+#include <Modules/HoverEngine/HoverEngine.h>
 #include <Modules/PassiveScanner/PassiveScanner.h>
 #include <Modules/ResourceContainer/ResourceContainer.h>
 #include <Modules/Ship/Ship.h>

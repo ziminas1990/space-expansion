@@ -1,11 +1,12 @@
 # RCS — the IRCS interface
 
 Previous topic: [System Clock](./system_clock.md)
-Next topic: [Passive Scanner](./passive_scanner.md)
+Next topic: [Hover Engine](./hover_engine.md)
 
 RCS is a set of thrusters built into the hull. Working together, they produce
 the requested thrust in any direction. This is the low-power propulsion
-system. More powerful engines will be discussed in further chapters.
+system. The main engine, which thrusts only along the nose, is the
+[Hover Engine](./hover_engine.md).
 
 Thrust is a force vector that the thrusters apply to the ship while they are
 running. That thrust produces acceleration according to Newton's second law.

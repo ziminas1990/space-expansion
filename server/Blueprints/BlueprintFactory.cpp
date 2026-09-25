@@ -1,6 +1,7 @@
 #include <Blueprints/BlueprintFactory.h>
 
 #include <Blueprints/Modules/RCSBlueprint.h>
+#include <Blueprints/Modules/HoverEngineBlueprint.h>
 #include <Blueprints/Modules/PassiveScannerBlueprint.h>
 #include <Blueprints/Modules/AsteroidScannerBlueprint.h>
 #include <Blueprints/Modules/ResourceContainerBlueprint.h>
@@ -18,6 +19,8 @@ BaseBlueprintPtr BlueprintsFactory::make(std::string const& sModuleType,
   BaseBlueprintPtr pBlueprint;
   if (sModuleType == "RCS") {
     pBlueprint = std::make_shared<RCSBlueprint>();
+  } else if (sModuleType == "HoverEngine") {
+    pBlueprint = std::make_shared<HoverEngineBlueprint>();
   } else if (sModuleType == "PassiveScanner") {
     pBlueprint = std::make_shared<PassiveScannerBlueprint>();
   } else if (sModuleType == "AsteroidScanner") {

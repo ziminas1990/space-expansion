@@ -78,7 +78,8 @@ private:
   tools::ObjectsFilteringManagerPtr    m_pFilteringManager;
   modules::ShipManagerPtr              m_pShipsManager;
   modules::CommutatorManagerPtr        m_pCommutatorsManager;
-  modules::RCSManagerPtr            m_pRCSManager;
+  modules::RCSManagerPtr               m_pRCSManager;
+  modules::HoverEngineManagerPtr       m_pHoverEngineManager;
   modules::PassiveScannerManagerPtr    m_pPassiveScannerManager;
   modules::AsteroidScannerManagerPtr   m_pAsteroidScannerManager;
   modules::ResourceContainerManagerPtr m_pResourceContainerManager;

@@ -96,6 +96,7 @@ protected:
   virtual void handleShipMessage(uint32_t, spex::IShip const&) {}
   virtual void handleNavigationMessage(uint32_t, spex::INavigation const&) {}
   virtual void handleRCSMessage(uint32_t, spex::IRCS const&) {}
+  virtual void handleHoverEngineMessage(uint32_t, spex::IHoverEngine const&) {}
   virtual void handlePassiveScannerMessage(uint32_t, spex::IPassiveScanner const&) {}
   virtual void handleAsteroidScannerMessage(uint32_t, spex::IAsteroidScanner const&) {}
   virtual void handleResourceContainerMessage(uint32_t, spex::IResourceContainer const&) {}
@@ -118,12 +119,14 @@ protected:
   }
 
   void switchToIdleState() {
-    if (m_eState != State::eIdle)
+    if (m_eState != State::eIdle) {
       m_eState = State::eDeactivating;
+    }
   }
   void switchToActiveState() {
-    if (m_eState != State::eActive)
+    if (m_eState != State::eActive) {
       m_eState = State::eActivating;
+    }
   }
 
 private:

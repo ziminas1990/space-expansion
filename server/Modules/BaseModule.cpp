@@ -85,6 +85,10 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
         handleRCSMessage(nSessionId, message.rcs());
         return;
       }
+      case spex::Message::kHoverEngine: {
+        handleHoverEngineMessage(nSessionId, message.hover_engine());
+        return;
+      }
       case spex::Message::kShip: {
         handleShipMessage(nSessionId, message.ship());
         return;

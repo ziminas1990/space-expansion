@@ -65,6 +65,7 @@ order of study:
 - [Ship](ship.md) — exploring a ship
 - [System Clock](system_clock.md) — the system clock
 - [RCS](rcs.md) — hull thrusters
+- [Hover Engine](hover_engine.md) — the main engine, thrusting along the nose
 - [Passive Scanner](passive_scanner.md) — scanning nearby objects
 - [Resource Container](resource_container.md) — storing and moving resources
 - [Asteroid Scanner](asteroid_scanner.md) — scanning an asteroid's composition

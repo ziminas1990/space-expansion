@@ -15,7 +15,7 @@ PhysicalObject::PhysicalObject(double weight, double radius)
 {
   GlobalObject<PhysicalObject>::registerSelf(this);
   setWeight(weight);
-  m_externalForces.reserve(4);
+  m_forces.reserve(4);
 }
 
 bool PhysicalObject::loadState(YAML::Node const& data, LoadMask mask)
@@ -49,6 +49,11 @@ void PhysicalObject::setOrientation(geometry::Vector orientation)
     return;
   }
   orientation.normalize();
+  const double cosine = m_orientation.getX() * orientation.getX()
+                      + m_orientation.getY() * orientation.getY();
+  const double sine   = m_orientation.getX() * orientation.getY()
+                      - m_orientation.getY() * orientation.getX();
+  rotateBoundForces(cosine, sine);
   m_orientation = orientation;
 }
 
@@ -83,6 +88,18 @@ void PhysicalObject::applyRotation(uint32_t intervalUs)
   const double y = m_orientation.getY();
   m_orientation.setPosition(x * cosine - y * sine, x * sine + y * cosine);
   m_orientation.normalize();
+  rotateBoundForces(cosine, sine);
+}
+
+void PhysicalObject::rotateBoundForces(double cosine, double sine)
+{
+  for (Force& force : m_forces) {
+    if (force.orientationBound) {
+      const double x = force.vector.getX();
+      const double y = force.vector.getY();
+      force.vector.setPosition(x * cosine - y * sine, x * sine + y * cosine);
+    }
+  }
 }
 
 void PhysicalObject::moveTo(geometry::Point const& position)
@@ -110,11 +127,12 @@ double PhysicalObject::getDistanceTo(PhysicalObject const* other)
   return distance;
 }
 
-size_t PhysicalObject::createExternalForce()
+size_t PhysicalObject::allocateForce(bool orientationBound)
 {
   std::lock_guard<utils::Spinlock> guard(m_spinlock);
-  m_externalForces.emplace_back();
-  return m_externalForces.size() - 1;
+  m_forces.emplace_back();
+  m_forces.back().orientationBound = orientationBound;
+  return m_forces.size() - 1;
 }
 
 } // namespace newton

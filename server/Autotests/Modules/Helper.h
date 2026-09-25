@@ -9,6 +9,7 @@
 #include <Autotests/ClientSDK/Router.h>
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
 #include <Autotests/ClientSDK/Modules/ClientRCS.h>
+#include <Autotests/ClientSDK/Modules/ClientHoverEngine.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/ClientSDK/Modules/ClientMessanger.h>
 #include <Autotests/ClientSDK/Modules/ClientGame.h>
@@ -41,6 +42,7 @@ struct ModuleBind {
 
 using ShipBinding = ModuleBind<modules::Ship, client::Ship>;
 using RCSBinding = ModuleBind<modules::RCS, client::RCS>;
+using HoverEngineBinding = ModuleBind<modules::HoverEngine, client::HoverEngine>;
 
 struct Helper {
 
@@ -54,6 +56,11 @@ struct Helper {
   struct RCSParams {
     DECLARE_ATTRIBUTE(RCSParams, std::string, name,     "SomeRCS");
     DECLARE_ATTRIBUTE(RCSParams, uint32_t,    maxThrust, 100000);
+  };
+
+  struct HoverEngineParams {
+    DECLARE_ATTRIBUTE(HoverEngineParams, std::string, name,      "SomeHoverEngine");
+    DECLARE_ATTRIBUTE(HoverEngineParams, uint32_t,    maxThrust, 100000);
   };
 
   static client::RootSessionPtr connect(ModulesTestFixture& env,
@@ -102,6 +109,22 @@ struct Helper {
     pRCSCtrl->attachToChannel(ship->openSession(nSlotId));
 
     return {pRCS, nSlotId, pRCSCtrl};
+  }
+
+  static HoverEngineBinding spawnHoverEngine(
+      ShipBinding ship, const HoverEngineParams& params)
+  {
+    modules::HoverEnginePtr pEngine = std::make_shared<modules::HoverEngine>(
+      std::string(params.name()),
+      ship.m_pRemote->getOwner(),
+      params.maxThrust()
+    );
+
+    const uint32_t nSlotId = ship.m_pRemote->installModule(pEngine);
+    client::HoverEnginePtr pEngineCtrl = std::make_shared<client::HoverEngine>();
+    pEngineCtrl->attachToChannel(ship->openSession(nSlotId));
+
+    return {pEngine, nSlotId, pEngineCtrl};
   }
 
   static void createMessangerModule(

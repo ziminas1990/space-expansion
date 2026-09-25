@@ -19,8 +19,7 @@ void RCS::proceed(uint32_t nIntervalUs)
     return;
   }
 
-  geometry::Vector& thrustVector =
-      getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+  geometry::Vector& thrustVector = getPlatform()->getForce(m_nThrustVectorId);
   thrustVector.toZero();
   switchToIdleState();
   m_nTimeLeftUs = 0;
@@ -32,7 +31,7 @@ bool RCS::loadState(YAML::Node const& source)
   if (!BaseModule::loadState(source))
     return false;
 
-  geometry::Vector& thrust = getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+  geometry::Vector& thrust = getPlatform()->getForce(m_nThrustVectorId);
   return thrust.load(source);
 }
 
@@ -71,7 +70,7 @@ void RCS::handleRCSMessage(uint32_t nSessionId, spex::IRCS const& message)
 
 void RCS::onInstalled(modules::Ship* pPlatform)
 {
-  m_nThrustVectorId = pPlatform->createExternalForce();
+  m_nThrustVectorId = pPlatform->allocateForce(false);
 }
 
 void RCS::getSpecification(uint32_t nSessionId) const
@@ -84,8 +83,7 @@ void RCS::getSpecification(uint32_t nSessionId) const
 
 void RCS::setThrust(const spex::IRCS::ChangeThrust &req)
 {
-  geometry::Vector& thrustVector =
-      getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+  geometry::Vector& thrustVector = getPlatform()->getForce(m_nThrustVectorId);
 
   uint32_t thrust = req.thrust();
   if (!thrust) {
@@ -118,7 +116,7 @@ void RCS::monitor(uint32_t nSessionId)
 bool RCS::sendThrust(uint32_t nSessionId) const
 {
   geometry::Vector const& thrustVector =
-      getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
+        getPlatform()->getForce(m_nThrustVectorId);
 
   spex::Message response;
   spex::IRCS::CurrentThrust* pBody =

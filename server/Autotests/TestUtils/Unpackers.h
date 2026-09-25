@@ -70,6 +70,17 @@ struct Unpacker<spex::IRCS> {
 };
 
 template<>
+struct Unpacker<spex::IHoverEngine> {
+  inline static spex::Message::ChoiceCase choice() {
+    return spex::Message::kHoverEngine;
+  }
+
+  inline static const spex::IHoverEngine& unpack(const spex::Message& message) {
+    return message.hover_engine();
+  }
+};
+
+template<>
 struct Unpacker<spex::IPassiveScanner> {
   inline static spex::Message::ChoiceCase choice() { return spex::Message::kPassiveScanner; }
 

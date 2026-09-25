@@ -1,6 +1,6 @@
 # Passive Scanner — the IPassiveScanner interface
 
-Previous topic: [RCS](./rcs.md)
+Previous topic: [Hover Engine](./hover_engine.md)
 Next topic: [Resource Container](./resource_container.md)
 
 A passive scanner is installed on a ship and can serve as a source of
