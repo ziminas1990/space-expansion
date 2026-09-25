@@ -16,13 +16,13 @@ import {
     type Camera,
     type Point,
 } from "./camera.js";
+import { inscribed_square_extent } from "./inscribed_extent.js";
 import { marker_display_scale } from "./marker_scale.js";
 import { picture_rotation } from "./picture_rotation.js";
 import { ASTEROID_PICTURE, PICTURE_SIZE, SHIP_PICTURE } from "./pictures.js";
 
 const BACKGROUND = 0x050814;
 const OUTDATED_ALPHA = 0.35;
-const PLAYER_SHIP_SIZE = 24;
 const DETECTED_SHIP_SIZE = 20;
 const ZOOM_STEP = 1.1;
 
@@ -391,7 +391,7 @@ function update_markers(
         place_picture(
             marker.graphics,
             predicted_xy(ship, now),
-            PLAYER_SHIP_SIZE,
+            inscribed_square_extent(ship.get_radius()),
             camera_scale,
             ship.get_orientation(),
             ship.outdated,

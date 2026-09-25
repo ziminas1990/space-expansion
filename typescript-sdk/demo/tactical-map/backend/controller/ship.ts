@@ -17,6 +17,7 @@ export class Ship {
     private stop_task: Promise<Status> | undefined;
     private modules_monitoring_task?: Promise<void>;
     private state_monitoring_task?: Promise<void>;
+    private hull_radius: number | undefined;
 
     private readonly modules: Map<number, midlevel.ModuleInfo> = new Map();
     private readonly passive_scanners: Map<number, PassiveScanner> = new Map();
@@ -34,6 +35,13 @@ export class Ship {
             await this.remote.terminate();
             return state_status.wrap("Failed to get ship state");
         }
+
+        const [spec_status, spec] = await this.remote.get_specification();
+        if (!spec_status.is_ok() || spec === undefined) {
+            await this.remote.terminate();
+            return spec_status.wrap("Failed to get ship specification");
+        }
+        this.hull_radius = spec.radius;
         this.apply_state(state);
 
         const [status, modules] =
@@ -109,12 +117,20 @@ export class Ship {
                 ship_id: this.name,
                 update: { position, orientation },
             });
-        } else {
-            this.world.update({
-                type: "add_player_ship",
-                ship: new PlayerShip(this.name, position, orientation),
-            });
+            return;
         }
+        if (this.hull_radius === undefined) {
+            return;
+        }
+        this.world.update({
+            type: "add_player_ship",
+            ship: new PlayerShip(
+                this.name,
+                position,
+                this.hull_radius,
+                orientation,
+            ),
+        });
     }
 
     private async monitor_state() {

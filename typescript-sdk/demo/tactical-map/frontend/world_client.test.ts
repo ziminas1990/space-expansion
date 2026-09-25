@@ -22,7 +22,7 @@ function packed_world_with_player_ship(): ReturnType<World["pack"]> {
     const world = new World(noop_logger);
     world.update({
         type: "add_player_ship",
-        ship: new PlayerShip("Scout", sample_position(1_000_000, 100, 200)),
+        ship: new PlayerShip("Scout", sample_position(1_000_000, 100, 200), 25),
     });
     return world.pack();
 }
@@ -43,6 +43,7 @@ test("applies a packed world snapshot", () => {
     expect(ship).toBeDefined();
     expect(ship?.get_position().x).toBe(100);
     expect(ship?.get_position().y).toBe(200);
+    expect(ship?.get_radius()).toBe(25);
 });
 
 test("applies a packed world update after the snapshot", () => {

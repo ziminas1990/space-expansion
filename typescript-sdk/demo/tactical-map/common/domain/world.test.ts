@@ -59,6 +59,7 @@ test("round-trips a packed player ship snapshot", () => {
     const ship = new PlayerShip(
         "Scout",
         sample_position(3_000_000, 100, 200),
+        25,
         { x: 0, y: 1 },
     );
     ship.outdated = true;
@@ -71,6 +72,7 @@ test("round-trips a packed player ship snapshot", () => {
     expect(restored.get_id()).toBe("Scout");
     expect(restored.outdated).toBe(true);
     expect(restored.get_position()).toEqual(sample_position(3_000_000, 100, 200));
+    expect(restored.get_radius()).toBe(25);
     expect(restored.get_orientation()).toEqual({ x: 0, y: 1 });
     expect(restored.pack()).toEqual(packed);
 });
@@ -87,7 +89,7 @@ test("round-trips a packed world snapshot", () => {
     });
     world.update({
         type: "add_player_ship",
-        ship: new PlayerShip("Scout", sample_position(3_000_000, 100, 200)),
+        ship: new PlayerShip("Scout", sample_position(3_000_000, 100, 200), 25),
     });
 
     // 2. unpack a json-encoded snapshot into a new world
@@ -102,6 +104,7 @@ test("round-trips a packed world snapshot", () => {
     expect(player).toBeInstanceOf(PlayerShip);
     expect(player).not.toBeInstanceOf(Ship);
     expect(player?.get_position().y).toBe(200);
+    expect(player?.get_radius()).toBe(25);
     expect(restored.get_asteroids()).toHaveLength(1);
     expect(restored.get_detected_ships()).toHaveLength(1);
     expect(restored.get_player_ships()).toHaveLength(1);
@@ -117,7 +120,7 @@ test("keeps a known orientation and leaves an unknown one unset", () => {
     });
     world.update({
         type: "add_player_ship",
-        ship: new PlayerShip("Scout", sample_position(2_000_000), { x: 1, y: 0 }),
+        ship: new PlayerShip("Scout", sample_position(2_000_000), 25, { x: 1, y: 0 }),
     });
     expect(world.get_asteroid("rock-1")?.get_orientation()).toBeUndefined();
     expect(world.get_player_ship("Scout")?.get_orientation()).toEqual({ x: 1, y: 0 });
@@ -137,4 +140,5 @@ test("keeps a known orientation and leaves an unknown one unset", () => {
     // 3. read both directions back
     expect(world.get_asteroid("rock-1")?.get_orientation()).toEqual({ x: 1, y: 0 });
     expect(world.get_player_ship("Scout")?.get_orientation()).toEqual({ x: 0, y: 1 });
+    expect(world.get_player_ship("Scout")?.get_radius()).toBe(25);
 });

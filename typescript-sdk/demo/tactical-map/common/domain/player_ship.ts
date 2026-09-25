@@ -20,10 +20,11 @@ export class PlayerShip {
     private orientation: Vector2D | undefined;
 
     static unpack(packed: PlayerShipPacked): PlayerShip {
-        const [id, position, outdated, orientation] = packed;
+        const [id, position, radius, outdated, orientation] = packed;
         const ship = new PlayerShip(
             id,
             unpack_position(position),
+            radius,
             unpack_vector(orientation),
         );
         ship.outdated = outdated;
@@ -33,6 +34,7 @@ export class PlayerShip {
     constructor(
         private readonly id: string,
         position: Position,
+        private radius: number,
         orientation?: Vector2D,
     ) {
         this.position = copy_position(position);
@@ -47,6 +49,10 @@ export class PlayerShip {
 
     get_position(): Position {
         return copy_position(this.position);
+    }
+
+    get_radius(): number {
+        return this.radius;
     }
 
     get_orientation(): Vector2D | undefined {
@@ -71,6 +77,7 @@ export class PlayerShip {
         return [
             this.id,
             pack_position(this.position),
+            this.radius,
             this.outdated,
             pack_vector(this.orientation),
         ] as const;
