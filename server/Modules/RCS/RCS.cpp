@@ -1,18 +1,18 @@
-#include "Engine.h"
+#include "RCS.h"
 #include <Modules/Ship/Ship.h>
 
-DECLARE_GLOBAL_CONTAINER_CPP(modules::Engine);
+DECLARE_GLOBAL_CONTAINER_CPP(modules::RCS);
 
 namespace modules {
 
-Engine::Engine(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t maxThrust)
-  : BaseModule ("Engine", std::move(sName), std::move(pOwner)),
+RCS::RCS(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t maxThrust)
+  : BaseModule ("RCS", std::move(sName), std::move(pOwner)),
     m_maxThrust(maxThrust)
 {
-  GlobalObject<Engine>::registerSelf(this);
+  GlobalObject<RCS>::registerSelf(this);
 }
 
-void Engine::proceed(uint32_t nIntervalUs)
+void RCS::proceed(uint32_t nIntervalUs)
 {
   if (m_nTimeLeftUs > nIntervalUs) {
     m_nTimeLeftUs -= nIntervalUs;
@@ -27,7 +27,7 @@ void Engine::proceed(uint32_t nIntervalUs)
   notifyMonitors();
 }
 
-bool Engine::loadState(YAML::Node const& source)
+bool RCS::loadState(YAML::Node const& source)
 {
   if (!BaseModule::loadState(source))
     return false;
@@ -36,53 +36,53 @@ bool Engine::loadState(YAML::Node const& source)
   return thrust.load(source);
 }
 
-void Engine::onSessionClosed(uint32_t nSessionId)
+void RCS::onSessionClosed(uint32_t nSessionId)
 {
   m_monitoringSessions.removeFirst(nSessionId);
   BaseModule::onSessionClosed(nSessionId);
 }
 
-void Engine::handleEngineMessage(uint32_t nSessionId, spex::IEngine const& message)
+void RCS::handleRCSMessage(uint32_t nSessionId, spex::IRCS const& message)
 {
   switch(message.choice_case()) {
-    case spex::IEngine::kSpecificationReq: {
+    case spex::IRCS::kSpecificationReq: {
       getSpecification(nSessionId);
       return;
     }
-    case spex::IEngine::kChangeThrust: {
+    case spex::IRCS::kChangeThrust: {
       setThrust(message.change_thrust());
       return;
     }
-    case spex::IEngine::kThrustReq: {
+    case spex::IRCS::kThrustReq: {
       getThrust(nSessionId);
       return;
     }
-    case spex::IEngine::kMonitor: {
+    case spex::IRCS::kMonitor: {
       monitor(nSessionId);
       return;
     }
-    case spex::IEngine::kThrust:
-    case spex::IEngine::kSpecification:
-    case spex::IEngine::CHOICE_NOT_SET:
+    case spex::IRCS::kThrust:
+    case spex::IRCS::kSpecification:
+    case spex::IRCS::CHOICE_NOT_SET:
       assert("Unexpected message" == nullptr);
       return;
   }
 }
 
-void Engine::onInstalled(modules::Ship* pPlatform)
+void RCS::onInstalled(modules::Ship* pPlatform)
 {
   m_nThrustVectorId = pPlatform->createExternalForce();
 }
 
-void Engine::getSpecification(uint32_t nSessionId) const
+void RCS::getSpecification(uint32_t nSessionId) const
 {
   spex::Message response;
-  spex::IEngine* pBody = response.mutable_engine();
+  spex::IRCS* pBody = response.mutable_rcs();
   pBody->mutable_specification()->set_max_thrust(m_maxThrust);
   sendToClient(nSessionId, std::move(response));
 }
 
-void Engine::setThrust(const spex::IEngine::ChangeThrust &req)
+void RCS::setThrust(const spex::IRCS::ChangeThrust &req)
 {
   geometry::Vector& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
@@ -104,32 +104,32 @@ void Engine::setThrust(const spex::IEngine::ChangeThrust &req)
   notifyMonitors();
 }
 
-void Engine::getThrust(uint32_t nSessionId) const
+void RCS::getThrust(uint32_t nSessionId) const
 {
   sendThrust(nSessionId);
 }
 
-void Engine::monitor(uint32_t nSessionId)
+void RCS::monitor(uint32_t nSessionId)
 {
   m_monitoringSessions.push(nSessionId);
   sendThrust(nSessionId);
 }
 
-bool Engine::sendThrust(uint32_t nSessionId) const
+bool RCS::sendThrust(uint32_t nSessionId) const
 {
   geometry::Vector const& thrustVector =
       getPlatform()->getExternalForce_NoSync(m_nThrustVectorId);
 
   spex::Message response;
-  spex::IEngine::CurrentThrust* pBody =
-      response.mutable_engine()->mutable_thrust();
+  spex::IRCS::CurrentThrust* pBody =
+      response.mutable_rcs()->mutable_thrust();
   pBody->set_x(thrustVector.getX());
   pBody->set_y(thrustVector.getY());
   pBody->set_thrust(uint32_t(thrustVector.getLength()));
   return sendToClient(nSessionId, std::move(response));
 }
 
-void Engine::notifyMonitors()
+void RCS::notifyMonitors()
 {
   for (size_t i = 0; i < m_monitoringSessions.size();) {
     if (!sendThrust(m_monitoringSessions[i])) {

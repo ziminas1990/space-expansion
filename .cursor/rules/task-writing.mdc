@@ -1,38 +1,55 @@
 ---
-description: How to write SES task documents. Use when creating or editing a task in docs/tasks/.
-globs: docs/tasks/**/*.md
+description: How to write task documents. Use when creating, editing, or closing a task in docs/tasks/ or typescript-sdk/tasks/.
+globs: docs/tasks/**/*.md,typescript-sdk/tasks/**/*.md
 alwaysApply: false
 ---
 
-# Writing SES tasks
+# Writing tasks
 
-Tasks live in `docs/tasks/` as `SES-NNN.md`. They are primarily for a person,
-not an agent: one page, readable in about five minutes.
+Tasks live in a directory with a `tasks.json`:
 
-To create a task, run `python docs/tasks/create_task.py`. The script
-allocates the next number, creates the file, and prints only its name. Do not choose the number yourself and do not create the file by hand.
+- `docs/tasks/` — suffix `SES`
+- `typescript-sdk/tasks/` — suffix `TSSDK`
 
-Closed tasks in `docs/tasks/closed/` are immutable historical records.
-Never edit them: not to drop deleted names, not to match later code, not
-to “fix” wording. Closing a task means moving it there; after that the
-text does not change.
+They are primarily for a person, not an agent: one page, readable in about five
+minutes.
 
-Write **what** to do and **why**. Do not write **how**. The implementer
-will read the code.
+Use only `scripts/task.py`. The shell must be in the tasks directory when the
+command runs, so the script reads that directory's `tasks.json` rather than
+the folder the script lives in. Change into the directory in the same command.
+Do not copy the script next to the tasks, and do not choose a number or create
+the file by hand.
+
+- `cd docs/tasks && python ../../scripts/task.py create` allocates the next
+  number, creates the file, and prints only its name.
+- `cd docs/tasks && python ../../scripts/task.py close <name>` (`SES-228` or
+  `SES-228.md`) moves the file into the closed subdirectory from
+  `tasks.json` (`closed/` when that setting is omitted) and rewrites
+  markdown links that point at it in the other documents of that
+  directory. For TSSDK tasks, `cd typescript-sdk/tasks` instead. Do not move
+  the file by hand.
+
+Closed tasks in `closed/` are immutable historical records. Never edit them by
+hand: not to drop deleted names, not to match later code, not to “fix” wording.
+Only `scripts/task.py` is allowed to change closed tasks, for example, to update
+links to other tasks.
+
+Write **what** to do and **why**. Do not write **how**. The implementer will
+read the code.
 
 ## Sections
 
-Only these three, in this order, after `# SES-NNN: …`:
+Only these three, in this order, after `# <suffix>-NNN: …`:
 
 **Background** — the problem today, or the new behavior that is missing.
 Enough context to care. Not a design.
 
-**Require** — the change in broad strokes: add or extend an interface,
-change a contract, add a component, refactor, split, merge. Name the
-capability, not the files.
+**Require** — the change in broad strokes: add or extend an interface, change a
+contract, add a component, refactor, split, merge. Name the capability, not the
+files.
 
-**Acceptance** — how a person knows it is done. Observable outcomes, not
-a checklist of edits. Always a bullet list.
+**Acceptance** — how a person knows it is done. Observable outcomes, not a
+checklist of edits. Always a bullet list.
 
 If a sentence enumerates three or more conditions, objects, or reasons or
 whatever, make it a list. People scan lists; they skip comma-separated prose.

@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
-#include <Autotests/ClientSDK/Modules/ClientEngine.h>
+#include <Autotests/ClientSDK/Modules/ClientRCS.h>
 #include "AbstractProcedure.h"
 #include <Geometry/Point.h>
 
@@ -13,7 +13,7 @@ class Navigation
 {
 public:
   Navigation(ShipPtr pShip)
-    : m_pShip(pShip), m_pEngine(std::make_shared<Engine>())
+    : m_pShip(pShip), m_pRCS(std::make_shared<RCS>())
   {}
 
   bool initialize();
@@ -23,7 +23,7 @@ public:
 
 private:
   ShipPtr   m_pShip;
-  EnginePtr m_pEngine;
+  RCSPtr m_pRCS;
 };
 
 }} // namespace autotests::client

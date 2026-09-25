@@ -15,7 +15,7 @@ export class BaseModuleState implements ModuleState {
     }
 }
 
-export class EngineState extends BaseModuleState {
+export class RCSState extends BaseModuleState {
     constructor(public thrust = new Vector(0, 0)) {
         super();
     }
@@ -136,16 +136,16 @@ export class Ship {
 export function makeProbe(
     name: string,
     position: Position,
-    mainEngine = new EngineState(),
-    additionalEngine = new EngineState(),
+    mainRCS = new RCSState(),
+    additionalRCS = new RCSState(),
 ): Ship {
     return new Ship({
         name,
         shipType: ShipType.Probe,
         position,
         modules: {
-            main_engine: mainEngine,
-            additional_engine: additionalEngine,
+            main_rcs: mainRCS,
+            additional_rcs: additionalRCS,
         },
     });
 }
@@ -153,8 +153,8 @@ export function makeProbe(
 export function makeMiner(
     name: string,
     position: Position,
-    mainEngine = new EngineState(),
-    additionalEngine = new EngineState(),
+    mainRCS = new RCSState(),
+    additionalRCS = new RCSState(),
     cargo = new ResourceContainerState(),
     tinyCargo = new ResourceContainerState(),
 ): Ship {
@@ -163,8 +163,8 @@ export function makeMiner(
         shipType: ShipType.Miner,
         position,
         modules: {
-            main_engine: mainEngine,
-            additional_engine: additionalEngine,
+            main_rcs: mainRCS,
+            additional_rcs: additionalRCS,
             cargo,
             tiny_cargo: tinyCargo,
         },
@@ -174,7 +174,7 @@ export function makeMiner(
 export function makeStation(
     name: string,
     position: Position,
-    engine = new EngineState(),
+    rcs = new RCSState(),
     warehouse = new ResourceContainerState(),
     shipyardContainer = new ResourceContainerState(),
 ): Ship {
@@ -183,7 +183,7 @@ export function makeStation(
         shipType: ShipType.Station,
         position,
         modules: {
-            engine,
+            rcs,
             warehouse,
             "shipyard-container": shipyardContainer,
         },

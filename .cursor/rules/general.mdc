@@ -7,8 +7,13 @@ alwaysApply: true
 
 - Before **adding** or **editing** tests, read and follow
   [`test-steps.mdc`](./test-steps.mdc).
-- Before **creating** or **editing** a task in `docs/tasks/`, read and
-  follow [`task-writing.mdc`](./task-writing.mdc). Create a new task only by
-  running `python docs/tasks/create_task.py`.
-- Never edit a closed task in `docs/tasks/closed/`. Closed tasks are
+- Before **creating**, **editing**, or **closing** a task in `docs/tasks/`
+  or `typescript-sdk/tasks/`, read and follow
+  [`task-writing.mdc`](./task-writing.mdc). Create and close tasks only
+  with `scripts/task.py`. The shell's current directory must be that tasks
+  directory when the command runs. Change into it in the same command:
+  `cd docs/tasks && python ../../scripts/task.py create` and
+  `cd docs/tasks && python ../../scripts/task.py close <task name>`
+  (`typescript-sdk/tasks` for TSSDK).
+- Never edit a closed task by hand. Closed tasks live in `closed/` and are
   immutable. Do not update them as a side effect of other work.

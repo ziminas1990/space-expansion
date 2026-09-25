@@ -61,11 +61,11 @@ struct Unpacker<spex::INavigation> {
 };
 
 template<>
-struct Unpacker<spex::IEngine> {
-  inline static spex::Message::ChoiceCase choice() { return spex::Message::kEngine; }
+struct Unpacker<spex::IRCS> {
+  inline static spex::Message::ChoiceCase choice() { return spex::Message::kRcs; }
 
-  inline static const spex::IEngine& unpack(const spex::Message& message) {
-    return message.engine();
+  inline static const spex::IRCS& unpack(const spex::Message& message) {
+    return message.rcs();
   }
 };
 

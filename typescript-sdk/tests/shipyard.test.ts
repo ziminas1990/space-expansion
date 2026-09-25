@@ -9,7 +9,7 @@ import {
     ApplicationMode,
     Configuration,
     DefaultBlueprints,
-    EngineState,
+    RCSState,
     General,
     makeStation,
     Player,
@@ -56,7 +56,7 @@ function shipyardConfiguration(): Configuration {
                     makeStation(
                         "SweetHome",
                         new Position(0, 0),
-                        new EngineState(),
+                        new RCSState(),
                         new ResourceContainerState({
                             [ResourceType.Metals]: 200_000,
                             [ResourceType.Silicates]: 40_000,

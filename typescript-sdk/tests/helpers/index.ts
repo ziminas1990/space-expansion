@@ -8,16 +8,16 @@ export {
 export { makeResources, Randomizer } from "./randomizer.js";
 export { expectOk, expectStatus } from "./status.js";
 export {
-    getAllEngines,
+    getAllRCS,
     getAllShips,
     getAsteroidMiner,
     getAsteroidScanner,
     getBlueprintsLibrary,
     getCargo,
-    getEngine,
+    getRCS,
     getMessanger,
     getModule,
-    getMostPowerfulEngine,
+    getMostPowerfulRCS,
     getPassiveScanner,
     getShip,
     getShipyard,

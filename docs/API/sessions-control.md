@@ -27,8 +27,8 @@ that leave this field unset are those of the `IAccessPanel` interface, already
 covered in the previous chapter.
 
 A session is a virtual connection to a particular device, so only messages for
-that device may be sent on it. For example, a session opened to an engine
-accepts only messages of the `IEngine` interface. Other messages are ignored.
+that device may be sent on it. For example, a session opened to an RCS module
+accepts only messages of the `IRCS` interface. Other messages are ignored.
 Some devices may implement several interfaces at once.
 
 Every session also implements the common `ISessionControl` interface, which

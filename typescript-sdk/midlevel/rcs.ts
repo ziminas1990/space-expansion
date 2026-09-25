@@ -3,22 +3,22 @@ import { Status } from "#sdk/types/status.js";
 import { BaseModule, OpenSessionCallback } from "./base_module.js";
 import { ModuleType } from "./module_type.js";
 
-export type EngineSpecification = lowlevel.EngineSpecification;
+export type RCSSpecification = lowlevel.RCSSpecification;
 export type CurrentThrust = lowlevel.CurrentThrust;
 export type MonitoringCallback =
     (thrust: CurrentThrust | undefined) => Promise<boolean>;
 
-export class Engine extends BaseModule<lowlevel.Engine> {
-    readonly type = ModuleType.ENGINE;
+export class RCS extends BaseModule<lowlevel.RCS> {
+    readonly type = ModuleType.RCS;
 
     constructor(open_session_callback: OpenSessionCallback)
     {
         super(open_session_callback,
-              async (session) => [Status.ok(), new lowlevel.Engine(session)]);
+              async (session) => [Status.ok(), new lowlevel.RCS(session)]);
     }
 
     async get_specification()
-        : Promise<[Status, EngineSpecification | undefined]>
+        : Promise<[Status, RCSSpecification | undefined]>
     {
         return await this.run(async (session) => this._get_specification(session));
     }
@@ -45,8 +45,8 @@ export class Engine extends BaseModule<lowlevel.Engine> {
             true);
     }
 
-    private async _get_specification(session: lowlevel.Engine)
-        : Promise<[Status, EngineSpecification | undefined]>
+    private async _get_specification(session: lowlevel.RCS)
+        : Promise<[Status, RCSSpecification | undefined]>
     {
         const send_status = await session.send_specification_request();
         if (!send_status.is_ok()) {
@@ -54,12 +54,12 @@ export class Engine extends BaseModule<lowlevel.Engine> {
         }
         const [status, spec] = await session.wait_specification();
         if (!status.is_ok() || !spec) {
-            return [status.wrap("failed to get engine specification"), undefined];
+            return [status.wrap("failed to get RCS specification"), undefined];
         }
         return [Status.ok(), spec];
     }
 
-    private async _get_thrust(session: lowlevel.Engine)
+    private async _get_thrust(session: lowlevel.RCS)
         : Promise<[Status, CurrentThrust | undefined]>
     {
         const send_status = await session.send_thrust_request();
@@ -68,13 +68,13 @@ export class Engine extends BaseModule<lowlevel.Engine> {
         }
         const [status, thrust] = await session.wait_thrust();
         if (!status.is_ok() || !thrust) {
-            return [status.wrap("failed to get engine thrust"), undefined];
+            return [status.wrap("failed to get RCS thrust"), undefined];
         }
         return [Status.ok(), thrust];
     }
 
     private async _monitoring(
-        session: lowlevel.Engine,
+        session: lowlevel.RCS,
         callback: MonitoringCallback,
         heartbeat_ms: number): Promise<Status>
     {

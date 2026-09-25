@@ -1,32 +1,32 @@
-#include "ClientEngine.h"
+#include "ClientRCS.h"
 
 namespace autotests { namespace client {
 
-bool Engine::getSpecification(EngineSpecification& specification)
+bool RCS::getSpecification(RCSSpecification& specification)
 {
   spex::Message request;
-  request.mutable_engine()->set_specification_req(true);
+  request.mutable_rcs()->set_specification_req(true);
   if (!send(std::move(request)))
     return false;
 
-  spex::IEngine response;
+  spex::IRCS response;
   if (!wait(response))
     return false;
-  if (response.choice_case() != spex::IEngine::kSpecification)
+  if (response.choice_case() != spex::IRCS::kSpecification)
     return false;
 
   specification.nMaxThrust = response.specification().max_thrust();
   return true;
 }
 
-bool Engine::setThrust(geometry::Vector thrust, uint32_t nDurationMs,
+bool RCS::setThrust(geometry::Vector thrust, uint32_t nDurationMs,
                        uint64_t nWhenUs)
 {
   spex::Message request;
   if (nWhenUs) {
     request.set_timestamp(nWhenUs);
   }
-  spex::IEngine::ChangeThrust *pBody = request.mutable_engine()->mutable_change_thrust();
+  spex::IRCS::ChangeThrust *pBody = request.mutable_rcs()->mutable_change_thrust();
   pBody->set_x(thrust.getX());
   pBody->set_y(thrust.getY());
   pBody->set_thrust(uint32_t(thrust.getLength()));
@@ -34,32 +34,32 @@ bool Engine::setThrust(geometry::Vector thrust, uint32_t nDurationMs,
   return send(std::move(request));
 }
 
-bool Engine::getThrust(geometry::Vector &thrust)
+bool RCS::getThrust(geometry::Vector &thrust)
 {
   spex::Message request;
-  request.mutable_engine()->set_thrust_req(true);
+  request.mutable_rcs()->set_thrust_req(true);
   if (!send(std::move(request)))
     return false;
 
   return waitThrust(thrust);
 }
 
-bool Engine::monitor(geometry::Vector &thrust)
+bool RCS::monitor(geometry::Vector &thrust)
 {
   spex::Message request;
-  request.mutable_engine()->set_monitor(true);
+  request.mutable_rcs()->set_monitor(true);
   return send(std::move(request)) && waitThrust(thrust);
 }
 
-bool Engine::waitThrust(geometry::Vector &thrust, uint16_t nTimeout)
+bool RCS::waitThrust(geometry::Vector &thrust, uint16_t nTimeout)
 {
-  spex::IEngine response;
+  spex::IRCS response;
   if (!wait(response, nTimeout))
     return false;
-  if (response.choice_case() != spex::IEngine::kThrust)
+  if (response.choice_case() != spex::IRCS::kThrust)
     return false;
 
-  spex::IEngine::CurrentThrust const& currentThrust = response.thrust();
+  spex::IRCS::CurrentThrust const& currentThrust = response.thrust();
   if (!currentThrust.thrust()) {
     thrust.toZero();
     return true;

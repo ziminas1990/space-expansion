@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
-#include <Autotests/ClientSDK/Modules/ClientEngine.h>
+#include <Autotests/ClientSDK/Modules/ClientRCS.h>
 #include <Autotests/ClientSDK/Modules/ClientAsteroidScanner.h>
 #include <Autotests/ClientSDK/Modules/ClientResourceContainer.h>
 #include <Autotests/ClientSDK/Modules/ClientAsteroidMiner.h>
@@ -21,7 +21,7 @@ bool FindModule(ClientCommutator&  commutator,
                 ClientBaseModule&  module,
                 std::string const& sName = std::string());
 
-bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine);
+bool FindMostPowerfulRCS(Ship& ship, RCS& mostPowerfullRCS);
 bool FindAsteroidScanner(Ship& ship, AsteroidScanner& scanner,
                          std::string const& sName = std::string());
 bool FindResourceContainer(Ship& ship, ResourceContainer& container,

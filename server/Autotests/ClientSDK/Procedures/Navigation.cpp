@@ -13,9 +13,9 @@ namespace autotests { namespace client {
 class MovingProcedure : public AbstractProcedure
 {
 public:
-  MovingProcedure(ShipPtr pShip, EnginePtr pEngine, geometry::Point target,
+  MovingProcedure(ShipPtr pShip, RCSPtr pRCS, geometry::Point target,
                   uint32_t nSyncIntervalUs = 100000)
-    : m_pShip(pShip), m_pEngine(pEngine), m_target(target),
+    : m_pShip(pShip), m_pRCS(pRCS), m_target(target),
       m_nSyncIntervalUs(nSyncIntervalUs), m_nTimeSinceLastSyncUs(nSyncIntervalUs),
       m_nTimeToUpdateUs(0)
   {}
@@ -24,7 +24,7 @@ public:
 
 private:
   ShipPtr   m_pShip;
-  EnginePtr m_pEngine;
+  RCSPtr m_pRCS;
 
   geometry::Point m_target;
 
@@ -32,7 +32,7 @@ private:
   uint32_t m_nTimeSinceLastSyncUs;
 
   uint32_t            m_nTimeToUpdateUs;
-  EngineSpecification m_engineSpec;
+  RCSSpecification m_engineSpec;
   ShipState           m_shipState;
 };
 
@@ -65,7 +65,7 @@ void MovingProcedure::proceed(uint32_t nDeltaUs)
       failed();
       return;
     }
-    if (!m_pEngine->getSpecification(m_engineSpec)) {
+    if (!m_pRCS->getSpecification(m_engineSpec)) {
       failed();
       return;
     }
@@ -85,7 +85,7 @@ void MovingProcedure::proceed(uint32_t nDeltaUs)
 
   if (bestThrust.getLength() > m_engineSpec.nMaxThrust)
     bestThrust.setLength(m_engineSpec.nMaxThrust);
-  if (!m_pEngine->setThrust(bestThrust, m_nSyncIntervalUs / 1000))
+  if (!m_pRCS->setThrust(bestThrust, m_nSyncIntervalUs / 1000))
     failed();
 }
 
@@ -96,18 +96,18 @@ void MovingProcedure::proceed(uint32_t nDeltaUs)
 
 bool Navigation::initialize()
 {
-  return FindMostPowerfulEngine(*m_pShip, *m_pEngine);
+  return FindMostPowerfulRCS(*m_pShip, *m_pRCS);
 }
 
 AbstractProcedurePtr Navigation::MakeMoveToProcedure(
     geometry::Point const& target, uint32_t nSyncIntervalMs)
 {
-  if (!m_pShip || !m_pEngine)
+  if (!m_pShip || !m_pRCS)
     return nullptr;
-  if (!m_pShip->isAttached() || ! m_pEngine->isAttached())
+  if (!m_pShip->isAttached() || ! m_pRCS->isAttached())
     return nullptr;
   return std::make_shared<MovingProcedure>(
-        m_pShip, m_pEngine, target, nSyncIntervalMs * 1000);
+        m_pShip, m_pRCS, target, nSyncIntervalMs * 1000);
 }
 
 }}  // namespace autotests::Client

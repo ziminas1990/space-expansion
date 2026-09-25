@@ -15,17 +15,19 @@ namespace modules
 enum class Cooldown {
   eSystemClock       =      0,
   eCommutator        =      0,
-  eDefault           =  10101,
-  eShip              =  10202,
-  eEngine            =  30303,
-  ePassiveScanner    =  50405,
-  eMessanger         =  50507,
-  eAsteroidMiner     = 150611,
-  eAsteroidScanner   = 150713,
-  eShipyard          = 150817,
-  eResourceContainer = 201023,
-  eBlueprintsStorage = 201129,
-  eGame              = 202231,
+  // Idea: interval + 11 * prime number
+  // Motivation: to spread modules handling over different ticks
+  eShip              =   5000 +  1 * 11,
+  eDefault           =  10000 +  2 * 11,
+  eRCS               =  25000 +  3 * 11,
+  ePassiveScanner    =  50000 +  5 * 11,
+  eMessanger         =  50000 +  7 * 11,
+  eAsteroidMiner     = 150000 + 11 * 11,
+  eAsteroidScanner   = 150000 + 13 * 11,
+  eShipyard          = 150000 + 17 * 11,
+  eResourceContainer = 200000 + 23 * 11,
+  eBlueprintsStorage = 200000 + 29 * 11,
+  eGame              = 200000 + 31 * 11,
 };
 #else
 // In autotests mode we can't afford to let logics to sleep for unpredictable
@@ -35,7 +37,7 @@ enum class Cooldown {
   eCommutator        = 0,
   eDefault           = 0,
   eShip              = 0,
-  eEngine            = 0,
+  eRCS               = 0,
   eAsteroidScanner   = 0,
   eAsteroidMiner     = 0,
   ePassiveScanner    = 50405,

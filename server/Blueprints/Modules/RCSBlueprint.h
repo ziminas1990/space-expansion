@@ -1,22 +1,22 @@
 #pragma once
 
 #include <Blueprints/BaseBlueprint.h>
-#include <Modules/Engine/Engine.h>
+#include <Modules/RCS/RCS.h>
 #include <Utils/YamlDumper.h>
 #include <Utils/YamlReader.h>
 
 namespace blueprints {
 
-class EngineBlueprint : public BaseBlueprint
+class RCSBlueprint : public BaseBlueprint
 {
 public:
 
-  EngineBlueprint() : m_nMaxThrust(0) {}
+  RCSBlueprint() : m_nMaxThrust(0) {}
 
   modules::BaseModulePtr
   build(std::string sName, world::PlayerWeakPtr pOwner) const override
   {
-    return std::make_shared<modules::Engine>(
+    return std::make_shared<modules::RCS>(
           std::move(sName), std::move(pOwner), m_nMaxThrust);
   }
 

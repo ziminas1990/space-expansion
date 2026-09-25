@@ -7,15 +7,15 @@
 
 namespace autotests { namespace client {
 
-struct EngineSpecification
+struct RCSSpecification
 {
   uint32_t nMaxThrust;
 };
 
-class Engine : public ClientBaseModule
+class RCS : public ClientBaseModule
 {
 public:
-  bool getSpecification(EngineSpecification& specification);
+  bool getSpecification(RCSSpecification& specification);
 
   bool setThrust(geometry::Vector thrust, uint32_t nDurationMs,
                  uint64_t nWhenUs = 0);
@@ -25,6 +25,6 @@ public:
 
 };
 
-using EnginePtr = std::shared_ptr<Engine>;
+using RCSPtr = std::shared_ptr<RCS>;
 
 }}  // namespace autotests::client

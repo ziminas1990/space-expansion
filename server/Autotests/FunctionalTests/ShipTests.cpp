@@ -3,7 +3,7 @@
 #include "Scenarios.h"
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
-#include <Autotests/ClientSDK/Modules/ClientEngine.h>
+#include <Autotests/ClientSDK/Modules/ClientRCS.h>
 #include <Autotests/ClientSDK/Procedures/FindModule.h>
 
 #include <yaml-cpp/yaml.h>
@@ -20,7 +20,7 @@ protected:
     std::string data[] = {
       "Blueprints:",
       "  Modules:",
-      "    Engine:",
+      "    RCS:",
       "      tiny-engine:",
       "        max_thrust: 200",
       "        expenses:",
@@ -31,7 +31,7 @@ protected:
       "      weight:  10 ",
       "      max_rotation_speed: 1",
       "      modules:",
-      "        engine: Engine/tiny-engine",
+      "        rcs: RCS/tiny-engine",
       "      expenses:",
       "        labor: 10",
       "Players:",
@@ -43,7 +43,7 @@ protected:
       "        velocity: { x: 0, y: 0}",
       "        orientation: { x: 1, y: 0}",
       "        modules:",
-      "          engine: { x: 0, y: 0}"
+      "          rcs: { x: 0, y: 0}"
     };
     std::stringstream ss;
     for (std::string const& line : data)

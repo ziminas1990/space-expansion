@@ -3,7 +3,7 @@
 #include "Scenarios.h"
 
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
-#include <Autotests/ClientSDK/Modules/ClientEngine.h>
+#include <Autotests/ClientSDK/Modules/ClientRCS.h>
 #include <Autotests/ClientSDK/Procedures/Navigation.h>
 #include <Autotests/ClientSDK/Procedures/FindModule.h>
 
@@ -21,7 +21,7 @@ protected:
     std::string data[] = {
       "Blueprints:",
       "  Modules:",
-      "    Engine:",
+      "    RCS:",
       "      tiny-engine:",
       "        max_thrust: 200",
       "        expenses:",
@@ -32,7 +32,7 @@ protected:
       "      weight:  10 ",
       "      max_rotation_speed: 1",
       "      modules:",
-      "        engine: Engine/tiny-engine",
+      "        rcs: RCS/tiny-engine",
       "      expenses:",
       "        labor: 10",
       "Players:",
@@ -44,7 +44,7 @@ protected:
       "        velocity: { x: 0, y: 0}",
       "        orientation: { x: 1, y: 0}",
       "        modules:",
-      "          engine: { x: 0, y: 0}"
+      "          rcs: { x: 0, y: 0}"
     };
     std::stringstream ss;
     for (std::string const& line : data)
@@ -130,7 +130,7 @@ TEST_F(NavigationTests, OnMoving)
   client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
   ASSERT_TRUE(client::attachToShip(pCommutator, "Experimental", *pShip));
 
-  client::Engine engine;
+  client::RCS engine;
   engine.attachToChannel(pShip->openSession(0));
 
   // Setting new thrust and waiting for 3 seconds

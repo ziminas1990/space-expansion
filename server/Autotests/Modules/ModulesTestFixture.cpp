@@ -28,7 +28,7 @@ void ModulesTestFixture::SetUp()
   m_pNewtonEngine = std::make_shared<FreezableLogic>(
                                       std::make_shared<newton::NewtonEngine>());
   m_pCommutatorManager     = std::make_shared<modules::CommutatorManager>();
-  m_pEngineManager         = std::make_shared<modules::EngineManager>();
+  m_pRCSManager         = std::make_shared<modules::RCSManager>();
   m_pPassiveScannerManager = std::make_shared<modules::PassiveScannerManager>();
   m_pMessangerManager      = std::make_shared<modules::MessangerManager>();
   m_pGameManager           = std::make_shared<modules::GameManager>();
@@ -37,7 +37,7 @@ void ModulesTestFixture::SetUp()
   m_conveyor.addLogicToChain(m_pGameManager);
   m_conveyor.addLogicToChain(m_pNewtonEngine);
   m_conveyor.addLogicToChain(m_pCommutatorManager);
-  m_conveyor.addLogicToChain(m_pEngineManager);
+  m_conveyor.addLogicToChain(m_pRCSManager);
   m_conveyor.addLogicToChain(m_pPassiveScannerManager);
 
   m_fConveyorProceeder = [this]() { this->proceedEnviroment(); };

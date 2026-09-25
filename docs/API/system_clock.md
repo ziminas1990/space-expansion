@@ -1,7 +1,7 @@
 # System Clock — the ISystemClock interface
 
 Previous topic: [Ship](./ship.md)
-Next topic: [Engine](./engine.md)
+Next topic: [RCS](./rcs.md)
 
 The system clock is a virtual player module. Through it the client can:
 

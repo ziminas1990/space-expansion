@@ -95,7 +95,7 @@ export class TacticalCore {
         const mining_ships = this.get_ships_by_equipment([
             ModuleType.RESOURCE_CONTAINER,
             ModuleType.ASTEROID_MINER,
-            ModuleType.ENGINE,
+            ModuleType.RCS,
         ]);
         for (const miner of mining_ships) {
             this.log.info(`Using '${miner.name}' as mining ship`);

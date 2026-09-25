@@ -64,7 +64,7 @@ order of study:
 - [ICommutator](commutator.md) — the interface for connecting to devices
 - [Ship](ship.md) — exploring a ship
 - [System Clock](system_clock.md) — the system clock
-- [Engine](engine.md) — controlling an engine
+- [RCS](rcs.md) — hull thrusters
 - [Passive Scanner](passive_scanner.md) — scanning nearby objects
 - [Resource Container](resource_container.md) — storing and moving resources
 - [Asteroid Scanner](asteroid_scanner.md) — scanning an asteroid's composition

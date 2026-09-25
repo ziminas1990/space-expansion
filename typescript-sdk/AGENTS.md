@@ -60,14 +60,14 @@ routes sessions. It contains no game API or domain behavior.
 There is no highlevel base **class**. Slot wrappers implement the `BaseModule`
 interface (`type`, `name`, `release`, `reinit`). `Navigation` does
 not implement it (no slot, no `reinit`). Narrowing to a concrete type is
-`module.type === ModuleType.ENGINE` on the `HighlevelModule` union, not
+`module.type === ModuleType.RCS` on the `HighlevelModule` union, not
 `instanceof`.
 
 Each wrapper follows this pattern:
 
 - Ordinary class, `implements BaseModule` on all 10 slot modules;
   `extends EventEmitter<Events>` only when the wrapper publishes events.
-- `readonly type` with a literal (`readonly type = ModuleType.ENGINE`) is the
+- `readonly type` with a literal (`readonly type = ModuleType.RCS`) is the
   discriminant of `HighlevelModule`.
 - `constructor(private rpc: midlevel.X, readonly name: string)` — omit `name`
   for objects not bound to a slot (`Navigation`).

@@ -9,23 +9,23 @@
 
 namespace modules {
 
-class Engine : public BaseModule, public utils::GlobalObject<Engine>
+class RCS : public BaseModule, public utils::GlobalObject<RCS>
 {
 public:
-  Engine(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t maxThrust);
+  RCS(std::string&& sName, world::PlayerWeakPtr pOwner, uint32_t maxThrust);
 
-  void proceed(uint32_t nIntervalUs);
+  void proceed(uint32_t nIntervalUs) override;
 
   bool loadState(YAML::Node const& source) override;
   void onSessionClosed(uint32_t nSessionId) override;
 
 protected:
   // override from BaseModule
-  void handleEngineMessage(uint32_t, spex::IEngine const&) override;
+  void handleRCSMessage(uint32_t, spex::IRCS const&) override;
   void onInstalled(modules::Ship* pPlatform) override;
 
   void getSpecification(uint32_t nSessionId) const;
-  void setThrust(spex::IEngine::ChangeThrust const& req);
+  void setThrust(spex::IRCS::ChangeThrust const& req);
   void getThrust(uint32_t nSessionId) const;
   void monitor(uint32_t nSessionId);
 

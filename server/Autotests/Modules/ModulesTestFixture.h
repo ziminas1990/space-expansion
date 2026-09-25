@@ -63,7 +63,7 @@ protected:
   // Managers
   FreezableLogicPtr                 m_pNewtonEngine;
   modules::CommutatorManagerPtr     m_pCommutatorManager;
-  modules::EngineManagerPtr         m_pEngineManager;
+  modules::RCSManagerPtr         m_pRCSManager;
   modules::PassiveScannerManagerPtr m_pPassiveScannerManager;
   modules::MessangerManagerPtr      m_pMessangerManager;
   modules::GameManagerPtr           m_pGameManager;

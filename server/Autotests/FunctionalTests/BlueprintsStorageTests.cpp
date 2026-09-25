@@ -48,7 +48,7 @@ protected:
       "          metals:    2000",
       "          silicates: 1000",
       "          ice:       500",
-      "    Engine:",
+      "    RCS:",
       "      ancient-nordic-engine:",
       "        max_thrust: 5000",
       "        expenses:",
@@ -88,7 +88,7 @@ protected:
       "      max_rotation_speed: 1",
       "      modules:",
       "        asteroid-scanner:  AsteroidScanner/tiny-scanner",
-      "        engine:            Engine/ancient-nordic-engine",
+      "        rcs:            RCS/ancient-nordic-engine",
       "      expenses:",
       "        labor: 100",
       "    Civilian-Scout:",
@@ -97,7 +97,7 @@ protected:
       "      max_rotation_speed: 1",
       "      modules:",
       "        asteroid-scanner:  AsteroidScanner/tiny-scanner",
-      "        engine:            Engine/ancient-nordic-engine",
+      "        rcs:            RCS/ancient-nordic-engine",
       "      expenses:",
       "        labor: 1000",
       "    Titanic-Scout:",
@@ -106,7 +106,7 @@ protected:
       "      max_rotation_speed: 1",
       "      modules:",
       "        asteroid-scanner:  AsteroidScanner/huge-scanner",
-      "        engine:            Engine/titanic-engine",
+      "        rcs:            RCS/titanic-engine",
       "      expenses:",
       "          labor:     10000",
       "          metals:    40000",
@@ -141,9 +141,9 @@ TEST_F(BlueprintStorageTests, GetAllModules)
     client::BlueprintName("AsteroidScanner/tiny-scanner"),
     client::BlueprintName("AsteroidScanner/civilian-scanner"),
     client::BlueprintName("AsteroidScanner/huge-scanner"),
-    client::BlueprintName("Engine/ancient-nordic-engine"),
-    client::BlueprintName("Engine/civilian-engine"),
-    client::BlueprintName("Engine/titanic-engine"),
+    client::BlueprintName("RCS/ancient-nordic-engine"),
+    client::BlueprintName("RCS/civilian-engine"),
+    client::BlueprintName("RCS/titanic-engine"),
     client::BlueprintName("ResourceContainer/toy-cargo"),
     client::BlueprintName("ResourceContainer/civilian-cargo"),
     client::BlueprintName("ResourceContainer/huge-cargo"),
@@ -243,9 +243,9 @@ TEST_F(BlueprintStorageTests, GetSomeModulesBlueprints)
     client::Blueprint blueprint;
     ASSERT_EQ(client::BlueprintsStorage::eSuccess,
               storage.getBlueprint(
-                client::BlueprintName("Engine/civilian-engine"),
+                client::BlueprintName("RCS/civilian-engine"),
                 blueprint));
-    EXPECT_EQ("Engine/civilian-engine", blueprint.m_sName);
+    EXPECT_EQ("RCS/civilian-engine", blueprint.m_sName);
     EXPECT_EQ("500000", blueprint.m_properties["max_thrust"]->sValue);
   }
 
@@ -287,8 +287,8 @@ TEST_F(BlueprintStorageTests, GetShipBlueprints)
     client::PropertyUniqPtr const& pShipModules = blueprint.m_properties["modules"];
     EXPECT_EQ("AsteroidScanner/huge-scanner",
               pShipModules->nested["asteroid-scanner"]->sValue);
-    EXPECT_EQ("Engine/titanic-engine",
-              pShipModules->nested["engine"]->sValue);
+    EXPECT_EQ("RCS/titanic-engine",
+              pShipModules->nested["rcs"]->sValue);
     EXPECT_TRUE(hasResource(blueprint.m_expenses, world::ResourceItem::metals(47000)));
     EXPECT_TRUE(hasResource(blueprint.m_expenses,
                             world::ResourceItem::silicates(23000)));

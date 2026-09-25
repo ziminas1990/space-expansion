@@ -4,42 +4,42 @@ import { Cached } from "#sdk/utils/cache.js";
 import { EventEmitter } from "./events.js";
 import type { BaseModule } from "./base_module.js";
 
-export type EngineSpecification = midlevel.EngineSpecification;
+export type RCSSpecification = midlevel.RCSSpecification;
 export type CurrentThrust = midlevel.CurrentThrust;
 
 export type Events = {
     thrust: (thrust: CurrentThrust) => Promise<void> | void;
-    // Emitted when the engine goes offline and stops monitoring
+    // Emitted when RCS goes offline and stops monitoring
     offline: (status: Status) => Promise<void> | void;
 }
 
 const DEFAULT_THRUST_CACHE_MS = 100;
 
-export class Engine extends EventEmitter<Events> implements BaseModule {
-    readonly type = midlevel.ModuleType.ENGINE;
-    private specification = new Cached<EngineSpecification>();
+export class RCS extends EventEmitter<Events> implements BaseModule {
+    readonly type = midlevel.ModuleType.RCS;
+    private specification = new Cached<RCSSpecification>();
     private thrust = new Cached<CurrentThrust>();
     private stopped = false;
     private loop?: Promise<void>;
     private in_callback = false;
 
     constructor(
-        private rpc: midlevel.Engine,
+        private rpc: midlevel.RCS,
         readonly name: string,
     ) {
         super();
     }
 
     async reinit(rpc: midlevel.MidlevelModule): Promise<Status> {
-        if (!midlevel.is_module(rpc, midlevel.ModuleType.ENGINE)) {
-            return Status.fail("expected Engine");
+        if (!midlevel.is_module(rpc, midlevel.ModuleType.RCS)) {
+            return Status.fail("expected RCS");
         }
         await this.release();
         this.rpc = rpc;
         return await this.init();
     }
 
-    down_level(): midlevel.Engine {
+    down_level(): midlevel.RCS {
         return this.rpc;
     }
 
@@ -51,7 +51,7 @@ export class Engine extends EventEmitter<Events> implements BaseModule {
 
     async get_specification(
         reset_cached: boolean = false,
-    ): Promise<[Status, EngineSpecification | undefined]> {
+    ): Promise<[Status, RCSSpecification | undefined]> {
         if (reset_cached) {
             this.specification.reset();
         } else {

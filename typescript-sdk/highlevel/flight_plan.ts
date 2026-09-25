@@ -9,7 +9,7 @@ import {
     vecScale,
     vecSub,
 } from "#sdk/utils/vector.js";
-import type { Engine } from "./engine.js";
+import type { RCS } from "./rcs.js";
 import type { Ship } from "./ship.js";
 
 const IDLE = 1e-9;
@@ -559,7 +559,7 @@ export type FlightClock = {
 
 export async function follow_flight_plan(
     ship: Ship,
-    engine: Engine,
+    rcs: RCS,
     plan: FlightPlan,
     clock: FlightClock,
 ): Promise<Status> {
@@ -574,7 +574,7 @@ export async function follow_flight_plan(
         }
 
         const thrust = Math.round(ship_state.weight * vecAbs(maneuver.acc));
-        const status = await engine.set_thrust(
+        const status = await rcs.set_thrust(
             maneuver.acc[0],
             maneuver.acc[1],
             thrust,

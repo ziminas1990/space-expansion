@@ -1,9 +1,9 @@
 
-// Runtime module_type is the supported interface name ("Ship", "Engine", ...).
+// Runtime module_type is the module type ("Ship", "RCS", ...).
 export const ModuleType = {
     SHIP: "Ship",
     SYSTEM_CLOCK: "SystemClock",
-    ENGINE: "Engine",
+    RCS: "RCS",
     RESOURCE_CONTAINER: "ResourceContainer",
     PASSIVE_SCANNER: "PassiveScanner",
     ASTEROID_SCANNER: "AsteroidScanner",

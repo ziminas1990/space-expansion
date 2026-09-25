@@ -2,7 +2,7 @@ import { OpenSessionCallback } from "./base_module.js";
 import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import { BlueprintsLibrary } from "./blueprints_library.js";
-import { Engine } from "./engine.js";
+import { RCS } from "./rcs.js";
 import { Game } from "./game.js";
 import { Messanger } from "./messanger.js";
 import { MidlevelModule, ModuleType } from "./module_types.js";
@@ -17,7 +17,7 @@ type ModuleConstructor = new (open_session_cb: OpenSessionCallback) => MidlevelM
 const module_constructors: Record<string, ModuleConstructor> = {
     [ModuleType.SHIP]: Ship,
     [ModuleType.SYSTEM_CLOCK]: SystemClock,
-    [ModuleType.ENGINE]: Engine,
+    [ModuleType.RCS]: RCS,
     [ModuleType.RESOURCE_CONTAINER]: ResourceContainer,
     [ModuleType.PASSIVE_SCANNER]: PassiveScanner,
     [ModuleType.ASTEROID_SCANNER]: AsteroidScanner,

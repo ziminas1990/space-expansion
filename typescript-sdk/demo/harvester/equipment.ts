@@ -1,7 +1,7 @@
 import {
     ModuleType,
     type AsteroidMiner,
-    type Engine,
+    type RCS,
     type PassiveScanner,
     type ResourceContainer,
     type Ship,
@@ -12,12 +12,12 @@ export function has_modules(ship: Ship, types: ModuleType[]): boolean {
     return types.every((type) => ship.get_all(type).length > 0);
 }
 
-export async function find_most_powerful_engine(
+export async function find_most_powerful_rcs(
     ship: Ship,
-): Promise<Engine | undefined> {
-    let best: Engine | undefined;
+): Promise<RCS | undefined> {
+    let best: RCS | undefined;
     let best_thrust = -Infinity;
-    for (const engine of ship.get_all(ModuleType.ENGINE)) {
+    for (const engine of ship.get_all(ModuleType.RCS)) {
         const [status, spec] = await engine.get_specification();
         if (!status.is_ok() || spec === undefined) {
             continue;

@@ -8,7 +8,7 @@ import {
     ApplicationMode,
     Configuration,
     DefaultBlueprints,
-    EngineState,
+    RCSState,
     General,
     makeMiner,
     Player,
@@ -48,8 +48,8 @@ function resourceContainerConfiguration(): Configuration {
                     makeMiner(
                         "miner-1",
                         new Position(0, 0),
-                        new EngineState(),
-                        new EngineState(),
+                        new RCSState(),
+                        new RCSState(),
                         new ResourceContainerState({
                             [ResourceType.Silicates]: 20_000,
                             [ResourceType.Metals]: 50_000,
@@ -59,8 +59,8 @@ function resourceContainerConfiguration(): Configuration {
                     makeMiner(
                         "miner-2",
                         new Position(10, 10),
-                        new EngineState(),
-                        new EngineState(),
+                        new RCSState(),
+                        new RCSState(),
                         new ResourceContainerState({
                             [ResourceType.Silicates]: 5_000,
                             [ResourceType.Metals]: 5_000,

@@ -81,8 +81,8 @@ void BaseModule::handleMessage(uint32_t nSessionId, spex::Message const& message
         handleNavigationMessage(nSessionId, message.navigation());
         return;
       }
-      case spex::Message::kEngine: {
-        handleEngineMessage(nSessionId, message.engine());
+      case spex::Message::kRcs: {
+        handleRCSMessage(nSessionId, message.rcs());
         return;
       }
       case spex::Message::kShip: {

@@ -3,7 +3,7 @@ import {
     type AsteroidMiner,
     type AsteroidScanner,
     type BlueprintsLibrary,
-    type Engine,
+    type RCS,
     type HighlevelModule,
     type Messanger,
     type PassiveScanner,
@@ -56,18 +56,18 @@ export function getCargo(ship: Ship, name: string): ResourceContainer {
     return getModule(ship, ModuleType.RESOURCE_CONTAINER, name);
 }
 
-export function getEngine(ship: Ship, name: string): Engine {
-    return getModule(ship, ModuleType.ENGINE, name);
+export function getRCS(ship: Ship, name: string): RCS {
+    return getModule(ship, ModuleType.RCS, name);
 }
 
-export function getAllEngines(ship: Ship): Engine[] {
-    return ship.get_all(ModuleType.ENGINE);
+export function getAllRCS(ship: Ship): RCS[] {
+    return ship.get_all(ModuleType.RCS);
 }
 
-export async function getMostPowerfulEngine(ship: Ship): Promise<Engine> {
-    let best: Engine | undefined;
+export async function getMostPowerfulRCS(ship: Ship): Promise<RCS> {
+    let best: RCS | undefined;
     let bestThrust = -Infinity;
-    for (const engine of getAllEngines(ship)) {
+    for (const engine of getAllRCS(ship)) {
         const [status, spec] = await engine.get_specification();
         if (!status.is_ok() || spec === undefined) {
             continue;
@@ -78,7 +78,7 @@ export async function getMostPowerfulEngine(ship: Ship): Promise<Engine> {
         }
     }
     if (best === undefined) {
-        throw new Error(`No engines on ship '${ship.name}'`);
+        throw new Error(`No RCS on ship '${ship.name}'`);
     }
     return best;
 }

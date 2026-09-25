@@ -7,7 +7,7 @@ import {
     type SystemClock,
 } from "@spx/sdk/highlevel";
 import { almostNull } from "../util.js";
-import { find_most_powerful_engine } from "../equipment.js";
+import { find_most_powerful_rcs } from "../equipment.js";
 import { BaseTask } from "./base_task.js";
 
 export class MoveTo extends BaseTask {
@@ -29,9 +29,9 @@ export class MoveTo extends BaseTask {
     }
 
     protected async _impl(): Promise<boolean> {
-        const engine = await find_most_powerful_engine(this.ship);
+        const engine = await find_most_powerful_rcs(this.ship);
         if (!engine) {
-            this.add_journal_record("Can't get engine!");
+            this.add_journal_record("Can't get RCS!");
             return false;
         }
 
@@ -41,7 +41,7 @@ export class MoveTo extends BaseTask {
             || !state_status.is_ok() || !ship_state
             || ship_state.weight === undefined)
         {
-            this.add_journal_record("Can't get ship's state or engine spec!");
+            this.add_journal_record("Can't get ship's state or RCS spec!");
             return false;
         }
 

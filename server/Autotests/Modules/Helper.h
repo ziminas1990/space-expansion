@@ -8,7 +8,7 @@
 #include <Autotests/Modules/ModulesTestFixture.h>
 #include <Autotests/ClientSDK/Router.h>
 #include <Autotests/ClientSDK/Modules/ClientShip.h>
-#include <Autotests/ClientSDK/Modules/ClientEngine.h>
+#include <Autotests/ClientSDK/Modules/ClientRCS.h>
 #include <Autotests/ClientSDK/Modules/ClientCommutator.h>
 #include <Autotests/ClientSDK/Modules/ClientMessanger.h>
 #include <Autotests/ClientSDK/Modules/ClientGame.h>
@@ -40,7 +40,7 @@ struct ModuleBind {
 };
 
 using ShipBinding = ModuleBind<modules::Ship, client::Ship>;
-using EngineBinding = ModuleBind<modules::Engine, client::Engine>;
+using RCSBinding = ModuleBind<modules::RCS, client::RCS>;
 
 struct Helper {
 
@@ -51,9 +51,9 @@ struct Helper {
     DECLARE_ATTRIBUTE(ShipParams, double,      radius,   10);
   };
 
-  struct EngineParams {
-    DECLARE_ATTRIBUTE(EngineParams, std::string, name,     "SomeEngine");
-    DECLARE_ATTRIBUTE(EngineParams, uint32_t,    maxThrust, 100000);
+  struct RCSParams {
+    DECLARE_ATTRIBUTE(RCSParams, std::string, name,     "SomeRCS");
+    DECLARE_ATTRIBUTE(RCSParams, uint32_t,    maxThrust, 100000);
   };
 
   static client::RootSessionPtr connect(ModulesTestFixture& env,
@@ -88,20 +88,20 @@ struct Helper {
     return { pShip, nSlotId, pShipCtrl };
   }
 
-  static EngineBinding spawnEngine(ShipBinding ship, const EngineParams& params)
+  static RCSBinding spawnRCS(ShipBinding ship, const RCSParams& params)
   {
-    modules::EnginePtr pEngine = std::make_shared<modules::Engine>(
+    modules::RCSPtr pRCS = std::make_shared<modules::RCS>(
       std::string(params.name()),
       ship.m_pRemote->getOwner(),
       params.maxThrust()
     );
 
     modules::CommutatorPtr pCommutator = ship.m_pRemote->getCommutator();
-    const uint32_t         nSlotId     = ship.m_pRemote->installModule(pEngine);
-    client::EnginePtr      pEngineCtrl = std::make_shared<client::Engine>();
-    pEngineCtrl->attachToChannel(ship->openSession(nSlotId));
+    const uint32_t         nSlotId     = ship.m_pRemote->installModule(pRCS);
+    client::RCSPtr      pRCSCtrl = std::make_shared<client::RCS>();
+    pRCSCtrl->attachToChannel(ship->openSession(nSlotId));
 
-    return {pEngine, nSlotId, pEngineCtrl};
+    return {pRCS, nSlotId, pRCSCtrl};
   }
 
   static void createMessangerModule(

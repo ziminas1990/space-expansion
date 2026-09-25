@@ -25,7 +25,7 @@ export class RandomMining extends BaseTask {
         return candidate.has_modules([
             ModuleType.RESOURCE_CONTAINER,
             ModuleType.ASTEROID_MINER,
-            ModuleType.ENGINE,
+            ModuleType.RCS,
         ]);
     }
 

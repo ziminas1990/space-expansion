@@ -3,7 +3,7 @@ import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import type { BaseModule } from "./base_module.js";
 import { BlueprintsLibrary } from "./blueprints_library.js";
-import { Engine } from "./engine.js";
+import { RCS } from "./rcs.js";
 import { Messanger } from "./messanger.js";
 import { HighlevelModule, ModuleType } from "./module_types.js";
 import { PassiveScanner } from "./passive_scanner.js";
@@ -54,8 +54,8 @@ export function create_module(
     switch (info.module_type) {
         case ModuleType.SYSTEM_CLOCK:
             return wrap(midlevel_module, midlevel.SystemClock, SystemClock, info.module_name);
-        case ModuleType.ENGINE:
-            return wrap(midlevel_module, midlevel.Engine, Engine, info.module_name);
+        case ModuleType.RCS:
+            return wrap(midlevel_module, midlevel.RCS, RCS, info.module_name);
         case ModuleType.RESOURCE_CONTAINER:
             return wrap(
                 midlevel_module, midlevel.ResourceContainer, ResourceContainer, info.module_name);

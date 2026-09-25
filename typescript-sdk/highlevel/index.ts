@@ -23,8 +23,8 @@ export { Navigation } from "./navigation.js";
 export type { Position } from "./navigation.js";
 export { BlueprintsLibrary } from "./blueprints_library.js";
 export type { Blueprint } from "./blueprints_library.js";
-export { Engine } from "./engine.js";
-export type { EngineSpecification, CurrentThrust } from "./engine.js";
+export { RCS } from "./rcs.js";
+export type { RCSSpecification, CurrentThrust } from "./rcs.js";
 export { AsteroidScanner } from "./asteroid_scanner.js";
 export type {
     AsteroidScannerSpecification,

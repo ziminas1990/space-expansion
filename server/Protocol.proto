@@ -56,7 +56,7 @@ message IAccessPanel {
 }
 
 
-message IEngine
+message IRCS
 {
   message Specification {
     uint32 max_thrust = 1;
@@ -502,7 +502,7 @@ message Message {
     ICommutator        commutator         = 14;
     IShip              ship               = 15;
     INavigation        navigation         = 16;
-    IEngine            engine             = 17;
+    IRCS               rcs                = 17;
     IPassiveScanner    passive_scanner    = 19;
     IAsteroidScanner   asteroid_scanner   = 20;
     IResourceContainer resource_container = 21;

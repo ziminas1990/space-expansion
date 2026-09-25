@@ -23,7 +23,7 @@ bool GlobalContainerUtils::checkAllContainersAreEmpty(std::ostream& problem)
   CHECK_CONTAINER_EMPTY(modules::AsteroidScanner, problem);
   CHECK_CONTAINER_EMPTY(modules::BlueprintsStorage, problem);
   CHECK_CONTAINER_EMPTY(modules::Commutator, problem);
-  CHECK_CONTAINER_EMPTY(modules::Engine, problem);
+  CHECK_CONTAINER_EMPTY(modules::RCS, problem);
   CHECK_CONTAINER_EMPTY(modules::PassiveScanner, problem);
   CHECK_CONTAINER_EMPTY(modules::ResourceContainer, problem);
   CHECK_CONTAINER_EMPTY(modules::Ship, problem);

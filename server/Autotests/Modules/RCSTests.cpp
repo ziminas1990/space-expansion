@@ -1,25 +1,25 @@
 #include <Autotests/Modules/ModulesTestFixture.h>
 
-#include <Modules/Engine/Engine.h>
+#include <Modules/RCS/RCS.h>
 #include <Autotests/Modules/Helper.h>
 
 namespace autotests {
 
 namespace {
 
-client::EnginePtr openEngineSession(ShipBinding& ship, uint32_t nSlotId)
+client::RCSPtr openRCSSession(ShipBinding& ship, uint32_t nSlotId)
 {
-    client::EnginePtr pSession = std::make_shared<client::Engine>();
+    client::RCSPtr pSession = std::make_shared<client::RCS>();
     pSession->attachToChannel(ship->openSession(nSlotId));
     return pSession;
 }
 
 }  // namespace
 
-class EngineTests : public ModulesTestFixture
+class RCSTests : public ModulesTestFixture
 {};
 
-TEST_F(EngineTests, GetSpecification)
+TEST_F(RCSTests, GetSpecification)
 {
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
   ASSERT_TRUE(pRootSession);
@@ -31,15 +31,15 @@ TEST_F(EngineTests, GetSpecification)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
-  client::EngineSpecification spec;
+  client::RCSSpecification spec;
   ASSERT_TRUE(engine->getSpecification(spec));
   ASSERT_EQ(nMaxThrust, spec.nMaxThrust);
 }
 
-TEST_F(EngineTests, SetAndGetThrust)
+TEST_F(RCSTests, SetAndGetThrust)
 {
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
   ASSERT_TRUE(pRootSession);
@@ -51,8 +51,8 @@ TEST_F(EngineTests, SetAndGetThrust)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
   const geometry::Vector thrust = geometry::Vector(1, 2).ofLength(100);
   ASSERT_TRUE(engine->setThrust(thrust, 100));
@@ -63,7 +63,7 @@ TEST_F(EngineTests, SetAndGetThrust)
   EXPECT_EQ(thrust, currentThrust);
 }
 
-TEST_F(EngineTests, SetThrustExceedsMaxThrust)
+TEST_F(RCSTests, SetThrustExceedsMaxThrust)
 {
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
   ASSERT_TRUE(pRootSession);
@@ -75,8 +75,8 @@ TEST_F(EngineTests, SetThrustExceedsMaxThrust)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
   geometry::Vector thrustDirection = geometry::Vector(10, 20).normalized();
 
@@ -89,7 +89,7 @@ TEST_F(EngineTests, SetThrustExceedsMaxThrust)
   EXPECT_EQ(thrustDirection.ofLength(nMaxThrust), currentThrust);
 }
 
-TEST_F(EngineTests, MovingWithEngine)
+TEST_F(RCSTests, MovingWithRCS)
 {
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
   ASSERT_TRUE(pRootSession);
@@ -101,8 +101,8 @@ TEST_F(EngineTests, MovingWithEngine)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 10000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
   const geometry::Point startPosition(100, 15);
   ship.m_pRemote->moveTo(startPosition);
@@ -130,7 +130,7 @@ TEST_F(EngineTests, MovingWithEngine)
     proceedEnviroment();
   }
 
-  // Engine should be switched off now
+  // RCS should be switched off now
   const auto             stopTime     = utils::GlobalClock::now();
   const geometry::Point  endPosition  = ship.m_pRemote->getPosition();
   const geometry::Vector endVelocity  = ship.m_pRemote->getVelocity();
@@ -147,7 +147,7 @@ TEST_F(EngineTests, MovingWithEngine)
   }
 }
 
-TEST_F(EngineTests, MonitorSnapshotAndAppliedThrust)
+TEST_F(RCSTests, MonitorSnapshotAndAppliedThrust)
 {
   // 1. connect and spawn a ship with an engine
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
@@ -160,11 +160,11 @@ TEST_F(EngineTests, MonitorSnapshotAndAppliedThrust)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
   // 2. subscribe to thrust monitoring
-  client::EnginePtr pMonitor = openEngineSession(ship, engine.m_nSlotId);
+  client::RCSPtr pMonitor = openRCSSession(ship, engine.m_nSlotId);
   ASSERT_TRUE(pMonitor);
 
   geometry::Vector snapshot;
@@ -181,11 +181,11 @@ TEST_F(EngineTests, MonitorSnapshotAndAppliedThrust)
   EXPECT_EQ(thrust, applied);
 
   // 5. change_thrust session has no reply
-  spex::IEngine unexpected;
+  spex::IRCS unexpected;
   ASSERT_FALSE(engine->pick(unexpected));
 }
 
-TEST_F(EngineTests, MonitorClampedThrust)
+TEST_F(RCSTests, MonitorClampedThrust)
 {
   // 1. connect and spawn a ship with an engine
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
@@ -198,11 +198,11 @@ TEST_F(EngineTests, MonitorClampedThrust)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
   // 2. subscribe to thrust monitoring
-  client::EnginePtr pMonitor = openEngineSession(ship, engine.m_nSlotId);
+  client::RCSPtr pMonitor = openRCSSession(ship, engine.m_nSlotId);
   ASSERT_TRUE(pMonitor);
 
   geometry::Vector snapshot;
@@ -218,7 +218,7 @@ TEST_F(EngineTests, MonitorClampedThrust)
   EXPECT_EQ(thrustDirection.ofLength(nMaxThrust), applied);
 }
 
-TEST_F(EngineTests, MonitorDurationExpiry)
+TEST_F(RCSTests, MonitorDurationExpiry)
 {
   // 1. connect and spawn a ship with an engine
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
@@ -230,11 +230,11 @@ TEST_F(EngineTests, MonitorDurationExpiry)
   ShipBinding ship = Helper::spawnShip(
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(100000));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(100000));
 
   // 2. subscribe to thrust monitoring
-  client::EnginePtr pMonitor = openEngineSession(ship, engine.m_nSlotId);
+  client::RCSPtr pMonitor = openRCSSession(ship, engine.m_nSlotId);
   ASSERT_TRUE(pMonitor);
 
   geometry::Vector snapshot;
@@ -254,7 +254,7 @@ TEST_F(EngineTests, MonitorDurationExpiry)
   EXPECT_EQ(geometry::Vector(), expired);
 }
 
-TEST_F(EngineTests, MonitorNotifiesRepeatedThrust)
+TEST_F(RCSTests, MonitorNotifiesRepeatedThrust)
 {
   // 1. connect and spawn a ship with an engine
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
@@ -266,11 +266,11 @@ TEST_F(EngineTests, MonitorNotifiesRepeatedThrust)
   ShipBinding ship = Helper::spawnShip(
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(100000));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(100000));
 
   // 2. subscribe to thrust monitoring
-  client::EnginePtr pMonitor = openEngineSession(ship, engine.m_nSlotId);
+  client::RCSPtr pMonitor = openRCSSession(ship, engine.m_nSlotId);
   ASSERT_TRUE(pMonitor);
 
   geometry::Vector snapshot;
@@ -293,7 +293,7 @@ TEST_F(EngineTests, MonitorNotifiesRepeatedThrust)
   EXPECT_EQ(thrust, repeated);
 }
 
-TEST_F(EngineTests, MonitorDelayedThrust)
+TEST_F(RCSTests, MonitorDelayedThrust)
 {
   // 1. connect and spawn a ship with an engine
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
@@ -305,11 +305,11 @@ TEST_F(EngineTests, MonitorDelayedThrust)
   ShipBinding ship = Helper::spawnShip(
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(100000));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(100000));
 
   // 2. subscribe to thrust monitoring
-  client::EnginePtr pMonitor = openEngineSession(ship, engine.m_nSlotId);
+  client::RCSPtr pMonitor = openRCSSession(ship, engine.m_nSlotId);
   ASSERT_TRUE(pMonitor);
 
   geometry::Vector snapshot;
@@ -323,7 +323,7 @@ TEST_F(EngineTests, MonitorDelayedThrust)
   // 4. monitor does not notify before the timestamp
   while (utils::GlobalClock::now() + 20000 < nWhenUs) {
     proceedEnviroment();
-    spex::IEngine tooEarly;
+    spex::IRCS tooEarly;
     ASSERT_FALSE(pMonitor->pick(tooEarly));
   }
 
@@ -333,7 +333,7 @@ TEST_F(EngineTests, MonitorDelayedThrust)
   EXPECT_EQ(thrust, applied);
 }
 
-TEST_F(EngineTests, SeveralSessionsMayMonitor)
+TEST_F(RCSTests, SeveralSessionsMayMonitor)
 {
   // 1. connect and spawn a ship with an engine
   client::RootSessionPtr pRootSession = Helper::connect(*this, 5);
@@ -345,12 +345,12 @@ TEST_F(EngineTests, SeveralSessionsMayMonitor)
   ShipBinding ship = Helper::spawnShip(
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(100000));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(100000));
 
   // 2. open two monitoring sessions
-  client::EnginePtr pFirst = openEngineSession(ship, engine.m_nSlotId);
-  client::EnginePtr pSecond = openEngineSession(ship, engine.m_nSlotId);
+  client::RCSPtr pFirst = openRCSSession(ship, engine.m_nSlotId);
+  client::RCSPtr pSecond = openRCSSession(ship, engine.m_nSlotId);
   ASSERT_TRUE(pFirst);
   ASSERT_TRUE(pSecond);
 

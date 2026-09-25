@@ -4,7 +4,7 @@ export { Router } from "./router.js";
 export { Commutator, ModuleInfo, Update as CommutatorUpdate } from "./commutator.js";
 export { Ship, ShipState, ShipSpecification } from "./ship.js";
 export { Navigation } from "./navigation.js";
-export { Engine, EngineSpecification, CurrentThrust } from "./engine.js";
+export { RCS, RCSSpecification, CurrentThrust } from "./rcs.js";
 export {
     AsteroidScanner,
     AsteroidScannerStatus,

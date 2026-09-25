@@ -4,7 +4,7 @@ Previous topic: [ISessionControl](./sessions-control.md)
 Next topic: [Ship](./ship.md)
 
 A commutator is a device to which other devices can be connected, both physical
-ones, such as an engine or an onboard scanner, and virtual ones, such as the
+ones, such as RCS thrusters or an onboard scanner, and virtual ones, such as the
 system clock or a blueprints library.
 
 The client talks to a commutator through the `ICommutator` interface. These
@@ -39,7 +39,7 @@ contains these fields:
 
 `module_type` is a string literal drawn from a fixed set of values. It
 determines which interfaces the module implements. For example, a module of
-type `"Engine"` is an engine and implements `IEngine`. The full list of module
+type `"RCS"` is the hull thrusters and implements `IRCS`. The full list of module
 types and their interfaces is in the [module table](./modules_table.md).
 
 `module_name` is an arbitrary name of the module within the commutator. It is

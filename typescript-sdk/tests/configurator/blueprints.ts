@@ -6,7 +6,7 @@ import {
 
 export enum ModuleType {
     Ship = "Ship",
-    Engine = "Engine",
+    RCS = "RCS",
     PassiveScanner = "PassiveScanner",
     ResourceContainer = "ResourceContainer",
     AsteroidMiner = "AsteroidMiner",
@@ -19,8 +19,8 @@ export class BlueprintId {
         readonly name: string,
     ) {}
 
-    static engine(name: string): BlueprintId {
-        return new BlueprintId(ModuleType.Engine, name);
+    static rcs(name: string): BlueprintId {
+        return new BlueprintId(ModuleType.RCS, name);
     }
 
     verify(): void {
@@ -186,49 +186,49 @@ export class DefaultBlueprints extends BlueprintsDB {
 function createDefaultBlueprints(): Blueprint[] {
     const blueprints: Blueprint[] = [
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Tiny Chemical engine",
             { max_thrust: 1_000 },
             { metals: 200, silicates: 100, labor: 20 },
         ),
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Small Chemical engine",
             { max_thrust: 10_000 },
             { metals: 600, silicates: 200, labor: 50 },
         ),
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Tiny Ion engine",
             { max_thrust: 100 },
             { metals: 100, silicates: 20, labor: 20 },
         ),
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Small Ion engine",
             { max_thrust: 500 },
             { metals: 300, silicates: 50, labor: 60 },
         ),
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Regular Ion engine",
             { max_thrust: 2_000 },
             { metals: 1_000, silicates: 120, labor: 180 },
         ),
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Tiny Nuclear engine",
             { max_thrust: 3_000 },
             { metals: 1_500, silicates: 400, labor: 200 },
         ),
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Small Nuclear engine",
             { max_thrust: 30_000 },
             { metals: 10_000, silicates: 2_800, labor: 1_600 },
         ),
         moduleBlueprint(
-            ModuleType.Engine,
+            ModuleType.RCS,
             "Regular Nuclear engine",
             { max_thrust: 400_000 },
             { metals: 35_000, silicates: 15_000, labor: 9_500 },
@@ -311,8 +311,8 @@ function createDefaultBlueprints(): Blueprint[] {
             2,
             220,
             {
-                main_engine: id(ModuleType.Engine, "Tiny Chemical engine"),
-                additional_engine: id(ModuleType.Engine, "Tiny Ion engine"),
+                main_rcs: id(ModuleType.RCS, "Tiny Chemical engine"),
+                additional_rcs: id(ModuleType.RCS, "Tiny Ion engine"),
             },
             expenses({ metals: 200, silicates: 20, labor: 100 }),
             2,
@@ -322,8 +322,8 @@ function createDefaultBlueprints(): Blueprint[] {
             80,
             80_000,
             {
-                main_engine: id(ModuleType.Engine, "Regular Nuclear engine"),
-                additional_engine: id(ModuleType.Engine, "Regular Ion engine"),
+                main_rcs: id(ModuleType.RCS, "Regular Nuclear engine"),
+                additional_rcs: id(ModuleType.RCS, "Regular Ion engine"),
                 perceiver: id(ModuleType.PassiveScanner, "Basic Scanner"),
                 cargo: id(
                     ModuleType.ResourceContainer,
@@ -343,7 +343,7 @@ function createDefaultBlueprints(): Blueprint[] {
             800,
             20_000_000,
             {
-                engine: id(ModuleType.Engine, "Regular Nuclear engine"),
+                rcs: id(ModuleType.RCS, "Regular Nuclear engine"),
                 perceiver: id(ModuleType.PassiveScanner, "Station Scanner"),
                 warehouse: id(
                     ModuleType.ResourceContainer,

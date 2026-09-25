@@ -23,7 +23,7 @@ import {
     expectOk,
     expectStatus,
     FastForwardClock,
-    getEngine,
+    getRCS,
     getShip,
     getSystemClock,
 } from "./helpers/index.js";
@@ -81,7 +81,7 @@ test.skipIf(!hasServerBinary)(
             const scout2 = getShip(player, "scout-2");
 
             // 5. get scout-1 engine and specification
-            const engine = getEngine(scout1, "main_engine");
+            const engine = getRCS(scout1, "main_rcs");
             const engineSpec = expectOk(
                 await engine.get_specification(),
                 "engine specification",

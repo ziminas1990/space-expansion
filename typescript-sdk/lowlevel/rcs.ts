@@ -4,7 +4,7 @@ import * as types from "#sdk/types/index.js";
 import { Session } from "./session.js";
 
 
-export type EngineSpecification = {
+export type RCSSpecification = {
     max_thrust: number;
 }
 
@@ -14,19 +14,19 @@ export type CurrentThrust = {
     thrust: number;
 }
 
-export class Engine {
+export class RCS {
 
     constructor(private session: Session) {}
 
     async send_specification_request(): Promise<types.Status> {
-        const request = create(msg.IEngineSchema, {
+        const request = create(msg.IRCSSchema, {
             choice: { case: "specificationReq", value: true },
         });
         return this.send(request);
     }
 
     async wait_specification(timeout: number = 500)
-    : Promise<[types.Status, EngineSpecification | undefined]>
+    : Promise<[types.Status, RCSSpecification | undefined]>
     {
         const [status, response] = await this.wait(timeout);
         if (!status.is_ok() || !response) {
@@ -42,14 +42,14 @@ export class Engine {
     }
 
     async send_thrust_request(): Promise<types.Status> {
-        const request = create(msg.IEngineSchema, {
+        const request = create(msg.IRCSSchema, {
             choice: { case: "thrustReq", value: true },
         });
         return this.send(request);
     }
 
     async send_monitor_request(): Promise<types.Status> {
-        const request = create(msg.IEngineSchema, {
+        const request = create(msg.IRCSSchema, {
             choice: { case: "monitor", value: true },
         });
         return this.send(request);
@@ -84,7 +84,7 @@ export class Engine {
         duration_ms: number = 0,
         at?: number): Promise<types.Status>
     {
-        const request = create(msg.IEngineSchema, {
+        const request = create(msg.IRCSSchema, {
             choice: {
                 case: "changeThrust",
                 value: { x, y, thrust, durationMs: duration_ms },
@@ -93,22 +93,22 @@ export class Engine {
         return this.send(request, at);
     }
 
-    private async send(request: msg.IEngine, timestamp?: number): Promise<types.Status> {
+    private async send(request: msg.IRCS, timestamp?: number): Promise<types.Status> {
         const message = create(msg.MessageSchema, {
             timestamp: BigInt(timestamp ?? 0),
-            choice: { case: "engine", value: request },
+            choice: { case: "rcs", value: request },
         });
         return this.session.send(message);
     }
 
     private async wait(timeout_ms: number = 500)
-    : Promise<[types.Status, msg.IEngine | undefined]>
+    : Promise<[types.Status, msg.IRCS | undefined]>
     {
         const [status, response] = await this.session.wait(timeout_ms);
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];
         }
-        if (response.choice.case != "engine") {
+        if (response.choice.case != "rcs") {
             return [types.Status.fail(`got unexpected message ${response.choice.case}`),
                     undefined];
         }

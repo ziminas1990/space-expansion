@@ -1,7 +1,7 @@
 #include "Autotests/ClientSDK/Modules/ClientCommutator.h"
 #include <Autotests/Modules/ModulesTestFixture.h>
 
-#include <Modules/Engine/Engine.h>
+#include <Modules/RCS/RCS.h>
 #include <Autotests/Modules/Helper.h>
 
 namespace autotests {
@@ -24,10 +24,10 @@ TEST_F(CommutatorTests, Breath)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
-  client::EngineSpecification spec;
+  client::RCSSpecification spec;
   ASSERT_TRUE(engine->getSpecification(spec));
   ASSERT_EQ(nMaxThrust, spec.nMaxThrust);
 }
@@ -210,13 +210,13 @@ TEST_F(CommutatorTests, CloseSession)
     *this, pCommutator, geometry::Point(0, 0), Helper::ShipParams());
 
   const uint32_t nMaxThrust = 100000;
-  EngineBinding engine = Helper::spawnEngine(
-    ship, Helper::EngineParams().maxThrust(nMaxThrust));
+  RCSBinding engine = Helper::spawnRCS(
+    ship, Helper::RCSParams().maxThrust(nMaxThrust));
 
   // If session to the ship is closed, engine should be avaliable anyway
   ASSERT_TRUE(ship->disconnect());
 
-  client::EngineSpecification spec;
+  client::RCSSpecification spec;
   ASSERT_TRUE(engine->getSpecification(spec));
 
   // If a root session is closed, engine session should also be closed

@@ -61,10 +61,10 @@ bool FindModule(ClientCommutator&  commutator,
   return false;
 }
 
-bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
+bool FindMostPowerfulRCS(Ship& ship, RCS& mostPowerfullRCS)
 {
   ModulesList engines;
-  if (!GetAllModules(ship, "Engine", engines))
+  if (!GetAllModules(ship, "RCS", engines))
     return false;
   if (engines.empty())
     return false;
@@ -78,14 +78,14 @@ bool FindMostPowerfulEngine(Ship& ship, Engine& mostPowerfullEngine)
     if (!pSession)
       return false;
 
-    Engine engine;
+    RCS engine;
     engine.attachToChannel(pSession);
 
-    EngineSpecification specification;
+    RCSSpecification specification;
     if (!engine.getSpecification(specification))
       return false;
     if (specification.nMaxThrust > nMaxThrust) {
-      mostPowerfullEngine.attachToChannel(pSession);
+      mostPowerfullRCS.attachToChannel(pSession);
     }
   }
   return true;

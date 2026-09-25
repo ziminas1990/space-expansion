@@ -18,7 +18,7 @@ import {
 import {
     expectStatus,
     getCargo,
-    getEngine,
+    getRCS,
     getPassiveScanner,
     getShip,
     getSystemClock,
@@ -94,7 +94,7 @@ test.skipIf(!hasServerBinary)(
             // 2. get ship modules used for monitoring
             const miner = getShip(player, "miner-1");
             const cargo = getCargo(miner, "cargo");
-            const engine = getEngine(miner, "main_engine");
+            const engine = getRCS(miner, "main_rcs");
             const scanner = getPassiveScanner(miner, "perceiver");
             const systemClock = getSystemClock(player);
 

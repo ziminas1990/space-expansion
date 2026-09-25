@@ -5,7 +5,7 @@
 | "Commutator"           | ICommutator                                         |
 | "Ship"                 | IShip, INavigation, ICommutator                     |
 | "SystemClock"          | ISystemClock                                        |
-| "Engine"               | IEngine                                             |
+| "RCS"                  | IRCS                                                |
 | "PassiveScanner"       | IPassiveScanner                                     |
 | "ResourceContainer"    | IResourceContainer                                  |
 | "AsteroidScanner"      | IAsteroidScanner                                    |

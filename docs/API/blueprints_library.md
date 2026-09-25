@@ -16,7 +16,7 @@ read the blueprints available to that player: their names, the properties of
 the object each blueprint produces, and the resources required to produce it.
 
 A blueprint name has the form `Class/Type`. The class is a module type from
-the [module table](./modules_table.md). The type is the name of that particular blueprint. Examples are `Engine/civilian-engine` and `Ship/Tiny-Scout`.
+the [module table](./modules_table.md). The type is the name of that particular blueprint. Examples are `RCS/civilian-engine` and `Ship/Tiny-Scout`.
 
 ## How to connect to the blueprints library
 
@@ -33,7 +33,7 @@ commands:
 `blueprints_list_req` requests blueprint names. The command is a string. The
 server returns every blueprint whose full name begins with that string. An
 empty string selects every blueprint. The comparison is case-sensitive, so
-`"engine"` does not select `"Engine/civilian-engine"`.
+`"rcs"` does not select `"RCS/civilian-engine"`.
 
 The server replies with one or more `blueprints_list` messages:
 
@@ -44,14 +44,14 @@ The client keeps reading until a message whose `left` is `0`. When no name
 matches, that single message has `left` equal to `0` and an empty `names`
 list.
 
-For example, the names that begin with `"Engine"`:
+For example, the names that begin with `"RCS"`:
 
 ```json
 {
   "tunnelId": 1100,
   "timestamp": 0,
   "blueprints_library": {
-    "blueprints_list_req": "Engine"
+    "blueprints_list_req": "RCS"
   }
 }
 ```
@@ -66,9 +66,9 @@ The server replies:
     "blueprints_list": {
       "left": 0,
       "names": [
-        "Engine/titanic-engine",
-        "Engine/civilian-engine",
-        "Engine/ancient-nordic-engine"
+        "RCS/titanic-engine",
+        "RCS/civilian-engine",
+        "RCS/ancient-nordic-engine"
       ]
     }
   }
@@ -103,7 +103,7 @@ representation, so a thrust of 500000 newtons is the string `"500000"`.
 `expenses` is a separate field. Those resources are not repeated among
 `properties`.
 
-A module blueprint's properties are the parameters of that module. An engine
+A module blueprint's properties are the parameters of that module. An RCS module
 has `max_thrust`. A resource container has `volume`. An asteroid scanner has
 `max_scanning_distance` and `scanning_time_ms`. The meaning of each parameter
 is the same as in that module's documentation.
@@ -130,14 +130,14 @@ For a module blueprint, `expenses` is the cost of that module. For a ship
 blueprint, `expenses` is the sum of the ship's own cost and the cost of every
 module blueprint named in `modules`.
 
-For example, an engine blueprint:
+For example, an RCS blueprint:
 
 ```json
 {
   "tunnelId": 1101,
   "timestamp": 0,
   "blueprints_library": {
-    "blueprint_req": "Engine/civilian-engine"
+    "blueprint_req": "RCS/civilian-engine"
   }
 }
 ```
@@ -150,7 +150,7 @@ The server replies:
   "timestamp": 238300000,
   "blueprints_library": {
     "blueprint": {
-      "name": "Engine/civilian-engine",
+      "name": "RCS/civilian-engine",
       "properties": [
         { "name": "max_thrust", "value": "500000" }
       ],
@@ -165,7 +165,7 @@ The server replies:
 
 A ship blueprint includes its modules and their cost. `Ship/Tiny-Scout` has a
 hull that costs 100 labor, an `AsteroidScanner/tiny-scanner` that costs 10
-labor, and an `Engine/ancient-nordic-engine` that costs 10 labor. The reported
+labor, and an `RCS/ancient-nordic-engine` that costs 10 labor. The reported
 expenses are the sum, 120 labor:
 
 ```json
@@ -187,8 +187,8 @@ expenses are the sum, 120 labor:
               "value": "AsteroidScanner/tiny-scanner"
             },
             {
-              "name": "engine",
-              "value": "Engine/ancient-nordic-engine"
+              "name": "rcs",
+              "value": "RCS/ancient-nordic-engine"
             }
           ]
         }

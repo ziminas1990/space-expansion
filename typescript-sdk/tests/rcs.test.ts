@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import type { CurrentThrust, Engine } from "../highlevel/index.js";
+import type { CurrentThrust, RCS } from "../highlevel/index.js";
 import {
     ApplicationMode,
     Configuration,
@@ -20,7 +20,7 @@ import {
     Collector,
     expectOk,
     expectStatus,
-    getEngine,
+    getRCS,
     getShip,
 } from "./helpers/index.js";
 
@@ -70,7 +70,7 @@ async function waitJournal(
 }
 
 async function monitorThrust(
-    engine: Engine,
+    engine: RCS,
     journal: Collector<CurrentThrust>,
     stopped: { value: boolean },
 ): Promise<void> {
@@ -96,9 +96,9 @@ test.skipIf(!hasServerBinary)(
             const player = await login("player", "player");
 
             // 2. get engine specification
-            const engine = getEngine(getShip(player, "scout-1"), "main_engine");
+            const rcs = getRCS(getShip(player, "scout-1"), "main_rcs");
             const spec = expectOk(
-                await engine.get_specification(),
+                await rcs.get_specification(),
                 "engine specification",
             );
             await clock.stop();
@@ -106,7 +106,7 @@ test.skipIf(!hasServerBinary)(
             // 3. start monitoring
             const journal = new Collector<CurrentThrust>();
             const stopped = { value: false };
-            const monitoring = monitorThrust(engine, journal, stopped);
+            const monitoring = monitorThrust(rcs, journal, stopped);
 
             try {
                 // 4. wait for the snapshot
@@ -115,7 +115,7 @@ test.skipIf(!hasServerBinary)(
 
                 // 5. apply a new thrust vector
                 expectStatus(
-                    await engine.set_thrust(3, 4, 100, 1_000_000),
+                    await rcs.set_thrust(3, 4, 100, 1_000_000),
                     "set thrust",
                 );
                 await waitJournal(clock, journal, 2, "applied thrust");
@@ -123,7 +123,7 @@ test.skipIf(!hasServerBinary)(
 
                 // 6. the same command produces another indication
                 expectStatus(
-                    await engine.set_thrust(3, 4, 100, 1_000_000),
+                    await rcs.set_thrust(3, 4, 100, 1_000_000),
                     "repeat the same thrust",
                 );
                 await waitJournal(clock, journal, 3, "repeated thrust");
@@ -131,7 +131,7 @@ test.skipIf(!hasServerBinary)(
 
                 // 7. a thrust above max_thrust is clamped
                 expectStatus(
-                    await engine.set_thrust(1, 0, spec.max_thrust * 2, 1_000_000),
+                    await rcs.set_thrust(1, 0, spec.max_thrust * 2, 1_000_000),
                     "set thrust above max",
                 );
                 await waitJournal(clock, journal, 4, "clamped thrust");
@@ -153,13 +153,13 @@ test.skipIf(!hasServerBinary)(
 
             // 1. player logins
             const player = await login("player", "player");
-            const engine = getEngine(getShip(player, "scout-1"), "main_engine");
+            const rcs = getRCS(getShip(player, "scout-1"), "main_rcs");
             await clock.stop();
 
             // 2. start monitoring
             const journal = new Collector<CurrentThrust>();
             const stopped = { value: false };
-            const monitoring = monitorThrust(engine, journal, stopped);
+            const monitoring = monitorThrust(rcs, journal, stopped);
 
             try {
                 // 3. wait for the snapshot
@@ -167,7 +167,7 @@ test.skipIf(!hasServerBinary)(
                 expectThrust(journal.items[0]!, 0, 0, 0);
 
                 // 4. start a short burn
-                expectStatus(await engine.set_thrust(1, 0, 80, 300), "start burn");
+                expectStatus(await rcs.set_thrust(1, 0, 80, 300), "start burn");
                 await waitJournal(clock, journal, 2, "burn applied");
                 expectThrust(journal.items[1]!, 80, 0, 80);
 
@@ -178,7 +178,7 @@ test.skipIf(!hasServerBinary)(
                 // 6. schedule a delayed change_thrust
                 const now = await clock.time();
                 expectStatus(
-                    await engine.set_thrust(0, 1, 50, 1_000_000, now + 200_000),
+                    await rcs.set_thrust(0, 1, 50, 1_000_000, now + 200_000),
                     "delayed thrust",
                 );
                 await clock.proceed(50, 2_000);
@@ -205,13 +205,13 @@ test.skipIf(!hasServerBinary)(
 
             // 1. player logins
             const player = await login("player", "player");
-            const engine = getEngine(getShip(player, "scout-1"), "main_engine");
+            const rcs = getRCS(getShip(player, "scout-1"), "main_rcs");
 
             // 2. subscribe to highlevel thrust events
-            const events = collectEvent(engine, "thrust");
+            const events = collectEvent(rcs, "thrust");
 
             // 3. apply a new thrust vector
-            expectStatus(await engine.set_thrust(0, 1, 40, 10_000), "set thrust");
+            expectStatus(await rcs.set_thrust(0, 1, 40, 10_000), "set thrust");
 
             // 4. the engine emits the applied vector
             await events.waitFor(
