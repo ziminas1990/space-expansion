@@ -15,6 +15,11 @@ export {
     CurrentThrust,
     MonitoringCallback as RCSMonitoringCallback,
 } from "./rcs.js";
+export {
+    HoverEngine,
+    HoverEngineSpecification,
+    MonitoringCallback as HoverEngineMonitoringCallback,
+} from "./hover_engine.js";
 export { Navigation } from "./navigation.js";
 export { BlueprintsLibrary, BlueprintsLibraryStatus } from "./blueprints_library.js";
 export {

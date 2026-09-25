@@ -59,6 +59,7 @@ export enum ShipType {
     Probe = "Probe",
     Miner = "Miner",
     Station = "Station",
+    Tug = "Tug",
 }
 
 export interface ShipOptions {
@@ -131,6 +132,17 @@ export class Ship {
             ),
         };
     }
+}
+
+export function makeTug(name: string, position: Position): Ship {
+    return new Ship({
+        name,
+        shipType: ShipType.Tug,
+        position,
+        modules: {
+            engine: new BaseModuleState(),
+        },
+    });
 }
 
 export function makeProbe(

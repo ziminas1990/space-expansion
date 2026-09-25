@@ -7,6 +7,7 @@ import {
 export enum ModuleType {
     Ship = "Ship",
     RCS = "RCS",
+    HoverEngine = "HoverEngine",
     PassiveScanner = "PassiveScanner",
     ResourceContainer = "ResourceContainer",
     AsteroidMiner = "AsteroidMiner",
@@ -234,6 +235,12 @@ function createDefaultBlueprints(): Blueprint[] {
             { metals: 35_000, silicates: 15_000, labor: 9_500 },
         ),
         moduleBlueprint(
+            ModuleType.HoverEngine,
+            "Main Engine",
+            { max_thrust: 10_000 },
+            { metals: 2_000, silicates: 400, labor: 200 },
+        ),
+        moduleBlueprint(
             ModuleType.PassiveScanner,
             "Basic Scanner",
             { max_scanning_radius_km: 50, edge_update_time_ms: 2_000 },
@@ -306,6 +313,16 @@ function createDefaultBlueprints(): Blueprint[] {
     ];
 
     blueprints.push(
+        new ShipBlueprint(
+            "Tug",
+            10,
+            200_000,
+            {
+                engine: id(ModuleType.HoverEngine, "Main Engine"),
+            },
+            expenses({ metals: 5_000, silicates: 1_000, labor: 500 }),
+            Math.PI / 2,
+        ),
         new ShipBlueprint(
             "Probe",
             2,

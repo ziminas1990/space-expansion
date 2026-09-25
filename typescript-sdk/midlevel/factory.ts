@@ -2,6 +2,7 @@ import { OpenSessionCallback } from "./base_module.js";
 import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import { BlueprintsLibrary } from "./blueprints_library.js";
+import { HoverEngine } from "./hover_engine.js";
 import { RCS } from "./rcs.js";
 import { Game } from "./game.js";
 import { Messanger } from "./messanger.js";
@@ -18,6 +19,7 @@ const module_constructors: Record<string, ModuleConstructor> = {
     [ModuleType.SHIP]: Ship,
     [ModuleType.SYSTEM_CLOCK]: SystemClock,
     [ModuleType.RCS]: RCS,
+    [ModuleType.HOVER_ENGINE]: HoverEngine,
     [ModuleType.RESOURCE_CONTAINER]: ResourceContainer,
     [ModuleType.PASSIVE_SCANNER]: PassiveScanner,
     [ModuleType.ASTEROID_SCANNER]: AsteroidScanner,

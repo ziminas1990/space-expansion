@@ -4,6 +4,7 @@ export const ModuleType = {
     SHIP: "Ship",
     SYSTEM_CLOCK: "SystemClock",
     RCS: "RCS",
+    HOVER_ENGINE: "HoverEngine",
     RESOURCE_CONTAINER: "ResourceContainer",
     PASSIVE_SCANNER: "PassiveScanner",
     ASTEROID_SCANNER: "AsteroidScanner",

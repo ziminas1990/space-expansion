@@ -5,6 +5,7 @@ export { Commutator, ModuleInfo, Update as CommutatorUpdate } from "./commutator
 export { Ship, ShipState, ShipSpecification } from "./ship.js";
 export { Navigation } from "./navigation.js";
 export { RCS, RCSSpecification, CurrentThrust } from "./rcs.js";
+export { HoverEngine, HoverEngineSpecification } from "./hover_engine.js";
 export {
     AsteroidScanner,
     AsteroidScannerStatus,

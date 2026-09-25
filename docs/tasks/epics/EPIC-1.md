@@ -35,7 +35,7 @@ only after that engine exists.
    maximum turn rate, and a way to rotate.
 2. [SES-228](../closed/SES-228.md) — rename IEngine to IRCS without
    changing how clients fly.
-3. [SES-229](../SES-229.md) — add IHoverEngine, the main engine
+3. [SES-229](../closed/SES-229.md) — add IHoverEngine, the main engine
    that thrusts along the nose.
 4. [SES-230](../SES-230.md) — rewrite harvester navigation for
    IHoverEngine and lower the RCS maximum thrust.

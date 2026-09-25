@@ -1,6 +1,7 @@
 import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import { BlueprintsLibrary } from "./blueprints_library.js";
+import { HoverEngine } from "./hover_engine.js";
 import { RCS } from "./rcs.js";
 import { Game } from "./game.js";
 import { Messanger } from "./messanger.js";
@@ -18,6 +19,7 @@ export type MidlevelModule =
     | Ship
     | SystemClock
     | RCS
+    | HoverEngine
     | ResourceContainer
     | PassiveScanner
     | AsteroidScanner
