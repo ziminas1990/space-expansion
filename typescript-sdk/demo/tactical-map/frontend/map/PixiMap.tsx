@@ -1,6 +1,10 @@
 import { Application, Container, Graphics } from "pixi.js";
 import { useEffect, useRef } from "react";
-import { predict_position, type Position } from "../../common/domain/position.js";
+import {
+    predict_position,
+    type Position,
+    type Vector2D,
+} from "../../common/domain/position.js";
 import type { World } from "../../common/domain/world.js";
 import {
     create_camera,
@@ -13,14 +17,13 @@ import {
     type Point,
 } from "./camera.js";
 import { marker_display_scale } from "./marker_scale.js";
+import { picture_rotation } from "./picture_rotation.js";
+import { ASTEROID_PICTURE, PICTURE_SIZE, SHIP_PICTURE } from "./pictures.js";
 
 const BACKGROUND = 0x050814;
 const OUTDATED_ALPHA = 0.35;
-const PLAYER_SHIP_SIZE = 12;
-const DETECTED_SHIP_SIZE = 10;
-const ASTEROID_COLOR = 0x8b93a7;
-const PLAYER_SHIP_COLOR = 0x4da3ff;
-const DETECTED_SHIP_COLOR = 0xe08a3c;
+const PLAYER_SHIP_SIZE = 24;
+const DETECTED_SHIP_SIZE = 20;
 const ZOOM_STEP = 1.1;
 
 type EntityKind = "asteroid" | "ship" | "player_ship";
@@ -28,7 +31,6 @@ type EntityKind = "asteroid" | "ship" | "player_ship";
 type Marker = {
     kind: EntityKind;
     graphics: Graphics;
-    last_radius?: number;
 };
 
 type PixiMapProps = {
@@ -306,18 +308,12 @@ function reconcile(
     for (const asteroid of world.get_asteroids()) {
         const key = entity_key("asteroid", asteroid.get_id());
         seen.add(key);
-        const radius = Math.max(asteroid.get_radius(), 1);
-        const existing = markers.get(key);
-        if (existing === undefined) {
-            const graphics = new Graphics();
-            graphics.zIndex = 0;
-            draw_asteroid(graphics, radius);
-            layer.addChild(graphics);
-            markers.set(key, { kind: "asteroid", graphics, last_radius: radius });
-        } else if (existing.last_radius !== radius) {
-            draw_asteroid(existing.graphics, radius);
-            existing.last_radius = radius;
+        if (markers.has(key)) {
+            continue;
         }
+        const graphics = create_picture(ASTEROID_PICTURE, 0);
+        layer.addChild(graphics);
+        markers.set(key, { kind: "asteroid", graphics });
     }
 
     for (const ship of world.get_detected_ships()) {
@@ -326,9 +322,7 @@ function reconcile(
         if (markers.has(key)) {
             continue;
         }
-        const graphics = new Graphics();
-        graphics.zIndex = 1;
-        draw_detected_ship(graphics);
+        const graphics = create_picture(SHIP_PICTURE, 1);
         layer.addChild(graphics);
         markers.set(key, { kind: "ship", graphics });
     }
@@ -339,9 +333,7 @@ function reconcile(
         if (markers.has(key)) {
             continue;
         }
-        const graphics = new Graphics();
-        graphics.zIndex = 2;
-        draw_player_ship(graphics);
+        const graphics = create_picture(SHIP_PICTURE, 2);
         layer.addChild(graphics);
         markers.set(key, { kind: "player_ship", graphics });
     }
@@ -366,11 +358,13 @@ function update_markers(
         if (marker === undefined) {
             continue;
         }
-        const xy = predicted_xy(asteroid, now);
-        marker.graphics.position.set(xy.x, xy.y);
-        marker.graphics.alpha = asteroid.outdated ? OUTDATED_ALPHA : 1;
-        marker.graphics.scale.set(
-            marker_display_scale(marker.last_radius ?? 1, camera_scale),
+        place_picture(
+            marker.graphics,
+            predicted_xy(asteroid, now),
+            asteroid_extent(asteroid.get_radius()),
+            camera_scale,
+            asteroid.get_orientation(),
+            asteroid.outdated,
         );
     }
 
@@ -379,10 +373,14 @@ function update_markers(
         if (marker === undefined) {
             continue;
         }
-        const xy = predicted_xy(ship, now);
-        marker.graphics.position.set(xy.x, xy.y);
-        marker.graphics.alpha = ship.outdated ? OUTDATED_ALPHA : 1;
-        marker.graphics.scale.set(marker_display_scale(DETECTED_SHIP_SIZE, camera_scale));
+        place_picture(
+            marker.graphics,
+            predicted_xy(ship, now),
+            DETECTED_SHIP_SIZE,
+            camera_scale,
+            ship.get_orientation(),
+            ship.outdated,
+        );
     }
 
     for (const ship of world.get_player_ships()) {
@@ -390,38 +388,40 @@ function update_markers(
         if (marker === undefined) {
             continue;
         }
-        const xy = predicted_xy(ship, now);
-        marker.graphics.position.set(xy.x, xy.y);
-        marker.graphics.alpha = ship.outdated ? OUTDATED_ALPHA : 1;
-        marker.graphics.scale.set(marker_display_scale(PLAYER_SHIP_SIZE, camera_scale));
+        place_picture(
+            marker.graphics,
+            predicted_xy(ship, now),
+            PLAYER_SHIP_SIZE,
+            camera_scale,
+            ship.get_orientation(),
+            ship.outdated,
+        );
     }
 }
 
-function draw_asteroid(graphics: Graphics, radius: number): void {
-    graphics.clear();
-    graphics.circle(0, 0, radius);
-    graphics.fill(ASTEROID_COLOR);
+function asteroid_extent(radius: number): number {
+    return Math.max(radius, 1) * 2;
 }
 
-function draw_player_ship(graphics: Graphics): void {
-    const size = PLAYER_SHIP_SIZE;
-    graphics.clear();
-    graphics.poly([
-        0, -size,
-        size * 0.7, size * 0.6,
-        -size * 0.7, size * 0.6,
-    ]);
-    graphics.fill(PLAYER_SHIP_COLOR);
+function create_picture(svg: string, z_index: number): Graphics {
+    const graphics = new Graphics();
+    graphics.svg(svg);
+    graphics.pivot.set(PICTURE_SIZE / 2, PICTURE_SIZE / 2);
+    graphics.zIndex = z_index;
+    return graphics;
 }
 
-function draw_detected_ship(graphics: Graphics): void {
-    const size = DETECTED_SHIP_SIZE;
-    graphics.clear();
-    graphics.poly([
-        0, -size,
-        size, 0,
-        0, size,
-        -size, 0,
-    ]);
-    graphics.fill(DETECTED_SHIP_COLOR);
+function place_picture(
+    graphics: Graphics,
+    xy: Point,
+    world_size: number,
+    camera_scale: number,
+    orientation: Vector2D | undefined,
+    outdated: boolean,
+): void {
+    const boost = marker_display_scale(world_size, camera_scale);
+    graphics.position.set(xy.x, xy.y);
+    graphics.rotation = picture_rotation(orientation);
+    graphics.alpha = outdated ? OUTDATED_ALPHA : 1;
+    graphics.scale.set((world_size / PICTURE_SIZE) * boost);
 }

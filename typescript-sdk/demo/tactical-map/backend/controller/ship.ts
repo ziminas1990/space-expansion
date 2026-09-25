@@ -2,7 +2,7 @@ import * as midlevel from "@spx/sdk/midlevel";
 import { Status } from "@spx/sdk/types";
 import { PlayerShip } from "../../common/domain/player_ship.js";
 import { EntityRef } from "../../common/domain/world.js";
-import { convert_position } from "./helpers.js";
+import { convert_orientation, convert_position } from "./helpers.js";
 import { IWorld } from "./interfaces.js";
 import { Logger } from "../log.js";
 import { PassiveScanner } from "./passive_scanner.js";
@@ -102,16 +102,17 @@ export class Ship {
             return;
         }
         const position = convert_position(state.position);
+        const orientation = convert_orientation(state.orientation);
         if (this.world.has_entity(this.entity_ref())) {
             this.world.update({
                 type: "player_ship_update",
                 ship_id: this.name,
-                update: { position },
+                update: { position, orientation },
             });
         } else {
             this.world.update({
                 type: "add_player_ship",
-                ship: new PlayerShip(this.name, position),
+                ship: new PlayerShip(this.name, position, orientation),
             });
         }
     }

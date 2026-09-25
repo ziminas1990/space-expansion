@@ -53,8 +53,13 @@ test("packs world updates as numeric tuples", () => {
 
     // 2. check the wire tuples
     expect(add_asteroid).toEqual([0, asteroid.pack()]);
-    expect(radius_only).toEqual([3, "rock-1", null, 12]);
-    expect(ship_update).toEqual([4, "foreign-1", pack_position(sample_position(5_000_000, 11, 12))]);
+    expect(radius_only).toEqual([3, "rock-1", null, 12, null]);
+    expect(ship_update).toEqual([
+        4,
+        "foreign-1",
+        pack_position(sample_position(5_000_000, 11, 12)),
+        null,
+    ]);
     expect(remove_asteroid).toEqual([6, 0, "rock-1"]);
     expect(remove_ship).toEqual([6, 1, "foreign-1"]);
     expect(remove_player).toEqual([6, 2, "Scout"]);
@@ -75,6 +80,7 @@ test("round-trips every world update variant", () => {
             update: {
                 position: sample_position(4_000_000, 7, 8),
                 radius: 50,
+                orientation: { x: 1, y: 0 },
             },
         },
         {
@@ -90,7 +96,10 @@ test("round-trips every world update variant", () => {
         {
             type: "player_ship_update",
             ship_id: "Scout",
-            update: { position: sample_position(6_000_000, 13, 14) },
+            update: {
+                position: sample_position(6_000_000, 13, 14),
+                orientation: { x: 0, y: 1 },
+            },
         },
         { type: "remove_entity", entity: { kind: "asteroid", id: "rock-1" } },
         { type: "remove_entity", entity: { kind: "ship", id: "foreign-1" } },
@@ -135,6 +144,7 @@ test("round-trips every world update variant", () => {
         expect(asteroid_update.asteroid_id).toBe("rock-1");
         expect(asteroid_update.update.radius).toBe(50);
         expect(asteroid_update.update.position).toEqual(sample_position(4_000_000, 7, 8));
+        expect(asteroid_update.update.orientation).toEqual({ x: 1, y: 0 });
     }
 
     const radius_only = unpacked[4];
@@ -142,6 +152,7 @@ test("round-trips every world update variant", () => {
     if (radius_only?.type === "asteroid_update") {
         expect(radius_only.update.position).toBeUndefined();
         expect(radius_only.update.radius).toBe(12);
+        expect(radius_only.update.orientation).toBeUndefined();
     }
 
     const ship_update = unpacked[5];
@@ -154,6 +165,7 @@ test("round-trips every world update variant", () => {
     expect(player_update?.type).toBe("player_ship_update");
     if (player_update?.type === "player_ship_update") {
         expect(player_update.update.position).toEqual(sample_position(6_000_000, 13, 14));
+        expect(player_update.update.orientation).toEqual({ x: 0, y: 1 });
     }
 
     expect(unpacked[7]).toEqual({

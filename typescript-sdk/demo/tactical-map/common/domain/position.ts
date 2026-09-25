@@ -111,3 +111,25 @@ export function unpack_position(packed: ReturnType<typeof pack_position>)
         acc: { x: packed[5], y: packed[6] },
     };
 }
+
+export function copy_vector(vector: Vector2D): Vector2D {
+    return { x: vector.x, y: vector.y };
+}
+
+export type VectorPacked = readonly [number, number];
+
+export function pack_vector(vector: Vector2D | undefined): VectorPacked | null {
+    if (vector === undefined) {
+        return null;
+    }
+    return [vector.x, vector.y];
+}
+
+export function unpack_vector(
+    packed: VectorPacked | null | undefined,
+): Vector2D | undefined {
+    if (packed == null) {
+        return undefined;
+    }
+    return { x: packed[0], y: packed[1] };
+}

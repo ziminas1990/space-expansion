@@ -1,6 +1,12 @@
 import { Asteroid, AsteroidPacked, AsteroidUpdate } from "../domain/asteroid.js";
 import { PlayerShip, PlayerShipPacked } from "../domain/player_ship.js";
-import { pack_position, unpack_position } from "../domain/position.js";
+import {
+    pack_position,
+    pack_vector,
+    unpack_position,
+    unpack_vector,
+    VectorPacked,
+} from "../domain/position.js";
 import { Ship, ShipPacked, ShipUpdate } from "../domain/ship.js";
 import { EntityRef, WorldUpdate } from "../domain/world.js";
 
@@ -28,17 +34,21 @@ type PackedEntityKind =
 export type AsteroidUpdatePacked = [
     PositionPacked | null,
     number | null,
+    VectorPacked | null,
 ];
 
-export type ShipUpdatePacked = PositionPacked | null;
+export type ShipUpdatePacked = [
+    PositionPacked | null,
+    VectorPacked | null,
+];
 
 export type WorldUpdatePacked =
     | [typeof packed_update_type.add_asteroid, AsteroidPacked]
     | [typeof packed_update_type.add_ship, ShipPacked]
     | [typeof packed_update_type.add_player_ship, PlayerShipPacked]
     | [typeof packed_update_type.asteroid_update, string, ...AsteroidUpdatePacked]
-    | [typeof packed_update_type.ship_update, string, ShipUpdatePacked]
-    | [typeof packed_update_type.player_ship_update, string, ShipUpdatePacked]
+    | [typeof packed_update_type.ship_update, string, ...ShipUpdatePacked]
+    | [typeof packed_update_type.player_ship_update, string, ...ShipUpdatePacked]
     | [typeof packed_update_type.remove_entity, PackedEntityKind, string];
 
 export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
@@ -56,20 +66,27 @@ export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
                 update.asteroid_id,
                 packed_update[0],
                 packed_update[1],
+                packed_update[2],
             ];
         }
-        case "ship_update":
+        case "ship_update": {
+            const packed_update = pack_ship_update(update.update);
             return [
                 packed_update_type.ship_update,
                 update.ship_id,
-                pack_ship_update(update.update),
+                packed_update[0],
+                packed_update[1],
             ];
-        case "player_ship_update":
+        }
+        case "player_ship_update": {
+            const packed_update = pack_ship_update(update.update);
             return [
                 packed_update_type.player_ship_update,
                 update.ship_id,
-                pack_ship_update(update.update),
+                packed_update[0],
+                packed_update[1],
             ];
+        }
         case "remove_entity":
             return [
                 packed_update_type.remove_entity,
@@ -104,19 +121,19 @@ export function unpack_world_update(packed: WorldUpdatePacked): WorldUpdate {
             return {
                 type: "asteroid_update",
                 asteroid_id: packed[1],
-                update: unpack_asteroid_update(packed[2], packed[3]),
+                update: unpack_asteroid_update(packed[2], packed[3], packed[4]),
             };
         case packed_update_type.ship_update:
             return {
                 type: "ship_update",
                 ship_id: packed[1],
-                update: unpack_ship_update(packed[2]),
+                update: unpack_ship_update(packed[2], packed[3]),
             };
         case packed_update_type.player_ship_update:
             return {
                 type: "player_ship_update",
                 ship_id: packed[1],
-                update: unpack_ship_update(packed[2]),
+                update: unpack_ship_update(packed[2], packed[3]),
             };
         case packed_update_type.remove_entity:
             return {
@@ -137,12 +154,14 @@ function pack_asteroid_update(update: AsteroidUpdate): AsteroidUpdatePacked {
     return [
         update.position !== undefined ? pack_position(update.position) : null,
         update.radius !== undefined ? update.radius : null,
+        pack_vector(update.orientation),
     ];
 }
 
 function unpack_asteroid_update(
     position: PositionPacked | null,
     radius: number | null,
+    orientation: VectorPacked | null,
 ): AsteroidUpdate {
     const update: AsteroidUpdate = {};
     if (position !== null && position !== undefined) {
@@ -151,20 +170,31 @@ function unpack_asteroid_update(
     if (radius !== null && radius !== undefined) {
         update.radius = radius;
     }
+    const facing = unpack_vector(orientation);
+    if (facing !== undefined) {
+        update.orientation = facing;
+    }
     return update;
 }
 
 function pack_ship_update(update: ShipUpdate): ShipUpdatePacked {
-    if (update.position === undefined) {
-        return null;
-    }
-    return pack_position(update.position);
+    return [
+        update.position !== undefined ? pack_position(update.position) : null,
+        pack_vector(update.orientation),
+    ];
 }
 
-function unpack_ship_update(packed: ShipUpdatePacked): ShipUpdate {
+function unpack_ship_update(
+    position: PositionPacked | null,
+    orientation: VectorPacked | null,
+): ShipUpdate {
     const update: ShipUpdate = {};
-    if (packed !== null && packed !== undefined) {
-        update.position = unpack_position(packed);
+    if (position !== null && position !== undefined) {
+        update.position = unpack_position(position);
+    }
+    const facing = unpack_vector(orientation);
+    if (facing !== undefined) {
+        update.orientation = facing;
     }
     return update;
 }
