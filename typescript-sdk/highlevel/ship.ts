@@ -150,8 +150,8 @@ export class Ship extends EventEmitter<Events> implements BaseModule {
         return [Status.ok(), spec];
     }
 
-    async rotate(x: number, y: number, speed: number): Promise<Status> {
-        const status = await this.ship.rotate(x, y, speed);
+    async rotate(x: number, y: number, speed: number, at?: number): Promise<Status> {
+        const status = await this.ship.rotate(x, y, speed, at);
         if (status.is_ok()) {
             this.state.reset();
         }

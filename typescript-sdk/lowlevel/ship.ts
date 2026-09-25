@@ -80,11 +80,16 @@ export class Ship {
         }];
     }
 
-    async send_rotate(x: number, y: number, speed: number): Promise<types.Status> {
+    async send_rotate(
+        x: number,
+        y: number,
+        speed: number,
+        at?: number,
+    ): Promise<types.Status> {
         const request = create(msg.IShipSchema, {
             choice: { case: "rotate", value: { x, y, speed } },
         });
-        return this.send_request(request);
+        return this.send_request(request, at);
     }
 
     async wait_rotate_ack(timeout_ms: number = 500): Promise<types.Status> {
@@ -105,8 +110,9 @@ export class Ship {
         return [status, response];
     }
 
-    async send_request(request: msg.IShip): Promise<types.Status> {
+    async send_request(request: msg.IShip, timestamp?: number): Promise<types.Status> {
         const message = create(msg.MessageSchema, {
+            timestamp: BigInt(timestamp ?? 0),
             choice: { case: "ship", value: request },
         });
         return this.session.send(message);

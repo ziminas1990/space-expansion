@@ -1,14 +1,5 @@
 export { login } from "./procedures.js";
-export {
-    FlightPlan,
-    Maneuver,
-    approach_to_plan,
-    follow_flight_plan,
-    prepare_flight_plan,
-    prepare_flight_plan_in_delta_v,
-    prepare_flight_plan_in_time,
-} from "./flight_plan.js";
-export type { FlightClock } from "./flight_plan.js";
+export { follow_flight_plan } from "./follow_flight.js";
 export { EventEmitter } from "./events.js";
 export { Cached } from "#sdk/utils/cache.js";
 export { TimePoint } from "#sdk/types/time_point.js";
@@ -25,6 +16,8 @@ export { BlueprintsLibrary } from "./blueprints_library.js";
 export type { Blueprint } from "./blueprints_library.js";
 export { RCS } from "./rcs.js";
 export type { RCSSpecification, CurrentThrust } from "./rcs.js";
+export { HoverEngine } from "./hover_engine.js";
+export type { HoverEngineSpecification } from "./hover_engine.js";
 export { AsteroidScanner } from "./asteroid_scanner.js";
 export type {
     AsteroidScannerSpecification,

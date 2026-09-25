@@ -1,8 +1,6 @@
 import { expect, test } from "vitest";
-import {
-    approach_to_plan,
-    follow_flight_plan,
-} from "../highlevel/index.js";
+import { follow_flight_plan } from "../highlevel/index.js";
+import { build_plan } from "../utils/index.js";
 import {
     ApplicationMode,
     Configuration,
@@ -23,7 +21,7 @@ import {
     expectOk,
     expectStatus,
     FastForwardClock,
-    getRCS,
+    getHoverEngine,
     getShip,
     getSystemClock,
 } from "./helpers/index.js";
@@ -76,34 +74,54 @@ test.skipIf(!hasServerBinary)(
             if (scout1State.weight === undefined) {
                 return;
             }
+            const shipSpec = expectOk(
+                await scout1.get_specification(),
+                "scout-1 specification",
+            );
 
             // 4. get scout-2
             const scout2 = getShip(player, "scout-2");
 
-            // 5. get scout-1 engine and specification
-            const engine = getRCS(scout1, "main_rcs");
+            // 5. get scout-1 hover engine and specification
+            const engine = getHoverEngine(scout1, "engine");
             const engineSpec = expectOk(
                 await engine.get_specification(),
                 "engine specification",
             );
 
             // 6. get both ships' positions and build an intercept plan
-            const position = expectOk(await scout1.get_position(), "scout-1 position");
-            const target = expectOk(await scout2.get_position(), "scout-2 position");
-            const amax = engineSpec.max_thrust / scout1State.weight;
-            const flightPlan = approach_to_plan(position, target, amax);
-            expect(flightPlan, "intercept plan").toBeTruthy();
-            if (!flightPlan) {
+            const [timeStatus, now] = await systemClock.time();
+            expectStatus(timeStatus, "current time");
+            if (now === undefined) {
                 return;
             }
+            const position = expectOk(
+                await scout1.get_position(now + 1_000_000),
+                "scout-1 position",
+            );
+            const target = expectOk(await scout2.get_position(), "scout-2 position");
+            const flightPlan = build_plan(
+                {
+                    mass: scout1State.weight,
+                    position,
+                    orientation: [
+                        scout1State.orientation[0],
+                        scout1State.orientation[1],
+                    ],
+                    engine_max_thrust: engineSpec.max_thrust,
+                    max_rotate_speed: shipSpec.max_rotation_speed,
+                },
+                target,
+            );
 
             // 7. follow the flight plan
             expectStatus(
                 await follow_flight_plan(
-                    scout1,
-                    engine,
+                    scout1.down_level("ship"),
+                    engine.down_level(),
                     flightPlan,
                     fastForwardClock,
+                    shipSpec.max_rotation_speed,
                 ),
                 "follow flight plan",
             );

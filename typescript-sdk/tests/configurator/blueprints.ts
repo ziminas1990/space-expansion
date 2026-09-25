@@ -330,6 +330,7 @@ function createDefaultBlueprints(): Blueprint[] {
             {
                 main_rcs: id(ModuleType.RCS, "Tiny Chemical engine"),
                 additional_rcs: id(ModuleType.RCS, "Tiny Ion engine"),
+                engine: id(ModuleType.HoverEngine, "Main Engine"),
             },
             expenses({ metals: 200, silicates: 20, labor: 100 }),
             2,
@@ -351,6 +352,7 @@ function createDefaultBlueprints(): Blueprint[] {
                     "Tiny Resource Container",
                 ),
                 miner: id(ModuleType.AsteroidMiner, "Toy Miner"),
+                engine: id(ModuleType.HoverEngine, "Main Engine"),
             },
             expenses({ metals: 70_000, silicates: 10_000, labor: 20_000 }),
             1,
@@ -372,6 +374,7 @@ function createDefaultBlueprints(): Blueprint[] {
                 ),
                 "shipyard-medium": id(ModuleType.Shipyard, "Medium Shipyard"),
                 "shipyard-large": id(ModuleType.Shipyard, "Large Shipyard"),
+                engine: id(ModuleType.HoverEngine, "Main Engine"),
             },
             expenses({
                 metals: 17_000_000,

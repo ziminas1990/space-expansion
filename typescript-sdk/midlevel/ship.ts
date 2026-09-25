@@ -47,9 +47,9 @@ export class Ship extends BaseModule<lowlevel.Ship> {
         return await this.run(async (session) => this._get_specification(session));
     }
 
-    async rotate(x: number, y: number, speed: number): Promise<Status> {
+    async rotate(x: number, y: number, speed: number, at?: number): Promise<Status> {
         return await this.run_no_return(
-            async (session) => this._rotate(session, x, y, speed));
+            async (session) => this._rotate(session, x, y, speed, at));
     }
 
     async monitoring(
@@ -91,14 +91,18 @@ export class Ship extends BaseModule<lowlevel.Ship> {
         session: lowlevel.Ship,
         x: number,
         y: number,
-        speed: number)
+        speed: number,
+        at?: number)
         : Promise<Status>
     {
-        const send_status = await session.send_rotate(x, y, speed);
+        const send_status = await session.send_rotate(x, y, speed, at);
         if (!send_status.is_ok()) {
             return send_status.wrap("failed to rotate");
         }
-        const ack_status = await session.wait_rotate_ack();
+        // A future timestamp is applied when ingame time reaches it, and the
+        // acknowledgement is sent then. The turn may be much later in the flight.
+        const ack_timeout_ms = at === undefined ? 500 : 30 * 60_000;
+        const ack_status = await session.wait_rotate_ack(ack_timeout_ms);
         if (!ack_status.is_ok()) {
             return ack_status.wrap("rotate was not acknowledged");
         }

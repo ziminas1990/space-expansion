@@ -14,6 +14,7 @@ export {
     getAsteroidScanner,
     getBlueprintsLibrary,
     getCargo,
+    getHoverEngine,
     getRCS,
     getMessanger,
     getModule,

@@ -3,6 +3,7 @@ import { AsteroidMiner } from "./asteroid_miner.js";
 import { AsteroidScanner } from "./asteroid_scanner.js";
 import type { BaseModule } from "./base_module.js";
 import { BlueprintsLibrary } from "./blueprints_library.js";
+import { HoverEngine } from "./hover_engine.js";
 import { RCS } from "./rcs.js";
 import { Messanger } from "./messanger.js";
 import { HighlevelModule, ModuleType } from "./module_types.js";
@@ -56,6 +57,9 @@ export function create_module(
             return wrap(midlevel_module, midlevel.SystemClock, SystemClock, info.module_name);
         case ModuleType.RCS:
             return wrap(midlevel_module, midlevel.RCS, RCS, info.module_name);
+        case ModuleType.HOVER_ENGINE:
+            return wrap(
+                midlevel_module, midlevel.HoverEngine, HoverEngine, info.module_name);
         case ModuleType.RESOURCE_CONTAINER:
             return wrap(
                 midlevel_module, midlevel.ResourceContainer, ResourceContainer, info.module_name);

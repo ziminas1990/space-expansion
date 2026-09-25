@@ -3,6 +3,7 @@ import {
     type AsteroidMiner,
     type AsteroidScanner,
     type BlueprintsLibrary,
+    type HoverEngine,
     type RCS,
     type HighlevelModule,
     type Messanger,
@@ -58,6 +59,10 @@ export function getCargo(ship: Ship, name: string): ResourceContainer {
 
 export function getRCS(ship: Ship, name: string): RCS {
     return getModule(ship, ModuleType.RCS, name);
+}
+
+export function getHoverEngine(ship: Ship, name: string): HoverEngine {
+    return getModule(ship, ModuleType.HOVER_ENGINE, name);
 }
 
 export function getAllRCS(ship: Ship): RCS[] {

@@ -9,8 +9,17 @@ export class FastForwardClock {
         private multiplier: number,
     ) {}
 
+    async get_time(): Promise<[Status, { ingame_us: number } | undefined]> {
+        const [status, now] = await this.systemClock.time(false);
+        if (!status.is_ok() || now === undefined) {
+            return [status, undefined];
+        }
+        return [status, { ingame_us: now }];
+    }
+
     async wait_until(
         time_us: number,
+        timeout_ms?: number,
     ): Promise<[Status, number | undefined]> {
         await this.clock.fastForward(this.multiplier, 1_000);
         try {
@@ -20,7 +29,7 @@ export class FastForwardClock {
             }
             return await this.systemClock.wait_until(
                 time_us,
-                this.waitTimeoutMs(time_us - now),
+                timeout_ms ?? this.waitTimeoutMs(time_us - now),
             );
         } finally {
             await this.clock.play();

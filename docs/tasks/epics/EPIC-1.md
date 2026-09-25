@@ -37,7 +37,7 @@ only after that engine exists.
    changing how clients fly.
 3. [SES-229](../closed/SES-229.md) — add IHoverEngine, the main engine
    that thrusts along the nose.
-4. [SES-230](../SES-230.md) — rewrite harvester navigation for
+4. [SES-230](../closed/SES-230.md) — rewrite harvester navigation for
    IHoverEngine and lower the RCS maximum thrust.
 5. [SES-232](../SES-232.md) — IRCS thrusts at its maximum; the player
    sets only the direction.

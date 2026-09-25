@@ -40,35 +40,7 @@ The interface has four commands:
 `specification_req` requests the thrusters' parameters. The server replies with
 one `specification` message, that has the following fields:
 
-- `max_thrust` — the largest thrust this set can produce, in newtons. In the
-  current configuration this is the same maximum the thrusters had before they
-  were named RCS.
-
-For example:
-
-```json
-{
-  "tunnelId": 600,
-  "timestamp": 0,
-  "rcs": {
-    "specification_req": true
-  }
-}
-```
-
-The server replies:
-
-```json
-{
-  "tunnelId": 600,
-  "timestamp": 238221334,  // ingame time, in microseconds
-  "rcs": {
-    "specification": {
-      "max_thrust": 10000
-    }
-  }
-}
-```
+- `max_thrust` — the largest thrust this set can produce, in newtons.
 
 ## The change_thrust command
 
