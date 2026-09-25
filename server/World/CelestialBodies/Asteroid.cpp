@@ -1,5 +1,6 @@
 #include "Asteroid.h"
 
+#include <algorithm>
 #include <cstring>
 #include <random>
 #include <assert.h>
@@ -62,11 +63,19 @@ ResourcesArray Asteroid::yield(double amount)
   ResourcesArray mined;
 
   std::lock_guard<utils::Mutex> guard(m_mutex);
-  double mass = getWeight();
-  if (mass < 1) {
-    return ResourcesArray();
+  const double mass = getWeight();
+
+  // The request covers the whole asteroid: hand back whatever is left.
+  if (amount >= mass) {
+    for (Resource::Type eType: Resource::MaterialResources) {
+      mined[eType] = mass * m_composition[eType];
+      m_composition[eType] = 0;
+    }
+    // setRadius() rejects a non-positive radius.
+    setWeight(0);
+    setRadius(1e-3);
+    return mined;
   }
-  amount = std::min(amount, mass);
 
   // Generating resources composition in the mined chunk
   ResourcesArray minedChunk;
@@ -84,26 +93,30 @@ ResourcesArray Asteroid::yield(double amount)
   minedChunk[Resource::eStone] /= 2;
   minedChunk.normalize();
 
+  double remainingMass = 0;
   for (Resource::Type eType: Resource::MaterialResources) {
     const double total = mass * m_composition[eType];
-    mined[eType] = amount * minedChunk[eType];
-    assert(mined[eType] <= total);
-    // Recalculating composition
-    m_composition[eType] = (total - mined[eType]) / mass;
+    // The chunk can ask for more of a scarce resource than the asteroid holds.
+    // Take the whole remainder of that resource and no more.
+    mined[eType] = std::min(amount * minedChunk[eType], total);
+    const double left = std::max(0.0, total - mined[eType]);
+    m_composition[eType] = left;
+    remainingMass += left;
   }
-  
+
+  if (remainingMass < 1) {
+    setWeight(0);
+    setRadius(1e-3);
+    return mined;
+  }
+
   // Recalculating asteroid parameters
   m_composition.normalize();
-  mass -= amount;
-
   const double avgDensity = 1 / m_composition.calculateTotalVolume();
-  const double volume = (mass / avgDensity);
-  // 1.0/3.0: integer 1/3 is 0 in C++, and pow(x, 0) collapses every mined
-  // asteroid to radius 1.
-  const double newRadius = pow(volume * 3.0 / (4.0 * M_PI), 1.0 / 3.0);
-  setWeight(mass);
+  const double volume     = remainingMass / avgDensity;
+  const double newRadius  = pow(volume * 3.0 / (4.0 * M_PI), 1.0 / 3.0);
+  setWeight(remainingMass);
   setRadius(newRadius);
-
   return mined;
 }
 
