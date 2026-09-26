@@ -46,11 +46,12 @@ keeps those of type `"Shipyard"`, and sends `open_tunnel` with the shipyard's
 slot. The server returns a new session that implements the `IShipyard`
 interface.
 
-The interface has three commands:
+The interface has these commands:
 
 - `specification_req` — request the shipyard's parameter
 - `bind_to_cargo` — choose the container that supplies the materials
 - `start_build` — start building a ship
+- `monitoring` — observe the current build and later builds
 
 ## The specification_req command
 
@@ -81,11 +82,14 @@ The server replies with `bind_to_cargo_status`:
 - `ship_name` — the name to give the ship. An empty name is replaced with the
   blueprint name, such as `Ship/MiningDrone`
 
-The server replies with `building_report` on the session that sent the
-command. The report has `status` and `progress`:
+On success, the server immediately replies with `build_started` on the
+session that sent the command. It carries the blueprint name and the
+requested ship name. This is the name that was ordered; the completed ship
+may receive a different name if another ship already has it.
 
-- `BUILD_STARTED` — the build has started. `progress` is 0. Further reports
-  follow on this session
+If the build cannot start, the server replies with `building_report`. It has
+`status` and `progress`:
+
 - `SHIPYARD_IS_BUSY` — this shipyard is already building a ship. That build
   continues
 - `CARGO_NOT_FOUND` — the shipyard is not bound to a container
@@ -94,7 +98,7 @@ command. The report has `status` and `progress`:
 - `INTERNAL_ERROR` — the server could not start the build
 
 While the build runs, a `building_report` arrives about every 500 milliseconds
-of ingame time:
+of ingame time on the builder's session and on monitoring sessions:
 
 - `BUILD_IN_PROGRESS` — the build is advancing. `progress` is the fraction
   done
@@ -111,6 +115,20 @@ After `BUILD_COMPLETE` the server sends `building_complete`:
 
 Open a tunnel to that slot to use the new ship. `ship_name` can differ from
 the `ship_name` in `start_build`. The rule is in [Ship names](#ship-names).
+
+## The monitoring command
+
+Send `monitoring` on a dedicated Shipyard session. The server first replies
+with `monitoring_ack`. If the Shipyard is idle, no build event follows until
+one starts. If it is already building, the next message is `build_started`
+with the blueprint and requested ship name. A `building_report` with the
+current progress and `BUILD_IN_PROGRESS` or `BUILD_FROZEN` status follows
+immediately. Progress is a fraction from 0 to 1.
+
+For each later build, the session receives `build_started`, subsequent
+`building_report` messages, and `building_complete`. The session stays
+subscribed for later builds. Closing it stops only that subscription; other
+monitors and the builder continue. Several sessions may monitor one Shipyard.
 
 For example, build `Ship/MiningDrone` under the name `Drone #1`:
 
@@ -134,9 +152,9 @@ The server replies:
   "tunnelId": 1201,
   "timestamp": 240000000,
   "shipyard": {
-    "building_report": {
-      "status": "BUILD_STARTED",
-      "progress": 0
+    "build_started": {
+      "blueprint_name": "Ship/MiningDrone",
+      "ship_name": "Drone"
     }
   }
 }

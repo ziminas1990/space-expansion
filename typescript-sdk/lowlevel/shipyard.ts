@@ -32,8 +32,16 @@ export type ShipyardShipBuilt = {
 }
 
 export type ShipyardBuildingEvent =
+    | { case: "build_started"; build: ShipyardBuildStarted }
     | { case: "building_report"; report: ShipyardBuildingReport }
     | { case: "building_complete"; ship: ShipyardShipBuilt };
+
+export type ShipyardBuildStarted = {
+    blueprint_name: string;
+    ship_name: string;
+};
+
+export type ShipyardMonitoringEvent = ShipyardBuildingEvent;
 
 export class Shipyard {
 
@@ -108,12 +116,43 @@ export class Shipyard {
         return this.send(request);
     }
 
+    async send_monitoring_request(): Promise<types.Status> {
+        const request = create(msg.IShipyardSchema, {
+            choice: { case: "monitoring", value: true },
+        });
+        return this.send(request);
+    }
+
+    async wait_monitoring_ack(timeout: number = 500)
+    : Promise<[types.Status, boolean | undefined]>
+    {
+        const [status, response] = await this.wait(timeout);
+        if (!status.is_ok() || !response) {
+            return [status.wrap("no response"), undefined];
+        }
+        if (response.choice.case !== "monitoringAck") {
+            return [types.Status.fail(`got unexpected message ${response.choice.case}`),
+                    undefined];
+        }
+        return [types.Status.ok(), response.choice.value];
+    }
+
     async wait_building_event(timeout: number = 1000)
     : Promise<[types.Status, ShipyardBuildingEvent | undefined]>
     {
         const [status, response] = await this.wait(timeout);
         if (!status.is_ok() || !response) {
             return [status.wrap("no response"), undefined];
+        }
+        if (response.choice.case === "buildStarted") {
+            const value = response.choice.value;
+            return [types.Status.ok(), {
+                case: "build_started",
+                build: {
+                    blueprint_name: value.blueprintName,
+                    ship_name: value.shipName,
+                },
+            }];
         }
         if (response.choice.case == "buildingComplete") {
             const ship = response.choice.value;

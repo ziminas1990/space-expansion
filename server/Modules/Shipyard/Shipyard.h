@@ -1,11 +1,8 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <atomic>
-
 #include <Modules/BaseModule.h>
 #include <Utils/GlobalContainer.h>
+#include <Utils/UnorderedVector.h>
 #include <Utils/YamlForwardDeclarations.h>
 #include <Blueprints/Fwd.h>
 #include <World/Resources.h>
@@ -32,6 +29,7 @@ public:
   // override from BaseModule
   bool loadState(YAML::Node const& data) override;
   void proceed(uint32_t nIntervalUs) override;
+  void onSessionClosed(uint32_t nSessionId) override;
 
 private:
   void handleShipyardMessage(
@@ -42,14 +40,20 @@ private:
   void bindToCargo(uint32_t nSessionId, std::string const& name);
   void startBuildReq(uint32_t nSessionId, const spex::IShipyard::StartBuild &req);
   void cancelBuildReq(uint32_t nSessionId);
+  void monitoring(uint32_t nSessionId);
 
   void sendStatus(uint32_t nSessionId, spex::IShipyard::Status eStatus) const;
   void sendSpeification(uint32_t nSessionId);
+  void sendMonitoringAck(uint32_t nSessionId) const;
+  void sendBuildStarted(uint32_t nSessionId) const;
   void sendBuildingReport(spex::IShipyard::Status eStatus, double progress);
   void sendBuildingReport(uint32_t nSessionId,
                           spex::IShipyard::Status eStatus,
-                          double progress);
+                          double progress) const;
   void sendBuildComplete(std::string &&sShipName, uint32_t nSlotId);
+  void sendToBuildListeners(spex::Message const& message);
+
+  spex::IShipyard::Status currentBuildStatus() const;
 
 private:
   double m_laborPerSecond;
@@ -58,12 +62,20 @@ private:
   modules::ResourceContainerPtr m_pContainer;
     // Container, which resources will be consumed during the build
 
+  // Session that successfully started the current build. 0 when idle.
+  // Reports for that build are sent here even if the session is not monitoring.
+  uint32_t m_nBuilderSession = 0;
+
+  utils::UnorderedVector<uint32_t> m_monitoringSessions;
+
   struct BuildingTask {
-    BuildingTask() : progress(0), nIntervalSinceLastInd(0) {}
+    BuildingTask() : progress(0), frozen(false), nIntervalSinceLastInd(0) {}
 
     blueprints::ShipBlueprintPtr  pShipBlueprint;
+    std::string                   sBlueprintName;
     std::string                   sShipName;
-    double                        progress; 
+    double                        progress;
+    bool                          frozen;
     world::ResourcesArray         resources;
       // How many resources should be consumed to build item
     blueprints::BlueprintsLibrary localLibraryCopy;

@@ -9,6 +9,7 @@ import { PassiveScanner } from "./passive_scanner.js";
 import { ResourceContainerController } from "./resource_container.js";
 import { HoverEngineController } from "./hover_engine.js";
 import { RCSController } from "./rcs.js";
+import { ShipyardController } from "./shipyard.js";
 import { RetryTimeout } from "../utils/retry_timeout.js";
 
 const STATE_MONITOR_MS = 100;
@@ -241,6 +242,15 @@ export class Ship {
             case midlevel.ModuleType.RCS: {
                 const controller = new RCSController(
                     new midlevel.RCS(info.open_session_cb),
+                    this.world, this.logger, this.name, info.slot_id, info.module_name,
+                );
+                this.module_controllers.set(info.slot_id, controller);
+                controller.start();
+                break;
+            }
+            case midlevel.ModuleType.SHIPYARD: {
+                const controller = new ShipyardController(
+                    new midlevel.Shipyard(info.open_session_cb),
                     this.world, this.logger, this.name, info.slot_id, info.module_name,
                 );
                 this.module_controllers.set(info.slot_id, controller);

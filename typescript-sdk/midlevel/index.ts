@@ -38,6 +38,8 @@ export {
     ShipyardStatus,
     ShipyardSpecification,
     ShipyardShipBuilt,
+    ShipyardMonitoringEvent,
+    MonitoringCallback as ShipyardMonitoringCallback,
     BuildingCallback as ShipyardBuildingCallback,
 } from "./shipyard.js";
 export {

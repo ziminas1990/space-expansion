@@ -3,6 +3,7 @@ import { PlayerShip, PlayerShipPacked } from "../domain/player_ship.js";
 import type { ModuleInfoPacked } from "../domain/module.js";
 import type { ContainerContent } from "../domain/resource_container.js";
 import type { RCSThrust } from "../domain/rcs.js";
+import type { ShipyardState } from "../domain/shipyard.js";
 import {
     pack_position,
     pack_vector,
@@ -27,6 +28,7 @@ const packed_update_type = {
     resource_container_update: 8,
     hover_engine_update: 9,
     rcs_update: 10,
+    shipyard_update: 11,
 } as const;
 
 const packed_entity_kind = {
@@ -60,7 +62,8 @@ export type WorldUpdatePacked =
     | [typeof packed_update_type.player_ship_modules_update, string, ModuleInfoPacked[]]
     | [typeof packed_update_type.resource_container_update, string, number, ContainerContent]
     | [typeof packed_update_type.hover_engine_update, string, number, number]
-    | [typeof packed_update_type.rcs_update, string, number, RCSThrust];
+    | [typeof packed_update_type.rcs_update, string, number, RCSThrust]
+    | [typeof packed_update_type.shipyard_update, string, number, ShipyardState];
 
 export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
     switch (update.type) {
@@ -126,6 +129,13 @@ export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
                 update.ship_id,
                 update.slot_id,
                 update.thrust,
+            ];
+        case "shipyard_update":
+            return [
+                packed_update_type.shipyard_update,
+                update.ship_id,
+                update.slot_id,
+                update.state,
             ];
         case "remove_entity":
             return [
@@ -205,6 +215,13 @@ export function unpack_world_update(packed: WorldUpdatePacked): WorldUpdate {
                 ship_id: packed[1],
                 slot_id: packed[2],
                 thrust: packed[3],
+            };
+        case packed_update_type.shipyard_update:
+            return {
+                type: "shipyard_update",
+                ship_id: packed[1],
+                slot_id: packed[2],
+                state: packed[3],
             };
         case packed_update_type.remove_entity:
             return {

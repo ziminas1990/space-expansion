@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 import { PlayerShip } from "../common/domain/player_ship.js";
 import { ResourceContainer } from "../common/domain/resource_container.js";
+import { Shipyard } from "../common/domain/shipyard.js";
 import type { Position } from "../common/domain/position.js";
 import {
     group_modules,
@@ -146,4 +147,43 @@ test("shares expanded modules by name within a blueprint group", () => {
     }));
     expect(html).toContain('<details class="resource-container-widget"><summary><span>Main hold');
     expect(html).toContain('<details class="resource-container-widget" open=""><summary><span>Reserve hold');
+});
+
+test("shows Shipyard status, ordered ship, and matching progress label and bar", () => {
+    const ship = new PlayerShip("Builder", position, 10, "Station");
+    ship.set_modules([{ slot_id: 9, type: "Shipyard", name: "Main bay" }]);
+    const yard = ship.get_module(9);
+    expect(yard).toBeInstanceOf(Shipyard);
+    if (!(yard instanceof Shipyard)) {
+        throw new Error("Expected Shipyard");
+    }
+    const render = () => renderToStaticMarkup(createElement(ShipPanel, {
+        ship,
+        expanded_types: new Set(["Shipyard"]),
+        expanded_modules: new Set([module_expansion_key(yard)]),
+        on_toggle_type: () => {},
+        on_toggle_module: () => {},
+    }));
+
+    yard.update_state({
+        status: "building", blueprint_name: "Ship/Miner",
+        ship_name: "Ore One", progress: 0.426,
+    });
+    let html = render();
+    expect(html).toContain("building 43%");
+    expect(html).toContain("Type: Ship/Miner");
+    expect(html).toContain("Ordered name: Ore One");
+    expect(html).toContain("Progress: 43%");
+    expect(html).toContain('<progress max="100" value="43"></progress>');
+
+    yard.update_state({
+        status: "frozen", blueprint_name: "Ship/Miner",
+        ship_name: "Ore One", progress: 0.426,
+    });
+    html = render();
+    expect(html).toContain("frozen 43%");
+    yard.update_state({ status: "idle" });
+    html = render();
+    expect(html).toContain("idle");
+    expect(html).not.toContain("Ore One");
 });

@@ -379,6 +379,188 @@ TEST_F(ShipyardTests, BuildFrozen)
 
 }
 
+bool stockShipyardCargo(client::Ship& station,
+                        client::ClientCommutator& commutator,
+                        std::string const& sBlueprintName,
+                        double nShare)
+{
+  client::BlueprintsStorage storage;
+  if (!client::FindBlueprintStorage(commutator, storage))
+    return false;
+
+  client::Blueprint blueprint;
+  if (storage.getBlueprint(client::BlueprintName(sBlueprintName), blueprint)
+      != client::BlueprintsStorage::eSuccess)
+    return false;
+
+  world::ResourcesArray expenses;
+  for (world::ResourceItem const& item : blueprint.m_expenses) {
+    expenses[item.m_eType] += item.m_nAmount * nShare;
+  }
+  return client::ResourcesManagment::shift(
+      station, "cargo", "shipyard_cargo", expenses);
+}
+
+TEST_F(ShipyardTests, MonitorFollowsBuildAndCompletion)
+{
+  const std::string sBlueprintName = "Ship/MiningDrone";
+  resumeTime();
+
+  // 1. player logins and opens the station
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
+
+  client::Ship station(m_pRouter);
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
+
+  // 2. bind the shipyard and stock its cargo
+  client::Shipyard shipyard;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+  ASSERT_EQ(client::Shipyard::eSuccess, shipyard.bindToCargo("shipyard_cargo"));
+  ASSERT_TRUE(stockShipyardCargo(station, *pCommutator, sBlueprintName, 1));
+
+  // 3. an idle shipyard acknowledges monitoring and sends no build event
+  client::Shipyard monitor;
+  ASSERT_TRUE(client::FindShipyard(station, monitor, "shipyard"));
+  ASSERT_TRUE(monitor.startMonitoring());
+  client::Shipyard::BuildStarted ignored;
+  ASSERT_FALSE(monitor.waitBuildStarted(ignored, 100));
+
+  // 4. starting a build delivers build_started to the builder and the monitor
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard.startBuilding(sBlueprintName, "Drone #1"));
+  client::Shipyard::BuildStarted started;
+  ASSERT_TRUE(monitor.waitBuildStarted(started));
+  EXPECT_EQ(sBlueprintName, started.blueprintName);
+  EXPECT_EQ("Drone #1", started.shipName);
+
+  // 5. both sessions receive progress reports and the completion
+  double      builderProgress = 0;
+  uint32_t    nBuilderSlot = 0;
+  std::string sBuilderShip;
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            shipyard.waitingWhileBuilding(
+                &builderProgress, &nBuilderSlot, &sBuilderShip));
+
+  double      monitorProgress = 0;
+  uint32_t    nMonitorSlot = 0;
+  std::string sMonitorShip;
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            monitor.waitingWhileBuilding(
+                &monitorProgress, &nMonitorSlot, &sMonitorShip));
+  EXPECT_EQ(nBuilderSlot, nMonitorSlot);
+  EXPECT_EQ(sBuilderShip, sMonitorShip);
+}
+
+TEST_F(ShipyardTests, MonitorJoinsDuringBuild)
+{
+  const std::string sBlueprintName = "Ship/MiningDrone";
+  resumeTime();
+
+  // 1. player logins and opens the station
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
+
+  client::Ship station(m_pRouter);
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
+
+  // 2. bind the shipyard and give it only part of the materials
+  client::Shipyard shipyard;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+  ASSERT_EQ(client::Shipyard::eSuccess, shipyard.bindToCargo("shipyard_cargo"));
+  ASSERT_TRUE(stockShipyardCargo(station, *pCommutator, sBlueprintName, 0.4));
+
+  // 3. start the build and wait until it freezes
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard.startBuilding(sBlueprintName, "Drone #1"));
+  double frozenProgress = 0;
+  ASSERT_EQ(client::Shipyard::eBuildFrozen,
+            shipyard.waitingWhileBuilding(&frozenProgress));
+
+  // 4. a new subscriber gets the ack, the current build, and a progress report
+  client::Shipyard monitor;
+  ASSERT_TRUE(client::FindShipyard(station, monitor, "shipyard"));
+  ASSERT_TRUE(monitor.startMonitoring());
+
+  client::Shipyard::BuildStarted started;
+  ASSERT_TRUE(monitor.waitBuildStarted(started));
+  EXPECT_EQ(sBlueprintName, started.blueprintName);
+  EXPECT_EQ("Drone #1", started.shipName);
+
+  client::Shipyard::Status reportStatus = client::Shipyard::eStatusError;
+  double reportProgress = 0;
+  ASSERT_TRUE(monitor.waitBuildingReport(reportStatus, reportProgress));
+  EXPECT_EQ(client::Shipyard::eBuildFrozen, reportStatus);
+  EXPECT_NEAR(frozenProgress, reportProgress, 0.05);
+}
+
+TEST_F(ShipyardTests, ClosingOneMonitorLeavesTheOther)
+{
+  const std::string sBlueprintName = "Ship/MiningDrone";
+  resumeTime();
+
+  // 1. player logins and opens the station
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("Jack", "Black")
+        .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
+
+  client::Ship station(m_pRouter);
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Sweet Home", station));
+
+  // 2. bind the shipyard and stock its cargo
+  client::Shipyard shipyard;
+  ASSERT_TRUE(client::FindShipyard(station, shipyard, "shipyard"));
+  ASSERT_EQ(client::Shipyard::eSuccess, shipyard.bindToCargo("shipyard_cargo"));
+  ASSERT_TRUE(stockShipyardCargo(station, *pCommutator, sBlueprintName, 1));
+
+  // 3. two sessions subscribe while the shipyard is idle
+  client::Shipyard first;
+  client::Shipyard second;
+  ASSERT_TRUE(client::FindShipyard(station, first, "shipyard"));
+  ASSERT_TRUE(client::FindShipyard(station, second, "shipyard"));
+  ASSERT_TRUE(first.startMonitoring());
+  ASSERT_TRUE(second.startMonitoring());
+
+  // 4. both receive the same build_started
+  ASSERT_EQ(client::Shipyard::eBuildStarted,
+            shipyard.startBuilding(sBlueprintName, "Drone #1"));
+  client::Shipyard::BuildStarted startedOnFirst;
+  client::Shipyard::BuildStarted startedOnSecond;
+  ASSERT_TRUE(first.waitBuildStarted(startedOnFirst));
+  ASSERT_TRUE(second.waitBuildStarted(startedOnSecond));
+  EXPECT_EQ(startedOnFirst.blueprintName, startedOnSecond.blueprintName);
+  EXPECT_EQ(startedOnFirst.shipName, startedOnSecond.shipName);
+
+  // 5. closing the first subscription leaves the second and the build running
+  ASSERT_TRUE(first.disconnect());
+  double      progress = 0;
+  uint32_t    nSlotId = 0;
+  std::string sShipName;
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            second.waitingWhileBuilding(&progress, &nSlotId, &sShipName));
+  EXPECT_EQ("Drone #1", sShipName);
+
+  double      builderProgress = 0;
+  uint32_t    nBuilderSlot = 0;
+  std::string sBuilderShip;
+  ASSERT_EQ(client::Shipyard::eSuccess,
+            shipyard.waitingWhileBuilding(
+                &builderProgress, &nBuilderSlot, &sBuilderShip));
+  EXPECT_EQ(nSlotId, nBuilderSlot);
+  EXPECT_EQ(sShipName, sBuilderShip);
+}
+
 class ShipyardNameTests : public FunctionalTestFixture
 {
 protected:

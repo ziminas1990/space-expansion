@@ -1,6 +1,7 @@
 import type { PlayerShip } from "../common/domain/player_ship.js";
 import type { InstalledModule, ModuleInfo } from "../common/domain/module.js";
 import { ResourceContainer } from "../common/domain/resource_container.js";
+import { Shipyard } from "../common/domain/shipyard.js";
 
 export function toggle_module_type(
     expanded_by_group: ReadonlyMap<string, ReadonlySet<string>>,
@@ -102,6 +103,12 @@ export function ShipPanel({
                                                 expanded={expanded_modules.has(module_expansion_key(module))}
                                                 on_toggle={() => on_toggle_module(module_expansion_key(module))}
                                             />
+                                        ) : module instanceof Shipyard ? (
+                                            <ShipyardWidget
+                                                module={module}
+                                                expanded={expanded_modules.has(module_expansion_key(module))}
+                                                on_toggle={() => on_toggle_module(module_expansion_key(module))}
+                                            />
                                         ) : (
                                             <h4>{module.name}</h4>
                                         )}
@@ -113,6 +120,48 @@ export function ShipPanel({
                 );
             })}
         </aside>
+    );
+}
+
+function ShipyardWidget({
+    module,
+    expanded,
+    on_toggle,
+}: {
+    module: Shipyard;
+    expanded: boolean;
+    on_toggle: () => void;
+}) {
+    const state = module.get_state();
+    const percent = state !== undefined && state.status !== "idle"
+        ? Math.round(state.progress * 100)
+        : undefined;
+    const status = state === undefined
+        ? "…"
+        : state.status === "idle"
+            ? "idle"
+            : `${state.status} ${percent}%`;
+
+    return (
+        <details className="shipyard-widget" open={expanded}>
+            <summary onClick={(event) => {
+                event.preventDefault();
+                on_toggle();
+            }}>
+                <span>{module.name}</span>
+                <span className="shipyard-status">{status}</span>
+            </summary>
+            {state !== undefined && state.status !== "idle" && percent !== undefined && (
+                <div className="shipyard-build">
+                    <p>Type: {state.blueprint_name}</p>
+                    <p>Ordered name: {state.ship_name}</p>
+                    <label>
+                        Progress: {percent}%
+                        <progress max={100} value={percent} />
+                    </label>
+                </div>
+            )}
+        </details>
     );
 }
 

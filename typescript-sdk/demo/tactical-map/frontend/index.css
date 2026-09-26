@@ -317,7 +317,8 @@ body,
     margin-top: 0.4rem;
 }
 
-.resource-container-widget summary {
+.resource-container-widget summary,
+.shipyard-widget summary {
     display: flex;
     align-items: center;
     gap: 0.45rem;
@@ -326,11 +327,13 @@ body,
     font-weight: 600;
 }
 
-.resource-container-widget summary::before {
+.resource-container-widget summary::before,
+.shipyard-widget summary::before {
     content: "▸";
 }
 
-.resource-container-widget[open] summary::before {
+.resource-container-widget[open] summary::before,
+.shipyard-widget[open] summary::before {
     content: "▾";
 }
 
@@ -338,6 +341,35 @@ body,
     margin-left: auto;
     color: #b7c2dc;
     white-space: nowrap;
+}
+
+.shipyard-status {
+    margin-left: auto;
+    color: #b7c2dc;
+    white-space: nowrap;
+}
+
+.shipyard-build {
+    padding: 0.5rem 0 0 1rem;
+    color: #b7c2dc;
+    font-size: 0.8rem;
+}
+
+.shipyard-build p {
+    margin: 0 0 0.35rem;
+    overflow-wrap: anywhere;
+}
+
+.shipyard-build label {
+    display: block;
+}
+
+.shipyard-build progress {
+    display: block;
+    width: 100%;
+    height: 0.7rem;
+    margin-top: 0.3rem;
+    accent-color: #c28b27;
 }
 
 .module-group .resource-container-resources {

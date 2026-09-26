@@ -6,6 +6,7 @@ import type { ModuleInfo } from "./module.js";
 import { ResourceContainer, type ContainerContent } from "./resource_container.js";
 import { HoverEngine } from "./hover_engine.js";
 import { RCS, type RCSThrust } from "./rcs.js";
+import { Shipyard, type ShipyardState } from "./shipyard.js";
 import { Ship, ShipUpdate } from "./ship.js";
 
 const DEFAULT_OUTDATED_AFTER_US = 60_000_000;
@@ -26,6 +27,7 @@ export type WorldUpdate =
     | { type: "resource_container_update", ship_id: string, slot_id: number, content: ContainerContent }
     | { type: "hover_engine_update", ship_id: string, slot_id: number, thrust: number }
     | { type: "rcs_update", ship_id: string, slot_id: number, thrust: RCSThrust }
+    | { type: "shipyard_update", ship_id: string, slot_id: number, state: ShipyardState }
     | { type: "remove_entity", entity: EntityRef }
 
 export type WorldPacked = ReturnType<World["pack"]>;
@@ -145,6 +147,13 @@ export class World {
                 const module = this.player_ships.get(update.ship_id)?.get_module(update.slot_id);
                 if (module instanceof RCS) {
                     module.update_thrust(update.thrust);
+                }
+                break;
+            }
+            case "shipyard_update": {
+                const module = this.player_ships.get(update.ship_id)?.get_module(update.slot_id);
+                if (module instanceof Shipyard) {
+                    module.update_state(update.state);
                 }
                 break;
             }

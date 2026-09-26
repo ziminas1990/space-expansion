@@ -359,17 +359,30 @@ message IShipyard {
     double progress = 2;
   }
 
+  // Sent after a successful start_build, and when a subscriber joins a build
+  // already underway.
+  message BuildStarted {
+    string blueprint_name = 1;
+    string ship_name      = 2;
+  }
+
   oneof choice {
     bool       specification_req = 1;
     string     bind_to_cargo     = 3;
     StartBuild start_build       = 4;
     bool       cancel_build      = 5;
+    // On this session, send monitoring_ack first; if building, immediately
+    // follow it with BuildStarted and the current building_report.
+    // Existing building_report and building_complete carry later updates.
+    bool       monitoring        = 6;
 
 
     Specification  specification        = 20;
     Status         bind_to_cargo_status = 21;
     BuildingReport building_report      = 22;
     ShipBuilt      building_complete    = 23;
+    bool           monitoring_ack       = 24;
+    BuildStarted   build_started        = 25;
   }
 
 }

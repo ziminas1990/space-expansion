@@ -5,6 +5,7 @@ import { PlayerShip } from "./player_ship.js";
 import type { Position } from "./position.js";
 import { RCS } from "./rcs.js";
 import { ResourceContainer } from "./resource_container.js";
+import { Shipyard } from "./shipyard.js";
 import { Ship } from "./ship.js";
 import { World } from "./world.js";
 import { noop_logger } from "../logger.js";
@@ -120,6 +121,61 @@ test("round-trips a packed world snapshot", () => {
     expect(restored.get_detected_ships()).toHaveLength(1);
     expect(restored.get_player_ships()).toHaveLength(1);
     expect(restored.pack()).toEqual(packed);
+});
+
+test("keeps Shipyard builds separate through snapshots and module removal", () => {
+    const world = new World(noop_logger);
+    world.update({
+        type: "add_player_ship",
+        ship: new PlayerShip("Builder", sample_position(1_000_000), 20, "Station"),
+    });
+    world.update({
+        type: "player_ship_modules_update",
+        ship_id: "Builder",
+        modules: [
+            { slot_id: 3, type: "Shipyard", name: "Left bay" },
+            { slot_id: 4, type: "Shipyard", name: "Right bay" },
+        ],
+    });
+    world.update({
+        type: "shipyard_update", ship_id: "Builder", slot_id: 3,
+        state: {
+            status: "building", blueprint_name: "Ship/Miner",
+            ship_name: "Ore One", progress: 0.4,
+        },
+    });
+    world.update({
+        type: "shipyard_update", ship_id: "Builder", slot_id: 4,
+        state: {
+            status: "frozen", blueprint_name: "Ship/Scout",
+            ship_name: "Eye", progress: 0.7,
+        },
+    });
+
+    const restored = World.unpack(JSON.parse(JSON.stringify(world.pack())), noop_logger);
+    const ship = restored.get_player_ship("Builder")!;
+    const left = ship.get_module(3);
+    const right = ship.get_module(4);
+    expect(left).toBeInstanceOf(Shipyard);
+    expect(right).toBeInstanceOf(Shipyard);
+    expect((left as Shipyard).get_state()).toEqual({
+        status: "building", blueprint_name: "Ship/Miner",
+        ship_name: "Ore One", progress: 0.4,
+    });
+    expect((right as Shipyard).get_state()?.status).toBe("frozen");
+
+    restored.update({
+        type: "shipyard_update", ship_id: "Builder", slot_id: 3,
+        state: { status: "idle" },
+    });
+    expect((left as Shipyard).get_state()).toEqual({ status: "idle" });
+    expect((right as Shipyard).get_state()?.status).toBe("frozen");
+    restored.update({
+        type: "player_ship_modules_update", ship_id: "Builder",
+        modules: [{ slot_id: 4, type: "Shipyard", name: "Right bay" }],
+    });
+    expect(ship.get_module(3)).toBeUndefined();
+    expect(ship.get_module(4)).toBe(right);
 });
 
 test("keeps a known orientation and leaves an unknown one unset", () => {

@@ -82,10 +82,54 @@ Shipyard::Status Shipyard::startBuilding(std::string const& sBlueprint,
   spex::IShipyard response;
   if (!wait(response))
     return eTimeoutError;
+  if (response.choice_case() == spex::IShipyard::kBuildStarted) {
+    return eBuildStarted;
+  }
   if (response.choice_case() != spex::IShipyard::kBuildingReport) {
     return eUnexpectedMessage;
   }
   return convert(response.building_report().status());
+}
+
+bool Shipyard::startMonitoring()
+{
+  spex::Message request;
+  request.mutable_shipyard()->set_monitoring(true);
+  if (!send(std::move(request)))
+    return false;
+
+  spex::IShipyard response;
+  if (!wait(response))
+    return false;
+  return response.choice_case() == spex::IShipyard::kMonitoringAck
+      && response.monitoring_ack();
+}
+
+bool Shipyard::waitBuildStarted(BuildStarted& started, uint16_t nTimeout)
+{
+  spex::IShipyard response;
+  if (!wait(response, nTimeout))
+    return false;
+  if (response.choice_case() != spex::IShipyard::kBuildStarted)
+    return false;
+
+  const spex::IShipyard::BuildStarted& body = response.build_started();
+  started.blueprintName = body.blueprint_name();
+  started.shipName = body.ship_name();
+  return true;
+}
+
+bool Shipyard::waitBuildingReport(Status& status, double& progress, uint16_t nTimeout)
+{
+  spex::IShipyard response;
+  if (!wait(response, nTimeout))
+    return false;
+  if (response.choice_case() != spex::IShipyard::kBuildingReport)
+    return false;
+
+  status = convert(response.building_report().status());
+  progress = response.building_report().progress();
+  return true;
 }
 
 Shipyard::Status Shipyard::cancelBuild()

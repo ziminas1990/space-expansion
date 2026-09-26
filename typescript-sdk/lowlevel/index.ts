@@ -30,6 +30,8 @@ export {
     ShipyardBuildingReport,
     ShipyardShipBuilt,
     ShipyardBuildingEvent,
+    ShipyardBuildStarted,
+    ShipyardMonitoringEvent,
 } from "./shipyard.js";
 export {
     AsteroidMiner,

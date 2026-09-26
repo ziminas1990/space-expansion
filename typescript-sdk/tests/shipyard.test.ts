@@ -4,6 +4,7 @@ import type {
     ResourceContainerContent,
     ShipyardStatus,
 } from "../highlevel/index.js";
+import type { ShipyardMonitoringEvent } from "../midlevel/index.js";
 import type { ResourceItem } from "../types/index.js";
 import {
     ApplicationMode,
@@ -25,6 +26,7 @@ import {
 import {
     hasServerBinary,
     integrationTimeoutMs,
+    waitFor,
     withServer,
 } from "./fixture.js";
 import type { IngameClock } from "./ingame_clock.js";
@@ -394,6 +396,66 @@ test.skipIf(!hasServerBinary)(
                     `build probe_${i}`,
                 );
             }
+        });
+    },
+);
+
+test.skipIf(!hasServerBinary)(
+    "monitors an existing frozen build and follows it through completion",
+    { timeout: integrationTimeoutMs },
+    async () => {
+        const configuration = shipyardConfiguration();
+        await withServer(configuration, async ({ login, clock }) => {
+            await clock.fastForward(20);
+            const player = await login("player", "awesome");
+            const station = getShip(player, "SweetHome");
+            const warehouse = getCargo(station, "warehouse");
+            const container = getCargo(station, "shipyard-container");
+            const yard = getShipyard(station, "shipyard-large");
+            const blueprint = requireShipBlueprint(configuration.blueprints, "Probe");
+            const expenses = configuration.blueprints.shipExpenses(blueprint);
+            expectStatus(await yard.bind_to_cargo("shipyard-container"), "bind cargo");
+            const accessKey = 1_234;
+            const port = expectOk(await container.open_port(accessKey), "open cargo port");
+
+            const earlyEvents: ShipyardMonitoringEvent[] = [];
+            const earlyTask = yard.down_level().monitoring(async (event) => {
+                if (event !== undefined) earlyEvents.push(event);
+                return event?.case !== "building_complete";
+            }, 50);
+            await waitFor(() => earlyEvents.some((event) => event.case === "idle"),
+                "idle Shipyard snapshot");
+
+            const buildTask = yard.build_ship(blueprint.id.toPod(), "Eye");
+            await waitFor(() => earlyEvents.some((event) =>
+                event.case === "building_report"
+                && event.report.status === "BUILD_FROZEN"), "frozen build report");
+
+            const lateEvents: typeof earlyEvents = [];
+            const lateStatus = await yard.down_level().monitoring(async (event) => {
+                if (event !== undefined) lateEvents.push(event);
+                return event?.case !== "building_report"
+                    || event.report.status !== "BUILD_FROZEN";
+            }, 50);
+            expectStatus(lateStatus, "late Shipyard monitoring");
+            expect(lateEvents.map((event) => event.case)).toEqual([
+                "build_started", "building_report",
+            ]);
+            expect(lateEvents[0]).toEqual({
+                case: "build_started",
+                build: { blueprint_name: blueprint.id.toPod(), ship_name: "Eye" },
+            });
+            expect(lateEvents[1]).toMatchObject({
+                case: "building_report", report: { status: "BUILD_FROZEN" },
+            });
+
+            await transferExpenses(
+                warehouse, port, accessKey, expenses, 1.1, "load build cargo",
+            );
+            expectOk(await buildTask, "build Probe");
+            expectStatus(await earlyTask, "early Shipyard monitoring");
+            expect(earlyEvents.some((event) => event.case === "build_started")).toBe(true);
+            expect(earlyEvents.some((event) => event.case === "building_complete")).toBe(true);
         });
     },
 );

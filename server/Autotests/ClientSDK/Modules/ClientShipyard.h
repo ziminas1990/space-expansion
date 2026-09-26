@@ -32,10 +32,20 @@ public:
     eStatusError
   };
 
+  struct BuildStarted {
+    std::string blueprintName;
+    std::string shipName;
+  };
+
   bool getSpecification(ShipyardSpecification& spec);
   Status bindToCargo(std::string const& container);
   Status startBuilding(std::string const& sBlueprint, std::string const& sShipName);
   Status cancelBuild();
+
+  // Subscribe to builds on this session. Waits for monitoring_ack.
+  bool startMonitoring();
+  bool waitBuildStarted(BuildStarted& started, uint16_t nTimeout = 500);
+  bool waitBuildingReport(Status& status, double& progress, uint16_t nTimeout = 500);
 
   Status waitingWhileBuilding(double *progress,
                               uint32_t *pSlotId = nullptr,

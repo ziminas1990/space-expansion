@@ -73,6 +73,15 @@ test("packs world updates as numeric tuples", () => {
         slot_id: 4,
         thrust: { thrust: 25, direction: { x: 0, y: 1 } },
     });
+    const shipyard_update = pack_world_update({
+        type: "shipyard_update",
+        ship_id: "Scout",
+        slot_id: 5,
+        state: {
+            status: "building", blueprint_name: "Ship/Miner",
+            ship_name: "Ore One", progress: 0.4,
+        },
+    });
 
     // 2. check the wire tuples
     expect(add_asteroid).toEqual([0, asteroid.pack()]);
@@ -90,6 +99,10 @@ test("packs world updates as numeric tuples", () => {
     expect(cargo_update).toEqual([8, "Scout", 2, { volume: 100, used: 20, resources: [] }]);
     expect(engine_update).toEqual([9, "Scout", 3, 40]);
     expect(rcs_update).toEqual([10, "Scout", 4, { thrust: 25, direction: { x: 0, y: 1 } }]);
+    expect(shipyard_update).toEqual([11, "Scout", 5, {
+        status: "building", blueprint_name: "Ship/Miner",
+        ship_name: "Ore One", progress: 0.4,
+    }]);
 });
 
 test("round-trips every world update variant", () => {
@@ -150,6 +163,12 @@ test("round-trips every world update variant", () => {
             ship_id: "Scout",
             slot_id: 4,
             thrust: { thrust: 25, direction: { x: 0, y: 1 } },
+        },
+        {
+            type: "shipyard_update",
+            ship_id: "Scout",
+            slot_id: 5,
+            state: { status: "idle" },
         },
         { type: "remove_entity", entity: { kind: "asteroid", id: "rock-1" } },
         { type: "remove_entity", entity: { kind: "ship", id: "foreign-1" } },
@@ -244,14 +263,20 @@ test("round-trips every world update variant", () => {
         thrust: { thrust: 25, direction: { x: 0, y: 1 } },
     });
     expect(unpacked[11]).toEqual({
-        type: "remove_entity",
-        entity: { kind: "asteroid", id: "rock-1" },
+        type: "shipyard_update",
+        ship_id: "Scout",
+        slot_id: 5,
+        state: { status: "idle" },
     });
     expect(unpacked[12]).toEqual({
         type: "remove_entity",
-        entity: { kind: "ship", id: "foreign-1" },
+        entity: { kind: "asteroid", id: "rock-1" },
     });
     expect(unpacked[13]).toEqual({
+        type: "remove_entity",
+        entity: { kind: "ship", id: "foreign-1" },
+    });
+    expect(unpacked[14]).toEqual({
         type: "remove_entity",
         entity: { kind: "player_ship", id: "Scout" },
     });

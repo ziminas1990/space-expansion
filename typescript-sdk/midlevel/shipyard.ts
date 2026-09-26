@@ -6,6 +6,9 @@ import { ModuleType } from "./module_type.js";
 export type ShipyardStatus = lowlevel.ShipyardStatus;
 export type ShipyardSpecification = lowlevel.ShipyardSpecification;
 export type ShipyardShipBuilt = lowlevel.ShipyardShipBuilt;
+export type ShipyardMonitoringEvent = lowlevel.ShipyardMonitoringEvent | { case: "idle" };
+export type MonitoringCallback =
+    (event: ShipyardMonitoringEvent | undefined) => Promise<boolean>;
 export type BuildingCallback =
     (status: ShipyardStatus, progress: number) => Promise<void>;
 
@@ -45,6 +48,57 @@ export class Shipyard extends BaseModule<lowlevel.Shipyard> {
             async (session) => this._build_ship(
                 session, blueprint, ship_name, progress_cb),
             true);
+    }
+
+    async monitoring(
+        callback: MonitoringCallback,
+        heartbeat_ms: number = 200): Promise<Status>
+    {
+        return await this.run_no_return(
+            async (session) => this._monitoring(session, callback, heartbeat_ms),
+            true);
+    }
+
+    private async _monitoring(
+        session: lowlevel.Shipyard,
+        callback: MonitoringCallback,
+        heartbeat_ms: number): Promise<Status>
+    {
+        const send_status = await session.send_monitoring_request();
+        if (!send_status.is_ok()) {
+            return send_status.wrap("failed to send monitoring request");
+        }
+        const [ack_status, ack] = await session.wait_monitoring_ack();
+        if (!ack_status.is_ok() || ack === undefined) {
+            return ack_status.wrap("failed to start shipyard monitoring");
+        }
+        if (!ack) {
+            return Status.fail("MONITORING_FAILED");
+        }
+        let has_initial_state = false;
+        while (true) {
+            const [status, event] = await session.wait_building_event(heartbeat_ms);
+            if (status.is_timeout()) {
+                if (!has_initial_state) {
+                    has_initial_state = true;
+                    if (!await callback({ case: "idle" })) {
+                        return Status.ok();
+                    }
+                    continue;
+                }
+                if (!await callback(undefined)) {
+                    return Status.ok();
+                }
+                continue;
+            }
+            if (!status.is_ok() || event === undefined) {
+                return status.wrap("shipyard monitoring stopped");
+            }
+            has_initial_state = true;
+            if (!await callback(event)) {
+                return Status.ok();
+            }
+        }
     }
 
     private async _get_specification(session: lowlevel.Shipyard)
@@ -115,11 +169,11 @@ export class Shipyard extends BaseModule<lowlevel.Shipyard> {
         if (!start_status.is_ok() || !start_event) {
             return [start_status.wrap("failed to start build"), undefined];
         }
-        if (start_event.case !== "building_report") {
-            return [Status.fail("got unexpected building complete"), undefined];
-        }
-        if (start_event.report.status !== "BUILD_STARTED") {
+        if (start_event.case === "building_report") {
             return [Status.fail(start_event.report.status), undefined];
+        }
+        if (start_event.case !== "build_started") {
+            return [Status.fail("got unexpected building complete"), undefined];
         }
 
         while (true) {
@@ -130,11 +184,15 @@ export class Shipyard extends BaseModule<lowlevel.Shipyard> {
             if (event.case === "building_complete") {
                 return [Status.ok(), event.ship];
             }
+            if (event.case === "build_started") {
+                return [Status.fail("got unexpected build started"), undefined];
+            }
 
             if (progress_cb) {
                 await progress_cb(event.report.status, event.report.progress);
             }
-            if (event.report.status === "BUILD_IN_PROGRESS" ||
+            if (event.report.status === "BUILD_STARTED" ||
+                event.report.status === "BUILD_IN_PROGRESS" ||
                 event.report.status === "BUILD_FROZEN") {
                 continue;
             }
