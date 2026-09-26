@@ -50,6 +50,11 @@ test("packs world updates as numeric tuples", () => {
         type: "remove_entity",
         entity: { kind: "player_ship", id: "Scout" },
     });
+    const modules_update = pack_world_update({
+        type: "player_ship_modules_update",
+        ship_id: "Scout",
+        modules: [{ slot_id: 4, type: "RCS", name: "Left RCS" }],
+    });
 
     // 2. check the wire tuples
     expect(add_asteroid).toEqual([0, asteroid.pack()]);
@@ -63,6 +68,7 @@ test("packs world updates as numeric tuples", () => {
     expect(remove_asteroid).toEqual([6, 0, "rock-1"]);
     expect(remove_ship).toEqual([6, 1, "foreign-1"]);
     expect(remove_player).toEqual([6, 2, "Scout"]);
+    expect(modules_update).toEqual([7, "Scout", [[4, "RCS", "Left RCS"]]]);
 });
 
 test("round-trips every world update variant", () => {
@@ -100,6 +106,11 @@ test("round-trips every world update variant", () => {
                 position: sample_position(6_000_000, 13, 14),
                 orientation: { x: 0, y: 1 },
             },
+        },
+        {
+            type: "player_ship_modules_update",
+            ship_id: "Scout",
+            modules: [{ slot_id: 4, type: "RCS", name: "Left RCS" }],
         },
         { type: "remove_entity", entity: { kind: "asteroid", id: "rock-1" } },
         { type: "remove_entity", entity: { kind: "ship", id: "foreign-1" } },
@@ -171,14 +182,19 @@ test("round-trips every world update variant", () => {
     }
 
     expect(unpacked[7]).toEqual({
-        type: "remove_entity",
-        entity: { kind: "asteroid", id: "rock-1" },
+        type: "player_ship_modules_update",
+        ship_id: "Scout",
+        modules: [{ slot_id: 4, type: "RCS", name: "Left RCS" }],
     });
     expect(unpacked[8]).toEqual({
         type: "remove_entity",
-        entity: { kind: "ship", id: "foreign-1" },
+        entity: { kind: "asteroid", id: "rock-1" },
     });
     expect(unpacked[9]).toEqual({
+        type: "remove_entity",
+        entity: { kind: "ship", id: "foreign-1" },
+    });
+    expect(unpacked[10]).toEqual({
         type: "remove_entity",
         entity: { kind: "player_ship", id: "Scout" },
     });

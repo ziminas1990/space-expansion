@@ -1,5 +1,9 @@
 import { Asteroid, AsteroidPacked, AsteroidUpdate } from "../domain/asteroid.js";
-import { PlayerShip, PlayerShipPacked } from "../domain/player_ship.js";
+import {
+    InstalledModulePacked,
+    PlayerShip,
+    PlayerShipPacked,
+} from "../domain/player_ship.js";
 import {
     pack_position,
     pack_vector,
@@ -20,6 +24,7 @@ const packed_update_type = {
     ship_update: 4,
     player_ship_update: 5,
     remove_entity: 6,
+    player_ship_modules_update: 7,
 } as const;
 
 const packed_entity_kind = {
@@ -49,7 +54,8 @@ export type WorldUpdatePacked =
     | [typeof packed_update_type.asteroid_update, string, ...AsteroidUpdatePacked]
     | [typeof packed_update_type.ship_update, string, ...ShipUpdatePacked]
     | [typeof packed_update_type.player_ship_update, string, ...ShipUpdatePacked]
-    | [typeof packed_update_type.remove_entity, PackedEntityKind, string];
+    | [typeof packed_update_type.remove_entity, PackedEntityKind, string]
+    | [typeof packed_update_type.player_ship_modules_update, string, InstalledModulePacked[]];
 
 export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
     switch (update.type) {
@@ -87,6 +93,16 @@ export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
                 packed_update[1],
             ];
         }
+        case "player_ship_modules_update":
+            return [
+                packed_update_type.player_ship_modules_update,
+                update.ship_id,
+                update.modules.map((module): InstalledModulePacked => [
+                    module.slot_id,
+                    module.type,
+                    module.name,
+                ]),
+            ];
         case "remove_entity":
             return [
                 packed_update_type.remove_entity,
@@ -134,6 +150,16 @@ export function unpack_world_update(packed: WorldUpdatePacked): WorldUpdate {
                 type: "player_ship_update",
                 ship_id: packed[1],
                 update: unpack_ship_update(packed[2], packed[3]),
+            };
+        case packed_update_type.player_ship_modules_update:
+            return {
+                type: "player_ship_modules_update",
+                ship_id: packed[1],
+                modules: packed[2].map(([slot_id, type, name]) => ({
+                    slot_id,
+                    type,
+                    name,
+                })),
             };
         case packed_update_type.remove_entity:
             return {

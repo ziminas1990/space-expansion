@@ -111,6 +111,41 @@ test("applies a packed world update after the snapshot", () => {
     expect(found?.get_position().x).toBe(5);
 });
 
+test("keeps installed modules current across snapshots and updates", () => {
+    // 1. load a ship with two installed modules from a snapshot
+    const world = new World(noop_logger);
+    const ship = new PlayerShip("Scout", sample_position(1_000_000), 25, "Tiny-Scout");
+    ship.set_modules([
+        { slot_id: 1, type: "RCS", name: "Left RCS" },
+        { slot_id: 2, type: "RCS", name: "Right RCS" },
+    ]);
+    world.update({ type: "add_player_ship", ship });
+    const client = new WorldClient({ logger: noop_logger });
+    client.handle_message(encode_server_message({
+        type: "snapshot",
+        world: world.pack(),
+    }));
+    expect(client.get_world()?.get_player_ship("Scout")?.get_modules()).toEqual([
+        { slot_id: 1, type: "RCS", name: "Left RCS" },
+        { slot_id: 2, type: "RCS", name: "Right RCS" },
+    ]);
+
+    // 2. replace the module list after one RCS is removed and an engine is attached
+    const modules = [
+        { slot_id: 2, type: "RCS", name: "Right RCS" },
+        { slot_id: 3, type: "HoverEngine", name: "Main engine" },
+    ];
+    client.handle_message(encode_server_message({
+        type: "world_update",
+        update: pack_world_update({
+            type: "player_ship_modules_update",
+            ship_id: "Scout",
+            modules,
+        }),
+    }));
+    expect(client.get_world()?.get_player_ship("Scout")?.get_modules()).toEqual(modules);
+});
+
 test("applies a clock observation using local time", () => {
     // 1. load a snapshot
     const client = new WorldClient({ logger: noop_logger });

@@ -2,6 +2,7 @@ import { useState, useSyncExternalStore } from "react";
 import { LoginForm } from "./LoginForm.js";
 import { PixiMap } from "./map/PixiMap.js";
 import { ShipList } from "./ShipList.js";
+import { ShipPanel, toggle_module_type } from "./ShipPanel.js";
 import {
     WorldClient,
     type ClientStatus,
@@ -13,6 +14,9 @@ export function App() {
     const [visible_ship_ids, set_visible_ship_ids] = useState<ReadonlySet<string>>(
         () => new Set(),
     );
+    const [expanded_module_types, set_expanded_module_types] = useState<
+        ReadonlyMap<string, ReadonlySet<string>>
+    >(() => new Map());
     const version = useSyncExternalStore(client.subscribe, client.get_version);
     const status = client.get_status();
     const world = client.get_world();
@@ -40,6 +44,10 @@ export function App() {
         );
     }
 
+    const focused_ship = followed_ship_id === undefined
+        ? undefined
+        : world.get_player_ship(followed_ship_id);
+
     return (
         <div className="app tactical-screen" data-version={version}>
             <PixiMap
@@ -59,6 +67,16 @@ export function App() {
                 followed_ship_id={followed_ship_id}
                 on_select={(id) => client.select_ship(id)}
             />
+            {focused_ship !== undefined && (
+                <ShipPanel
+                    key={focused_ship.get_id()}
+                    ship={focused_ship}
+                    expanded_types={expanded_module_types.get(focused_ship.get_id()) ?? new Set()}
+                    on_toggle_type={(type) => set_expanded_module_types((previous) =>
+                        toggle_module_type(previous, focused_ship.get_id(), type)
+                    )}
+                />
+            )}
         </div>
     );
 }

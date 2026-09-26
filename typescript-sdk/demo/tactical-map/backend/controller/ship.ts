@@ -205,9 +205,10 @@ export class Ship {
     private async on_module_attached(info: midlevel.ModuleInfo): Promise<Status> {
         const current = this.modules.get(info.slot_id);
         if (current) {
-            await this.on_module_detached(info.slot_id);
+            await this.on_module_detached(info.slot_id, false);
         }
         this.modules.set(info.slot_id, info);
+        this.publish_modules();
 
         if (info.module_type !== midlevel.ModuleType.PASSIVE_SCANNER) {
             return Status.ok();
@@ -221,19 +222,21 @@ export class Ship {
         );
         const status = await scanner.initialize();
         if (!status.is_ok()) {
-            this.modules.delete(info.slot_id);
             return status.wrap("Failed to initialize passive scanner");
         }
         this.passive_scanners.set(info.slot_id, scanner);
         return Status.ok();
     }
 
-    private async on_module_detached(slot_id: number): Promise<void> {
+    private async on_module_detached(slot_id: number, publish = true): Promise<void> {
         const info = this.modules.get(slot_id);
         if (!info) {
             return;
         }
         this.modules.delete(slot_id);
+        if (publish) {
+            this.publish_modules();
+        }
 
         if (info.module_type === midlevel.ModuleType.PASSIVE_SCANNER) {
             const scanner = this.passive_scanners.get(slot_id);
@@ -242,5 +245,17 @@ export class Ship {
                 this.passive_scanners.delete(slot_id);
             }
         }
+    }
+
+    private publish_modules(): void {
+        this.world.update({
+            type: "player_ship_modules_update",
+            ship_id: this.name,
+            modules: [...this.modules.values()].map((module) => ({
+                slot_id: module.slot_id,
+                type: module.module_type,
+                name: module.module_name,
+            })),
+        });
     }
 }

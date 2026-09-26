@@ -127,7 +127,7 @@ body,
     position: absolute;
     top: 1rem;
     left: 1rem;
-    width: 16rem;
+    width: min(16rem, calc((100% - 3rem) / 2));
     max-height: calc(100% - 2rem);
     overflow: auto;
     padding: 0.9rem;
@@ -242,4 +242,77 @@ body,
     flex-shrink: 0;
     font-size: 0.75rem;
     color: #ffe1a0;
+}
+
+.ship-panel {
+    position: absolute;
+    top: 3.5rem;
+    right: 1rem;
+    width: min(18rem, calc((100% - 3rem) / 2));
+    max-height: calc(100% - 4.5rem);
+    overflow: auto;
+    padding: 0.9rem;
+    border: 1px solid #2a3654;
+    border-radius: 0.65rem;
+    background: rgba(17, 24, 39, 0.92);
+}
+
+.ship-panel h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    overflow-wrap: anywhere;
+}
+
+.ship-panel-type {
+    margin: 0.25rem 0 0.75rem;
+    color: #b7c2dc;
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.module-group {
+    margin-top: 0.5rem;
+    border: 1px solid #33405f;
+    border-radius: 0.45rem;
+    overflow: hidden;
+}
+
+.module-group h3,
+.module-entry h4 {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.module-group-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.55rem 0.65rem;
+    border: 0;
+    background: #1a2740;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.module-group ul {
+    margin: 0;
+    padding: 0.45rem;
+    list-style: none;
+}
+
+.module-entry {
+    padding: 0.55rem 0.65rem;
+    border: 1px solid #33405f;
+    border-radius: 0.4rem;
+    background: #0b1220;
+    overflow-wrap: anywhere;
+}
+
+.module-entry + .module-entry {
+    margin-top: 0.4rem;
 }

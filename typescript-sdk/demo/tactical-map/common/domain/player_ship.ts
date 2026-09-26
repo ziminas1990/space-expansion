@@ -18,14 +18,23 @@ import { ShipUpdate } from "./ship.js";
 
 export type PlayerShipPacked = ReturnType<PlayerShip["pack"]>;
 
+export type InstalledModule = {
+    slot_id: number;
+    type: string;
+    name: string;
+};
+
+export type InstalledModulePacked = [number, string, string];
+
 export class PlayerShip {
 
     outdated: boolean = false;
     private position: Position;
     private orientation: Orientation | undefined;
+    private modules: InstalledModule[] = [];
 
     static unpack(packed: PlayerShipPacked): PlayerShip {
-        const [id, position, radius, outdated, orientation, blueprint_name] = packed;
+        const [id, position, radius, outdated, orientation, blueprint_name, modules] = packed;
         const ship = new PlayerShip(
             id,
             unpack_position(position),
@@ -34,6 +43,11 @@ export class PlayerShip {
         );
         ship.orientation = unpack_orientation(orientation);
         ship.outdated = outdated;
+        ship.set_modules(modules.map(([slot_id, type, name]) => ({
+            slot_id,
+            type,
+            name,
+        })));
         return ship;
     }
 
@@ -56,6 +70,14 @@ export class PlayerShip {
 
     get_blueprint_name(): string {
         return this.blueprint_name;
+    }
+
+    get_modules(): readonly InstalledModule[] {
+        return this.modules.map((module) => ({ ...module }));
+    }
+
+    set_modules(modules: readonly InstalledModule[]): void {
+        this.modules = modules.map((module) => ({ ...module }));
     }
 
     get_position(): Position {
@@ -97,6 +119,11 @@ export class PlayerShip {
             this.outdated,
             pack_orientation(this.orientation),
             this.blueprint_name,
+            this.modules.map((module): InstalledModulePacked => [
+                module.slot_id,
+                module.type,
+                module.name,
+            ]),
         ] as const;
     }
 

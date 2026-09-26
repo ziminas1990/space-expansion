@@ -1,7 +1,7 @@
 import { Clock } from "@spx/sdk/utils";
 import { Asteroid, AsteroidUpdate } from "./asteroid.js";
 import { ILogger } from "../logger.js";
-import { PlayerShip } from "./player_ship.js";
+import { InstalledModule, PlayerShip } from "./player_ship.js";
 import { Ship, ShipUpdate } from "./ship.js";
 
 const DEFAULT_OUTDATED_AFTER_US = 60_000_000;
@@ -18,6 +18,7 @@ export type WorldUpdate =
     | { type: "asteroid_update", asteroid_id: string, update: AsteroidUpdate }
     | { type: "ship_update", ship_id: string, update: ShipUpdate }
     | { type: "player_ship_update", ship_id: string, update: ShipUpdate }
+    | { type: "player_ship_modules_update", ship_id: string, modules: InstalledModule[] }
     | { type: "remove_entity", entity: EntityRef }
 
 export type WorldPacked = ReturnType<World["pack"]>;
@@ -115,6 +116,9 @@ export class World {
                 break;
             case "player_ship_update":
                 this.player_ships.get(update.ship_id)?.update(update.update);
+                break;
+            case "player_ship_modules_update":
+                this.player_ships.get(update.ship_id)?.set_modules(update.modules);
                 break;
             case "remove_entity":
                 this.journal.info(`Entity ${update.entity.id} removed`);
