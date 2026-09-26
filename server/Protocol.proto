@@ -56,17 +56,20 @@ message IAccessPanel {
 }
 
 
+// Hull thrusters. change_thrust sets a direction in global coordinates.
+// The force is the module's maximum thrust. The vector length is ignored,
+// and the direction does not turn when the ship rotates.
 message IRCS
 {
   message Specification {
     uint32 max_thrust = 1;
   }
 
+  // x and y are a direction. A zero vector produces no thrust.
   message ChangeThrust {
     double x           = 1;
     double y           = 2;
-    uint32 thrust      = 4;
-    uint32 duration_ms = 5;
+    uint32 duration_ms = 3;
   }
 
   message CurrentThrust {

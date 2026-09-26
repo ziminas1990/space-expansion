@@ -80,14 +80,13 @@ export class RCS {
     async send_change_thrust(
         x: number,
         y: number,
-        thrust: number,
         duration_ms: number = 0,
         at?: number): Promise<types.Status>
     {
         const request = create(msg.IRCSSchema, {
             choice: {
                 case: "changeThrust",
-                value: { x, y, thrust, durationMs: duration_ms },
+                value: { x, y, durationMs: duration_ms },
             },
         });
         return this.send(request, at);

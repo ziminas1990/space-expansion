@@ -3,17 +3,27 @@
 Previous topic: [System Clock](./system_clock.md)
 Next topic: [Hover Engine](./hover_engine.md)
 
-RCS is a set of thrusters built into the hull. Working together, they produce
-the requested thrust in any direction. This is the low-power propulsion
-system. The main engine, which thrusts only along the nose, is the
-[Hover Engine](./hover_engine.md).
+RCS is a set of thrusters built into the hull. Working together, they push in
+any direction. This is the low-power propulsion system. The main engine, which
+thrusts only along the nose and is how the player chooses how hard the ship
+burns, is the [Hover Engine](./hover_engine.md).
 
-Thrust is a force vector that the thrusters apply to the ship while they are
-running. That thrust produces acceleration according to Newton's second law.
+The thrust command sets a direction and does not set a magnitude. While the
+thrusters are running, the force is this module's maximum thrust along that
+direction.
+
+Thrust is a force. While the thrusters are running, that force produces
+acceleration according to Newton's second law. The force stays at the maximum
+until the commanded duration passes, or until a later command sets another
+direction, including a zero vector.
+
+The direction is in global coordinates, the same frame as the ship's position.
+If the ship turns while the thrusters are producing thrust, the force does not
+turn with the ship. It keeps the direction that was set.
 
 The current implementation:
 
-1. it can change the thrust vector instantly
+1. it can change the thrust direction instantly
 2. it needs no working mass
 3. the ship's mass stays the same while the thrusters are running
 
@@ -31,7 +41,7 @@ The server returns a new session, that implements the `IRCS` interface.
 The interface has four commands:
 
 - `specification_req` — request the thrust limit
-- `change_thrust` — set the thrust
+- `change_thrust` — set the thrust direction and how long it lasts
 - `thrust_req` — request the current thrust
 - `monitor` — receive the thrust whenever it changes
 
@@ -44,23 +54,28 @@ one `specification` message, that has the following fields:
 
 ## The change_thrust command
 
-`change_thrust` sets the thrust. The server sends NO reply on this session.
-The command has these fields:
+`change_thrust` sets the direction of the thrust and how long the thrusters
+keep it. The server sends no reply on this session. The command has these
+fields:
 
-- `x` and `y` — the direction of the force. The server uses this pair only as
-  a direction. A vector `(3, 4)` and a vector `(0.6, 0.8)` select the same
-  direction.
-- `thrust` — the magnitude of the force, in newtons
+- `x` and `y` — the direction of the force, in global coordinates. The server
+  uses this pair only as a direction. A vector `(3, 4)` and a vector `(0.6, 0.8)`
+  select the same direction, and both produce the same force. The length of
+  the vector does not change the force.
 - `duration_ms` — how long the thrusters keep this thrust, in milliseconds of
   [ingame time](./glossary.md#ingame-time)
+
+While the thrusters are running, the force is `max_thrust` along that
+direction.
+
+The direction does not change when the ship rotates. The force stays in the
+global direction that was set.
 
 The duration is counted from the moment the server applies the command. When
 it has passed, the server sets the thrust to zero.
 
-A `thrust` of `0` sets the thrust to zero at once. In that case the server
-does not use `x`, `y`, or `duration_ms`.
-
-If `thrust` is greater than `max_thrust`, the server uses `max_thrust`.
+A zero vector (`x` and `y` both `0`) produces no thrust. In that case the
+server does not use `duration_ms`.
 
 A later `change_thrust` replaces the current thrust and starts its own
 duration.
@@ -69,8 +84,8 @@ As with every other command, a `timestamp` in the future delays the command
 until [ingame time](./glossary.md#ingame-time) passes that mark. The duration
 starts when the command is applied.
 
-For example, thrust of 100 newtons in the direction `(3, 4)` for 500
-milliseconds of ingame time:
+For example, the direction `(3, 4)` for 500 milliseconds of ingame time, on a
+module whose `max_thrust` is 100 newtons:
 
 ```json
 {
@@ -80,7 +95,6 @@ milliseconds of ingame time:
     "change_thrust": {
       "x": 3,
       "y": 4,
-      "thrust": 100,
       "duration_ms": 500
     }
   }
@@ -88,8 +102,9 @@ milliseconds of ingame time:
 ```
 
 The applied force has magnitude 100 along the unit vector `(0.6, 0.8)`, so its
-components are 60 and 80 newtons. To read that vector back, use `thrust_req`
-or `monitor`.
+components are 60 and 80 newtons. A command with `x` and `y` of `6` and `8`,
+or of `0.6` and `0.8`, applies that same force. To read the vector back, use
+`thrust_req` or `monitor`.
 
 ## The thrust_req command
 
@@ -100,7 +115,8 @@ at once with one `thrust` message:
 - `thrust` — the magnitude of that force, in newtons
 
 These components are the force itself. They are the direction from
-`change_thrust` scaled to the applied magnitude.
+`change_thrust` scaled to `max_thrust`. While the thrusters are running,
+`thrust` is that maximum. When they are not, `thrust` is `0`.
 
 While the thrusters from the example above are running, the response is:
 
@@ -118,8 +134,8 @@ While the thrusters from the example above are running, the response is:
 }
 ```
 
-After the duration ends, or after a `change_thrust` with `thrust` equal to
-`0`, the same request returns `x`, `y`, and `thrust` all equal to `0`.
+After the duration ends, or after a `change_thrust` with a zero vector, the
+same request returns `x`, `y`, and `thrust` all equal to `0`.
 
 ## The monitor command
 

@@ -18,8 +18,7 @@ public:
 
   bool initialize();
 
-  AbstractProcedurePtr MakeMoveToProcedure(
-      geometry::Point const& target, uint32_t nSyncIntervalMs);
+  AbstractProcedurePtr MakeMoveToProcedure(geometry::Point const& target);
 
 private:
   ShipPtr   m_pShip;

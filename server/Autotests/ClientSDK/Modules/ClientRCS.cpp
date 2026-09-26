@@ -19,7 +19,7 @@ bool RCS::getSpecification(RCSSpecification& specification)
   return true;
 }
 
-bool RCS::setThrust(geometry::Vector thrust, uint32_t nDurationMs,
+bool RCS::setThrust(geometry::Vector direction, uint32_t nDurationMs,
                        uint64_t nWhenUs)
 {
   spex::Message request;
@@ -27,9 +27,8 @@ bool RCS::setThrust(geometry::Vector thrust, uint32_t nDurationMs,
     request.set_timestamp(nWhenUs);
   }
   spex::IRCS::ChangeThrust *pBody = request.mutable_rcs()->mutable_change_thrust();
-  pBody->set_x(thrust.getX());
-  pBody->set_y(thrust.getY());
-  pBody->set_thrust(uint32_t(thrust.getLength()));
+  pBody->set_x(direction.getX());
+  pBody->set_y(direction.getY());
   pBody->set_duration_ms(nDurationMs);
   return send(std::move(request));
 }

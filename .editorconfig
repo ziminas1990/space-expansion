@@ -3,3 +3,4 @@ root = true
 [*.{c,cc,cpp,cxx,h,hh,hpp,hxx,ipp}]
 indent_style = space
 indent_size = 2
+tab_width = 2

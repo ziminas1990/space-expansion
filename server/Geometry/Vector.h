@@ -76,6 +76,9 @@ public:
   Vector operator- (Vector const& other) const {
     return Vector(x - other.x, y - other.y);
   }
+  Vector operator-() const {
+    return Vector(-x, -y);
+  }
 
   Vector& operator*= (double k) {
     x *= k;

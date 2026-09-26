@@ -9,6 +9,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include <sstream>
+#include <iostream>
 
 namespace autotests
 {
@@ -81,7 +82,7 @@ TEST_F(NavigationTests, SimpleTest)
 
   geometry::Point target(100, 100);
   ASSERT_TRUE(Scenarios::RunProcedures()
-              .add(navigation.MakeMoveToProcedure(target, 100))
+              .add(navigation.MakeMoveToProcedure(target))
               .wait(20, 500));
 
   ASSERT_TRUE(checkPosition(pShip, target));
@@ -112,7 +113,7 @@ TEST_F(NavigationTests, SeveralPoints)
   for (geometry::Point const& target : path)
   {
     ASSERT_TRUE(Scenarios::RunProcedures()
-                .add(navigation.MakeMoveToProcedure(target, 100))
+                .add(navigation.MakeMoveToProcedure(target))
                 .wait(20, 500));
     ASSERT_TRUE(checkPosition(pShip, target));
   }
@@ -146,9 +147,69 @@ TEST_F(NavigationTests, OnMoving)
 
   geometry::Point target(-47, 160);
   ASSERT_TRUE(Scenarios::RunProcedures()
-              .add(navigation.MakeMoveToProcedure(target, 100))
+              .add(navigation.MakeMoveToProcedure(target))
               .wait(20, 500));
   ASSERT_TRUE(checkPosition(pShip, target));
+}
+
+TEST_F(NavigationTests, ThrustStaysConstantWhileShipRotates)
+{
+  // 1. player logins and opens the ship
+  ASSERT_TRUE(
+        Scenarios::Login()
+        .sendLoginRequest("test", "test")
+        .expectSuccess());
+  client::ClientCommutatorPtr pCommutator = openCommutatorSession();
+  ASSERT_TRUE(pCommutator);
+
+  client::ShipPtr pShip = std::make_shared<client::Ship>(m_pRouter);
+  ASSERT_TRUE(client::attachToShip(pCommutator, "Experimental", *pShip));
+
+  client::RCS engine;
+  engine.attachToChannel(pShip->openSession(0));
+
+  // 2. turn the thrusters on along (1, 0)
+  //    the applied force is the module maximum in that direction
+  client::RCSSpecification spec;
+  ASSERT_TRUE(engine.getSpecification(spec));
+  const geometry::Vector direction(1, 0);
+  const geometry::Vector thrust = direction.ofLength(spec.nMaxThrust);
+  const uint32_t nBurnMs = 20000;
+  ASSERT_TRUE(engine.setThrust(direction, nBurnMs));
+
+  // 3. start a half turn, so the nose goes from +X to -X
+  ASSERT_TRUE(pShip->rotate(geometry::Vector(-1, 0), 1));
+
+  // 4. wait until the turn is finished and the ship has flown a bit further
+  geometry::Point  startPosition;
+  geometry::Vector startVelocity;
+  ASSERT_TRUE(pShip->getPosition(startPosition, startVelocity));
+  const uint64_t t0 = m_application.getClock().now();
+  const uint32_t nWaitMs = 5000;
+  skipTime(nWaitMs);
+  const double t = (m_application.getClock().now() - t0) / 1000000.0;
+
+  // 5. thrust is still the vector that was set
+  geometry::Vector currentThrust;
+  ASSERT_TRUE(engine.getThrust(currentThrust));
+  EXPECT_EQ(thrust, currentThrust);
+
+  // 6. the nose has turned to the opposite direction
+  client::ShipState ship;
+  ASSERT_TRUE(pShip->getState(ship));
+  EXPECT_TRUE(ship.orientation.almostEqual(geometry::Vector(-1, 0), 1e-4));
+
+  // 7. position matches constant acceleration along the original thrust
+  geometry::Point  position;
+  geometry::Vector velocity;
+  ASSERT_TRUE(pShip->getPosition(position, velocity));
+  const geometry::Vector acceleration = thrust / ship.nWeight;
+  const geometry::Vector expectedVelocity = startVelocity + acceleration * t;
+  const geometry::Point  expectedPosition =
+      startPosition + startVelocity * t + acceleration * (t * t * 0.5);
+  EXPECT_TRUE(velocity.almostEqual(expectedVelocity, 1e-4));
+  EXPECT_TRUE(position.almostEqual(expectedPosition, 1e-3))
+      << position << " != " << expectedPosition;
 }
 
 } // namespace autotests

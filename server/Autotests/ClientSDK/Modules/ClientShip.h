@@ -22,6 +22,10 @@ public:
   bool getPosition(geometry::Point& position, geometry::Vector& velocity);
   bool getPosition(geometry::Point& position);
 
+  // Turn the nose toward `direction`. The vector's length is ignored.
+  // `speed` is radians per second.
+  bool rotate(geometry::Vector direction, double speed);
+
   bool getState(ShipState& state);
   bool monitor(uint32_t nPeriodMs, ShipState &state);
 

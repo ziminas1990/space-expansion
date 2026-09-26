@@ -29,11 +29,11 @@ export class RCS extends BaseModule<lowlevel.RCS> {
         return await this.run(async (session) => this._get_thrust(session));
     }
 
-    async set_thrust(x: number, y: number, thrust: number,
+    async set_thrust(x: number, y: number,
                      duration_ms: number = 0, at?: number): Promise<Status>
     {
         return await this.run_no_return(
-            async (session) => session.send_change_thrust(x, y, thrust, duration_ms, at));
+            async (session) => session.send_change_thrust(x, y, duration_ms, at));
     }
 
     async monitoring(

@@ -86,11 +86,10 @@ export class RCS extends EventEmitter<Events> implements BaseModule {
     async set_thrust(
         x: number,
         y: number,
-        thrust: number,
         duration_ms: number = 0,
         at?: number,
     ): Promise<Status> {
-        const status = await this.rpc.set_thrust(x, y, thrust, duration_ms, at);
+        const status = await this.rpc.set_thrust(x, y, duration_ms, at);
         this.thrust.reset();
         return status;
     }

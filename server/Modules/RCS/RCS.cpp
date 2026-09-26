@@ -85,16 +85,13 @@ void RCS::setThrust(const spex::IRCS::ChangeThrust &req)
 {
   geometry::Vector& thrustVector = getPlatform()->getForce(m_nThrustVectorId);
 
-  uint32_t thrust = req.thrust();
-  if (!thrust) {
+  thrustVector.setPosition(req.x(), req.y());
+  if (thrustVector.getSqrLength() == 0) {
     thrustVector.toZero();
     m_nTimeLeftUs = 0;
     switchToIdleState();
   } else {
-    thrustVector.setPosition(req.x(), req.y());
-    if (thrust > m_maxThrust)
-      thrust = m_maxThrust;
-    thrustVector.setLength(thrust);
+    thrustVector.setLength(m_maxThrust);
     m_nTimeLeftUs = req.duration_ms() * 1000;
     switchToActiveState();
   }

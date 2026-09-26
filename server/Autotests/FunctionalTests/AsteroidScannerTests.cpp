@@ -172,7 +172,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
     pauseTime();
     geometry::Point asteroidPosition(100000, 0);
     ASSERT_TRUE(Scenarios::RunProcedures()
-                .add(navigator.MakeMoveToProcedure(asteroidPosition, 100))
+                .add(navigator.MakeMoveToProcedure(asteroidPosition))
                 .wait(50, 15000, 25000));
 
     resumeTime();
@@ -196,7 +196,7 @@ TEST_F(AsteroidScannerTests, SimpleScanningTest)
     pauseTime();
     geometry::Point asteroidPosition(0, 100000);
     ASSERT_TRUE(Scenarios::RunProcedures()
-                .add(navigator.MakeMoveToProcedure(asteroidPosition, 100))
+                .add(navigator.MakeMoveToProcedure(asteroidPosition))
                 .wait(50, 15000, 25000));
 
     resumeTime();

@@ -17,7 +17,7 @@ class RCS : public ClientBaseModule
 public:
   bool getSpecification(RCSSpecification& specification);
 
-  bool setThrust(geometry::Vector thrust, uint32_t nDurationMs,
+  bool setThrust(geometry::Vector direction, uint32_t nDurationMs,
                  uint64_t nWhenUs = 0);
   bool getThrust(geometry::Vector& thrust);
   bool monitor(geometry::Vector& thrust);

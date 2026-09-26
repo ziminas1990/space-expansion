@@ -30,6 +30,23 @@ bool Ship::getPosition(geometry::Point &position)
   return getPosition(position, velocity);
 }
 
+bool Ship::rotate(geometry::Vector direction, double speed)
+{
+  spex::Message request;
+  spex::IShip::Rotate* pBody = request.mutable_ship()->mutable_rotate();
+  pBody->set_x(direction.getX());
+  pBody->set_y(direction.getY());
+  pBody->set_speed(speed);
+  if (!send(std::move(request)))
+    return false;
+
+  spex::IShip response;
+  if (!wait(response))
+    return false;
+  return response.choice_case() == spex::IShip::kRotateAck
+      && response.rotate_ack();
+}
+
 bool Ship::monitor(uint32_t nPeriodMs, ShipState &state)
 {
   spex::Message request;

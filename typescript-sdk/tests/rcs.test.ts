@@ -86,7 +86,7 @@ async function monitorThrust(
 }
 
 test.skipIf(!hasServerBinary)(
-    "monitors applied thrust, clamp, and repeated commands",
+    "monitors maximum thrust along the commanded direction",
     { timeout: integrationTimeoutMs },
     async () => {
         await withServer(engineConfiguration(), async ({ login, clock }) => {
@@ -101,6 +101,7 @@ test.skipIf(!hasServerBinary)(
                 await rcs.get_specification(),
                 "engine specification",
             );
+            expect(spec.max_thrust).toBe(1_000);
             await clock.stop();
 
             // 3. start monitoring
@@ -113,29 +114,34 @@ test.skipIf(!hasServerBinary)(
                 await waitJournal(clock, journal, 1, "engine thrust snapshot");
                 expectThrust(journal.items[0]!, 0, 0, 0);
 
-                // 5. apply a new thrust vector
+                // 5. a direction applies maximum thrust along that direction
                 expectStatus(
-                    await rcs.set_thrust(3, 4, 100, 1_000_000),
-                    "set thrust",
+                    await rcs.set_thrust(3, 4, 1_000_000),
+                    "set direction",
                 );
                 await waitJournal(clock, journal, 2, "applied thrust");
-                expectThrust(journal.items[1]!, 60, 80, 100);
+                expectThrust(journal.items[1]!, 600, 800, spec.max_thrust);
 
-                // 6. the same command produces another indication
+                // 6. a shorter vector in the same direction does not change the thrust
                 expectStatus(
-                    await rcs.set_thrust(3, 4, 100, 1_000_000),
-                    "repeat the same thrust",
+                    await rcs.set_thrust(0.6, 0.8, 1_000_000),
+                    "shorter vector",
                 );
-                await waitJournal(clock, journal, 3, "repeated thrust");
-                expectThrust(journal.items[2]!, 60, 80, 100);
+                await waitJournal(clock, journal, 3, "shorter vector applied");
+                expectThrust(journal.items[2]!, 600, 800, spec.max_thrust);
 
-                // 7. a thrust above max_thrust is clamped
+                // 7. a longer vector in the same direction does not change the thrust
                 expectStatus(
-                    await rcs.set_thrust(1, 0, spec.max_thrust * 2, 1_000_000),
-                    "set thrust above max",
+                    await rcs.set_thrust(6, 8, 1_000_000),
+                    "longer vector",
                 );
-                await waitJournal(clock, journal, 4, "clamped thrust");
-                expectThrust(journal.items[3]!, spec.max_thrust, 0, spec.max_thrust);
+                await waitJournal(clock, journal, 4, "longer vector applied");
+                expectThrust(journal.items[3]!, 600, 800, spec.max_thrust);
+
+                // 8. a zero vector produces no thrust
+                expectStatus(await rcs.set_thrust(0, 0, 1_000_000), "zero vector");
+                await waitJournal(clock, journal, 5, "zero thrust");
+                expectThrust(journal.items[4]!, 0, 0, 0);
             } finally {
                 stopped.value = true;
                 await monitoring;
@@ -154,6 +160,10 @@ test.skipIf(!hasServerBinary)(
             // 1. player logins
             const player = await login("player", "player");
             const rcs = getRCS(getShip(player, "scout-1"), "main_rcs");
+            const spec = expectOk(
+                await rcs.get_specification(),
+                "engine specification",
+            );
             await clock.stop();
 
             // 2. start monitoring
@@ -167,9 +177,9 @@ test.skipIf(!hasServerBinary)(
                 expectThrust(journal.items[0]!, 0, 0, 0);
 
                 // 4. start a short burn
-                expectStatus(await rcs.set_thrust(1, 0, 80, 300), "start burn");
+                expectStatus(await rcs.set_thrust(1, 0, 300), "start burn");
                 await waitJournal(clock, journal, 2, "burn applied");
-                expectThrust(journal.items[1]!, 80, 0, 80);
+                expectThrust(journal.items[1]!, spec.max_thrust, 0, spec.max_thrust);
 
                 // 5. when duration elapses, monitor receives zero thrust
                 await waitJournal(clock, journal, 3, "burn expired");
@@ -178,7 +188,7 @@ test.skipIf(!hasServerBinary)(
                 // 6. schedule a delayed change_thrust
                 const now = await clock.time();
                 expectStatus(
-                    await rcs.set_thrust(0, 1, 50, 1_000_000, now + 200_000),
+                    await rcs.set_thrust(0, 1, 1_000_000, now + 200_000),
                     "delayed thrust",
                 );
                 await clock.proceed(50, 2_000);
@@ -187,7 +197,12 @@ test.skipIf(!hasServerBinary)(
 
                 // 7. after the timestamp, monitor receives the applied vector
                 await waitJournal(clock, journal, 4, "delayed thrust applied");
-                expectThrust(journal.items[3]!, 0, 50, 50);
+                expectThrust(
+                    journal.items[3]!,
+                    0,
+                    spec.max_thrust,
+                    spec.max_thrust,
+                );
             } finally {
                 stopped.value = true;
                 await monitoring;
@@ -206,23 +221,27 @@ test.skipIf(!hasServerBinary)(
             // 1. player logins
             const player = await login("player", "player");
             const rcs = getRCS(getShip(player, "scout-1"), "main_rcs");
+            const spec = expectOk(
+                await rcs.get_specification(),
+                "engine specification",
+            );
 
             // 2. subscribe to highlevel thrust events
             const events = collectEvent(rcs, "thrust");
 
-            // 3. apply a new thrust vector
-            expectStatus(await rcs.set_thrust(0, 1, 40, 10_000), "set thrust");
+            // 3. apply a new thrust direction
+            expectStatus(await rcs.set_thrust(0, 1, 10_000), "set thrust");
 
-            // 4. the engine emits the applied vector
+            // 4. the engine emits maximum thrust along that direction
             await events.waitFor(
-                (items) => items.some((item) => item.thrust === 40),
+                (items) => items.some((item) => item.thrust === spec.max_thrust),
                 "applied thrust event",
             );
             expectThrust(
-                events.items.find((item) => item.thrust === 40)!,
+                events.items.find((item) => item.thrust === spec.max_thrust)!,
                 0,
-                40,
-                40,
+                spec.max_thrust,
+                spec.max_thrust,
             );
         });
     },
