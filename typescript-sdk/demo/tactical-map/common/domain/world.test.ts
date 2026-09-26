@@ -1,7 +1,10 @@
 import { expect, test } from "vitest";
 import { Asteroid } from "./asteroid.js";
+import { HoverEngine } from "./hover_engine.js";
 import { PlayerShip } from "./player_ship.js";
 import type { Position } from "./position.js";
+import { RCS } from "./rcs.js";
+import { ResourceContainer } from "./resource_container.js";
 import { Ship } from "./ship.js";
 import { World } from "./world.js";
 import { noop_logger } from "../logger.js";
@@ -159,4 +162,117 @@ test("keeps a known orientation and leaves an unknown one unset", () => {
         turn: 0,
     });
     expect(world.get_player_ship("Scout")?.get_radius()).toBe(25);
+});
+
+test("keeps each owned module state through updates and snapshots, then drops it on removal", () => {
+    const world = new World(noop_logger);
+    world.update({
+        type: "add_player_ship",
+        ship: new PlayerShip("Miner", sample_position(1_000_000), 20, "Miner"),
+    });
+    world.update({
+        type: "add_ship",
+        ship: new Ship("foreign", sample_position(1_000_000)),
+    });
+    world.update({
+        type: "player_ship_modules_update",
+        ship_id: "Miner",
+        modules: [
+            { slot_id: 1, type: "ResourceContainer", name: "Main hold" },
+            { slot_id: 2, type: "ResourceContainer", name: "Reserve hold" },
+            { slot_id: 3, type: "HoverEngine", name: "Main engine" },
+            { slot_id: 4, type: "RCS", name: "Port RCS" },
+        ],
+    });
+    world.update({
+        type: "resource_container_update",
+        ship_id: "Miner",
+        slot_id: 1,
+        content: {
+            volume: 100, used: 20,
+            resources: [{ resource_type: "metals", amount: 500 }],
+        },
+    });
+    world.update({
+        type: "resource_container_update",
+        ship_id: "Miner",
+        slot_id: 2,
+        content: { volume: 50, used: 0, resources: [] },
+    });
+    world.update({
+        type: "hover_engine_update",
+        ship_id: "Miner",
+        slot_id: 3,
+        thrust: 40,
+    });
+    world.update({
+        type: "rcs_update",
+        ship_id: "Miner",
+        slot_id: 4,
+        thrust: { thrust: 10, direction: { x: -1, y: 0 } },
+    });
+
+    const restored = World.unpack(JSON.parse(JSON.stringify(world.pack())), noop_logger);
+    const restored_ship = restored.get_player_ship("Miner");
+    const cargo = restored_ship?.get_module(1);
+    const reserve = restored_ship?.get_module(2);
+    const engine = restored_ship?.get_module(3);
+    const rcs = restored_ship?.get_module(4);
+    expect(cargo).toBeInstanceOf(ResourceContainer);
+    expect(reserve).toBeInstanceOf(ResourceContainer);
+    expect(engine).toBeInstanceOf(HoverEngine);
+    expect(rcs).toBeInstanceOf(RCS);
+    expect((cargo as ResourceContainer).get_content()).toEqual({
+        volume: 100, used: 20,
+        resources: [{ resource_type: "metals", amount: 500 }],
+    });
+    expect((reserve as ResourceContainer).get_content())
+        .toEqual({ volume: 50, used: 0, resources: [] });
+    expect((engine as HoverEngine).get_thrust()).toBe(40);
+    expect((rcs as RCS).get_thrust())
+        .toEqual({ thrust: 10, direction: { x: -1, y: 0 } });
+    expect(restored.get_detected_ship("foreign")).toBeInstanceOf(Ship);
+    expect(restored.get_detected_ship("foreign")).not.toBeInstanceOf(PlayerShip);
+
+    restored.update({
+        type: "resource_container_update",
+        ship_id: "Miner",
+        slot_id: 1,
+        content: { volume: 100, used: 40, resources: [] },
+    });
+    restored.update({
+        type: "hover_engine_update",
+        ship_id: "Miner",
+        slot_id: 3,
+        thrust: 0,
+    });
+    restored.update({
+        type: "rcs_update",
+        ship_id: "Miner",
+        slot_id: 4,
+        thrust: { thrust: 20, direction: { x: 0, y: 1 } },
+    });
+    expect((cargo as ResourceContainer).get_content())
+        .toEqual({ volume: 100, used: 40, resources: [] });
+    expect((reserve as ResourceContainer).get_content())
+        .toEqual({ volume: 50, used: 0, resources: [] });
+    expect((engine as HoverEngine).get_thrust()).toBe(0);
+    expect((rcs as RCS).get_thrust())
+        .toEqual({ thrust: 20, direction: { x: 0, y: 1 } });
+
+    restored.update({
+        type: "player_ship_modules_update",
+        ship_id: "Miner",
+        modules: [
+            { slot_id: 2, type: "ResourceContainer", name: "Reserve hold" },
+            { slot_id: 3, type: "HoverEngine", name: "Main engine" },
+            { slot_id: 4, type: "RCS", name: "Port RCS" },
+        ],
+    });
+    expect(restored.get_player_ship("Miner")?.get_modules()).toHaveLength(3);
+    expect(restored.get_player_ship("Miner")?.get_module(1)).toBeUndefined();
+    expect(restored.get_player_ship("Miner")?.get_module(2)).toBe(reserve);
+
+    restored.update({ type: "remove_entity", entity: { kind: "player_ship", id: "Miner" } });
+    expect(restored.get_player_ship("Miner")).toBeUndefined();
 });

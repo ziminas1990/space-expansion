@@ -316,3 +316,44 @@ body,
 .module-entry + .module-entry {
     margin-top: 0.4rem;
 }
+
+.resource-container-widget summary {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.resource-container-widget summary::before {
+    content: "▸";
+}
+
+.resource-container-widget[open] summary::before {
+    content: "▾";
+}
+
+.resource-container-fill {
+    margin-left: auto;
+    color: #b7c2dc;
+    white-space: nowrap;
+}
+
+.module-group .resource-container-resources {
+    padding: 0.5rem 0 0 1rem;
+}
+
+.resource-container-resources li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #b7c2dc;
+}
+
+.resource-container-empty {
+    margin: 0.5rem 0 0 1rem;
+    font-size: 0.8rem;
+    color: #b7c2dc;
+}

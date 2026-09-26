@@ -6,6 +6,9 @@ import { convert_orientation, convert_position } from "./helpers.js";
 import { IWorld } from "./interfaces.js";
 import { Logger } from "../log.js";
 import { PassiveScanner } from "./passive_scanner.js";
+import { ResourceContainerController } from "./resource_container.js";
+import { HoverEngineController } from "./hover_engine.js";
+import { RCSController } from "./rcs.js";
 import { RetryTimeout } from "../utils/retry_timeout.js";
 
 const STATE_MONITOR_MS = 100;
@@ -21,6 +24,7 @@ export class Ship {
 
     private readonly modules: Map<number, midlevel.ModuleInfo> = new Map();
     private readonly passive_scanners: Map<number, PassiveScanner> = new Map();
+    private readonly module_controllers: Map<number, { stop(): Promise<void> }> = new Map();
 
     constructor(
         private readonly remote: midlevel.Ship,
@@ -80,9 +84,14 @@ export class Ship {
     private async run_stop(): Promise<Status> {
         this.remove_from_world();
         const scanners = [...this.passive_scanners.values()];
+        const controllers = [...this.module_controllers.values()];
         this.passive_scanners.clear();
+        this.module_controllers.clear();
         this.modules.clear();
-        await Promise.all(scanners.map((scanner) => scanner.stop()));
+        await Promise.all([
+            ...scanners.map((scanner) => scanner.stop()),
+            ...controllers.map((controller) => controller.stop()),
+        ]);
         await this.remote.terminate();
         if (this.state_monitoring_task) {
             await this.state_monitoring_task;
@@ -205,26 +214,54 @@ export class Ship {
     private async on_module_attached(info: midlevel.ModuleInfo): Promise<Status> {
         const current = this.modules.get(info.slot_id);
         if (current) {
-            await this.on_module_detached(info.slot_id, false);
+            await this.on_module_detached(info.slot_id);
         }
         this.modules.set(info.slot_id, info);
         this.publish_modules();
 
-        if (info.module_type !== midlevel.ModuleType.PASSIVE_SCANNER) {
-            return Status.ok();
+        switch (info.module_type) {
+            case midlevel.ModuleType.RESOURCE_CONTAINER: {
+                const controller = new ResourceContainerController(
+                    new midlevel.ResourceContainer(info.open_session_cb),
+                    this.world, this.logger, this.name, info.slot_id, info.module_name,
+                );
+                this.module_controllers.set(info.slot_id, controller);
+                controller.start();
+                break;
+            }
+            case midlevel.ModuleType.HOVER_ENGINE: {
+                const controller = new HoverEngineController(
+                    new midlevel.HoverEngine(info.open_session_cb),
+                    this.world, this.logger, this.name, info.slot_id, info.module_name,
+                );
+                this.module_controllers.set(info.slot_id, controller);
+                controller.start();
+                break;
+            }
+            case midlevel.ModuleType.RCS: {
+                const controller = new RCSController(
+                    new midlevel.RCS(info.open_session_cb),
+                    this.world, this.logger, this.name, info.slot_id, info.module_name,
+                );
+                this.module_controllers.set(info.slot_id, controller);
+                controller.start();
+                break;
+            }
+            case midlevel.ModuleType.PASSIVE_SCANNER: {
+                const scanner = new PassiveScanner(
+                    new midlevel.PassiveScanner(info.open_session_cb),
+                    this.world,
+                    this.logger.child(info.module_name),
+                    info.module_name,
+                );
+                const status = await scanner.initialize();
+                if (!status.is_ok()) {
+                    return status.wrap("Failed to initialize passive scanner");
+                }
+                this.passive_scanners.set(info.slot_id, scanner);
+                break;
+            }
         }
-
-        const scanner = new PassiveScanner(
-            new midlevel.PassiveScanner(info.open_session_cb),
-            this.world,
-            this.logger.child(info.module_name),
-            info.module_name,
-        );
-        const status = await scanner.initialize();
-        if (!status.is_ok()) {
-            return status.wrap("Failed to initialize passive scanner");
-        }
-        this.passive_scanners.set(info.slot_id, scanner);
         return Status.ok();
     }
 
@@ -234,6 +271,11 @@ export class Ship {
             return;
         }
         this.modules.delete(slot_id);
+        const controller = this.module_controllers.get(slot_id);
+        this.module_controllers.delete(slot_id);
+        if (controller) {
+            await controller.stop();
+        }
         if (publish) {
             this.publish_modules();
         }

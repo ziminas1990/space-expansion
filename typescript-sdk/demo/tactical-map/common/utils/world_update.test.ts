@@ -55,6 +55,24 @@ test("packs world updates as numeric tuples", () => {
         ship_id: "Scout",
         modules: [{ slot_id: 4, type: "RCS", name: "Left RCS" }],
     });
+    const cargo_update = pack_world_update({
+        type: "resource_container_update",
+        ship_id: "Scout",
+        slot_id: 2,
+        content: { volume: 100, used: 20, resources: [] },
+    });
+    const engine_update = pack_world_update({
+        type: "hover_engine_update",
+        ship_id: "Scout",
+        slot_id: 3,
+        thrust: 40,
+    });
+    const rcs_update = pack_world_update({
+        type: "rcs_update",
+        ship_id: "Scout",
+        slot_id: 4,
+        thrust: { thrust: 25, direction: { x: 0, y: 1 } },
+    });
 
     // 2. check the wire tuples
     expect(add_asteroid).toEqual([0, asteroid.pack()]);
@@ -69,6 +87,9 @@ test("packs world updates as numeric tuples", () => {
     expect(remove_ship).toEqual([6, 1, "foreign-1"]);
     expect(remove_player).toEqual([6, 2, "Scout"]);
     expect(modules_update).toEqual([7, "Scout", [[4, "RCS", "Left RCS"]]]);
+    expect(cargo_update).toEqual([8, "Scout", 2, { volume: 100, used: 20, resources: [] }]);
+    expect(engine_update).toEqual([9, "Scout", 3, 40]);
+    expect(rcs_update).toEqual([10, "Scout", 4, { thrust: 25, direction: { x: 0, y: 1 } }]);
 });
 
 test("round-trips every world update variant", () => {
@@ -111,6 +132,24 @@ test("round-trips every world update variant", () => {
             type: "player_ship_modules_update",
             ship_id: "Scout",
             modules: [{ slot_id: 4, type: "RCS", name: "Left RCS" }],
+        },
+        {
+            type: "resource_container_update",
+            ship_id: "Scout",
+            slot_id: 2,
+            content: { volume: 100, used: 20, resources: [] },
+        },
+        {
+            type: "hover_engine_update",
+            ship_id: "Scout",
+            slot_id: 3,
+            thrust: 40,
+        },
+        {
+            type: "rcs_update",
+            ship_id: "Scout",
+            slot_id: 4,
+            thrust: { thrust: 25, direction: { x: 0, y: 1 } },
         },
         { type: "remove_entity", entity: { kind: "asteroid", id: "rock-1" } },
         { type: "remove_entity", entity: { kind: "ship", id: "foreign-1" } },
@@ -187,14 +226,32 @@ test("round-trips every world update variant", () => {
         modules: [{ slot_id: 4, type: "RCS", name: "Left RCS" }],
     });
     expect(unpacked[8]).toEqual({
+        type: "resource_container_update",
+        ship_id: "Scout",
+        slot_id: 2,
+        content: { volume: 100, used: 20, resources: [] },
+    });
+    expect(unpacked[9]).toEqual({
+        type: "hover_engine_update",
+        ship_id: "Scout",
+        slot_id: 3,
+        thrust: 40,
+    });
+    expect(unpacked[10]).toEqual({
+        type: "rcs_update",
+        ship_id: "Scout",
+        slot_id: 4,
+        thrust: { thrust: 25, direction: { x: 0, y: 1 } },
+    });
+    expect(unpacked[11]).toEqual({
         type: "remove_entity",
         entity: { kind: "asteroid", id: "rock-1" },
     });
-    expect(unpacked[9]).toEqual({
+    expect(unpacked[12]).toEqual({
         type: "remove_entity",
         entity: { kind: "ship", id: "foreign-1" },
     });
-    expect(unpacked[10]).toEqual({
+    expect(unpacked[13]).toEqual({
         type: "remove_entity",
         entity: { kind: "player_ship", id: "Scout" },
     });

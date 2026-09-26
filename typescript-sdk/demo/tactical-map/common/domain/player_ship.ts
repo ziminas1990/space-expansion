@@ -15,23 +15,17 @@ import {
     Vector2D,
 } from "./position.js";
 import { ShipUpdate } from "./ship.js";
+import { InstalledModule, type ModuleInfo } from "./module.js";
+import { create_module, unpack_module } from "./module_factory.js";
 
 export type PlayerShipPacked = ReturnType<PlayerShip["pack"]>;
-
-export type InstalledModule = {
-    slot_id: number;
-    type: string;
-    name: string;
-};
-
-export type InstalledModulePacked = [number, string, string];
 
 export class PlayerShip {
 
     outdated: boolean = false;
     private position: Position;
     private orientation: Orientation | undefined;
-    private modules: InstalledModule[] = [];
+    private modules: Map<number, InstalledModule> = new Map();
 
     static unpack(packed: PlayerShipPacked): PlayerShip {
         const [id, position, radius, outdated, orientation, blueprint_name, modules] = packed;
@@ -43,11 +37,10 @@ export class PlayerShip {
         );
         ship.orientation = unpack_orientation(orientation);
         ship.outdated = outdated;
-        ship.set_modules(modules.map(([slot_id, type, name]) => ({
-            slot_id,
-            type,
-            name,
-        })));
+        ship.modules = new Map(modules.map((packed_module) => {
+            const module = unpack_module(packed_module);
+            return [module.slot_id, module];
+        }));
         return ship;
     }
 
@@ -73,11 +66,23 @@ export class PlayerShip {
     }
 
     get_modules(): readonly InstalledModule[] {
-        return this.modules.map((module) => ({ ...module }));
+        return [...this.modules.values()];
     }
 
-    set_modules(modules: readonly InstalledModule[]): void {
-        this.modules = modules.map((module) => ({ ...module }));
+    get_module(slot_id: number): InstalledModule | undefined {
+        return this.modules.get(slot_id);
+    }
+
+    set_modules(infos: readonly ModuleInfo[]): void {
+        const next = new Map<number, InstalledModule>();
+        for (const info of infos) {
+            const current = this.modules.get(info.slot_id);
+            next.set(info.slot_id,
+                current?.type === info.type && current.name === info.name
+                    ? current
+                    : create_module(info));
+        }
+        this.modules = next;
     }
 
     get_position(): Position {
@@ -119,11 +124,7 @@ export class PlayerShip {
             this.outdated,
             pack_orientation(this.orientation),
             this.blueprint_name,
-            this.modules.map((module): InstalledModulePacked => [
-                module.slot_id,
-                module.type,
-                module.name,
-            ]),
+            [...this.modules.values()].map((module) => module.pack()),
         ] as const;
     }
 

@@ -1,9 +1,8 @@
 import { Asteroid, AsteroidPacked, AsteroidUpdate } from "../domain/asteroid.js";
-import {
-    InstalledModulePacked,
-    PlayerShip,
-    PlayerShipPacked,
-} from "../domain/player_ship.js";
+import { PlayerShip, PlayerShipPacked } from "../domain/player_ship.js";
+import type { ModuleInfoPacked } from "../domain/module.js";
+import type { ContainerContent } from "../domain/resource_container.js";
+import type { RCSThrust } from "../domain/rcs.js";
 import {
     pack_position,
     pack_vector,
@@ -25,6 +24,9 @@ const packed_update_type = {
     player_ship_update: 5,
     remove_entity: 6,
     player_ship_modules_update: 7,
+    resource_container_update: 8,
+    hover_engine_update: 9,
+    rcs_update: 10,
 } as const;
 
 const packed_entity_kind = {
@@ -55,7 +57,10 @@ export type WorldUpdatePacked =
     | [typeof packed_update_type.ship_update, string, ...ShipUpdatePacked]
     | [typeof packed_update_type.player_ship_update, string, ...ShipUpdatePacked]
     | [typeof packed_update_type.remove_entity, PackedEntityKind, string]
-    | [typeof packed_update_type.player_ship_modules_update, string, InstalledModulePacked[]];
+    | [typeof packed_update_type.player_ship_modules_update, string, ModuleInfoPacked[]]
+    | [typeof packed_update_type.resource_container_update, string, number, ContainerContent]
+    | [typeof packed_update_type.hover_engine_update, string, number, number]
+    | [typeof packed_update_type.rcs_update, string, number, RCSThrust];
 
 export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
     switch (update.type) {
@@ -97,11 +102,30 @@ export function pack_world_update(update: WorldUpdate): WorldUpdatePacked {
             return [
                 packed_update_type.player_ship_modules_update,
                 update.ship_id,
-                update.modules.map((module): InstalledModulePacked => [
-                    module.slot_id,
-                    module.type,
-                    module.name,
+                update.modules.map((module): ModuleInfoPacked => [
+                    module.slot_id, module.type, module.name,
                 ]),
+            ];
+        case "resource_container_update":
+            return [
+                packed_update_type.resource_container_update,
+                update.ship_id,
+                update.slot_id,
+                update.content,
+            ];
+        case "hover_engine_update":
+            return [
+                packed_update_type.hover_engine_update,
+                update.ship_id,
+                update.slot_id,
+                update.thrust,
+            ];
+        case "rcs_update":
+            return [
+                packed_update_type.rcs_update,
+                update.ship_id,
+                update.slot_id,
+                update.thrust,
             ];
         case "remove_entity":
             return [
@@ -160,6 +184,27 @@ export function unpack_world_update(packed: WorldUpdatePacked): WorldUpdate {
                     type,
                     name,
                 })),
+            };
+        case packed_update_type.resource_container_update:
+            return {
+                type: "resource_container_update",
+                ship_id: packed[1],
+                slot_id: packed[2],
+                content: packed[3],
+            };
+        case packed_update_type.hover_engine_update:
+            return {
+                type: "hover_engine_update",
+                ship_id: packed[1],
+                slot_id: packed[2],
+                thrust: packed[3],
+            };
+        case packed_update_type.rcs_update:
+            return {
+                type: "rcs_update",
+                ship_id: packed[1],
+                slot_id: packed[2],
+                thrust: packed[3],
             };
         case packed_update_type.remove_entity:
             return {

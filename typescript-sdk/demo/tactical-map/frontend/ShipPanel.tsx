@@ -1,23 +1,49 @@
-import type { InstalledModule, PlayerShip } from "../common/domain/player_ship.js";
+import type { PlayerShip } from "../common/domain/player_ship.js";
+import type { InstalledModule, ModuleInfo } from "../common/domain/module.js";
+import { ResourceContainer } from "../common/domain/resource_container.js";
 
 export function toggle_module_type(
-    expanded_by_ship: ReadonlyMap<string, ReadonlySet<string>>,
-    ship_id: string,
+    expanded_by_group: ReadonlyMap<string, ReadonlySet<string>>,
+    group_name: string,
     type: string,
 ): ReadonlyMap<string, ReadonlySet<string>> {
-    const next = new Map(expanded_by_ship);
-    const expanded = new Set(next.get(ship_id) ?? []);
+    const next = new Map(expanded_by_group);
+    const expanded = new Set(next.get(group_name) ?? []);
     if (expanded.has(type)) {
         expanded.delete(type);
     } else {
         expanded.add(type);
     }
     if (expanded.size === 0) {
-        next.delete(ship_id);
+        next.delete(group_name);
     } else {
-        next.set(ship_id, expanded);
+        next.set(group_name, expanded);
     }
     return next;
+}
+
+export function toggle_module(
+    expanded_by_group: ReadonlyMap<string, ReadonlySet<string>>,
+    group_name: string,
+    module_key: string,
+): ReadonlyMap<string, ReadonlySet<string>> {
+    const next = new Map(expanded_by_group);
+    const expanded = new Set(next.get(group_name) ?? []);
+    if (expanded.has(module_key)) {
+        expanded.delete(module_key);
+    } else {
+        expanded.add(module_key);
+    }
+    if (expanded.size === 0) {
+        next.delete(group_name);
+    } else {
+        next.set(group_name, expanded);
+    }
+    return next;
+}
+
+export function module_expansion_key(module: ModuleInfo): string {
+    return JSON.stringify([module.type, module.name]);
 }
 
 export function group_modules(modules: readonly InstalledModule[]): [string, InstalledModule[]][] {
@@ -33,10 +59,18 @@ export function group_modules(modules: readonly InstalledModule[]): [string, Ins
 type ShipPanelProps = {
     ship: PlayerShip;
     expanded_types: ReadonlySet<string>;
+    expanded_modules: ReadonlySet<string>;
     on_toggle_type: (type: string) => void;
+    on_toggle_module: (module_key: string) => void;
 };
 
-export function ShipPanel({ ship, expanded_types, on_toggle_type }: ShipPanelProps) {
+export function ShipPanel({
+    ship,
+    expanded_types,
+    expanded_modules,
+    on_toggle_type,
+    on_toggle_module,
+}: ShipPanelProps) {
     const groups = group_modules(ship.get_modules());
 
     return (
@@ -62,7 +96,15 @@ export function ShipPanel({ ship, expanded_types, on_toggle_type }: ShipPanelPro
                             <ul>
                                 {modules.map((module) => (
                                     <li className="module-entry" key={module.slot_id}>
-                                        <h4>{module.name}</h4>
+                                        {module instanceof ResourceContainer ? (
+                                            <ResourceContainerWidget
+                                                module={module}
+                                                expanded={expanded_modules.has(module_expansion_key(module))}
+                                                on_toggle={() => on_toggle_module(module_expansion_key(module))}
+                                            />
+                                        ) : (
+                                            <h4>{module.name}</h4>
+                                        )}
                                     </li>
                                 ))}
                             </ul>
@@ -71,5 +113,52 @@ export function ShipPanel({ ship, expanded_types, on_toggle_type }: ShipPanelPro
                 );
             })}
         </aside>
+    );
+}
+
+function ResourceContainerWidget({
+    module,
+    expanded,
+    on_toggle,
+}: {
+    module: ResourceContainer;
+    expanded: boolean;
+    on_toggle: () => void;
+}) {
+    const content = module.get_content();
+    const percent = content === undefined
+        ? "—"
+        : `${content.volume > 0
+            ? Math.round(100 * content.used / content.volume)
+            : 0}%`;
+    const resources = content?.resources
+        .filter((resource) => resource.amount > 0)
+        .sort((a, b) => b.amount - a.amount || a.resource_type.localeCompare(b.resource_type))
+        ?? [];
+
+    return (
+        <details className="resource-container-widget" open={expanded}>
+            <summary onClick={(event) => {
+                event.preventDefault();
+                on_toggle();
+            }}>
+                <span>{module.name}</span>
+                <span className="resource-container-fill">{percent}</span>
+            </summary>
+            {resources.length > 0 ? (
+                <ul className="resource-container-resources">
+                    {resources.map((resource) => (
+                        <li key={resource.resource_type}>
+                            <span>{resource.resource_type}</span>
+                            <span>{Math.round(resource.amount).toLocaleString("en-US")} kg</span>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className="resource-container-empty">
+                    {content === undefined ? "Loading contents…" : "Empty"}
+                </p>
+            )}
+        </details>
     );
 }

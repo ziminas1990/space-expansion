@@ -1,7 +1,11 @@
 import { Clock } from "@spx/sdk/utils";
 import { Asteroid, AsteroidUpdate } from "./asteroid.js";
 import { ILogger } from "../logger.js";
-import { InstalledModule, PlayerShip } from "./player_ship.js";
+import { PlayerShip } from "./player_ship.js";
+import type { ModuleInfo } from "./module.js";
+import { ResourceContainer, type ContainerContent } from "./resource_container.js";
+import { HoverEngine } from "./hover_engine.js";
+import { RCS, type RCSThrust } from "./rcs.js";
 import { Ship, ShipUpdate } from "./ship.js";
 
 const DEFAULT_OUTDATED_AFTER_US = 60_000_000;
@@ -18,7 +22,10 @@ export type WorldUpdate =
     | { type: "asteroid_update", asteroid_id: string, update: AsteroidUpdate }
     | { type: "ship_update", ship_id: string, update: ShipUpdate }
     | { type: "player_ship_update", ship_id: string, update: ShipUpdate }
-    | { type: "player_ship_modules_update", ship_id: string, modules: InstalledModule[] }
+    | { type: "player_ship_modules_update", ship_id: string, modules: ModuleInfo[] }
+    | { type: "resource_container_update", ship_id: string, slot_id: number, content: ContainerContent }
+    | { type: "hover_engine_update", ship_id: string, slot_id: number, thrust: number }
+    | { type: "rcs_update", ship_id: string, slot_id: number, thrust: RCSThrust }
     | { type: "remove_entity", entity: EntityRef }
 
 export type WorldPacked = ReturnType<World["pack"]>;
@@ -120,6 +127,27 @@ export class World {
             case "player_ship_modules_update":
                 this.player_ships.get(update.ship_id)?.set_modules(update.modules);
                 break;
+            case "resource_container_update": {
+                const module = this.player_ships.get(update.ship_id)?.get_module(update.slot_id);
+                if (module instanceof ResourceContainer) {
+                    module.update_content(update.content);
+                }
+                break;
+            }
+            case "hover_engine_update": {
+                const module = this.player_ships.get(update.ship_id)?.get_module(update.slot_id);
+                if (module instanceof HoverEngine) {
+                    module.update_thrust(update.thrust);
+                }
+                break;
+            }
+            case "rcs_update": {
+                const module = this.player_ships.get(update.ship_id)?.get_module(update.slot_id);
+                if (module instanceof RCS) {
+                    module.update_thrust(update.thrust);
+                }
+                break;
+            }
             case "remove_entity":
                 this.journal.info(`Entity ${update.entity.id} removed`);
                 switch (update.entity.kind) {

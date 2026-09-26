@@ -2,7 +2,7 @@ import { useState, useSyncExternalStore } from "react";
 import { LoginForm } from "./LoginForm.js";
 import { PixiMap } from "./map/PixiMap.js";
 import { ShipList } from "./ShipList.js";
-import { ShipPanel, toggle_module_type } from "./ShipPanel.js";
+import { ShipPanel, toggle_module, toggle_module_type } from "./ShipPanel.js";
 import {
     WorldClient,
     type ClientStatus,
@@ -15,6 +15,9 @@ export function App() {
         () => new Set(),
     );
     const [expanded_module_types, set_expanded_module_types] = useState<
+        ReadonlyMap<string, ReadonlySet<string>>
+    >(() => new Map());
+    const [expanded_modules, set_expanded_modules] = useState<
         ReadonlyMap<string, ReadonlySet<string>>
     >(() => new Map());
     const version = useSyncExternalStore(client.subscribe, client.get_version);
@@ -44,9 +47,10 @@ export function App() {
         );
     }
 
-    const focused_ship = followed_ship_id === undefined
+    const focused_ship = selected_ship_id === undefined
         ? undefined
-        : world.get_player_ship(followed_ship_id);
+        : world.get_player_ship(selected_ship_id);
+    const focused_group_name = focused_ship?.get_blueprint_name();
 
     return (
         <div className="app tactical-screen" data-version={version}>
@@ -67,13 +71,17 @@ export function App() {
                 followed_ship_id={followed_ship_id}
                 on_select={(id) => client.select_ship(id)}
             />
-            {focused_ship !== undefined && (
+            {focused_ship !== undefined && focused_group_name !== undefined && (
                 <ShipPanel
                     key={focused_ship.get_id()}
                     ship={focused_ship}
-                    expanded_types={expanded_module_types.get(focused_ship.get_id()) ?? new Set()}
+                    expanded_types={expanded_module_types.get(focused_group_name) ?? new Set()}
+                    expanded_modules={expanded_modules.get(focused_group_name) ?? new Set()}
                     on_toggle_type={(type) => set_expanded_module_types((previous) =>
-                        toggle_module_type(previous, focused_ship.get_id(), type)
+                        toggle_module_type(previous, focused_group_name, type)
+                    )}
+                    on_toggle_module={(module_key) => set_expanded_modules((previous) =>
+                        toggle_module(previous, focused_group_name, module_key)
                     )}
                 />
             )}
