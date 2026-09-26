@@ -1,6 +1,10 @@
 import { Application, Container, Graphics } from "pixi.js";
 import { useEffect, useRef } from "react";
 import {
+    predict_orientation,
+    type Orientation,
+} from "../../common/domain/orientation.js";
+import {
     predict_position,
     type Position,
     type Vector2D,
@@ -20,11 +24,13 @@ import { inscribed_square_extent } from "./inscribed_extent.js";
 import { marker_display_scale } from "./marker_scale.js";
 import { picture_rotation } from "./picture_rotation.js";
 import { ASTEROID_PICTURE, PICTURE_SIZE, SHIP_PICTURE } from "./pictures.js";
+import { visible_player_ship_ids } from "./visible_ships.js";
 
 const BACKGROUND = 0x050814;
 const OUTDATED_ALPHA = 0.35;
 const DETECTED_SHIP_SIZE = 20;
-const ZOOM_STEP = 1.1;
+const ZOOM_STEP = 1.5;
+const VISIBILITY_REFRESH_MS = 1000;
 
 type EntityKind = "asteroid" | "ship" | "player_ship";
 
@@ -37,24 +43,36 @@ type PixiMapProps = {
     world: World;
     version: number;
     followed_ship_id: string | undefined;
-    on_release_follow: () => void;
+    selected_ship_id: string | undefined;
+    on_stop_following: () => void;
+    on_clear_selection: () => void;
+    on_visible_ships_change: (ids: ReadonlySet<string>) => void;
 };
 
 export function PixiMap({
     world,
     version,
     followed_ship_id,
-    on_release_follow,
+    selected_ship_id,
+    on_stop_following,
+    on_clear_selection,
+    on_visible_ships_change,
 }: PixiMapProps) {
     const container_ref = useRef<HTMLDivElement>(null);
     const camera_ref = useRef<Camera>(create_camera());
     const world_ref = useRef(world);
     const version_ref = useRef(version);
-    const on_release_ref = useRef(on_release_follow);
+    const selected_ref = useRef(selected_ship_id);
+    const on_stop_ref = useRef(on_stop_following);
+    const on_clear_ref = useRef(on_clear_selection);
+    const on_visible_ref = useRef(on_visible_ships_change);
 
     world_ref.current = world;
     version_ref.current = version;
-    on_release_ref.current = on_release_follow;
+    selected_ref.current = selected_ship_id;
+    on_stop_ref.current = on_stop_following;
+    on_clear_ref.current = on_clear_selection;
+    on_visible_ref.current = on_visible_ships_change;
 
     useEffect(() => {
         if (followed_ship_id === undefined) {
@@ -91,6 +109,7 @@ export function PixiMap({
         let cancelled = false;
         let cleaned = false;
         let last_version = -1;
+        let last_visibility_refresh = -Infinity;
 
         let dragging = false;
         let drag_pointer_id: number | undefined;
@@ -182,12 +201,15 @@ export function PixiMap({
                 return;
             }
             const camera = camera_ref.current;
-            if (camera.followed_id === undefined) {
-                return;
+            if (camera.followed_id !== undefined) {
+                event.preventDefault();
+                camera_ref.current = release_follow(camera);
+                on_stop_ref.current();
+            } else if (selected_ref.current !== undefined) {
+                event.preventDefault();
+                selected_ref.current = undefined;
+                on_clear_ref.current();
             }
-            event.preventDefault();
-            camera_ref.current = release_follow(camera);
-            on_release_ref.current();
         };
 
         const on_tick = () => {
@@ -208,6 +230,14 @@ export function PixiMap({
 
             update_markers(current_world, markers, current_world.now(), camera.scale);
             apply_camera(world_layer, camera, app.screen.width, app.screen.height);
+            const timestamp = performance.now();
+            if (timestamp - last_visibility_refresh >= VISIBILITY_REFRESH_MS) {
+                last_visibility_refresh = timestamp;
+                on_visible_ref.current(visible_player_ship_ids(current_world, camera, {
+                    width: app.screen.width,
+                    height: app.screen.height,
+                }));
+            }
             if (camera.followed_id !== undefined) {
                 app.canvas.style.cursor = "default";
             } else {
@@ -270,6 +300,16 @@ export function PixiMap({
     }, []);
 
     return <div className="map-stage" ref={container_ref} />;
+}
+
+function predicted_facing(
+    orientation: Orientation | undefined,
+    now: number | undefined,
+): Vector2D | undefined {
+    if (orientation === undefined) {
+        return undefined;
+    }
+    return predict_orientation(orientation, now ?? orientation.timestamp);
 }
 
 function predicted_xy(
@@ -378,7 +418,7 @@ function update_markers(
             predicted_xy(ship, now),
             DETECTED_SHIP_SIZE,
             camera_scale,
-            ship.get_orientation(),
+            predicted_facing(ship.get_orientation(), now),
             ship.outdated,
         );
     }
@@ -393,7 +433,7 @@ function update_markers(
             predicted_xy(ship, now),
             inscribed_square_extent(ship.get_radius()),
             camera_scale,
-            ship.get_orientation(),
+            predicted_facing(ship.get_orientation(), now),
             ship.outdated,
         );
     }

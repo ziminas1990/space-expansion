@@ -142,10 +142,61 @@ body,
     font-weight: 600;
 }
 
+.ship-list-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+    color: #b7c2dc;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.ship-list-filter input {
+    accent-color: #c28b27;
+}
+
+.ship-group {
+    margin-top: 0.5rem;
+    border: 1px solid #33405f;
+    border-radius: 0.45rem;
+    overflow: hidden;
+}
+
+.ship-group h3 {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.ship-group-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.55rem 0.65rem;
+    border: 0;
+    background: #1a2740;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ship-group-count {
+    margin-left: auto;
+    color: #9baac5;
+    font-weight: 400;
+}
+
 .ship-list ul {
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+.ship-group ul {
+    padding: 0.45rem;
 }
 
 .ship-list-empty {
@@ -171,9 +222,14 @@ body,
     cursor: pointer;
 }
 
+.ship-group li:last-child .ship-entry {
+    margin-bottom: 0;
+}
+
 .ship-entry.selected {
-    border-color: #3d8bfd;
-    background: #15233f;
+    border-color: #a8791c;
+    background: #594014;
+    color: #fff3d6;
 }
 
 .ship-name {
@@ -185,5 +241,5 @@ body,
 .ship-follow-state {
     flex-shrink: 0;
     font-size: 0.75rem;
-    color: #8ec0ff;
+    color: #ffe1a0;
 }

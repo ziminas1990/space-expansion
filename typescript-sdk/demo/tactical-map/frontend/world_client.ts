@@ -49,6 +49,7 @@ export class WorldClient {
     private version = 0;
     private status: ClientStatus = { type: "disconnected" };
     private world: World | undefined;
+    private selected_ship_id: string | undefined;
     private followed_ship_id: string | undefined;
     private socket: WebSocket | undefined;
 
@@ -72,20 +73,43 @@ export class WorldClient {
         return this.followed_ship_id;
     }
 
-    set_followed_ship_id(id: string | undefined): void {
-        if (id !== undefined && this.world?.get_player_ship(id) === undefined) {
+    get_selected_ship_id(): string | undefined {
+        return this.selected_ship_id;
+    }
+
+    select_ship(id: string): void {
+        if (this.world?.get_player_ship(id) === undefined) {
             return;
         }
-        if (this.followed_ship_id === id) {
+        if (this.selected_ship_id === id && this.followed_ship_id === id) {
             return;
         }
+        this.selected_ship_id = id;
         this.followed_ship_id = id;
+        this.notify();
+    }
+
+    stop_following(): void {
+        if (this.followed_ship_id === undefined) {
+            return;
+        }
+        this.followed_ship_id = undefined;
+        this.notify();
+    }
+
+    clear_selection(): void {
+        if (this.selected_ship_id === undefined && this.followed_ship_id === undefined) {
+            return;
+        }
+        this.selected_ship_id = undefined;
+        this.followed_ship_id = undefined;
         this.notify();
     }
 
     connect(credentials: LoginCredentials): void {
         this.close_socket();
         this.world = undefined;
+        this.selected_ship_id = undefined;
         this.followed_ship_id = undefined;
         this.status = { type: "connecting" };
         this.notify();
@@ -167,7 +191,7 @@ export class WorldClient {
                 return;
             case "snapshot":
                 this.world = World.unpack(message.world, this.logger.child("world"));
-                this.clear_follow_if_missing();
+                this.clear_selection_if_missing();
                 this.notify();
                 return;
             case "world_update":
@@ -175,7 +199,7 @@ export class WorldClient {
                     return;
                 }
                 this.world.update(unpack_world_update(message.update));
-                this.clear_follow_if_missing();
+                this.clear_selection_if_missing();
                 this.notify();
                 return;
             case "clock":
@@ -196,14 +220,16 @@ export class WorldClient {
 
     private drop_world(): void {
         this.world = undefined;
+        this.selected_ship_id = undefined;
         this.followed_ship_id = undefined;
     }
 
-    private clear_follow_if_missing(): void {
-        if (this.followed_ship_id === undefined) {
+    private clear_selection_if_missing(): void {
+        if (this.selected_ship_id === undefined) {
             return;
         }
-        if (this.world?.get_player_ship(this.followed_ship_id) === undefined) {
+        if (this.world?.get_player_ship(this.selected_ship_id) === undefined) {
+            this.selected_ship_id = undefined;
             this.followed_ship_id = undefined;
         }
     }

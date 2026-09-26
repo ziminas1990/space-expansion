@@ -1,11 +1,16 @@
 import {
+    apply_orientation,
+    copy_orientation,
+    orientation_from,
+    Orientation,
+    pack_orientation,
+    unpack_orientation,
+} from "./orientation.js";
+import {
     copy_position,
-    copy_vector,
     pack_position,
-    pack_vector,
     Position,
     unpack_position,
-    unpack_vector,
     update_position,
     Vector2D,
 } from "./position.js";
@@ -17,16 +22,17 @@ export class PlayerShip {
 
     outdated: boolean = false;
     private position: Position;
-    private orientation: Vector2D | undefined;
+    private orientation: Orientation | undefined;
 
     static unpack(packed: PlayerShipPacked): PlayerShip {
-        const [id, position, radius, outdated, orientation] = packed;
+        const [id, position, radius, outdated, orientation, blueprint_name] = packed;
         const ship = new PlayerShip(
             id,
             unpack_position(position),
             radius,
-            unpack_vector(orientation),
+            blueprint_name,
         );
+        ship.orientation = unpack_orientation(orientation);
         ship.outdated = outdated;
         return ship;
     }
@@ -35,16 +41,21 @@ export class PlayerShip {
         private readonly id: string,
         position: Position,
         private radius: number,
+        private readonly blueprint_name: string,
         orientation?: Vector2D,
     ) {
         this.position = copy_position(position);
         this.orientation = orientation === undefined
             ? undefined
-            : copy_vector(orientation);
+            : orientation_from(orientation, position.timestamp);
     }
 
     get_id(): string {
         return this.id;
+    }
+
+    get_blueprint_name(): string {
+        return this.blueprint_name;
     }
 
     get_position(): Position {
@@ -55,11 +66,11 @@ export class PlayerShip {
         return this.radius;
     }
 
-    get_orientation(): Vector2D | undefined {
+    get_orientation(): Orientation | undefined {
         if (this.orientation === undefined) {
             return undefined;
         }
-        return copy_vector(this.orientation);
+        return copy_orientation(this.orientation);
     }
 
     update(update: ShipUpdate): void {
@@ -69,7 +80,12 @@ export class PlayerShip {
             this.position = update_position(this.position, update.position);
         }
         if (update.orientation !== undefined) {
-            this.orientation = copy_vector(update.orientation);
+            const timestamp = update.position?.timestamp ?? this.position.timestamp;
+            this.orientation = apply_orientation(
+                this.orientation,
+                update.orientation,
+                timestamp,
+            );
         }
     }
 
@@ -79,7 +95,8 @@ export class PlayerShip {
             pack_position(this.position),
             this.radius,
             this.outdated,
-            pack_vector(this.orientation),
+            pack_orientation(this.orientation),
+            this.blueprint_name,
         ] as const;
     }
 

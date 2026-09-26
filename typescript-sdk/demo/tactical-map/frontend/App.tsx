@@ -10,10 +10,14 @@ import {
 
 export function App() {
     const [client] = useState(() => new WorldClient());
+    const [visible_ship_ids, set_visible_ship_ids] = useState<ReadonlySet<string>>(
+        () => new Set(),
+    );
     const version = useSyncExternalStore(client.subscribe, client.get_version);
     const status = client.get_status();
     const world = client.get_world();
     const followed_ship_id = client.get_followed_ship_id();
+    const selected_ship_id = client.get_selected_ship_id();
 
     function handle_login(credentials: LoginCredentials): void {
         client.connect(credentials);
@@ -42,13 +46,18 @@ export function App() {
                 world={world}
                 version={version}
                 followed_ship_id={followed_ship_id}
-                on_release_follow={() => client.set_followed_ship_id(undefined)}
+                selected_ship_id={selected_ship_id}
+                on_stop_following={() => client.stop_following()}
+                on_clear_selection={() => client.clear_selection()}
+                on_visible_ships_change={set_visible_ship_ids}
             />
             <div className="connection-chip">Connected</div>
             <ShipList
                 world={world}
+                visible_ship_ids={visible_ship_ids}
+                selected_ship_id={selected_ship_id}
                 followed_ship_id={followed_ship_id}
-                on_select={(id) => client.set_followed_ship_id(id)}
+                on_select={(id) => client.select_ship(id)}
             />
         </div>
     );

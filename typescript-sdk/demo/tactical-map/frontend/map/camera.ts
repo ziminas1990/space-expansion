@@ -1,4 +1,5 @@
-export const MIN_SCALE = 0.01;
+// World coordinates are meters; at this scale an 800 px view spans 80 billion km.
+export const MIN_SCALE = 1e-11;
 export const MAX_SCALE = 64;
 export const DEFAULT_SCALE = 1;
 

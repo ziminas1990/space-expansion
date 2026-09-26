@@ -22,7 +22,7 @@ function packed_world_with_player_ship(): ReturnType<World["pack"]> {
     const world = new World(noop_logger);
     world.update({
         type: "add_player_ship",
-        ship: new PlayerShip("Scout", sample_position(1_000_000, 100, 200), 25),
+        ship: new PlayerShip("Scout", sample_position(1_000_000, 100, 200), 25, "Tiny-Scout"),
     });
     return world.pack();
 }
@@ -44,6 +44,46 @@ test("applies a packed world snapshot", () => {
     expect(ship?.get_position().x).toBe(100);
     expect(ship?.get_position().y).toBe(200);
     expect(ship?.get_radius()).toBe(25);
+    expect(ship?.get_blueprint_name()).toBe("Tiny-Scout");
+});
+
+test("stops following before clearing the selected ship", () => {
+    const client = new WorldClient({ logger: noop_logger });
+    client.handle_message(encode_server_message({
+        type: "snapshot",
+        world: packed_world_with_player_ship(),
+    }));
+
+    client.select_ship("Scout");
+    expect(client.get_selected_ship_id()).toBe("Scout");
+    expect(client.get_followed_ship_id()).toBe("Scout");
+
+    client.stop_following();
+    expect(client.get_selected_ship_id()).toBe("Scout");
+    expect(client.get_followed_ship_id()).toBeUndefined();
+
+    client.clear_selection();
+    expect(client.get_selected_ship_id()).toBeUndefined();
+    expect(client.get_followed_ship_id()).toBeUndefined();
+});
+
+test("clears a selected ship removed from the world", () => {
+    const client = new WorldClient({ logger: noop_logger });
+    client.handle_message(encode_server_message({
+        type: "snapshot",
+        world: packed_world_with_player_ship(),
+    }));
+    client.select_ship("Scout");
+    client.stop_following();
+
+    client.handle_message(encode_server_message({
+        type: "world_update",
+        update: pack_world_update({
+            type: "remove_entity",
+            entity: { kind: "player_ship", id: "Scout" },
+        }),
+    }));
+    expect(client.get_selected_ship_id()).toBeUndefined();
 });
 
 test("applies a packed world update after the snapshot", () => {

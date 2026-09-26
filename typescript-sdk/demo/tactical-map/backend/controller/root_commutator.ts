@@ -175,6 +175,7 @@ export class RootCommutator {
             this.world,
             this.logger.child(info.module_name),
             info.module_name,
+            info.blueprint_name,
         );
         const status = await ship.initialize();
         if (!status.is_ok()) {

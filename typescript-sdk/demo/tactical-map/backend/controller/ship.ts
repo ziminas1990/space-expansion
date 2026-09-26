@@ -27,6 +27,7 @@ export class Ship {
         private readonly world: IWorld,
         private readonly logger: Logger,
         private readonly name: string,
+        private readonly blueprint_name: string,
     ) {}
 
     async initialize(): Promise<Status> {
@@ -128,6 +129,7 @@ export class Ship {
                 this.name,
                 position,
                 this.hull_radius,
+                this.blueprint_name,
                 orientation,
             ),
         });

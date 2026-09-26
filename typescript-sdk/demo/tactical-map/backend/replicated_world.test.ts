@@ -29,7 +29,7 @@ test("keeps updates dormant until snapshot, then sends live updates after it", (
     });
     replica.update({
         type: "add_player_ship",
-        ship: new PlayerShip("Scout", sample_position(2_000_000, 100, 200), 25),
+        ship: new PlayerShip("Scout", sample_position(2_000_000, 100, 200), 25, "Tiny-Scout"),
     });
     replica.observe(10, 20, 30);
     expect(messages).toEqual([]);
@@ -48,6 +48,7 @@ test("keeps updates dormant until snapshot, then sends live updates after it", (
         expect(world.get_asteroid("rock-1")?.get_radius()).toBe(40);
         expect(world.get_player_ship("Scout")?.get_position().x).toBe(100);
         expect(world.get_player_ship("Scout")?.get_radius()).toBe(25);
+        expect(world.get_player_ship("Scout")?.get_blueprint_name()).toBe("Tiny-Scout");
         expect(world.get_detected_ships()).toHaveLength(0);
     }
     expect(messages[1]).toEqual({

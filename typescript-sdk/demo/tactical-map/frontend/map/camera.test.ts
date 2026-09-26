@@ -67,8 +67,9 @@ test("zooms around the pointer without moving the world point under it", () => {
     expect(world_clamped.y).toBeCloseTo(world_before.y);
 
     // 5. clamping at the min scale does the same
-    const minned = zoom_at(camera, VIEWPORT, pointer, 1e-9);
+    const minned = zoom_at(camera, VIEWPORT, pointer, 1e-15);
     expect(minned.scale).toBe(MIN_SCALE);
+    expect(VIEWPORT.width / minned.scale).toBeGreaterThanOrEqual(10_000_000_000_000);
     const world_minned = screen_to_world(pointer, minned, VIEWPORT);
     expect(world_minned.x).toBeCloseTo(world_before.x);
     expect(world_minned.y).toBeCloseTo(world_before.y);

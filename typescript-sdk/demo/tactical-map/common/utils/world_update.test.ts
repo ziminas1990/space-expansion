@@ -69,7 +69,7 @@ test("round-trips every world update variant", () => {
     const asteroid = new Asteroid("rock-1", sample_position(1_000_000, 5, 6), 40);
     asteroid.outdated = true;
     const ship = new Ship("foreign-1", sample_position(2_000_000, 8, 9));
-    const player = new PlayerShip("Scout", sample_position(3_000_000, 100, 200), 25);
+    const player = new PlayerShip("Scout", sample_position(3_000_000, 100, 200), 25, "Tiny-Scout");
     const variants: WorldUpdate[] = [
         { type: "add_asteroid", asteroid },
         { type: "add_ship", ship },
@@ -137,6 +137,7 @@ test("round-trips every world update variant", () => {
         expect(added_player.ship).not.toBeInstanceOf(Ship);
         expect(added_player.ship.get_id()).toBe("Scout");
         expect(added_player.ship.get_radius()).toBe(25);
+        expect(added_player.ship.get_blueprint_name()).toBe("Tiny-Scout");
     }
 
     const asteroid_update = unpacked[3];
